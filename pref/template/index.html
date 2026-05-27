@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ja">
+<!--
+  ================================================================
+  JDSF GD西部ブロック 府県連盟ページ テンプレート
+  ================================================================
+  このファイルをコピーして、府県名のフォルダに置いてください。
+  例: pref/osaka/index.html
+
+  【カスタマイズ箇所】
+  PREF_NAME    : 府県名（例: 大阪府）
+  PREF_EN      : 英語名（例: Osaka）
+  PREF_EMOJI   : 絵文字アイコン（例: 🌃）
+  PREF_COLOR   : アクセントカラー（任意。デフォルトはブロックカラー）
+  各セクションの内容を実際のものに書き換えてください。
+  ================================================================
+-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- ▼ タイトルを府県名に変更 -->
+  <title>○○府県ダンススポーツ連盟｜JDSF GD西部ブロック</title>
+  <meta name="description" content="○○府県ダンススポーツ連盟の公式ページです。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <!-- 親サイトのCSSを参照（パスの深さに応じて調整） -->
+  <link rel="stylesheet" href="../../css/style.css">
+  <style>
+    /* ===== 府県連盟固有スタイル ===== */
+    /* ▼ アクセントカラーをお好みで変更してください */
+    :root {
+      --pref-color:       #2563EB; /* 府県カラー */
+      --pref-color-dark:  #1B3A6B;
+      --pref-color-light: #EBF3FF;
+    }
+
+    .pref-hero {
+      background: linear-gradient(140deg, var(--pref-color-dark) 0%, var(--pref-color) 100%);
+      color: #fff;
+      padding: 72px 0 56px;
+    }
+    .pref-hero-inner {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+    .pref-hero-icon {
+      font-size: 4rem;
+      flex-shrink: 0;
+    }
+    .pref-breadcrumb {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.65);
+      margin-bottom: 8px;
+    }
+    .pref-breadcrumb a { color: rgba(255,255,255,0.75); }
+    .pref-title {
+      font-size: 2.25rem;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+    .pref-subtitle {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.78);
+      margin-top: 6px;
+    }
+
+    /* ニュース一覧 */
+    .news-list { display: grid; gap: 12px; }
+    .news-list-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      padding: 16px;
+      background: var(--bg-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      transition: var(--transition);
+    }
+    .news-list-item:hover { box-shadow: var(--shadow-hover); border-color: var(--primary-light); }
+    .news-list-date { font-size: 0.8rem; color: var(--text-light); white-space: nowrap; flex-shrink: 0; padding-top: 2px; }
+    .news-list-title { font-size: 0.9375rem; font-weight: 600; color: var(--text-dark); }
+
+    /* 役員一覧 */
+    .officers-table-wrap { overflow-x: auto; }
+    .officers-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+    }
+    .officers-table th {
+      background: var(--pref-color);
+      color: #fff;
+      padding: 11px 16px;
+      text-align: left;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    .officers-table td {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .officers-table tr:last-child td { border-bottom: none; }
+    .officers-table tr:hover td { background: var(--pref-color-light); }
+
+    /* 2カラムレイアウト */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+
+    @media (max-width: 768px) {
+      .pref-hero-inner { flex-direction: column; gap: 16px; }
+      .pref-title { font-size: 1.75rem; }
+      .two-col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== HEADER（親サイトと共通） ===== -->
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="../../index.html" class="header-logo">
+      <div class="header-logo-mark">GD<br>西部</div>
+      <div class="header-logo-text">
+        <div class="org">JDSF / 日本ダンススポーツ連盟</div>
+        <div class="name">GD 西部ブロック</div>
+      </div>
+    </a>
+    <button class="hamburger" aria-label="メニュー" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-nav" aria-label="メインナビゲーション">
+      <a href="../../index.html"        class="nav-link">ホーム</a>
+      <a href="../../about.html"        class="nav-link">西部ブロックについて</a>
+      <a href="../../competitions.html" class="nav-link">競技会情報</a>
+      <a href="../../rankings.html"     class="nav-link">ランキング</a>
+      <a href="../../members.html"      class="nav-link active">加盟団体</a>
+      <a href="../../contact.html"      class="nav-link nav-cta">お問い合わせ</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ===== 府県連盟ヒーロー ===== -->
+<!-- ▼ emoji と 府県名を変更してください -->
+<section class="pref-hero">
+  <div class="container pref-hero-inner">
+    <div class="pref-hero-icon">🗾</div>
+    <div>
+      <div class="pref-breadcrumb">
+        <a href="../../index.html">ホーム</a> /
+        <a href="../../members.html">加盟団体</a> /
+        ○○府県ダンススポーツ連盟
+      </div>
+      <h1 class="pref-title">○○府県<br>ダンススポーツ連盟</h1>
+      <p class="pref-subtitle">JDSF GD 西部ブロック 加盟連盟</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== お知らせ ===== -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">News</div>
+      <h2 class="section-title">お知らせ</h2>
+    </div>
+    <!-- ▼ お知らせを追加・編集してください -->
+    <div class="news-list">
+      <div class="news-list-item">
+        <span class="news-list-date">2026.05.01</span>
+        <span class="news-list-item" style="border:none;padding:0;">
+          <span class="tag tag-comp" style="flex-shrink:0;">競技会</span>
+          &nbsp;
+          <a href="#" class="news-list-title">2026年度 ○○大会 開催のご案内</a>
+        </span>
+      </div>
+      <div class="news-list-item">
+        <span class="news-list-date">2026.04.01</span>
+        <span class="tag tag-info" style="flex-shrink:0;">お知らせ</span>
+        &nbsp;
+        <span class="news-list-title">2026年度 役員名簿を更新しました</span>
+      </div>
+      <div class="news-list-item">
+        <span class="news-list-date">2026.03.20</span>
+        <span class="tag tag-rank" style="flex-shrink:0;">ランキング</span>
+        &nbsp;
+        <span class="news-list-title">2025年度 府県連盟ランキング 確定版を掲載</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 連盟について ===== -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">About</div>
+      <h2 class="section-title">連盟について</h2>
+    </div>
+    <div class="two-col">
+      <div>
+        <!-- ▼ 連盟の紹介文を書いてください -->
+        <p style="font-size:1.0625rem;line-height:1.9;color:var(--text-dark);margin-bottom:20px;">
+          ○○府県ダンススポーツ連盟は、○○県内のダンススポーツ競技の普及・振興を
+          目的として活動しています。JDSF GD西部ブロックの加盟連盟として、
+          ブロック競技会への参加やランキング管理を行っています。
+        </p>
+        <p style="font-size:0.9375rem;line-height:1.8;color:var(--text-medium);">
+          競技者の育成から愛好者の活動まで、幅広いニーズに応え、
+          ダンススポーツを通じた健康増進と地域コミュニティの形成を推進しています。
+        </p>
+      </div>
+      <div style="background:var(--pref-color-light);border-radius:var(--radius-lg);padding:28px;">
+        <h3 style="font-size:1rem;font-weight:700;color:var(--pref-color);margin-bottom:16px;">連盟概要</h3>
+        <dl style="display:grid;gap:12px;font-size:0.875rem;">
+          <div style="display:grid;grid-template-columns:120px 1fr;gap:8px;">
+            <dt style="font-weight:600;color:var(--text-light);">正式名称</dt>
+            <dd>○○府県ダンススポーツ連盟</dd>
+          </div>
+          <div style="display:grid;grid-template-columns:120px 1fr;gap:8px;">
+            <dt style="font-weight:600;color:var(--text-light);">設立</dt>
+            <dd>xxxx年</dd>
+          </div>
+          <div style="display:grid;grid-template-columns:120px 1fr;gap:8px;">
+            <dt style="font-weight:600;color:var(--text-light);">所在地</dt>
+            <dd>○○府県○○市○○</dd>
+          </div>
+          <div style="display:grid;grid-template-columns:120px 1fr;gap:8px;">
+            <dt style="font-weight:600;color:var(--text-light);">加盟ブロック</dt>
+            <dd>JDSF GD 西部ブロック</dd>
+          </div>
+          <div style="display:grid;grid-template-columns:120px 1fr;gap:8px;">
+            <dt style="font-weight:600;color:var(--text-light);">メール</dt>
+            <dd>info@xxxx.jp</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 役員一覧 ===== -->
+<section id="officers" class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Officers</div>
+      <h2 class="section-title">役員一覧</h2>
+      <p class="section-desc">2026年度 役員（敬称略）</p>
+    </div>
+    <!-- ▼ 実際の役員名に更新してください -->
+    <div class="officers-table-wrap">
+      <table class="officers-table">
+        <thead>
+          <tr>
+            <th style="width:180px;">役職</th>
+            <th>氏名</th>
+            <th>備考</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>会長</td><td>氏名 氏名</td><td></td></tr>
+          <tr><td>副会長</td><td>氏名 氏名</td><td></td></tr>
+          <tr><td>事務局長</td><td>氏名 氏名</td><td></td></tr>
+          <tr><td>競技委員長</td><td>氏名 氏名</td><td></td></tr>
+          <tr><td>審判委員長</td><td>氏名 氏名</td><td></td></tr>
+          <tr><td>普及委員長</td><td>氏名 氏名</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 競技会情報 ===== -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Competitions</div>
+      <h2 class="section-title">府県競技会情報</h2>
+    </div>
+    <!-- ▼ 競技会情報を記入してください -->
+    <div class="comp-grid">
+      <div class="comp-card">
+        <div class="comp-date-box" style="background:var(--pref-color);">
+          <span class="comp-month">MON</span>
+          <span class="comp-day">00</span>
+          <span class="comp-year">2026</span>
+        </div>
+        <div class="comp-info">
+          <h3 class="comp-title">2026年度 ○○大会</h3>
+          <div class="comp-meta">
+            <span>📍 ○○体育館</span>
+            <span>💃 ラテン / スタンダード</span>
+          </div>
+          <span class="comp-status status-open">エントリー受付中</span>
+        </div>
+      </div>
+      <div class="comp-card">
+        <div class="comp-date-box" style="background:var(--pref-color);">
+          <span class="comp-month">MON</span>
+          <span class="comp-day">00</span>
+          <span class="comp-year">2026</span>
+        </div>
+        <div class="comp-info">
+          <h3 class="comp-title">2026年度 ○○大会（第2回）</h3>
+          <div class="comp-meta">
+            <span>📍 詳細未定</span>
+          </div>
+          <span class="comp-status status-soon">詳細準備中</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== リンク集 ===== -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Links</div>
+      <h2 class="section-title">関連リンク</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+      <!-- ▼ 関連リンクを追加・編集してください -->
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener"
+         style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius-lg);
+                padding:20px;display:flex;gap:14px;align-items:center;
+                text-decoration:none;color:var(--text-dark);transition:var(--transition);"
+         onmouseover="this.style.boxShadow='var(--shadow-hover)'"
+         onmouseout="this.style.boxShadow=''">
+        <span style="font-size:1.75rem;">🔗</span>
+        <div>
+          <div style="font-weight:700;font-size:0.9375rem;">JDSF本部</div>
+          <div style="font-size:0.8rem;color:var(--text-light);">www.jdsf.or.jp</div>
+        </div>
+      </a>
+      <a href="../../index.html"
+         style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius-lg);
+                padding:20px;display:flex;gap:14px;align-items:center;
+                text-decoration:none;color:var(--text-dark);transition:var(--transition);"
+         onmouseover="this.style.boxShadow='var(--shadow-hover)'"
+         onmouseout="this.style.boxShadow=''">
+        <span style="font-size:1.75rem;">🌐</span>
+        <div>
+          <div style="font-weight:700;font-size:0.9375rem;">GD西部ブロック</div>
+          <div style="font-size:0.8rem;color:var(--text-light);">jdsf-seibu.com</div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER（親サイトと共通） ===== -->
+<footer class="site-footer">
+  <div class="container footer-top">
+    <div>
+      <div class="footer-logo">
+        <div class="footer-logo-mark">GD<br>西部</div>
+        <div class="footer-logo-name">JDSF GD 西部ブロック</div>
+      </div>
+      <p class="footer-desc">
+        本ページは <a href="../../index.html" style="color:var(--accent-light);">JDSF GD西部ブロック</a> 管轄の<br>
+        府県連盟ページです。
+      </p>
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="footer-jdsf">🔗 JDSF本部サイト</a>
+    </div>
+    <div class="footer-col">
+      <h4>このページ</h4>
+      <ul class="footer-links">
+        <li><a href="#top">トップ</a></li>
+        <li><a href="#officers">役員一覧</a></li>
+        <li><a href="#competitions">競技会情報</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>西部ブロック</h4>
+      <ul class="footer-links">
+        <li><a href="../../index.html">ホーム</a></li>
+        <li><a href="../../competitions.html">競技会情報</a></li>
+        <li><a href="../../rankings.html">ランキング</a></li>
+        <li><a href="../../members.html">加盟団体一覧</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>お問い合わせ</h4>
+      <ul class="footer-links">
+        <li><a href="../../contact.html">西部ブロック事務局</a></li>
+        <li><a href="../../privacy.html">プライバシーポリシー</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© 2026 ○○府県ダンススポーツ連盟 / JDSF GD西部ブロック</span>
+    <div class="footer-bottom-links">
+      <a href="../../privacy.html">プライバシーポリシー</a>
+      <a href="../../contact.html">お問い合わせ</a>
+    </div>
+  </div>
+</footer>
+
+<script src="../../js/main.js"></script>
+</body>
+</html>

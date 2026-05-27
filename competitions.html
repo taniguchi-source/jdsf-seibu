@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>競技会情報｜JDSF GD西部ブロック</title>
+  <meta name="description" content="JDSF GD西部ブロック主催の競技会日程・結果・申込情報・競技規程をご案内します。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .comp-detail-card {
+      background: var(--bg-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .comp-detail-header {
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      color: #fff;
+      padding: 24px 28px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .comp-detail-date-box {
+      flex-shrink: 0;
+      width: 68px;
+      height: 76px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .comp-detail-month { font-size: 0.75rem; font-weight: 700; opacity: 0.82; }
+    .comp-detail-day   { font-size: 2.25rem; font-weight: 900; line-height: 1; }
+    .comp-detail-year  { font-size: 0.7rem;  opacity: 0.65; }
+    .comp-detail-title { font-size: 1.25rem; font-weight: 800; }
+    .comp-detail-subtitle { font-size: 0.875rem; opacity: 0.8; margin-top: 4px; }
+    .comp-detail-body { padding: 24px 28px; }
+    .comp-info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .comp-info-item { display: flex; gap: 12px; align-items: flex-start; }
+    .comp-info-icon { font-size: 1.25rem; flex-shrink: 0; margin-top: 1px; }
+    .comp-info-label { font-size: 0.75rem; color: var(--text-light); font-weight: 600; margin-bottom: 2px; }
+    .comp-info-value { font-size: 0.9375rem; color: var(--text-dark); font-weight: 500; }
+    .comp-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .comp-divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+    .doc-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .doc-card {
+      background: var(--bg-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: var(--transition);
+    }
+    .doc-card:hover { box-shadow: var(--shadow-hover); border-color: var(--primary-light); }
+    .doc-icon { font-size: 2rem; }
+    .doc-name { font-size: 0.9375rem; font-weight: 700; color: var(--text-dark); }
+    .doc-desc { font-size: 0.8125rem; color: var(--text-light); flex: 1; }
+    .doc-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--primary-light);
+    }
+    .doc-link:hover { color: var(--primary); }
+
+    @media (max-width: 768px) {
+      .comp-detail-header { flex-direction: column; align-items: flex-start; gap: 14px; }
+      .comp-info-grid { grid-template-columns: 1fr; }
+      .doc-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .doc-grid { grid-template-columns: 1fr; }
+      .comp-detail-body { padding: 18px; }
+      .comp-detail-header { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="header-logo">
+      <div class="header-logo-mark">GD<br>西部</div>
+      <div class="header-logo-text">
+        <div class="org">JDSF / 日本ダンススポーツ連盟</div>
+        <div class="name">GD 西部ブロック</div>
+      </div>
+    </a>
+    <button class="hamburger" aria-label="メニュー" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-nav" aria-label="メインナビゲーション">
+      <a href="index.html"        class="nav-link">ホーム</a>
+      <a href="about.html"        class="nav-link">西部ブロックについて</a>
+      <a href="competitions.html" class="nav-link active">競技会情報</a>
+      <a href="rankings.html"     class="nav-link">ランキング</a>
+      <a href="members.html"      class="nav-link">加盟団体</a>
+      <a href="contact.html"      class="nav-link nav-cta">お問い合わせ</a>
+    </nav>
+  </div>
+</header>
+
+<nav class="breadcrumb">
+  <div class="container">
+    <ol class="breadcrumb-list">
+      <li><a href="index.html">ホーム</a></li>
+      <li>競技会情報</li>
+    </ol>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container">
+    <div class="page-hero-label">Competitions</div>
+    <h1 class="page-hero-title">競技会情報</h1>
+    <p class="page-hero-desc">西部ブロック競技会の日程・申込・結果</p>
+  </div>
+</div>
+
+<!-- 2026年度競技会 -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">2026年度</div>
+      <h2 class="section-title">2026年度<span>競技会日程</span></h2>
+    </div>
+
+    <!-- 第1回 -->
+    <div class="comp-detail-card">
+      <div class="comp-detail-header">
+        <div class="comp-detail-date-box">
+          <span class="comp-detail-month">JUN</span>
+          <span class="comp-detail-day">22</span>
+          <span class="comp-detail-year">2026</span>
+        </div>
+        <div>
+          <div class="comp-detail-title">2026年度 第1回 西部ブロック競技会</div>
+          <div class="comp-detail-subtitle">ラテン部門 / スタンダード部門 全種別</div>
+        </div>
+        <span class="comp-status status-open" style="margin-left:auto;flex-shrink:0;">エントリー受付中</span>
+      </div>
+      <div class="comp-detail-body">
+        <div class="comp-info-grid">
+          <div class="comp-info-item">
+            <span class="comp-info-icon">📅</span>
+            <div>
+              <div class="comp-info-label">開催日</div>
+              <div class="comp-info-value">2026年6月22日（日）</div>
+            </div>
+          </div>
+          <div class="comp-info-item">
+            <span class="comp-info-icon">📍</span>
+            <div>
+              <div class="comp-info-label">会場</div>
+              <div class="comp-info-value">大阪市中央体育館</div>
+            </div>
+          </div>
+          <div class="comp-info-item">
+            <span class="comp-info-icon">🕘</span>
+            <div>
+              <div class="comp-info-label">開場 / 開始</div>
+              <div class="comp-info-value">10:00 開場 ／ 10:30 開始</div>
+            </div>
+          </div>
+          <div class="comp-info-item">
+            <span class="comp-info-icon">📝</span>
+            <div>
+              <div class="comp-info-label">エントリー締切</div>
+              <div class="comp-info-value">2026年6月1日（月）必着</div>
+            </div>
+          </div>
+          <div class="comp-info-item">
+            <span class="comp-info-icon">💃</span>
+            <div>
+              <div class="comp-info-label">競技種目</div>
+              <div class="comp-info-value">ラテン・スタンダード 全種別</div>
+            </div>
+          </div>
+          <div class="comp-info-item">
+            <span class="comp-info-icon">💰</span>
+            <div>
+              <div class="comp-info-label">参加費</div>
+              <div class="comp-info-value">1種目 ○○円（詳細は要項参照）</div>
+            </div>
+          </div>
+        </div>
+        <div class="comp-divider"></div>
+        <div class="comp-actions">
+          <a href="#" class="btn btn-primary">📄 競技要項をダウンロード</a>
+          <a href="#" class="btn btn-secondary">📝 申込書をダウンロード</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 第2回 -->
+    <div class="comp-detail-card">
+      <div class="comp-detail-header">
+        <div class="comp-detail-date-box">
+          <span class="comp-detail-month">SEP</span>
+          <span class="comp-detail-day">07</span>
+          <span class="comp-detail-year">2026</span>
+        </div>
+        <div>
+          <div class="comp-detail-title">2026年度 第2回 西部ブロック競技会</div>
+          <div class="comp-detail-subtitle">ラテン部門 / スタンダード部門 全種別</div>
+        </div>
+        <span class="comp-status status-soon" style="margin-left:auto;flex-shrink:0;">詳細準備中</span>
+      </div>
+      <div class="comp-detail-body">
+        <div class="comp-info-grid">
+          <div class="comp-info-item">
+            <span class="comp-info-icon">📅</span>
+            <div>
+              <div class="comp-info-label">開催日</div>
+              <div class="comp-info-value">2026年9月7日（日）</div>
+            </div>
+          </div>
+          <div class="comp-info-item">
+            <span class="comp-info-icon">📍</span>
+            <div>
+              <div class="comp-info-label">会場</div>
+              <div class="comp-info-value">広島県立体育館（予定）</div>
+            </div>
+          </div>
+          <div class="comp-info-item">
+            <span class="comp-info-icon">💃</span>
+            <div>
+              <div class="comp-info-label">競技種目</div>
+              <div class="comp-info-value">ラテン・スタンダード 全種別</div>
+            </div>
+          </div>
+          <div class="comp-info-item">
+            <span class="comp-info-icon">📝</span>
+            <div>
+              <div class="comp-info-label">エントリー</div>
+              <div class="comp-info-value">詳細決定次第お知らせします</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 第3回 -->
+    <div class="comp-detail-card">
+      <div class="comp-detail-header">
+        <div class="comp-detail-date-box">
+          <span class="comp-detail-month">NOV</span>
+          <span class="comp-detail-day">23</span>
+          <span class="comp-detail-year">2026</span>
+        </div>
+        <div>
+          <div class="comp-detail-title">2026年度 第3回 西部ブロック競技会</div>
+          <div class="comp-detail-subtitle">ラテン部門 / スタンダード部門 全種別</div>
+        </div>
+        <span class="comp-status status-closed" style="margin-left:auto;flex-shrink:0;">詳細未定</span>
+      </div>
+      <div class="comp-detail-body">
+        <p style="color:var(--text-light);font-size:0.9375rem;">詳細は決定次第、このページでご案内します。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 競技規程・書類 -->
+<section id="docs" class="section section-alt">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Documents</div>
+      <h2 class="section-title">競技規程・<span>申込書類</span></h2>
+      <p class="section-desc">競技会に参加するために必要な書類・規程をダウンロードできます</p>
+    </div>
+    <div class="doc-grid">
+      <div class="doc-card">
+        <div class="doc-icon">📋</div>
+        <div class="doc-name">西部ブロック競技会規程</div>
+        <div class="doc-desc">競技会の開催に関する基本規程（2026年度版）</div>
+        <a href="#" class="doc-link">PDF ダウンロード →</a>
+      </div>
+      <div class="doc-card">
+        <div class="doc-icon">📝</div>
+        <div class="doc-name">競技会申込書</div>
+        <div class="doc-desc">エントリー用申込書フォーマット</div>
+        <a href="#" class="doc-link">Excel ダウンロード →</a>
+      </div>
+      <div class="doc-card">
+        <div class="doc-icon">📄</div>
+        <div class="doc-name">JDSF競技規程</div>
+        <div class="doc-desc">日本ダンススポーツ連盟の競技規程（本部配布）</div>
+        <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="doc-link">JDSF本部サイト →</a>
+      </div>
+      <div class="doc-card">
+        <div class="doc-icon">🎓</div>
+        <div class="doc-name">指導員認定申請書</div>
+        <div class="doc-desc">JDSF指導員の認定申請に必要な書類</div>
+        <a href="#" class="doc-link">PDF ダウンロード →</a>
+      </div>
+      <div class="doc-card">
+        <div class="doc-icon">🔔</div>
+        <div class="doc-name">JDSF通達・通知</div>
+        <div class="doc-desc">JDSF本部からの重要通達・通知のアーカイブ</div>
+        <a href="#" class="doc-link">一覧を見る →</a>
+      </div>
+      <div class="doc-card">
+        <div class="doc-icon">📊</div>
+        <div class="doc-name">成績提出フォーマット</div>
+        <div class="doc-desc">府県競技会の成績をブロックへ提出する際のフォーマット</div>
+        <a href="#" class="doc-link">Excel ダウンロード →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 過去の結果 -->
+<section id="results" class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Results</div>
+      <h2 class="section-title">過去の<span>競技会結果</span></h2>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-target="result-2025">2025年度</button>
+      <button class="tab-btn" data-target="result-2024">2024年度</button>
+      <button class="tab-btn" data-target="result-2023">2023年度</button>
+    </div>
+    <div id="result-2025" class="tab-panel active">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>開催日</th>
+              <th>大会名</th>
+              <th>会場</th>
+              <th>結果</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2026年3月8日</td>
+              <td>2025年度 第3回 西部ブロック競技会</td>
+              <td>神戸ワールド記念ホール</td>
+              <td><a href="#" style="color:var(--primary-light);font-weight:600;">結果を見る →</a></td>
+            </tr>
+            <tr>
+              <td>2025年9月14日</td>
+              <td>2025年度 第2回 西部ブロック競技会</td>
+              <td>岡山武道館</td>
+              <td><a href="#" style="color:var(--primary-light);font-weight:600;">結果を見る →</a></td>
+            </tr>
+            <tr>
+              <td>2025年6月8日</td>
+              <td>2025年度 第1回 西部ブロック競技会</td>
+              <td>大阪市中央体育館</td>
+              <td><a href="#" style="color:var(--primary-light);font-weight:600;">結果を見る →</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="result-2024" class="tab-panel">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr><th>開催日</th><th>大会名</th><th>会場</th><th>結果</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2025年3月9日</td>
+              <td>2024年度 第3回 西部ブロック競技会</td>
+              <td>広島サンプラザ</td>
+              <td><a href="#" style="color:var(--primary-light);font-weight:600;">結果を見る →</a></td>
+            </tr>
+            <tr>
+              <td>2024年9月8日</td>
+              <td>2024年度 第2回 西部ブロック競技会</td>
+              <td>京都府立体育館</td>
+              <td><a href="#" style="color:var(--primary-light);font-weight:600;">結果を見る →</a></td>
+            </tr>
+            <tr>
+              <td>2024年6月9日</td>
+              <td>2024年度 第1回 西部ブロック競技会</td>
+              <td>大阪市中央体育館</td>
+              <td><a href="#" style="color:var(--primary-light);font-weight:600;">結果を見る →</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="result-2023" class="tab-panel">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr><th>開催日</th><th>大会名</th><th>会場</th><th>結果</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2024年3月10日</td>
+              <td>2023年度 第3回 西部ブロック競技会</td>
+              <td>兵庫県立体育館</td>
+              <td><a href="#" style="color:var(--primary-light);font-weight:600;">結果を見る →</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-top">
+    <div>
+      <div class="footer-logo">
+        <div class="footer-logo-mark">GD<br>西部</div>
+        <div class="footer-logo-name">JDSF GD 西部ブロック</div>
+      </div>
+      <p class="footer-desc">公益社団法人日本ダンススポーツ連盟 西部ブロック</p>
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="footer-jdsf">🔗 JDSF本部サイト</a>
+    </div>
+    <div class="footer-col">
+      <h4>サイトマップ</h4>
+      <ul class="footer-links">
+        <li><a href="index.html">ホーム</a></li>
+        <li><a href="about.html">西部ブロックについて</a></li>
+        <li><a href="competitions.html">競技会情報</a></li>
+        <li><a href="rankings.html">ランキング</a></li>
+        <li><a href="members.html">加盟団体</a></li>
+        <li><a href="contact.html">お問い合わせ</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>競技情報</h4>
+      <ul class="footer-links">
+        <li><a href="competitions.html">競技会日程</a></li>
+        <li><a href="competitions.html#docs">申込書類</a></li>
+        <li><a href="competitions.html#results">過去の結果</a></li>
+        <li><a href="rankings.html">ランキング</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>お問い合わせ</h4>
+      <ul class="footer-links">
+        <li><a href="contact.html">お問い合わせフォーム</a></li>
+        <li><a href="privacy.html">プライバシーポリシー</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© 2026 JDSF GD 西部ブロック. All rights reserved.</span>
+    <div class="footer-bottom-links">
+      <a href="privacy.html">プライバシーポリシー</a>
+      <a href="contact.html">お問い合わせ</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

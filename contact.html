@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>お問い合わせ｜JDSF GD西部ブロック</title>
+  <meta name="description" content="JDSF GD西部ブロックへのお問い合わせフォームです。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .contact-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 48px;
+      align-items: start;
+    }
+    .contact-form-wrap {
+      background: var(--bg-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 36px;
+    }
+    .contact-form-title {
+      font-size: 1.125rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--bg-blue);
+    }
+    .contact-info-card {
+      background: var(--primary);
+      color: #fff;
+      border-radius: var(--radius-lg);
+      padding: 28px;
+    }
+    .contact-info-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+    }
+    .contact-info-list { display: grid; gap: 16px; }
+    .contact-info-item { display: flex; gap: 14px; align-items: flex-start; }
+    .contact-info-icon { font-size: 1.25rem; flex-shrink: 0; margin-top: 2px; }
+    .contact-info-label { font-size: 0.75rem; color: rgba(255,255,255,0.65); margin-bottom: 3px; }
+    .contact-info-value { font-size: 0.9rem; color: #fff; font-weight: 500; line-height: 1.5; }
+    .faq-list { display: grid; gap: 12px; margin-top: 32px; }
+    .faq-item {
+      background: var(--bg-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .faq-q {
+      padding: 16px 20px;
+      font-size: 0.9375rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .faq-q::after {
+      content: '＋';
+      font-size: 1.25rem;
+      color: var(--primary-light);
+      flex-shrink: 0;
+      transition: var(--transition);
+    }
+    .faq-item.open .faq-q::after { content: '－'; }
+    .faq-a {
+      padding: 0 20px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      font-size: 0.9rem;
+      color: var(--text-medium);
+      line-height: 1.75;
+    }
+    .faq-item.open .faq-a { max-height: 200px; padding: 0 20px 16px; }
+    @media (max-width: 900px) {
+      .contact-layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .contact-form-wrap { padding: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="header-logo">
+      <div class="header-logo-mark">GD<br>西部</div>
+      <div class="header-logo-text">
+        <div class="org">JDSF / 日本ダンススポーツ連盟</div>
+        <div class="name">GD 西部ブロック</div>
+      </div>
+    </a>
+    <button class="hamburger" aria-label="メニュー" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-nav" aria-label="メインナビゲーション">
+      <a href="index.html"        class="nav-link">ホーム</a>
+      <a href="about.html"        class="nav-link">西部ブロックについて</a>
+      <a href="competitions.html" class="nav-link">競技会情報</a>
+      <a href="rankings.html"     class="nav-link">ランキング</a>
+      <a href="members.html"      class="nav-link">加盟団体</a>
+      <a href="contact.html"      class="nav-link active nav-cta">お問い合わせ</a>
+    </nav>
+  </div>
+</header>
+
+<nav class="breadcrumb">
+  <div class="container">
+    <ol class="breadcrumb-list">
+      <li><a href="index.html">ホーム</a></li>
+      <li>お問い合わせ</li>
+    </ol>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container">
+    <div class="page-hero-label">Contact</div>
+    <h1 class="page-hero-title">お問い合わせ</h1>
+    <p class="page-hero-desc">競技会・ランキング・加盟に関するご質問はこちら</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container contact-layout">
+
+    <!-- フォーム -->
+    <div>
+      <div class="contact-form-wrap">
+        <h2 class="contact-form-title">✉️ お問い合わせフォーム</h2>
+        <form id="contactForm" novalidate>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">お名前<span class="req">*</span></label>
+              <input type="text" id="name" name="name" placeholder="山田 太郎" required>
+            </div>
+            <div class="form-group">
+              <label for="org">所属団体・府県連盟</label>
+              <input type="text" id="org" name="org" placeholder="○○府県ダンススポーツ連盟">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="email">メールアドレス<span class="req">*</span></label>
+            <input type="email" id="email" name="email" placeholder="example@email.com" required>
+          </div>
+          <div class="form-group">
+            <label for="category">お問い合わせ種別<span class="req">*</span></label>
+            <select id="category" name="category" required>
+              <option value="" disabled selected>選択してください</option>
+              <option value="competition">競技会・エントリーについて</option>
+              <option value="ranking">ランキングについて</option>
+              <option value="instructor">指導員認定について</option>
+              <option value="member">加盟・連盟活動について</option>
+              <option value="officer">役員・担当者へのご連絡（連盟関係者）</option>
+              <option value="other">その他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="subject">件名<span class="req">*</span></label>
+            <input type="text" id="subject" name="subject" placeholder="お問い合わせの件名をご入力ください" required>
+          </div>
+          <div class="form-group">
+            <label for="message">お問い合わせ内容<span class="req">*</span></label>
+            <textarea id="message" name="message" placeholder="詳細をご入力ください" required></textarea>
+          </div>
+          <div class="form-group">
+            <label style="display:flex;align-items:flex-start;gap:10px;font-weight:400;cursor:pointer;">
+              <input type="checkbox" name="agree" required style="width:auto;margin-top:3px;">
+              <span style="font-size:0.875rem;">
+                <a href="privacy.html" target="_blank" style="color:var(--primary-light);">プライバシーポリシー</a>
+                に同意する<span class="req">*</span>
+              </span>
+            </label>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
+            送信する
+          </button>
+        </form>
+      </div>
+
+      <!-- FAQ -->
+      <h2 style="font-size:1.25rem;font-weight:800;color:var(--text-dark);margin-top:48px;margin-bottom:16px;">
+        よくあるご質問
+      </h2>
+      <div class="faq-list">
+        <div class="faq-item">
+          <div class="faq-q">競技会に参加するにはどうすればよいですか？</div>
+          <div class="faq-a">
+            西部ブロック競技会に参加するには、JDSF会員登録が必要です。各府県連盟を通じて
+            JDSF会員となった後、競技会の申込書をダウンロードして期日までに提出してください。
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">ランキングの集計方法を教えてください。</div>
+          <div class="faq-a">
+            西部ブロック主催競技会での成績に基づきポイントを付与し、年間合計で集計します。
+            種別・クラスごとに集計しており、年度末（3月末）に確定版を掲載します。
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">指導員の認定を受けるにはどうすればよいですか？</div>
+          <div class="faq-a">
+            JDSF指導員認定は所定の講習受講と実技・筆記試験に合格する必要があります。
+            詳細はJDSF本部サイトまたはお問い合わせフォームよりご確認ください。
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">府県連盟を新たに設立して加盟したい。</div>
+          <div class="faq-a">
+            新規加盟をご希望の場合は、お問い合わせフォームよりご連絡ください。
+            JDSF本部の加盟規程に沿って手続きをご案内します。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- サイドバー情報 -->
+    <div>
+      <div class="contact-info-card">
+        <div class="contact-info-title">📞 連絡先情報</div>
+        <div class="contact-info-list">
+          <div class="contact-info-item">
+            <span class="contact-info-icon">🏢</span>
+            <div>
+              <div class="contact-info-label">組織名</div>
+              <div class="contact-info-value">JDSF GD 西部ブロック<br>（日本ダンススポーツ連盟 西部ブロック）</div>
+            </div>
+          </div>
+          <div class="contact-info-item">
+            <span class="contact-info-icon">✉️</span>
+            <div>
+              <div class="contact-info-label">メール</div>
+              <div class="contact-info-value">info@jdsf-seibu.com<br><span style="font-size:0.75rem;opacity:0.75;">（フォームからのご連絡を推奨します）</span></div>
+            </div>
+          </div>
+          <div class="contact-info-item">
+            <span class="contact-info-icon">🔗</span>
+            <div>
+              <div class="contact-info-label">JDSF本部</div>
+              <div class="contact-info-value">
+                <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener"
+                   style="color:var(--accent-light);">www.jdsf.or.jp</a>
+              </div>
+            </div>
+          </div>
+          <div class="contact-info-item">
+            <span class="contact-info-icon">⏰</span>
+            <div>
+              <div class="contact-info-label">返信について</div>
+              <div class="contact-info-value">いただいたお問い合わせには、通常1週間以内にご返信します。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:var(--bg-blue);border-radius:var(--radius-lg);padding:20px;margin-top:16px;">
+        <h3 style="font-size:0.9rem;font-weight:700;color:var(--primary);margin-bottom:10px;">
+          💡 府県連盟担当者の方へ
+        </h3>
+        <p style="font-size:0.8125rem;color:var(--text-medium);line-height:1.7;">
+          成績報告・書類提出・役員変更等の連絡は、
+          お問い合わせ種別で「役員・担当者へのご連絡」をお選びください。
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-top">
+    <div>
+      <div class="footer-logo">
+        <div class="footer-logo-mark">GD<br>西部</div>
+        <div class="footer-logo-name">JDSF GD 西部ブロック</div>
+      </div>
+      <p class="footer-desc">公益社団法人日本ダンススポーツ連盟 西部ブロック</p>
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="footer-jdsf">🔗 JDSF本部サイト</a>
+    </div>
+    <div class="footer-col">
+      <h4>サイトマップ</h4>
+      <ul class="footer-links">
+        <li><a href="index.html">ホーム</a></li>
+        <li><a href="about.html">西部ブロックについて</a></li>
+        <li><a href="competitions.html">競技会情報</a></li>
+        <li><a href="rankings.html">ランキング</a></li>
+        <li><a href="members.html">加盟団体</a></li>
+        <li><a href="contact.html">お問い合わせ</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>関連リンク</h4>
+      <ul class="footer-links">
+        <li><a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener">JDSF本部</a></li>
+        <li><a href="about.html#officers">役員一覧</a></li>
+        <li><a href="privacy.html">プライバシーポリシー</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>お問い合わせ</h4>
+      <ul class="footer-links">
+        <li><a href="contact.html">お問い合わせフォーム</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© 2026 JDSF GD 西部ブロック. All rights reserved.</span>
+    <div class="footer-bottom-links">
+      <a href="privacy.html">プライバシーポリシー</a>
+      <a href="contact.html">お問い合わせ</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+/* FAQ アコーディオン */
+document.querySelectorAll('.faq-q').forEach(q => {
+  q.addEventListener('click', () => {
+    const item = q.closest('.faq-item');
+    item.classList.toggle('open');
+  });
+});
+</script>
+</body>
+</html>

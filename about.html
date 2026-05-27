@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>西部ブロックについて｜JDSF GD西部ブロック</title>
+  <meta name="description" content="JDSF GD西部ブロックの概要・役割・役員構成・沿革についてご紹介します。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .officer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .officer-card {
+      background: var(--bg-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      text-align: center;
+    }
+    .officer-role {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--primary-light);
+      background: var(--bg-blue);
+      padding: 3px 12px;
+      border-radius: 100px;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+    .officer-name {
+      font-size: 1.125rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+    .officer-pref {
+      font-size: 0.8125rem;
+      color: var(--text-light);
+    }
+    .history-list { display: grid; gap: 0; }
+    .history-item {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 24px;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: start;
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-year {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      color: var(--primary-light);
+      padding-top: 2px;
+    }
+    .history-text {
+      font-size: 0.9375rem;
+      color: var(--text-medium);
+      line-height: 1.7;
+    }
+    .area-map {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .area-block {
+      background: var(--bg-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+    }
+    .area-block h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--bg-blue);
+    }
+    .area-prefs { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pref-chip {
+      background: var(--bg-blue);
+      color: var(--primary);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      padding: 4px 14px;
+      border-radius: 100px;
+    }
+    @media (max-width: 768px) {
+      .officer-grid { grid-template-columns: 1fr 1fr; }
+      .history-item { grid-template-columns: 80px 1fr; gap: 16px; }
+      .area-map { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .officer-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="header-logo">
+      <div class="header-logo-mark">GD<br>西部</div>
+      <div class="header-logo-text">
+        <div class="org">JDSF / 日本ダンススポーツ連盟</div>
+        <div class="name">GD 西部ブロック</div>
+      </div>
+    </a>
+    <button class="hamburger" aria-label="メニュー" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-nav" aria-label="メインナビゲーション">
+      <a href="index.html"        class="nav-link">ホーム</a>
+      <a href="about.html"        class="nav-link active">西部ブロックについて</a>
+      <a href="competitions.html" class="nav-link">競技会情報</a>
+      <a href="rankings.html"     class="nav-link">ランキング</a>
+      <a href="members.html"      class="nav-link">加盟団体</a>
+      <a href="contact.html"      class="nav-link nav-cta">お問い合わせ</a>
+    </nav>
+  </div>
+</header>
+
+<nav class="breadcrumb">
+  <div class="container">
+    <ol class="breadcrumb-list">
+      <li><a href="index.html">ホーム</a></li>
+      <li>西部ブロックについて</li>
+    </ol>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container">
+    <div class="page-hero-label">About</div>
+    <h1 class="page-hero-title">西部ブロックについて</h1>
+    <p class="page-hero-desc">GD西部ブロックの役割・組織・活動領域</p>
+  </div>
+</div>
+
+<!-- ブロックの役割 -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Mission &amp; Role</div>
+      <h2 class="section-title">西部ブロックの<span>役割</span></h2>
+    </div>
+    <div class="about-grid">
+      <div class="about-content">
+        <p class="about-lead">
+          GD（ゲネラルダンス）西部ブロックは、公益社団法人日本ダンススポーツ連盟（JDSF）の
+          地域ブロック組織として設置されています。近畿・中国・四国地方に所在する
+          13の府県ダンススポーツ連盟を統括し、競技ダンスの普及・振興を図ることを目的としています。
+        </p>
+        <ul class="feature-list">
+          <li class="feature-item">
+            <div class="feature-icon">🏅</div>
+            <div class="feature-body">
+              <h3>ブロック競技会の主催</h3>
+              <p>年間を通じて西部ブロック競技会を開催。ラテン・スタンダード全種別を対象とします。</p>
+            </div>
+          </li>
+          <li class="feature-item">
+            <div class="feature-icon">📊</div>
+            <div class="feature-body">
+              <h3>ランキング管理・公表</h3>
+              <p>ブロック内各競技会の成績を集計し、年間ランキングを管理・公表します。</p>
+            </div>
+          </li>
+          <li class="feature-item">
+            <div class="feature-icon">🎓</div>
+            <div class="feature-body">
+              <h3>指導員認定審査</h3>
+              <p>JDSF指導員の認定審査をブロックレベルで実施し、地域の指導者育成を支援します。</p>
+            </div>
+          </li>
+          <li class="feature-item">
+            <div class="feature-icon">📡</div>
+            <div class="feature-body">
+              <h3>JDSF本部との連絡調整</h3>
+              <p>本部からの通達・情報を各府県連盟へ伝達し、方針の共有と連携を図ります。</p>
+            </div>
+          </li>
+          <li class="feature-item">
+            <div class="feature-icon">🤝</div>
+            <div class="feature-body">
+              <h3>府県連盟間の調整・支援</h3>
+              <p>各府県連盟の活動状況を把握し、相互連携・課題解決を支援します。</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="about-visual">
+        <div class="about-visual-title">西部ブロック 基本情報</div>
+        <div class="about-stat-grid">
+          <div>
+            <div class="about-stat-num">13</div>
+            <div class="about-stat-lbl">加盟府県連盟</div>
+          </div>
+          <div>
+            <div class="about-stat-num">2</div>
+            <div class="about-stat-lbl">競技種目</div>
+          </div>
+          <div>
+            <div class="about-stat-num">近畿</div>
+            <div class="about-stat-lbl" style="font-size:0.75rem;">滋賀・京都・大阪<br>兵庫・奈良・和歌山</div>
+          </div>
+          <div>
+            <div class="about-stat-num">中四国</div>
+            <div class="about-stat-lbl" style="font-size:0.75rem;">鳥取・島根・岡山・広島<br>香川・徳島・愛媛</div>
+          </div>
+        </div>
+        <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="about-jdsf-link">
+          🔗 JDSF本部サイトへ
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 管轄エリア -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Area</div>
+      <h2 class="section-title">管轄<span>エリア</span></h2>
+      <p class="section-desc">近畿・中国・四国地方の13府県</p>
+    </div>
+    <div class="area-map">
+      <div class="area-block">
+        <h3>🌸 近畿ブロック（6府県）</h3>
+        <div class="area-prefs">
+          <span class="pref-chip">滋賀県</span>
+          <span class="pref-chip">京都府</span>
+          <span class="pref-chip">大阪府</span>
+          <span class="pref-chip">兵庫県</span>
+          <span class="pref-chip">奈良県</span>
+          <span class="pref-chip">和歌山県</span>
+        </div>
+      </div>
+      <div class="area-block">
+        <h3>🌊 中国・四国エリア（7県）</h3>
+        <div class="area-prefs">
+          <span class="pref-chip">鳥取県</span>
+          <span class="pref-chip">島根県</span>
+          <span class="pref-chip">岡山県</span>
+          <span class="pref-chip">広島県</span>
+          <span class="pref-chip">香川県</span>
+          <span class="pref-chip">徳島県</span>
+          <span class="pref-chip">愛媛県</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 役員一覧 -->
+<section id="officers" class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Officers</div>
+      <h2 class="section-title">役員<span>一覧</span></h2>
+      <p class="section-desc">2026年度 GD西部ブロック役員（敬称略）</p>
+    </div>
+    <div class="officer-grid">
+      <div class="officer-card">
+        <div class="officer-role">ブロック長</div>
+        <div class="officer-name">氏名 氏名</div>
+        <div class="officer-pref">○○府県連盟</div>
+      </div>
+      <div class="officer-card">
+        <div class="officer-role">副ブロック長</div>
+        <div class="officer-name">氏名 氏名</div>
+        <div class="officer-pref">○○府県連盟</div>
+      </div>
+      <div class="officer-card">
+        <div class="officer-role">副ブロック長</div>
+        <div class="officer-name">氏名 氏名</div>
+        <div class="officer-pref">○○府県連盟</div>
+      </div>
+      <div class="officer-card">
+        <div class="officer-role">幹事長</div>
+        <div class="officer-name">氏名 氏名</div>
+        <div class="officer-pref">○○府県連盟</div>
+      </div>
+      <div class="officer-card">
+        <div class="officer-role">幹事</div>
+        <div class="officer-name">氏名 氏名</div>
+        <div class="officer-pref">○○府県連盟</div>
+      </div>
+      <div class="officer-card">
+        <div class="officer-role">幹事</div>
+        <div class="officer-name">氏名 氏名</div>
+        <div class="officer-pref">○○府県連盟</div>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:20px;font-size:0.875rem;color:var(--text-light);">
+      ※ 役員名は実際のものに更新してください
+    </p>
+  </div>
+</section>
+
+<!-- 沿革 -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">History</div>
+      <h2 class="section-title">沿革</h2>
+    </div>
+    <div style="max-width:720px;margin:0 auto;">
+      <div class="history-list">
+        <div class="history-item">
+          <div class="history-year">xxxx年</div>
+          <div class="history-text">JDSF西部ブロック設立</div>
+        </div>
+        <div class="history-item">
+          <div class="history-year">xxxx年</div>
+          <div class="history-text">第1回西部ブロック競技会 開催</div>
+        </div>
+        <div class="history-item">
+          <div class="history-year">xxxx年</div>
+          <div class="history-text">加盟府県連盟 xx連盟に拡大</div>
+        </div>
+        <div class="history-item">
+          <div class="history-year">2026年</div>
+          <div class="history-text">公式ウェブサイト リニューアル</div>
+        </div>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:20px;font-size:0.875rem;color:var(--text-light);">
+      ※ 沿革は実際の情報に更新してください
+    </p>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-top">
+    <div>
+      <div class="footer-logo">
+        <div class="footer-logo-mark">GD<br>西部</div>
+        <div class="footer-logo-name">JDSF GD 西部ブロック</div>
+      </div>
+      <p class="footer-desc">公益社団法人日本ダンススポーツ連盟 西部ブロック</p>
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="footer-jdsf">🔗 JDSF本部サイト</a>
+    </div>
+    <div class="footer-col">
+      <h4>サイトマップ</h4>
+      <ul class="footer-links">
+        <li><a href="index.html">ホーム</a></li>
+        <li><a href="about.html">西部ブロックについて</a></li>
+        <li><a href="competitions.html">競技会情報</a></li>
+        <li><a href="rankings.html">ランキング</a></li>
+        <li><a href="members.html">加盟団体</a></li>
+        <li><a href="contact.html">お問い合わせ</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>関連リンク</h4>
+      <ul class="footer-links">
+        <li><a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener">JDSF本部</a></li>
+        <li><a href="about.html#officers">役員一覧</a></li>
+        <li><a href="privacy.html">プライバシーポリシー</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>お問い合わせ</h4>
+      <ul class="footer-links">
+        <li><a href="contact.html">お問い合わせフォーム</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© 2026 JDSF GD 西部ブロック. All rights reserved.</span>
+    <div class="footer-bottom-links">
+      <a href="privacy.html">プライバシーポリシー</a>
+      <a href="contact.html">お問い合わせ</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>加盟団体｜JDSF GD西部ブロック</title>
+  <meta name="description" content="JDSF GD西部ブロックを構成する13の府県ダンススポーツ連盟の一覧です。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .region-section { margin-bottom: 56px; }
+    .region-title {
+      font-size: 1.125rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--primary-light);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .members-grid-lg {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .member-card-lg {
+      background: var(--bg-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+      transition: var(--transition);
+      text-decoration: none;
+    }
+    .member-card-lg:hover {
+      border-color: var(--primary-light);
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-3px);
+    }
+    .member-icon-lg {
+      width: 56px; height: 56px;
+      background: var(--bg-blue);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.625rem;
+      flex-shrink: 0;
+      transition: var(--transition);
+    }
+    .member-card-lg:hover .member-icon-lg { background: var(--primary); }
+    .member-info-body { flex: 1; }
+    .member-info-name { font-size: 1.0625rem; font-weight: 800; color: var(--text-dark); margin-bottom: 4px; }
+    .member-info-full { font-size: 0.8125rem; color: var(--text-light); margin-bottom: 10px; }
+    .member-info-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .member-tag {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 9px;
+      border-radius: 100px;
+      background: var(--bg-blue);
+      color: var(--primary-light);
+    }
+    .member-tag.ready { background: #D1FAE5; color: #065F46; }
+    @media (max-width: 900px) {
+      .members-grid-lg { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .members-grid-lg { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="header-logo">
+      <div class="header-logo-mark">GD<br>西部</div>
+      <div class="header-logo-text">
+        <div class="org">JDSF / 日本ダンススポーツ連盟</div>
+        <div class="name">GD 西部ブロック</div>
+      </div>
+    </a>
+    <button class="hamburger" aria-label="メニュー" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-nav" aria-label="メインナビゲーション">
+      <a href="index.html"        class="nav-link">ホーム</a>
+      <a href="about.html"        class="nav-link">西部ブロックについて</a>
+      <a href="competitions.html" class="nav-link">競技会情報</a>
+      <a href="rankings.html"     class="nav-link">ランキング</a>
+      <a href="members.html"      class="nav-link active">加盟団体</a>
+      <a href="contact.html"      class="nav-link nav-cta">お問い合わせ</a>
+    </nav>
+  </div>
+</header>
+
+<nav class="breadcrumb">
+  <div class="container">
+    <ol class="breadcrumb-list">
+      <li><a href="index.html">ホーム</a></li>
+      <li>加盟団体</li>
+    </ol>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container">
+    <div class="page-hero-label">Member Federations</div>
+    <h1 class="page-hero-title">加盟府県連盟</h1>
+    <p class="page-hero-desc">西部ブロックを構成する13の府県ダンススポーツ連盟</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+
+    <!-- 近畿 -->
+    <div class="region-section">
+      <h2 class="region-title">🌸 近畿エリア</h2>
+      <div class="members-grid-lg">
+        <a href="pref/shiga/" class="member-card-lg">
+          <div class="member-icon-lg">🏯</div>
+          <div class="member-info-body">
+            <div class="member-info-name">滋賀県ダンススポーツ連盟</div>
+            <div class="member-info-full">Shiga Dance Sport Federation</div>
+            <div class="member-info-tags">
+              <span class="member-tag">近畿</span>
+              <span class="member-tag">準備中</span>
+            </div>
+          </div>
+        </a>
+        <a href="pref/kyoto/" class="member-card-lg">
+          <div class="member-icon-lg">⛩️</div>
+          <div class="member-info-body">
+            <div class="member-info-name">京都府ダンススポーツ連盟</div>
+            <div class="member-info-full">Kyoto Dance Sport Federation</div>
+            <div class="member-info-tags">
+              <span class="member-tag">近畿</span>
+              <span class="member-tag">準備中</span>
+            </div>
+          </div>
+        </a>
+        <a href="pref/osaka/" class="member-card-lg">
+          <div class="member-icon-lg">🌃</div>
+          <div class="member-info-body">
+            <div class="member-info-name">大阪府ダンススポーツ連盟</div>
+            <div class="member-info-full">Osaka Dance Sport Federation</div>
+            <div class="member-info-tags">
+              <span class="member-tag">近畿</span>
+              <span class="member-tag">準備中</span>
+            </div>
+          </div>
+        </a>
+        <a href="pref/hyogo/" class="member-card-lg">
+          <div class="member-icon-lg">⚓</div>
+          <div class="member-info-body">
+            <div class="member-info-name">兵庫県ダンススポーツ連盟</div>
+            <div class="member-info-full">Hyogo Dance Sport Federation</div>
+            <div class="member-info-tags">
+              <span class="member-tag">近畿</span>
+              <span class="member-tag">準備中</span>
+            </div>
+          </div>
+        </a>
+        <a href="pref/nara/" class="member-card-lg">
+          <div class="member-icon-lg">🦌</div>
+          <div class="member-info-body">
+            <div class="member-info-name">奈良県ダンススポーツ連盟</div>
+            <div class="member-info-full">Nara Dance Sport Federation</div>
+            <div class="member-info-tags">
+              <span class="member-tag">近畿</span>
+              <span class="member-tag">準備中</span>
+            </div>
+          </div>
+        </a>
+        <a href="pref/wakayama/" class="member-card-lg">
+          <div class="member-icon-lg">🌊</div>
+          <div class="member-info-body">
+            <div class="member-info-name">和歌山県ダンススポーツ連盟</div>
+            <div class="member-info-full">Wakayama Dance Sport Federation</div>
+            <div class="member-info-tags">
+              <span class="member-tag">近畿</span>
+              <span class="member-tag">準備中</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- 中国・四国 -->
+    <div class="region-section">
+      <h2 class="region-title">🌊 中国・四国エリア</h2>
+      <div class="members-grid-lg">
+        <a href="pref/tottori/" class="member-card-lg">
+          <div class="member-icon-lg">🏜️</div>
+          <div class="member-info-body">
+            <div class="member-info-name">鳥取県ダンススポーツ連盟</div>
+            <div class="member-info-full">Tottori Dance Sport Federation</div>
+            <div class="member-info-tags">
+              <span class="member-tag">中国</span>
+              <span class="member-tag">準備中</span>
+            </div>
+          </div>
+        </a>
+        <a href="pref/shimane/" class="member-card-lg">
+          <div class="member-icon-lg">⛩️</div>
+          <div class="member-info-body">
+            <div class="member-info-name">島根県ダンススポーツ連盟</div>
+            <div class="member-info-full">Shimane Dance Sport Federation</div>
+            <div class="member-info-tags">
+              <span class="member-tag">中国</span>
+              <span class="member-tag">準備中</span>
+            </div>
+          </div>
+        </a>
+        <a href="pref/okayama/" class="member-card-lg">
+          <div class="member-icon-lg">🍑</div>
+          <div class="member-info-body">
+            <div class="member-info-name">岡山県ダンススポーツ連盟</div>
+            <div class="member-info-full">Okayama Dance Sport Federation</div>
+            <div class="member-info-tags">
+              <span class="member-tag">中国</span>
+              <span class="member-tag">準備中</span>
+            </div>
+          </div>
+        </a>
+        <a href="pref/hiroshima/" class="member-card-lg">
+          <div class="member-icon-lg">☮️</div>
+          <div class="member-info-body">
+            <div class="member-info-name">広島県ダンススポーツ連盟</div>
+            <div class="member-info-full">Hiroshima Dance Sport Federation</div>
+            <div class="member-info-tags">
+              <span class="member-tag">中国</span>
+              <span class="member-tag">準備中</span>
+            </div>
+          </div>
+        </a>
+        <a href="pref/kagawa/" class="member-card-lg">
+          <div class="member-icon-lg">🍜</div>
+          <div class="member-info-body">
+            <div class="member-info-name">香川県ダンススポーツ連盟</div>
+            <div class="member-info-full">Kagawa Dance Sport Federation</div>
+            <div class="member-info-tags">
+              <span class="member-tag">四国</span>
+              <span class="member-tag">準備中</span>
+            </div>
+          </div>
+        </a>
+        <a href="pref/tokushima/" class="member-card-lg">
+          <div class="member-icon-lg">🎏</div>
+          <div class="member-info-body">
+            <div class="member-info-name">徳島県ダンススポーツ連盟</div>
+            <div class="member-info-full">Tokushima Dance Sport Federation</div>
+            <div class="member-info-tags">
+              <span class="member-tag">四国</span>
+              <span class="member-tag">準備中</span>
+            </div>
+          </div>
+        </a>
+        <a href="pref/ehime/" class="member-card-lg">
+          <div class="member-icon-lg">🍊</div>
+          <div class="member-info-body">
+            <div class="member-info-name">愛媛県ダンススポーツ連盟</div>
+            <div class="member-info-full">Ehime Dance Sport Federation</div>
+            <div class="member-info-tags">
+              <span class="member-tag">四国</span>
+              <span class="member-tag">準備中</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div style="background:var(--bg-blue);border-radius:var(--radius-lg);padding:24px 28px;">
+      <h3 style="font-size:0.9375rem;font-weight:700;color:var(--primary);margin-bottom:8px;">
+        💡 府県連盟ページの開設について
+      </h3>
+      <p style="font-size:0.875rem;color:var(--text-medium);line-height:1.75;">
+        各府県連盟のページは順次公開予定です。府県連盟の担当者の方は
+        <a href="contact.html" style="color:var(--primary-light);font-weight:600;">お問い合わせフォーム</a>
+        よりご連絡ください。統一テンプレートを提供しています。
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-top">
+    <div>
+      <div class="footer-logo">
+        <div class="footer-logo-mark">GD<br>西部</div>
+        <div class="footer-logo-name">JDSF GD 西部ブロック</div>
+      </div>
+      <p class="footer-desc">公益社団法人日本ダンススポーツ連盟 西部ブロック</p>
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="footer-jdsf">🔗 JDSF本部サイト</a>
+    </div>
+    <div class="footer-col">
+      <h4>サイトマップ</h4>
+      <ul class="footer-links">
+        <li><a href="index.html">ホーム</a></li>
+        <li><a href="about.html">西部ブロックについて</a></li>
+        <li><a href="competitions.html">競技会情報</a></li>
+        <li><a href="rankings.html">ランキング</a></li>
+        <li><a href="members.html">加盟団体</a></li>
+        <li><a href="contact.html">お問い合わせ</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>近畿</h4>
+      <ul class="footer-links">
+        <li><a href="pref/shiga/">滋賀県</a></li>
+        <li><a href="pref/kyoto/">京都府</a></li>
+        <li><a href="pref/osaka/">大阪府</a></li>
+        <li><a href="pref/hyogo/">兵庫県</a></li>
+        <li><a href="pref/nara/">奈良県</a></li>
+        <li><a href="pref/wakayama/">和歌山県</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>中国・四国</h4>
+      <ul class="footer-links">
+        <li><a href="pref/tottori/">鳥取県</a></li>
+        <li><a href="pref/shimane/">島根県</a></li>
+        <li><a href="pref/okayama/">岡山県</a></li>
+        <li><a href="pref/hiroshima/">広島県</a></li>
+        <li><a href="pref/kagawa/">香川県</a></li>
+        <li><a href="pref/tokushima/">徳島県</a></li>
+        <li><a href="pref/ehime/">愛媛県</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© 2026 JDSF GD 西部ブロック. All rights reserved.</span>
+    <div class="footer-bottom-links">
+      <a href="privacy.html">プライバシーポリシー</a>
+      <a href="contact.html">お問い合わせ</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

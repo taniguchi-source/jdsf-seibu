@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ランキング｜JDSF GD西部ブロック</title>
+  <meta name="description" content="JDSF GD西部ブロックのダンススポーツランキング。ラテン・スタンダード各種別の年間ランキングを掲載。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .ranking-controls {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+      align-items: center;
+    }
+    .ranking-controls-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-medium);
+      white-space: nowrap;
+    }
+    .rank-num-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .points-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .points-bg {
+      flex: 1;
+      height: 6px;
+      background: var(--border);
+      border-radius: 100px;
+      min-width: 60px;
+      max-width: 120px;
+    }
+    .points-fill {
+      height: 100%;
+      background: var(--primary-light);
+      border-radius: 100px;
+    }
+    .ranking-note {
+      background: var(--bg-blue);
+      border-left: 4px solid var(--primary-light);
+      padding: 14px 18px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      font-size: 0.875rem;
+      color: var(--text-medium);
+      margin-bottom: 28px;
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="header-logo">
+      <div class="header-logo-mark">GD<br>西部</div>
+      <div class="header-logo-text">
+        <div class="org">JDSF / 日本ダンススポーツ連盟</div>
+        <div class="name">GD 西部ブロック</div>
+      </div>
+    </a>
+    <button class="hamburger" aria-label="メニュー" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-nav" aria-label="メインナビゲーション">
+      <a href="index.html"        class="nav-link">ホーム</a>
+      <a href="about.html"        class="nav-link">西部ブロックについて</a>
+      <a href="competitions.html" class="nav-link">競技会情報</a>
+      <a href="rankings.html"     class="nav-link active">ランキング</a>
+      <a href="members.html"      class="nav-link">加盟団体</a>
+      <a href="contact.html"      class="nav-link nav-cta">お問い合わせ</a>
+    </nav>
+  </div>
+</header>
+
+<nav class="breadcrumb">
+  <div class="container">
+    <ol class="breadcrumb-list">
+      <li><a href="index.html">ホーム</a></li>
+      <li>ランキング</li>
+    </ol>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container">
+    <div class="page-hero-label">Rankings</div>
+    <h1 class="page-hero-title">年間ランキング</h1>
+    <p class="page-hero-desc">西部ブロック競技会の成績に基づく年間ランキング</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+
+    <div class="ranking-note">
+      ランキングは西部ブロック主催競技会の成績を集計したものです。年度の最終確定版は翌年4月に掲載します。
+    </div>
+
+    <!-- 年度タブ -->
+    <div class="ranking-controls">
+      <span class="ranking-controls-label">年度：</span>
+      <div class="tabs" style="margin-bottom:0;">
+        <button class="tab-btn active" data-target="year-2025">2025年度</button>
+        <button class="tab-btn" data-target="year-2024">2024年度</button>
+        <button class="tab-btn" data-target="year-2023">2023年度</button>
+      </div>
+    </div>
+
+    <!-- 2025年度 -->
+    <div id="year-2025" class="tab-panel active">
+      <div class="tabs">
+        <button class="tab-btn active" data-target="r25-latin">ラテン</button>
+        <button class="tab-btn" data-target="r25-standard">スタンダード</button>
+      </div>
+
+      <div id="r25-latin" class="tab-panel active">
+        <div class="section-header" style="text-align:left;margin-bottom:20px;">
+          <h3 style="font-size:1.125rem;font-weight:700;color:var(--text-dark);">
+            2025年度 ラテン部門 年間ランキング（確定版）
+          </h3>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:60px;">順位</th>
+                <th>選手名（ペア）</th>
+                <th>所属連盟</th>
+                <th>種別</th>
+                <th>ポイント</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="rank-num-cell"><span class="rank-badge gold">1</span></div></td>
+                <td>○○ ○○ ／ ○○ ○○</td>
+                <td>大阪府連盟</td>
+                <td>A級</td>
+                <td><div class="points-bar"><span>240</span><div class="points-bg"><div class="points-fill" style="width:100%"></div></div></div></td>
+              </tr>
+              <tr>
+                <td><div class="rank-num-cell"><span class="rank-badge silver">2</span></div></td>
+                <td>○○ ○○ ／ ○○ ○○</td>
+                <td>兵庫県連盟</td>
+                <td>A級</td>
+                <td><div class="points-bar"><span>215</span><div class="points-bg"><div class="points-fill" style="width:90%"></div></div></div></td>
+              </tr>
+              <tr>
+                <td><div class="rank-num-cell"><span class="rank-badge bronze">3</span></div></td>
+                <td>○○ ○○ ／ ○○ ○○</td>
+                <td>京都府連盟</td>
+                <td>A級</td>
+                <td><div class="points-bar"><span>198</span><div class="points-bg"><div class="points-fill" style="width:82%"></div></div></div></td>
+              </tr>
+              <tr>
+                <td><div class="rank-num-cell"><span class="rank-badge">4</span></div></td>
+                <td>○○ ○○ ／ ○○ ○○</td>
+                <td>広島県連盟</td>
+                <td>A級</td>
+                <td><div class="points-bar"><span>176</span><div class="points-bg"><div class="points-fill" style="width:73%"></div></div></div></td>
+              </tr>
+              <tr>
+                <td><div class="rank-num-cell"><span class="rank-badge">5</span></div></td>
+                <td>○○ ○○ ／ ○○ ○○</td>
+                <td>奈良県連盟</td>
+                <td>A級</td>
+                <td><div class="points-bar"><span>154</span><div class="points-bg"><div class="points-fill" style="width:64%"></div></div></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:12px;font-size:0.8rem;color:var(--text-light);">
+          ※ 実際の選手名・ポイントに更新してください。各種別ごとにタブを追加することもできます。
+        </p>
+      </div>
+
+      <div id="r25-standard" class="tab-panel">
+        <div class="section-header" style="text-align:left;margin-bottom:20px;">
+          <h3 style="font-size:1.125rem;font-weight:700;color:var(--text-dark);">
+            2025年度 スタンダード部門 年間ランキング（確定版）
+          </h3>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:60px;">順位</th>
+                <th>選手名（ペア）</th>
+                <th>所属連盟</th>
+                <th>種別</th>
+                <th>ポイント</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="rank-num-cell"><span class="rank-badge gold">1</span></div></td>
+                <td>○○ ○○ ／ ○○ ○○</td>
+                <td>京都府連盟</td>
+                <td>A級</td>
+                <td><div class="points-bar"><span>260</span><div class="points-bg"><div class="points-fill" style="width:100%"></div></div></div></td>
+              </tr>
+              <tr>
+                <td><div class="rank-num-cell"><span class="rank-badge silver">2</span></div></td>
+                <td>○○ ○○ ／ ○○ ○○</td>
+                <td>大阪府連盟</td>
+                <td>A級</td>
+                <td><div class="points-bar"><span>230</span><div class="points-bg"><div class="points-fill" style="width:88%"></div></div></div></td>
+              </tr>
+              <tr>
+                <td><div class="rank-num-cell"><span class="rank-badge bronze">3</span></div></td>
+                <td>○○ ○○ ／ ○○ ○○</td>
+                <td>岡山県連盟</td>
+                <td>A級</td>
+                <td><div class="points-bar"><span>205</span><div class="points-bg"><div class="points-fill" style="width:79%"></div></div></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:12px;font-size:0.8rem;color:var(--text-light);">
+          ※ 実際の選手名・ポイントに更新してください。
+        </p>
+      </div>
+    </div>
+
+    <!-- 2024年度 -->
+    <div id="year-2024" class="tab-panel">
+      <div class="tabs">
+        <button class="tab-btn active" data-target="r24-latin">ラテン</button>
+        <button class="tab-btn" data-target="r24-standard">スタンダード</button>
+      </div>
+      <div id="r24-latin" class="tab-panel active">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr><th>順位</th><th>選手名（ペア）</th><th>所属連盟</th><th>種別</th><th>ポイント</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><span class="rank-badge gold">1</span></td><td>○○ ○○ ／ ○○ ○○</td><td>○○連盟</td><td>A級</td><td>―</td></tr>
+              <tr><td><span class="rank-badge silver">2</span></td><td>○○ ○○ ／ ○○ ○○</td><td>○○連盟</td><td>A級</td><td>―</td></tr>
+              <tr><td><span class="rank-badge bronze">3</span></td><td>○○ ○○ ／ ○○ ○○</td><td>○○連盟</td><td>A級</td><td>―</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div id="r24-standard" class="tab-panel">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr><th>順位</th><th>選手名（ペア）</th><th>所属連盟</th><th>種別</th><th>ポイント</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><span class="rank-badge gold">1</span></td><td>○○ ○○ ／ ○○ ○○</td><td>○○連盟</td><td>A級</td><td>―</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2023年度 -->
+    <div id="year-2023" class="tab-panel">
+      <p style="color:var(--text-light);padding:20px 0;">2023年度のランキングデータは現在整理中です。</p>
+    </div>
+
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-top">
+    <div>
+      <div class="footer-logo">
+        <div class="footer-logo-mark">GD<br>西部</div>
+        <div class="footer-logo-name">JDSF GD 西部ブロック</div>
+      </div>
+      <p class="footer-desc">公益社団法人日本ダンススポーツ連盟 西部ブロック</p>
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="footer-jdsf">🔗 JDSF本部サイト</a>
+    </div>
+    <div class="footer-col">
+      <h4>サイトマップ</h4>
+      <ul class="footer-links">
+        <li><a href="index.html">ホーム</a></li>
+        <li><a href="about.html">西部ブロックについて</a></li>
+        <li><a href="competitions.html">競技会情報</a></li>
+        <li><a href="rankings.html">ランキング</a></li>
+        <li><a href="members.html">加盟団体</a></li>
+        <li><a href="contact.html">お問い合わせ</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>ランキング</h4>
+      <ul class="footer-links">
+        <li><a href="rankings.html">2025年度</a></li>
+        <li><a href="rankings.html">2024年度</a></li>
+        <li><a href="rankings.html">2023年度</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>お問い合わせ</h4>
+      <ul class="footer-links">
+        <li><a href="contact.html">お問い合わせフォーム</a></li>
+        <li><a href="privacy.html">プライバシーポリシー</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© 2026 JDSF GD 西部ブロック. All rights reserved.</span>
+    <div class="footer-bottom-links">
+      <a href="privacy.html">プライバシーポリシー</a>
+      <a href="contact.html">お問い合わせ</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
