@@ -139,6 +139,35 @@
   </div>
 </div>
 
+<!-- ===== JDSF公認 西部ブロック関連競技会（自動取得） ===== -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">JDSF自動取得</div>
+      <h2 class="section-title">JDSF公認<span>西部関連競技会</span></h2>
+      <p class="section-desc">
+        JDSFシステム（<a href="https://adm.jdsf.jp/" target="_blank" rel="noopener" style="color:var(--primary-light);">adm.jdsf.jp</a>）より自動取得。西部ブロック（S）対象の全公認競技会
+      </p>
+    </div>
+
+    <!-- テーブル描画領域 -->
+    <div id="jdsf-comp-table-wrap">
+      <p id="jdsf-loading" style="text-align:center;padding:40px 24px;color:var(--text-light);">
+        <span style="font-size:1.5rem;">⏳</span><br>競技会データを読み込み中...
+      </p>
+    </div>
+    <p style="text-align:right;margin-top:8px;">
+      <small id="jdsf-updated" style="color:var(--text-light);font-size:0.8125rem;"></small>
+    </p>
+    <div style="text-align:center;margin-top:12px;">
+      <a href="https://adm.jdsf.jp/competition/index.php?year=2026&block_id=5"
+         target="_blank" rel="noopener" class="btn btn-secondary">
+        JDSF公式サイトで確認する →
+      </a>
+    </div>
+  </div>
+</section>
+
 <!-- 2026年度競技会 -->
 <section class="section">
   <div class="container">
@@ -475,5 +504,85 @@
 </footer>
 
 <script src="js/main.js"></script>
+
+<!-- JDSF 西部ブロック競技会 自動表示 -->
+<script>
+(function () {
+  'use strict';
+
+  var wrap    = document.getElementById('jdsf-comp-table-wrap');
+  var updated = document.getElementById('jdsf-updated');
+  if (!wrap) return;
+
+  // GitHub Pages では data/ は同一オリジンなので CORS 不要
+  fetch('data/competitions_seibu.json')
+    .then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function (data) {
+      // 更新日時を表示
+      if (updated && data.updated) {
+        var d = new Date(data.updated);
+        updated.textContent = 'データ更新日時: ' + d.toLocaleDateString('ja-JP') + ' ' + d.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
+      }
+
+      var today = new Date().toISOString().slice(0, 10);
+      var comps = data.competitions || [];
+
+      if (comps.length === 0) {
+        wrap.innerHTML = '<p style="text-align:center;padding:32px;color:var(--text-light);">現在、対象競技会はありません。</p>';
+        return;
+      }
+
+      var rows = comps.map(function (c) {
+        var isPast = c.date_iso && c.date_iso < today;
+
+        // ステータスバッジ
+        var badge;
+        if (isPast && c.has_result) {
+          badge = '<span class="comp-status status-closed">結果掲載済</span>';
+        } else if (isPast) {
+          badge = '<span class="comp-status status-closed">終了</span>';
+        } else if (c.has_participants) {
+          badge = '<span class="comp-status status-open">参加者確認中</span>';
+        } else {
+          badge = '<span class="comp-status status-soon">受付中 / 準備中</span>';
+        }
+
+        // リンク
+        var links = [];
+        if (c.syllabus_url) links.push('<a href="' + c.syllabus_url + '" target="_blank" rel="noopener" class="table-link">要項</a>');
+        if (c.result_url)   links.push('<a href="' + c.result_url   + '" target="_blank" rel="noopener" class="table-link">結果</a>');
+        if (c.detail_url)   links.push('<a href="' + c.detail_url   + '" target="_blank" rel="noopener" class="table-link">詳細</a>');
+
+        return '<tr>'
+          + '<td style="white-space:nowrap;">' + (c.date || '') + '</td>'
+          + '<td>' + (c.name || '') + '</td>'
+          + '<td style="text-align:center;">' + badge + '</td>'
+          + '<td style="white-space:nowrap;">' + links.join(' ') + '</td>'
+          + '</tr>';
+      });
+
+      wrap.innerHTML =
+        '<div class="table-wrap">'
+        + '<table class="data-table">'
+        + '<thead><tr>'
+        + '<th style="white-space:nowrap;">開催日</th>'
+        + '<th>大会名称</th>'
+        + '<th style="white-space:nowrap;">状態</th>'
+        + '<th style="white-space:nowrap;">リンク</th>'
+        + '</tr></thead>'
+        + '<tbody>' + rows.join('') + '</tbody>'
+        + '</table>'
+        + '</div>';
+    })
+    .catch(function (err) {
+      console.warn('JDSF competition data load failed:', err);
+      wrap.innerHTML = '<p style="text-align:center;padding:32px;color:var(--text-light);">競技会データの読み込みに失敗しました。'
+        + '<br><a href="https://adm.jdsf.jp/competition/index.php?year=2026&block_id=5" target="_blank" rel="noopener" style="color:var(--primary-light);">JDSF公式サイトでご確認ください</a></p>';
+    });
+}());
+</script>
 </body>
 </html>
