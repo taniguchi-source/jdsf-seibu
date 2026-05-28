@@ -82,14 +82,18 @@
 /* ===== タブ切替 ===== */
 (function () {
   document.querySelectorAll('.tabs').forEach(tabGroup => {
-    const buttons = tabGroup.querySelectorAll('.tab-btn');
-    const panels  = document.querySelectorAll('.tab-panel');
+    const buttons  = tabGroup.querySelectorAll('.tab-btn');
+    // このタブグループが管轄するパネルIDのみ収集（ネストされたタブを壊さない）
+    const panelIds = Array.from(buttons).map(b => b.dataset.target).filter(Boolean);
 
     buttons.forEach(btn => {
       btn.addEventListener('click', () => {
         buttons.forEach(b => b.classList.remove('active'));
-        panels.forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
+        panelIds.forEach(id => {
+          const p = document.getElementById(id);
+          if (p) p.classList.remove('active');
+        });
         const target = document.getElementById(btn.dataset.target);
         if (target) target.classList.add('active');
       });
