@@ -273,6 +273,10 @@
           links.push('<a href="' + c.result_url + '" target="_blank" rel="noopener" class="table-link">' + lbl + '</a>');
         }
 
+        var venueHtml = c.venue
+          ? '<p style="font-size:0.8rem;color:var(--text-medium);margin:3px 0 6px;">📍 ' + c.venue + '</p>'
+          : '';
+
         return '<div class="comp-card">'
           + '<div class="comp-date-box">'
           + '<span class="comp-month">' + month + '</span>'
@@ -281,8 +285,9 @@
           + '</div>'
           + '<div class="comp-info">'
           + '<h3 class="comp-title">' + c.name + '</h3>'
+          + venueHtml
           + (links.length
-              ? '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;margin-bottom:4px;">'
+              ? '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;margin-bottom:4px;">'
                 + links.join('') + '</div>'
               : '')
           + badge

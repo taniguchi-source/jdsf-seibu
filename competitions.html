@@ -40,6 +40,11 @@
       margin-bottom: 5px;
       word-break: break-all;
     }
+    .comp-row-venue {
+      font-size: 0.8rem;
+      color: var(--text-medium);
+      margin-bottom: 5px;
+    }
     .comp-row-meta {
       display: flex;
       align-items: center;
@@ -51,6 +56,7 @@
       .comp-row { gap: 8px; padding: 9px 2px; }
       .comp-row-date { width: 52px; font-size: 0.75rem; }
       .comp-row-name { font-size: 0.85rem; }
+      .comp-row-venue { font-size: 0.75rem; }
     }
 
     /* イベントカード（研修会・講習会） */
@@ -331,7 +337,6 @@
       <ul class="footer-links">
         <li><a href="competitions.html">競技会日程</a></li>
         <li><a href="competitions.html#docs">申込書類</a></li>
-        <li><a href="competitions.html#results">過去の結果</a></li>
         <li><a href="rankings.html">ランキング</a></li>
       </ul>
     </div>
@@ -407,10 +412,13 @@
           links.push('<a href="' + c.result_url + '" target="_blank" rel="noopener" class="table-link">' + resultLabel + '</a>');
         }
 
+        var venueHtml = c.venue ? '<div class="comp-row-venue">📍 ' + c.venue + '</div>' : '';
+
         return '<div class="comp-row' + (isPast ? ' comp-row-past' : '') + '">'
           + '<div class="comp-row-date">' + (c.date || '') + '</div>'
           + '<div class="comp-row-body">'
           + '<div class="comp-row-name">' + (c.name || '') + '</div>'
+          + venueHtml
           + '<div class="comp-row-meta">' + badge + links.join('') + '</div>'
           + '</div>'
           + '</div>';

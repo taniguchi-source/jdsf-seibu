@@ -2,6 +2,7 @@
 """
 JDSF 西部ブロック 競技会データ取得スクリプト
 Fetches western block (block S / block_id=5) competition data from adm.jdsf.jp
+Each competition's detail page is also fetched to extract the venue name.
 Output: data/competitions_seibu.json
 
 Usage:
@@ -14,11 +15,22 @@ from bs4 import BeautifulSoup
 import json
 import re
 import os
+import sys
+import io
+import time
 from datetime import datetime
+
+# Force UTF-8 output to avoid cp932 encoding errors on Windows
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
 BASE_URL = 'https://adm.jdsf.jp/competition/index.php'
 BLOCK_ID = 5  # S = 西部ブロック（近畿・中国・四国）
 OUTPUT_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'competitions_seibu.json')
+
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (compatible; JDSF-SeibuBot/1.0; +https://jdsf-seibu.com/)',
+    'Accept-Language': 'ja,en;q=0.5',
+}
 
 
 def get_fiscal_year():
@@ -44,15 +56,32 @@ def parse_date_iso(date_raw, comp_no):
     return f"{year}-{month:02d}-{day:02d}"
 
 
+def fetch_venue(detail_url):
+    """
+    Fetch competition detail page and extract venue name (会場).
+    Returns empty string if not found or URL is not a detail page.
+    """
+    if not detail_url or 'detail.php' not in detail_url:
+        return ''
+    try:
+        resp = requests.get(detail_url, headers=HEADERS, timeout=15)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.content.decode('utf-8'), 'html.parser')
+        for th in soup.find_all('th'):
+            if th.get_text(strip=True) == '会場':
+                td = th.find_next_sibling('td')
+                if td:
+                    return td.get_text(strip=True)
+    except Exception as exc:
+        print(f"    会場取得エラー ({detail_url}): {exc}")
+    return ''
+
+
 def fetch_year(year):
     """Fetch all block-S competitions for the given fiscal year."""
     params = {'year': year, 'block_id': BLOCK_ID}
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (compatible; JDSF-SeibuBot/1.0; +https://jdsf-seibu.com/)',
-        'Accept-Language': 'ja,en;q=0.5',
-    }
 
-    resp = requests.get(BASE_URL, params=params, headers=headers, timeout=30)
+    resp = requests.get(BASE_URL, params=params, headers=HEADERS, timeout=30)
     resp.raise_for_status()
     resp.encoding = 'utf-8'
 
@@ -104,6 +133,7 @@ def fetch_year(year):
             'date_iso':         date_iso,
             'comp_no':          comp_no,
             'name':             name,
+            'venue':            '',   # filled in next step
             'online_entry':     online_entry,
             'has_syllabus':     '○' in syllabus_text,
             'has_result':       '◎' in result_text,
@@ -139,6 +169,17 @@ def main():
 
     # Sort chronologically
     unique.sort(key=lambda c: c['date_iso'] or '9999-99-99')
+
+    # Fetch venue from each competition's detail page
+    print(f"\n会場名を取得中...")
+    for i, c in enumerate(unique):
+        if 'detail.php' in c.get('detail_url', ''):
+            venue = fetch_venue(c['detail_url'])
+            c['venue'] = venue
+            print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:30]}... → {venue or '(取得できず)'}")
+            time.sleep(0.5)  # polite delay
+        else:
+            print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:30]}... → (詳細URLなし)")
 
     output = {
         'updated':      datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
