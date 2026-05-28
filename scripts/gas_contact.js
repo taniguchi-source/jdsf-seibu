@@ -13,21 +13,21 @@
 //  ★ 各府県連盟の担当者メールアドレスをここに入力してください ★
 // ================================================================
 const PREFECTURE_CONTACTS = {
-  '滋賀県':        { name: '滋賀県ダンススポーツ連盟',       email: 'shiga@example.com' },      // ★
-  '京都府':        { name: '京都府ダンススポーツ連盟',       email: 'kyoto@example.com' },      // ★
-  '大阪府':        { name: '大阪府ダンススポーツ連盟',       email: 'osaka@example.com' },      // ★
-  '兵庫県':        { name: '兵庫県ダンススポーツ連盟',       email: 'hyogo@example.com' },      // ★
-  '奈良県':        { name: '奈良県ダンススポーツ連盟',       email: 'nara@example.com' },       // ★
-  '和歌山県':      { name: '和歌山県ダンススポーツ連盟',     email: 'wakayama@example.com' },   // ★
-  '鳥取県':        { name: '鳥取県ダンススポーツ連盟',       email: 'tottori@example.com' },    // ★
-  '島根県':        { name: '島根県ダンススポーツ連盟',       email: 'shimane@example.com' },    // ★
-  '岡山県':        { name: '岡山県ダンススポーツ連盟',       email: 'okayama@example.com' },    // ★
-  '広島県':        { name: '広島県ダンススポーツ連盟',       email: 'hiroshima@example.com' },  // ★
-  '香川県':        { name: '香川県ダンススポーツ連盟',       email: 'kagawa@example.com' },     // ★
-  '徳島県':        { name: '徳島県ダンススポーツ連盟',       email: 'tokushima@example.com' },  // ★
-  '愛媛県':        { name: '愛媛県ダンススポーツ連盟',       email: 'ehime@example.com' },      // ★
-  '高知県':        { name: '高知県ダンススポーツ連盟',       email: 'kochi@example.com' },      // ★
-  'ブロック事務局': { name: 'JDSF近畿中四国ブロック委員会',  email: 'info@jdsf-seibu.com' }    // ★
+  '滋賀県':        { name: '滋賀県ダンススポーツ連盟',       email: 'y-mine.omi@zeus.eonet.ne.jp' },
+  '京都府':        { name: '京都府ダンススポーツ連盟',       email: 'ichigo.ichie414@icloud.com' },
+  '大阪府':        { name: '大阪府ダンススポーツ連盟',       email: 'tendo@leto.eonet.ne.jp' },
+  '兵庫県':        { name: '兵庫県ダンススポーツ連盟',       email: 'fujimoto.s@theia.ocn.ne.jp' },
+  '奈良県':        { name: '奈良県ダンススポーツ連盟',       email: 'raydance@iris.eonet.ne.jp' },
+  '和歌山県':      { name: '和歌山県ダンススポーツ連盟',     email: 'tf583325@qc5.so-net.ne.jp' },
+  '鳥取県':        { name: '鳥取県ダンススポーツ連盟',       email: 'hiroshi1dannsu@sea.chukai.ne.jp' },
+  '島根県':        { name: '島根県ダンススポーツ連盟',       email: 'eda38@nifty.com' },
+  '岡山県':        { name: '岡山県ダンススポーツ連盟',       email: 'kazu34123@yahoo.co.jp' },
+  '広島県':        { name: '広島県ダンススポーツ連盟',       email: 'shoandshow@gmail.com' },
+  '香川県':        { name: '香川県ダンススポーツ連盟',       email: 'stngygw6241@md.pikara.ne.jp' },
+  '徳島県':        { name: '徳島県ダンススポーツ連盟',       email: 'kenkouro@siren.ocn.ne.jp' },
+  '愛媛県':        { name: '愛媛県ダンススポーツ連盟',       email: 'matiko-takeda2@outlook.jp' },
+  '高知県':        { name: '高知県ダンススポーツ連盟',       email: 'kouichi771sasaki@gmail.com' },
+  'ブロック事務局': { name: 'JDSF近畿中四国ブロック委員会',  email: 'info@jdsf-seibu.com' }
 };
 
 // ブロック事務局アドレス（すべての問い合わせに BCC で通知）
