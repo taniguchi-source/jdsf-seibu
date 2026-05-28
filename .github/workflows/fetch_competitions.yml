@@ -1,4 +1,4 @@
-name: Fetch Seibu Block Competitions
+name: Fetch Seibu Block Data
 
 on:
   schedule:
@@ -24,14 +24,17 @@ jobs:
       - name: Install dependencies
         run: pip install requests beautifulsoup4
 
-      - name: Fetch competition data from JDSF
+      - name: Fetch competition data (西部ブロック / block_id=5)
         run: python scripts/fetch_competitions.py
+
+      - name: Fetch training event data (西部ブロック / b_id=5)
+        run: python scripts/fetch_events.py
 
       - name: Commit and push if data changed
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add data/competitions_seibu.json
+          git add data/competitions_seibu.json data/events_seibu.json
           git diff --staged --quiet \
-            || git commit -m "chore: update Seibu block competition data [skip ci]"
+            || git commit -m "chore: update Seibu block data (competitions + events) [skip ci]"
           git push
