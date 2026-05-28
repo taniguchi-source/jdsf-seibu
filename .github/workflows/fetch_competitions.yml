@@ -1,16 +1,17 @@
-name: Fetch Seibu Block Data
+name: Deploy to XServer
 
 on:
+  push:
+    branches: [ master ]       # コードを更新したとき
   schedule:
-    # 月・水・金 の 06:00 JST（21:00 UTC 前日）に実行
-    - cron: '0 21 * * 0,2,4'
-  workflow_dispatch:  # 手動実行も可能
+    - cron: '0 21 * * 0,2,4'  # 月・水・金 06:00 JST（データ自動取得）
+  workflow_dispatch:             # 手動実行も可能
 
 jobs:
-  fetch:
+  deploy:
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # JSON ファイルをコミット・プッシュするために必要
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -24,17 +25,22 @@ jobs:
       - name: Install dependencies
         run: pip install requests beautifulsoup4
 
-      - name: Fetch competition data (西部ブロック / block_id=5)
+      - name: Fetch competition data（西部ブロック）
         run: python scripts/fetch_competitions.py
 
-      - name: Fetch training event data (西部ブロック / b_id=5)
+      - name: Fetch training event data（西部ブロック）
         run: python scripts/fetch_events.py
 
-      - name: Commit and push if data changed
-        run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add data/competitions_seibu.json data/events_seibu.json
-          git diff --staged --quiet \
-            || git commit -m "chore: update Seibu block data (competitions + events) [skip ci]"
-          git push
+      - name: Deploy to XServer via FTP
+        uses: SamKirkland/FTP-Deploy-Action@4.3.4
+        with:
+          server: sv16504.xserver.jp
+          username: jdsfseibu
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /jdsf-seibu.com/public_html/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/scripts/**
+            **/node_modules/**
+            **/.github/**
