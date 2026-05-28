@@ -60,6 +60,13 @@
       margin-top: 4px;
       line-height: 1.45;
     }
+    .nli-pub-date {
+      display: block;
+      text-align: right;
+      font-size: 0.75rem;
+      color: var(--text-light);
+      margin-top: 6px;
+    }
     /* カテゴリフィルター */
     .cat-filter {
       display: flex;
@@ -266,12 +273,15 @@
       var tag = hasLink ? 'a' : 'div';
       var attrs = hasLink ? ' href="' + escHtml(n.url) + '"' : '';
       var noLinkCls = hasLink ? '' : ' no-link';
+      // カテゴリ左横には実施日（event_date）、なければ公開日
+      var leftDate = n.event_date || n.date;
       return '<' + tag + ' class="news-list-item' + noLinkCls + '"' + attrs + '>'
-        + '<span class="nli-date">' + escHtml(n.date) + '</span>'
+        + '<span class="nli-date">' + escHtml(leftDate) + '</span>'
         + '<span class="nli-badge"><span class="tag ' + catCls + '">' + escHtml(n.category) + '</span></span>'
         + '<span class="nli-body">'
         + '<span class="nli-title">' + escHtml(n.title) + '</span>'
         + (n.detail ? '<span class="nli-detail">' + escHtml(n.detail) + '</span>' : '')
+        + '<span class="nli-pub-date">公開: ' + escHtml(n.date) + '</span>'
         + '</span>'
         + (hasLink ? '<span class="nli-arrow">→</span>' : '')
         + '</' + tag + '>';

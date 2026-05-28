@@ -338,15 +338,20 @@
         var catCls = CAT_CLASS[n.category] || 'tag-info';
         var aStart = n.url ? '<a href="' + n.url + '" class="news-more">' : '<span class="news-more" style="opacity:.4;cursor:default;">';
         var aEnd   = n.url ? '</a>' : '</span>';
+        // カテゴリ左横には実施日（event_date）、なければ公開日
+        var leftDate = n.event_date || n.date;
         return '<article class="news-card">'
           + '<div class="news-card-body">'
           + '<div class="news-meta">'
-          + '<span class="news-date">' + n.date + '</span>'
+          + '<span class="news-date">' + leftDate + '</span>'
           + '<span class="tag ' + catCls + '">' + n.category + '</span>'
           + '</div>'
           + '<h3 class="news-title">' + n.title + '</h3>'
           + (n.detail ? '<p class="news-card-detail">' + n.detail + '</p>' : '')
+          + '<div class="news-card-footer">'
           + aStart + '詳細を見る' + aEnd
+          + '<span class="news-pub-date">公開: ' + n.date + '</span>'
+          + '</div>'
           + '</div>'
           + '</article>';
       }).join('');

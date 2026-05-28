@@ -493,7 +493,6 @@ ul { list-style: none; }
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--primary-light);
-  margin-top: 14px;
 }
 .news-more::after { content: '→'; }
 .news-card-detail {
@@ -502,6 +501,18 @@ ul { list-style: none; }
   line-height: 1.5;
   margin: 6px 0 8px;
   flex: none;
+}
+.news-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+.news-pub-date {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  white-space: nowrap;
 }
 .news-footer { text-align: center; margin-top: 40px; }
 
