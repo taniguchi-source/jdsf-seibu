@@ -31,16 +31,12 @@ jobs:
       - name: Fetch training event data（西部ブロック）
         run: python scripts/fetch_events.py
 
+      - name: Install lftp
+        run: sudo apt-get install -y lftp
+
       - name: Deploy to XServer via FTP
-        uses: SamKirkland/FTP-Deploy-Action@4.3.4
-        with:
-          server: sv16504.xserver.jp
-          username: jdsfseibu
-          password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /test.jdsf-seibu.com/public_html/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/scripts/**
-            **/node_modules/**
-            **/.github/**
+        env:
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          lftp -u "jdsfseibu,$FTP_PASS" ftp://sv16504.xserver.jp \
+            -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; mirror -R --delete --exclude ^\.git --exclude ^\.github --exclude ^scripts . /test.jdsf-seibu.com/public_html/; quit"
