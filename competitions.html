@@ -455,7 +455,10 @@
         // リンク
         var links = [];
         if (c.syllabus_url) links.push('<a href="' + c.syllabus_url + '" target="_blank" rel="noopener" class="table-link">要項</a>');
-        if (c.result_url)   links.push('<a href="' + c.result_url   + '" target="_blank" rel="noopener" class="table-link">結果</a>');
+        if (c.result_url) {
+          var resultLabel = c.has_participants ? '参加者' : '結果';
+          links.push('<a href="' + c.result_url + '" target="_blank" rel="noopener" class="table-link">' + resultLabel + '</a>');
+        }
         if (c.detail_url)   links.push('<a href="' + c.detail_url   + '" target="_blank" rel="noopener" class="table-link">詳細</a>');
 
         return '<tr>'
