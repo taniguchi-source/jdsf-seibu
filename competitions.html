@@ -10,6 +10,49 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <style>
+    /* ===== 競技会リスト（コンパクト・スマホ対応） ===== */
+    .comp-list { border-top: 1px solid var(--border); }
+    .comp-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 11px 4px;
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+    }
+    .comp-row:hover { background: var(--bg-blue); }
+    .comp-row-past { opacity: 0.6; }
+    .comp-row-date {
+      flex-shrink: 0;
+      width: 60px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      line-height: 1.4;
+      padding-top: 2px;
+    }
+    .comp-row-body { flex: 1; min-width: 0; }
+    .comp-row-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      line-height: 1.5;
+      margin-bottom: 5px;
+      word-break: break-all;
+    }
+    .comp-row-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    /* スマホでさらにコンパクトに */
+    @media (max-width: 480px) {
+      .comp-row { gap: 8px; padding: 9px 2px; }
+      .comp-row-date { width: 52px; font-size: 0.75rem; }
+      .comp-row-name { font-size: 0.85rem; }
+    }
+
     /* イベントカード（研修会・講習会） */
     .event-card {
       background: var(--bg-white);
@@ -447,7 +490,7 @@
         } else if (c.has_participants) {
           badge = '<span class="comp-status status-open">参加者確認中</span>';
         } else {
-          badge = '<span class="comp-status status-soon">受付中 / 準備中</span>';
+          badge = '<span class="comp-status status-soon">受付中</span>';
         }
 
         // リンク
@@ -458,26 +501,16 @@
           links.push('<a href="' + c.result_url + '" target="_blank" rel="noopener" class="table-link">' + resultLabel + '</a>');
         }
 
-        return '<tr>'
-          + '<td style="white-space:nowrap;">' + (c.date || '') + '</td>'
-          + '<td>' + (c.name || '') + '</td>'
-          + '<td style="text-align:center;">' + badge + '</td>'
-          + '<td style="white-space:nowrap;">' + links.join(' ') + '</td>'
-          + '</tr>';
+        return '<div class="comp-row' + (isPast ? ' comp-row-past' : '') + '">'
+          + '<div class="comp-row-date">' + (c.date || '') + '</div>'
+          + '<div class="comp-row-body">'
+          + '<div class="comp-row-name">' + (c.name || '') + '</div>'
+          + '<div class="comp-row-meta">' + badge + links.join('') + '</div>'
+          + '</div>'
+          + '</div>';
       });
 
-      wrap.innerHTML =
-        '<div class="table-wrap">'
-        + '<table class="data-table">'
-        + '<thead><tr>'
-        + '<th style="white-space:nowrap;">開催日</th>'
-        + '<th>大会名称</th>'
-        + '<th style="white-space:nowrap;">状態</th>'
-        + '<th style="white-space:nowrap;">リンク</th>'
-        + '</tr></thead>'
-        + '<tbody>' + rows.join('') + '</tbody>'
-        + '</table>'
-        + '</div>';
+      wrap.innerHTML = '<div class="comp-list">' + rows.join('') + '</div>';
     })
     .catch(function (err) {
       console.warn('JDSF competition data load failed:', err);
