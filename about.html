@@ -13,35 +13,39 @@
     .officer-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
+      gap: 10px;
     }
     .officer-card {
       background: var(--bg-white);
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      text-align: center;
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
     .officer-role {
-      font-size: 0.75rem;
+      font-size: 0.6875rem;
       font-weight: 700;
       color: var(--primary-light);
       background: var(--bg-blue);
-      padding: 3px 12px;
+      padding: 2px 10px;
       border-radius: 100px;
-      display: inline-block;
-      margin-bottom: 10px;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
     .officer-name {
-      font-size: 1.125rem;
+      font-size: 1rem;
       font-weight: 800;
       color: var(--text-dark);
-      margin-bottom: 4px;
+      white-space: nowrap;
     }
     .officer-pref {
-      font-size: 0.8125rem;
+      font-size: 0.75rem;
       color: var(--text-light);
+      white-space: nowrap;
     }
+    .officer-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
     .history-list { display: grid; gap: 0; }
     .history-item {
       display: grid;
@@ -270,103 +274,83 @@
     <div class="officer-grid">
       <div class="officer-card">
         <div class="officer-role">委員長</div>
-        <div class="officer-name">谷口 主嘉</div>
-        <div class="officer-pref"></div>
+        <div class="officer-info"><div class="officer-name">谷口 主嘉</div></div>
       </div>
       <div class="officer-card">
         <div class="officer-role">直前委員長</div>
-        <div class="officer-name">天道 貞一</div>
-        <div class="officer-pref">大阪府連盟</div>
+        <div class="officer-info"><div class="officer-name">天道 貞一</div><div class="officer-pref">大阪府連盟</div></div>
       </div>
       <div class="officer-card">
         <div class="officer-role">副委員長</div>
-        <div class="officer-name">伊藤 康雅</div>
-        <div class="officer-pref">滋賀県連盟</div>
+        <div class="officer-info"><div class="officer-name">伊藤 康雅</div><div class="officer-pref">滋賀県連盟</div></div>
       </div>
       <div class="officer-card">
         <div class="officer-role">副委員長</div>
-        <div class="officer-name">鈴江 潔</div>
-        <div class="officer-pref">事務局長</div>
+        <div class="officer-info"><div class="officer-name">鈴江 潔</div><div class="officer-pref">事務局長</div></div>
       </div>
       <div class="officer-card">
         <div class="officer-role">副委員長</div>
-        <div class="officer-name">野田 尚児</div>
-        <div class="officer-pref">和歌山県連盟</div>
+        <div class="officer-info"><div class="officer-name">野田 尚児</div><div class="officer-pref">和歌山県連盟</div></div>
       </div>
       <div class="officer-card">
         <div class="officer-role">経理部長</div>
-        <div class="officer-name">平川 順一</div>
-        <div class="officer-pref"></div>
+        <div class="officer-info"><div class="officer-name">平川 順一</div></div>
       </div>
       <div class="officer-card">
         <div class="officer-role">総務部長</div>
-        <div class="officer-name">戸高 誠子</div>
-        <div class="officer-pref">香川県連盟</div>
+        <div class="officer-info"><div class="officer-name">戸高 誠子</div><div class="officer-pref">香川県連盟</div></div>
       </div>
       <div class="officer-card">
         <div class="officer-role">競技資格部長</div>
-        <div class="officer-name">福井 道剛</div>
-        <div class="officer-pref"></div>
+        <div class="officer-info"><div class="officer-name">福井 道剛</div></div>
       </div>
       <div class="officer-card">
         <div class="officer-role">広報部長</div>
-        <div class="officer-name">藤田 由里佳</div>
-        <div class="officer-pref"></div>
+        <div class="officer-info"><div class="officer-name">藤田 由里佳</div></div>
       </div>
       <div class="officer-card">
         <div class="officer-role">広報副部長</div>
-        <div class="officer-name">日野 光江</div>
-        <div class="officer-pref"></div>
+        <div class="officer-info"><div class="officer-name">日野 光江</div></div>
       </div>
       <div class="officer-card">
         <div class="officer-role">指導部長</div>
-        <div class="officer-name">藤本 悟</div>
-        <div class="officer-pref">兵庫県連盟</div>
+        <div class="officer-info"><div class="officer-name">藤本 悟</div><div class="officer-pref">兵庫県連盟</div></div>
       </div>
       <div class="officer-card">
         <div class="officer-role">京都府会長</div>
-        <div class="officer-name">松本 武士</div>
-        <div class="officer-pref">京都府連盟</div>
+        <div class="officer-info"><div class="officer-name">松本 武士</div></div>
       </div>
       <div class="officer-card">
         <div class="officer-role">奈良県会長</div>
-        <div class="officer-name">阪田 麗二</div>
-        <div class="officer-pref">奈良県連盟</div>
+        <div class="officer-info"><div class="officer-name">阪田 麗二</div></div>
       </div>
       <div class="officer-card">
         <div class="officer-role">岡山県会長</div>
-        <div class="officer-name">守谷 和正</div>
-        <div class="officer-pref">岡山県連盟</div>
+        <div class="officer-info"><div class="officer-name">守谷 和正</div></div>
       </div>
       <div class="officer-card">
         <div class="officer-role">広島県会長</div>
-        <div class="officer-name">西原 和也</div>
-        <div class="officer-pref">広島県連盟</div>
+        <div class="officer-info"><div class="officer-name">西原 和也</div></div>
       </div>
       <div class="officer-card">
         <div class="officer-role">鳥取県会長</div>
-        <div class="officer-name">前田 博</div>
-        <div class="officer-pref">鳥取県連盟</div>
+        <div class="officer-info"><div class="officer-name">前田 博</div></div>
       </div>
       <div class="officer-card">
         <div class="officer-role">島根県会長</div>
-        <div class="officer-name">江田 哲也</div>
-        <div class="officer-pref">島根県連盟</div>
+        <div class="officer-info"><div class="officer-name">江田 哲也</div></div>
       </div>
       <div class="officer-card">
         <div class="officer-role">徳島県会長</div>
-        <div class="officer-name">山本 正美</div>
-        <div class="officer-pref">徳島県連盟</div>
+        <div class="officer-info"><div class="officer-name">山本 正美</div></div>
       </div>
       <div class="officer-card">
         <div class="officer-role">高知県会長</div>
-        <div class="officer-name">佐々木 浩一</div>
-        <div class="officer-pref">高知県連盟</div>
+        <div class="officer-info"><div class="officer-name">佐々木 浩一</div></div>
       </div>
       <div class="officer-card">
         <div class="officer-role">愛媛県会長</div>
-        <div class="officer-name">武田 真知子</div>
-        <div class="officer-pref">愛媛県連盟</div>
+        <div class="officer-info"><div class="officer-name">武田 真知子</div></div>
       </div>
     </div>
   </div>
