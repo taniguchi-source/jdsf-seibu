@@ -37,7 +37,7 @@ jobs:
           server: sv16504.xserver.jp
           username: jdsfseibu
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /jdsf-seibu.com/public_html/
+          server-dir: /test.jdsf-seibu.com/public_html/
           exclude: |
             **/.git*
             **/.git*/**
