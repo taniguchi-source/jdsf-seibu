@@ -114,72 +114,10 @@
     <div class="section-header">
       <div class="section-label">Competitions</div>
       <h2 class="section-title">直近の<span>競技会情報</span></h2>
-      <p class="section-desc">西部ブロック主催・関係競技会のご案内</p>
+      <p class="section-desc">西部ブロック主催・関係競技会のご案内（本日から1ヶ月以内）</p>
     </div>
-    <div class="comp-grid">
-      <div class="comp-card">
-        <div class="comp-date-box">
-          <span class="comp-month">JUN</span>
-          <span class="comp-day">22</span>
-          <span class="comp-year">2026</span>
-        </div>
-        <div class="comp-info">
-          <h3 class="comp-title">2026年度 第1回 西部ブロック競技会</h3>
-          <div class="comp-meta">
-            <span>📍 大阪市中央体育館</span>
-            <span>🕘 10:00 開場 / 10:30 開始</span>
-            <span>💃 ラテン / スタンダード 全種別</span>
-          </div>
-          <span class="comp-status status-open">エントリー受付中</span>
-        </div>
-      </div>
-      <div class="comp-card">
-        <div class="comp-date-box">
-          <span class="comp-month">SEP</span>
-          <span class="comp-day">07</span>
-          <span class="comp-year">2026</span>
-        </div>
-        <div class="comp-info">
-          <h3 class="comp-title">2026年度 第2回 西部ブロック競技会</h3>
-          <div class="comp-meta">
-            <span>📍 広島県立体育館</span>
-            <span>🕘 10:00 開場 / 10:30 開始</span>
-            <span>💃 ラテン / スタンダード 全種別</span>
-          </div>
-          <span class="comp-status status-soon">詳細準備中</span>
-        </div>
-      </div>
-      <div class="comp-card">
-        <div class="comp-date-box">
-          <span class="comp-month">NOV</span>
-          <span class="comp-day">23</span>
-          <span class="comp-year">2026</span>
-        </div>
-        <div class="comp-info">
-          <h3 class="comp-title">2026年度 第3回 西部ブロック競技会</h3>
-          <div class="comp-meta">
-            <span>📍 未定</span>
-            <span>🕘 10:00 開場 / 10:30 開始</span>
-            <span>💃 ラテン / スタンダード 全種別</span>
-          </div>
-          <span class="comp-status status-closed">詳細未定</span>
-        </div>
-      </div>
-      <div class="comp-card">
-        <div class="comp-date-box" style="background:var(--accent);">
-          <span class="comp-month">MAR</span>
-          <span class="comp-day">08</span>
-          <span class="comp-year">2026</span>
-        </div>
-        <div class="comp-info">
-          <h3 class="comp-title">2025年度 西部ブロック競技会 結果</h3>
-          <div class="comp-meta">
-            <span>📍 神戸ワールド記念ホール</span>
-            <span>✅ 終了</span>
-          </div>
-          <span class="comp-status status-closed">結果掲載済み</span>
-        </div>
-      </div>
+    <div class="comp-grid" id="home-comp-grid">
+      <p style="text-align:center;color:var(--text-light);padding:32px 0;grid-column:1/-1;">読み込み中...</p>
     </div>
     <div class="news-footer">
       <a href="competitions.html" class="btn btn-secondary">競技会情報一覧を見る</a>
@@ -283,6 +221,89 @@
 </footer>
 
 <script src="js/main.js"></script>
+
+<!-- 直近競技会 動的読み込み（本日から1ヶ月以内） -->
+<script>
+(function () {
+  'use strict';
+
+  var grid = document.getElementById('home-comp-grid');
+  if (!grid) return;
+
+  var MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
+  fetch('data/competitions_seibu.json')
+    .then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function (data) {
+      var today = new Date();
+      today.setHours(0, 0, 0, 0);
+      var todayISO = today.toISOString().slice(0, 10);
+
+      var limit = new Date(today);
+      limit.setMonth(limit.getMonth() + 1);
+      var limitISO = limit.toISOString().slice(0, 10);
+
+      var comps = (data.competitions || []).filter(function (c) {
+        return c.date_iso && c.date_iso >= todayISO && c.date_iso <= limitISO;
+      });
+
+      if (comps.length === 0) {
+        grid.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:32px 0;grid-column:1/-1;">'
+          + '直近1ヶ月以内の競技会はありません。</p>';
+        return;
+      }
+
+      grid.innerHTML = comps.map(function (c) {
+        var parts  = c.date_iso.split('-');
+        var month  = MONTHS[parseInt(parts[1], 10) - 1] || '';
+        var day    = parseInt(parts[2], 10);
+        var year   = parts[0] || '';
+
+        var badge;
+        if (c.has_result) {
+          badge = '<span class="comp-status status-closed">結果掲載済み</span>';
+        } else if (c.has_participants) {
+          badge = '<span class="comp-status status-open">参加者確認中</span>';
+        } else {
+          badge = '<span class="comp-status status-soon">受付中 / 準備中</span>';
+        }
+
+        var links = [];
+        if (c.syllabus_url) {
+          links.push('<a href="' + c.syllabus_url + '" target="_blank" rel="noopener" class="table-link">要項</a>');
+        }
+        if (c.result_url) {
+          var lbl = c.has_participants ? '参加者' : '結果';
+          links.push('<a href="' + c.result_url + '" target="_blank" rel="noopener" class="table-link">' + lbl + '</a>');
+        }
+        if (c.detail_url) {
+          links.push('<a href="' + c.detail_url + '" target="_blank" rel="noopener" class="table-link">詳細</a>');
+        }
+
+        return '<div class="comp-card">'
+          + '<div class="comp-date-box">'
+          + '<span class="comp-month">' + month + '</span>'
+          + '<span class="comp-day">' + day + '</span>'
+          + '<span class="comp-year">' + year + '</span>'
+          + '</div>'
+          + '<div class="comp-info">'
+          + '<h3 class="comp-title">' + c.name + '</h3>'
+          + (links.length ? '<div class="comp-meta" style="margin-top:6px;">' + links.join('&ensp;') + '</div>' : '')
+          + badge
+          + '</div>'
+          + '</div>';
+      }).join('');
+    })
+    .catch(function (err) {
+      console.warn('Home competition load failed:', err);
+      grid.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:32px 0;grid-column:1/-1;">'
+        + '競技会データの読み込みに失敗しました。</p>';
+    });
+}());
+</script>
 
 <!-- お知らせ 動的読み込み -->
 <script>
