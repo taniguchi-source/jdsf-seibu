@@ -95,35 +95,10 @@
     <div class="section-header" style="margin-bottom:28px;">
       <h2 class="section-title">お知らせ<span>・最新情報</span></h2>
     </div>
-    <div class="news-grid">
+    <div class="news-grid" id="news-grid">
       <article class="news-card">
-        <div class="news-card-body">
-          <div class="news-meta">
-            <span class="news-date">2026.05.20</span>
-            <span class="tag tag-comp">競技会</span>
-          </div>
-          <h3 class="news-title">2026年度 第1回 西部ブロック競技会 開催のご案内</h3>
-          <a href="competitions.html" class="news-more">詳細を見る</a>
-        </div>
-      </article>
-      <article class="news-card">
-        <div class="news-card-body">
-          <div class="news-meta">
-            <span class="news-date">2026.04.01</span>
-            <span class="tag tag-rank">ランキング</span>
-          </div>
-          <h3 class="news-title">2025年度 年間ランキング（ラテン・スタンダード）確定版を掲載</h3>
-          <a href="rankings.html" class="news-more">詳細を見る</a>
-        </div>
-      </article>
-      <article class="news-card">
-        <div class="news-card-body">
-          <div class="news-meta">
-            <span class="news-date">2026.03.15</span>
-            <span class="tag tag-info">お知らせ</span>
-          </div>
-          <h3 class="news-title">JDSF本部よりブロック競技会規程改定の通達（2026年度版）</h3>
-          <a href="#" class="news-more">詳細を見る</a>
+        <div class="news-card-body" style="display:flex;align-items:center;justify-content:center;padding:40px;">
+          <span style="color:#A0AEC0;font-size:.9rem;">読み込み中...</span>
         </div>
       </article>
     </div>
@@ -308,5 +283,60 @@
 </footer>
 
 <script src="js/main.js"></script>
+
+<!-- お知らせ 動的読み込み -->
+<script>
+(function () {
+  'use strict';
+
+  var CAT_CLASS = {
+    '競技会':   'tag-comp',
+    'ランキング': 'tag-rank',
+    'お知らせ': 'tag-info',
+    'その他':   'tag-notice'
+  };
+
+  fetch('data/news.json')
+    .then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function (data) {
+      var grid = document.getElementById('news-grid');
+      if (!grid) return;
+
+      var items = (data.news || []).filter(function (n) { return n.published; });
+      if (items.length === 0) {
+        grid.innerHTML = '<p style="text-align:center;color:#718096;padding:32px 0;">現在、お知らせはありません。</p>';
+        return;
+      }
+
+      // 最新3件だけ表示
+      var latest = items.slice(0, 3);
+
+      grid.innerHTML = latest.map(function (n) {
+        var catCls = CAT_CLASS[n.category] || 'tag-info';
+        var link   = n.url ? n.url : '#';
+        var aStart = n.url ? '<a href="' + n.url + '" class="news-more">' : '<span class="news-more" style="opacity:.4;cursor:default;">';
+        var aEnd   = n.url ? '</a>' : '</span>';
+        return '<article class="news-card">'
+          + '<div class="news-card-body">'
+          + '<div class="news-meta">'
+          + '<span class="news-date">' + n.date + '</span>'
+          + '<span class="tag ' + catCls + '">' + n.category + '</span>'
+          + '</div>'
+          + '<h3 class="news-title">' + n.title + '</h3>'
+          + aStart + '詳細を見る' + aEnd
+          + '</div>'
+          + '</article>';
+      }).join('');
+    })
+    .catch(function (err) {
+      console.warn('News load failed:', err);
+      var grid = document.getElementById('news-grid');
+      if (grid) grid.innerHTML = '';
+    });
+}());
+</script>
 </body>
 </html>

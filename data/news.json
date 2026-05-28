@@ -1,0 +1,29 @@
+{
+  "updated": "2026-05-28T10:00:00",
+  "news": [
+    {
+      "id": "20260520001",
+      "date": "2026.05.20",
+      "category": "競技会",
+      "title": "2026年度 第1回 西部ブロック競技会 開催のご案内",
+      "url": "competitions.html",
+      "published": true
+    },
+    {
+      "id": "20260401001",
+      "date": "2026.04.01",
+      "category": "ランキング",
+      "title": "2025年度 年間ランキング（ラテン・スタンダード）確定版を掲載",
+      "url": "rankings.html",
+      "published": true
+    },
+    {
+      "id": "20260315001",
+      "date": "2026.03.15",
+      "category": "お知らせ",
+      "title": "JDSF本部よりブロック競技会規程改定の通達（2026年度版）",
+      "url": "",
+      "published": true
+    }
+  ]
+}

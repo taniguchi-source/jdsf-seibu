@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>管理者ページ｜JDSF GD西部ブロック</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary:      #1B3A6B;
+      --primary-dk:   #0D2347;
+      --primary-lt:   #2563EB;
+      --accent:       #C9A227;
+      --bg:           #F0F4F8;
+      --bg-white:     #FFFFFF;
+      --border:       #E2E8F0;
+      --text:         #1A202C;
+      --text-mid:     #4A5568;
+      --text-lt:      #718096;
+      --success:      #38A169;
+      --danger:       #E53E3E;
+      --radius:       8px;
+      --shadow:       0 4px 24px rgba(0,0,0,.10);
+    }
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    /* ---- Header ---- */
+    .adm-header {
+      background: var(--primary-dk);
+      color: #fff;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .adm-header-logo { font-size: 1rem; font-weight: 700; letter-spacing: .03em; }
+    .adm-header-logo span { opacity: .6; font-weight: 400; margin-left: 8px; font-size: .85rem; }
+    /* ---- Main container ---- */
+    .adm-main {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 48px 16px;
+    }
+    .adm-card {
+      background: var(--bg-white);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 40px;
+      width: 100%;
+      max-width: 600px;
+    }
+    .adm-card.wide { max-width: 860px; }
+    .adm-card-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .adm-card-sub {
+      font-size: 0.875rem;
+      color: var(--text-lt);
+      margin-bottom: 28px;
+    }
+    /* ---- Form elements ---- */
+    label { display: block; font-size: .875rem; font-weight: 600; color: var(--text-mid); margin-bottom: 6px; }
+    input[type="text"], input[type="password"], input[type="date"], select, textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: .9375rem;
+      background: #F8FAFC;
+      transition: border .2s;
+      font-family: inherit;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary-lt);
+      background: #fff;
+    }
+    .form-group { margin-bottom: 20px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-hint { font-size: .8125rem; color: var(--text-lt); margin-top: 4px; }
+    /* ---- Buttons ---- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 11px 24px;
+      border-radius: var(--radius);
+      font-size: .9375rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: opacity .2s, transform .1s;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-primary   { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dk); }
+    .btn-success   { background: var(--success); color: #fff; }
+    .btn-success:hover { opacity: .85; }
+    .btn-danger    { background: var(--danger); color: #fff; }
+    .btn-danger:hover  { opacity: .85; }
+    .btn-secondary { background: var(--border); color: var(--text-mid); }
+    .btn-secondary:hover { background: #CBD5E0; }
+    .btn-ghost { background: transparent; color: var(--primary-lt); border: 1px solid var(--primary-lt); }
+    .btn-ghost:hover { background: var(--primary-lt); color: #fff; }
+    .btn-sm { padding: 6px 14px; font-size: .8125rem; }
+    .btn-full { width: 100%; justify-content: center; margin-top: 8px; }
+    /* ---- Error / Notice ---- */
+    .msg {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: .875rem;
+      margin-bottom: 16px;
+    }
+    .msg-error   { background: #FFF5F5; color: var(--danger);  border: 1px solid #FED7D7; }
+    .msg-success { background: #F0FFF4; color: var(--success); border: 1px solid #C6F6D5; }
+    .msg-info    { background: #EBF8FF; color: #2B6CB0;        border: 1px solid #BEE3F8; }
+    /* ---- News List ---- */
+    .news-list { margin: 0; padding: 0; list-style: none; }
+    .news-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .news-item:last-child { border-bottom: none; }
+    .ni-date { font-size: .8125rem; color: var(--text-lt); white-space: nowrap; flex-shrink: 0; }
+    .ni-body { flex: 1; min-width: 0; }
+    .ni-title { font-size: .9375rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ni-title.unpub { color: var(--text-lt); text-decoration: line-through; }
+    .ni-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    /* ---- Category badge ---- */
+    .cat-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-size: .75rem;
+      font-weight: 700;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .cat-競技会  { background: #FEF3C7; color: #92400E; }
+    .cat-ランキング { background: #D1FAE5; color: #065F46; }
+    .cat-お知らせ { background: #DBEAFE; color: #1E40AF; }
+    .cat-その他  { background: #FCE7F3; color: #9D174D; }
+    /* ---- Modal ---- */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+    .modal-box {
+      background: #fff;
+      border-radius: 12px;
+      padding: 32px;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+    .modal-title { font-size: 1.1rem; font-weight: 800; color: var(--primary); margin-bottom: 24px; }
+    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+    /* ---- Token instructions ---- */
+    .inst-steps { list-style: none; padding: 0; margin: 0 0 20px; }
+    .inst-steps li {
+      padding: 8px 0 8px 28px;
+      position: relative;
+      font-size: .9rem;
+      border-bottom: 1px dashed var(--border);
+    }
+    .inst-steps li:last-child { border-bottom: none; }
+    .inst-steps li::before {
+      content: attr(data-n);
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 20px;
+      height: 20px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 50%;
+      font-size: .75rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .inst-steps a { color: var(--primary-lt); }
+    code {
+      background: #F0F4F8;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: .875rem;
+    }
+    /* ---- Toolbar ---- */
+    .adm-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .adm-toolbar-title { font-size: 1.05rem; font-weight: 700; }
+    /* ---- Saving indicator ---- */
+    #save-status { font-size: .875rem; font-weight: 600; }
+    /* ---- Checkbox ---- */
+    .check-row { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .check-row input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary); }
+    /* ---- Footer ---- */
+    .adm-footer {
+      background: var(--primary-dk);
+      color: rgba(255,255,255,.5);
+      text-align: center;
+      font-size: .8125rem;
+      padding: 14px;
+    }
+    /* ---- Util ---- */
+    .hidden { display: none !important; }
+    @media (max-width: 600px) {
+      .adm-card { padding: 24px 16px; }
+      .form-row { grid-template-columns: 1fr; }
+      .modal-box { padding: 24px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="adm-header">
+  <div class="adm-header-logo">
+    GD西部ブロック<span>管理者ページ</span>
+  </div>
+  <button id="btn-logout" class="btn btn-sm btn-secondary hidden" onclick="logout()">ログアウト</button>
+</header>
+
+<main class="adm-main">
+
+  <!-- ========== Screen 1: ログイン ========== -->
+  <div class="adm-card" id="screen-login">
+    <p class="adm-card-title">🔐 管理者ログイン</p>
+    <p class="adm-card-sub">お知らせ・最新情報を管理するページです。</p>
+    <div id="login-error" class="msg msg-error hidden">パスワードが正しくありません。</div>
+    <div class="form-group">
+      <label for="input-pass">パスワード</label>
+      <input type="password" id="input-pass" placeholder="パスワードを入力" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()">ログイン</button>
+  </div>
+
+  <!-- ========== Screen 2: GitHubトークン設定 ========== -->
+  <div class="adm-card hidden" id="screen-token">
+    <p class="adm-card-title">🔑 GitHubトークン設定</p>
+    <p class="adm-card-sub">初回のみ必要です。このブラウザに保存され、次回から自動でログインできます。</p>
+
+    <div class="msg msg-info">
+      GitHubのPersonal Access Tokenを取得して入力してください。<br>
+      トークンはこのブラウザにのみ保存されます。
+    </div>
+
+    <p style="font-weight:700;margin-bottom:12px;font-size:.9rem;">📋 トークンの取得手順</p>
+    <ol class="inst-steps">
+      <li data-n="1">
+        <a href="https://github.com/settings/tokens?type=beta" target="_blank" rel="noopener">
+          github.com → Settings → Developer settings → Fine-grained tokens
+        </a> を開く
+      </li>
+      <li data-n="2">「Generate new token」をクリック</li>
+      <li data-n="3">
+        <b>Repository access</b> で「Only select repositories」を選び
+        <code>taniguchi-source/jdsf-seibu</code> を選択
+      </li>
+      <li data-n="4">
+        <b>Permissions → Repository permissions → Contents</b> を
+        「<b>Read and write</b>」に設定
+      </li>
+      <li data-n="5">「Generate token」で作成し、表示されたトークンをコピー</li>
+    </ol>
+
+    <div id="token-error" class="msg msg-error hidden">トークンが無効です。権限を確認してください。</div>
+    <div class="form-group">
+      <label for="input-token">Personal Access Token</label>
+      <input type="password" id="input-token" placeholder="github_pat_..." autocomplete="off">
+      <p class="form-hint">入力内容は画面に表示されません。このブラウザのみに保存されます。</p>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="doSaveToken()">保存してサイト管理へ</button>
+  </div>
+
+  <!-- ========== Screen 3: お知らせ管理 ========== -->
+  <div class="adm-card wide hidden" id="screen-main">
+    <div class="adm-toolbar">
+      <span class="adm-toolbar-title">📰 お知らせ管理</span>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span id="save-status"></span>
+        <button class="btn btn-ghost btn-sm" onclick="showTokenReset()">トークン変更</button>
+        <button class="btn btn-success" onclick="openAddModal()">＋ 新規作成</button>
+      </div>
+    </div>
+
+    <div id="main-msg"></div>
+
+    <ul class="news-list" id="news-list">
+      <li style="text-align:center;padding:32px;color:#718096;">読み込み中...</li>
+    </ul>
+
+    <div style="margin-top:28px;padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;">
+      <button class="btn btn-primary" id="btn-save" onclick="saveToGitHub()">
+        💾 保存してサイトに反映
+      </button>
+    </div>
+
+    <p style="font-size:.8rem;color:var(--text-lt);margin-top:10px;text-align:right;">
+      ※ 反映まで数秒かかります。GitHub Pages の更新が完了するまで1〜2分お待ちください。
+    </p>
+  </div>
+
+</main>
+
+<!-- ========== 編集モーダル ========== -->
+<div class="modal-overlay hidden" id="modal-edit">
+  <div class="modal-box">
+    <p class="modal-title" id="modal-title">お知らせを追加</p>
+    <input type="hidden" id="edit-id">
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="edit-date">日付</label>
+        <input type="text" id="edit-date" placeholder="例: 2026.06.01">
+      </div>
+      <div class="form-group">
+        <label for="edit-cat">カテゴリ</label>
+        <select id="edit-cat">
+          <option value="競技会">競技会</option>
+          <option value="ランキング">ランキング</option>
+          <option value="お知らせ">お知らせ</option>
+          <option value="その他">その他</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="edit-title">タイトル</label>
+      <input type="text" id="edit-title" placeholder="お知らせのタイトルを入力">
+    </div>
+
+    <div class="form-group">
+      <label for="edit-url">リンク先URL（任意）</label>
+      <input type="text" id="edit-url" placeholder="例: competitions.html　または空白でもOK">
+      <p class="form-hint">同サイト内のページ名 (competitions.html) または外部URL (https://...) を入力</p>
+    </div>
+
+    <div class="form-group">
+      <label class="check-row">
+        <input type="checkbox" id="edit-pub" checked>
+        <span>公開する（チェックを外すと非表示になります）</span>
+      </label>
+    </div>
+
+    <div id="modal-error" class="msg msg-error hidden">タイトルを入力してください。</div>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveModalItem()">保存</button>
+    </div>
+  </div>
+</div>
+
+<footer class="adm-footer">
+  © 2026 JDSF GD 西部ブロック — 管理者専用ページ
+</footer>
+
+<script>
+'use strict';
+
+/* ===== 設定 ===== */
+var PASS_HASH  = 'f54a123d6931b920260699a542ca349b486af7dfee4088b8cf13a48a8b2cf543'; // jdsf-seibu2026
+var REPO       = 'taniguchi-source/jdsf-seibu';
+var BRANCH     = 'master';
+var FILE_PATH  = 'data/news.json';
+var TOKEN_KEY  = 'jdsf_gh_token';
+var API_BASE   = 'https://api.github.com';
+
+/* ===== State ===== */
+var newsData = [];  // 編集中のデータ
+var fileSha  = '';  // GitHub上のファイルSHA
+
+/* ===== Screens ===== */
+function showScreen(id) {
+  ['screen-login','screen-token','screen-main'].forEach(function(s){
+    document.getElementById(s).classList.add('hidden');
+  });
+  document.getElementById(id).classList.remove('hidden');
+  document.getElementById('btn-logout').classList.toggle('hidden', id === 'screen-login');
+}
+
+/* ===== SHA-256 (WebCrypto) ===== */
+async function sha256hex(str) {
+  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+}
+
+/* ===== Login ===== */
+async function doLogin() {
+  var pass = document.getElementById('input-pass').value;
+  var hash = await sha256hex(pass);
+  if (hash !== PASS_HASH) {
+    document.getElementById('login-error').classList.remove('hidden');
+    return;
+  }
+  document.getElementById('login-error').classList.add('hidden');
+  var token = localStorage.getItem(TOKEN_KEY);
+  if (!token) {
+    showScreen('screen-token');
+  } else {
+    await loadAndShowMain();
+  }
+}
+
+/* ===== Token ===== */
+async function doSaveToken() {
+  var token = document.getElementById('input-token').value.trim();
+  if (!token) return;
+  // 簡単な疎通確認
+  var ok = await testToken(token);
+  if (!ok) {
+    document.getElementById('token-error').classList.remove('hidden');
+    return;
+  }
+  document.getElementById('token-error').classList.add('hidden');
+  localStorage.setItem(TOKEN_KEY, token);
+  await loadAndShowMain();
+}
+
+async function testToken(token) {
+  try {
+    var r = await fetch(API_BASE + '/repos/' + REPO, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    return r.ok;
+  } catch(e) { return false; }
+}
+
+function showTokenReset() {
+  document.getElementById('input-token').value = '';
+  document.getElementById('token-error').classList.add('hidden');
+  showScreen('screen-token');
+}
+
+/* ===== Logout ===== */
+function logout() {
+  localStorage.removeItem(TOKEN_KEY);
+  showScreen('screen-login');
+  document.getElementById('input-pass').value = '';
+}
+
+/* ===== GitHub API ===== */
+function getToken() { return localStorage.getItem(TOKEN_KEY) || ''; }
+
+async function fetchFromGitHub() {
+  var r = await fetch(
+    API_BASE + '/repos/' + REPO + '/contents/' + FILE_PATH + '?ref=' + BRANCH,
+    { headers: { 'Authorization': 'Bearer ' + getToken(), 'Accept': 'application/vnd.github+json' } }
+  );
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  var json = await r.json();
+  fileSha = json.sha;
+  var decoded = decodeURIComponent(escape(atob(json.content.replace(/\n/g, ''))));
+  return JSON.parse(decoded);
+}
+
+async function pushToGitHub(data) {
+  var content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2) + '\n')));
+  var body = {
+    message: 'chore: update news [skip ci]',
+    content: content,
+    branch:  BRANCH
+  };
+  if (fileSha) body.sha = fileSha;
+  var r = await fetch(
+    API_BASE + '/repos/' + REPO + '/contents/' + FILE_PATH,
+    {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'Bearer ' + getToken(),
+        'Accept':        'application/vnd.github+json',
+        'Content-Type':  'application/json'
+      },
+      body: JSON.stringify(body)
+    }
+  );
+  if (!r.ok) {
+    var err = await r.json().catch(function(){ return {}; });
+    throw new Error((err.message || 'HTTP ' + r.status));
+  }
+  var res = await r.json();
+  fileSha = res.content.sha;
+}
+
+/* ===== Main screen ===== */
+async function loadAndShowMain() {
+  showScreen('screen-main');
+  setStatus('読み込み中...', '');
+  try {
+    var data = await fetchFromGitHub();
+    newsData = data.news || [];
+    renderList();
+    setStatus('', '');
+  } catch(e) {
+    showMainMsg('データの読み込みに失敗しました: ' + e.message, 'error');
+    newsData = [];
+    renderList();
+  }
+}
+
+function renderList() {
+  var list = document.getElementById('news-list');
+  if (newsData.length === 0) {
+    list.innerHTML = '<li style="text-align:center;padding:32px;color:var(--text-lt);">お知らせがありません。「新規作成」から追加してください。</li>';
+    return;
+  }
+  list.innerHTML = newsData.map(function(item, idx) {
+    var catCls = 'cat-' + item.category;
+    return '<li class="news-item">'
+      + '<span class="ni-date">' + escHtml(item.date) + '</span>'
+      + '<span class="cat-badge ' + catCls + '">' + escHtml(item.category) + '</span>'
+      + '<span class="ni-body"><span class="ni-title' + (item.published ? '' : ' unpub') + '">'
+      + escHtml(item.title)
+      + (item.published ? '' : ' <small style="font-size:.75rem;color:#718096;">[非公開]</small>')
+      + '</span></span>'
+      + '<span class="ni-actions">'
+      + '<button class="btn btn-sm btn-ghost" onclick="openEditModal(' + idx + ')">編集</button>'
+      + '<button class="btn btn-sm btn-danger" onclick="deleteItem(' + idx + ')">削除</button>'
+      + '</span>'
+      + '</li>';
+  }).join('');
+}
+
+function setStatus(text, type) {
+  var el = document.getElementById('save-status');
+  el.textContent = text;
+  el.style.color = type === 'error' ? 'var(--danger)' : (type === 'ok' ? 'var(--success)' : 'var(--text-lt)');
+}
+
+function showMainMsg(text, type) {
+  var el = document.getElementById('main-msg');
+  el.innerHTML = '<div class="msg msg-' + (type === 'error' ? 'error' : 'success') + '">' + escHtml(text) + '</div>';
+  setTimeout(function(){ el.innerHTML = ''; }, 5000);
+}
+
+/* ===== CRUD ===== */
+function deleteItem(idx) {
+  if (!confirm('「' + newsData[idx].title + '」を削除してよいですか？')) return;
+  newsData.splice(idx, 1);
+  renderList();
+}
+
+function openAddModal() {
+  document.getElementById('modal-title').textContent = 'お知らせを追加';
+  document.getElementById('edit-id').value    = '';
+  document.getElementById('edit-date').value  = todayStr();
+  document.getElementById('edit-cat').value   = '競技会';
+  document.getElementById('edit-title').value = '';
+  document.getElementById('edit-url').value   = '';
+  document.getElementById('edit-pub').checked = true;
+  document.getElementById('modal-error').classList.add('hidden');
+  document.getElementById('modal-edit').classList.remove('hidden');
+}
+
+function openEditModal(idx) {
+  var item = newsData[idx];
+  document.getElementById('modal-title').textContent = 'お知らせを編集';
+  document.getElementById('edit-id').value    = String(idx);
+  document.getElementById('edit-date').value  = item.date  || '';
+  document.getElementById('edit-cat').value   = item.category || '競技会';
+  document.getElementById('edit-title').value = item.title || '';
+  document.getElementById('edit-url').value   = item.url   || '';
+  document.getElementById('edit-pub').checked = item.published !== false;
+  document.getElementById('modal-error').classList.add('hidden');
+  document.getElementById('modal-edit').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('modal-edit').classList.add('hidden');
+}
+
+function saveModalItem() {
+  var title = document.getElementById('edit-title').value.trim();
+  if (!title) {
+    document.getElementById('modal-error').classList.remove('hidden');
+    return;
+  }
+  var idxStr = document.getElementById('edit-id').value;
+  var item = {
+    id:        idxStr === '' ? Date.now().toString() : (newsData[parseInt(idxStr)] || {}).id || Date.now().toString(),
+    date:      document.getElementById('edit-date').value.trim(),
+    category:  document.getElementById('edit-cat').value,
+    title:     title,
+    url:       document.getElementById('edit-url').value.trim(),
+    published: document.getElementById('edit-pub').checked
+  };
+  if (idxStr === '') {
+    newsData.unshift(item);  // 先頭に追加
+  } else {
+    newsData[parseInt(idxStr)] = item;
+  }
+  renderList();
+  closeModal();
+}
+
+/* ===== Save to GitHub ===== */
+async function saveToGitHub() {
+  var btn = document.getElementById('btn-save');
+  btn.disabled = true;
+  setStatus('保存中...', '');
+  var data = {
+    updated: new Date().toISOString().slice(0, 19),
+    news:    newsData
+  };
+  try {
+    await pushToGitHub(data);
+    setStatus('✅ 保存完了！', 'ok');
+    showMainMsg('サイトに反映されました（GitHub Pages の更新まで1〜2分かかります）', 'success');
+  } catch(e) {
+    setStatus('', '');
+    showMainMsg('保存に失敗しました: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* ===== Helpers ===== */
+function todayStr() {
+  var d = new Date();
+  var y = d.getFullYear();
+  var m = String(d.getMonth()+1).padStart(2,'0');
+  var dd = String(d.getDate()).padStart(2,'0');
+  return y + '.' + m + '.' + dd;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ===== Close modal on backdrop click ===== */
+document.getElementById('modal-edit').addEventListener('click', function(e){
+  if (e.target === this) closeModal();
+});
+
+/* ===== Init ===== */
+showScreen('screen-login');
+</script>
+</body>
+</html>
