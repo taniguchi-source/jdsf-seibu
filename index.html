@@ -291,7 +291,10 @@
           + '</div>'
           + '<div class="comp-info">'
           + '<h3 class="comp-title">' + c.name + '</h3>'
-          + (links.length ? '<div class="comp-meta" style="margin-top:6px;">' + links.join('&ensp;') + '</div>' : '')
+          + (links.length
+              ? '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;margin-bottom:4px;">'
+                + links.join('') + '</div>'
+              : '')
           + badge
           + '</div>'
           + '</div>';
