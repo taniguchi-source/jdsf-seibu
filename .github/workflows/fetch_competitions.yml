@@ -4,7 +4,7 @@ on:
   push:
     branches: [ master ]       # コードを更新したとき
   schedule:
-    - cron: '0 21 * * 0,2,4'  # 月・水・金 06:00 JST（データ自動取得）
+    - cron: '0 21 * * *'       # 毎日 06:00 JST（データ自動取得）
   workflow_dispatch:             # 手動実行も可能
 
 jobs:
