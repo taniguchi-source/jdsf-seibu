@@ -1,8 +1,8 @@
 /* ===== CSS Variables ===== */
 :root {
-  --primary:        #1B3A6B;
-  --primary-dark:   #0D2347;
-  --primary-light:  #2563EB;
+  --primary:        #4B6CB7;
+  --primary-dark:   #2E4A8E;
+  --primary-light:  #6B8DD6;
   --accent:         #C9A227;
   --accent-light:   #F0D98C;
   --text-dark:      #0F172A;
@@ -10,10 +10,10 @@
   --text-light:     #6B7280;
   --bg-white:       #FFFFFF;
   --bg-light:       #F8FAFD;
-  --bg-blue:        #EBF3FF;
+  --bg-blue:        #EEF2FF;
   --border:         #E2E8F0;
-  --shadow:         0 2px 8px rgba(27,58,107,0.10);
-  --shadow-hover:   0 8px 28px rgba(27,58,107,0.18);
+  --shadow:         0 2px 8px rgba(75,108,183,0.10);
+  --shadow-hover:   0 8px 28px rgba(75,108,183,0.18);
   --radius:         8px;
   --radius-lg:      16px;
   --transition:     all 0.25s ease;
@@ -87,13 +87,13 @@ ul { list-style: none; }
 .btn-primary {
   background: var(--primary-light);
   color: #fff;
-  box-shadow: 0 4px 14px rgba(37,99,235,0.30);
+  box-shadow: 0 4px 14px rgba(75,108,183,0.30);
 }
 .btn-primary:hover {
   background: var(--primary);
   color: #fff;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(37,99,235,0.40);
+  box-shadow: 0 6px 20px rgba(75,108,183,0.40);
 }
 .btn-outline-white {
   background: transparent;
@@ -238,9 +238,9 @@ ul { list-style: none; }
   inset: 0;
   background: linear-gradient(
     to right,
-    rgba(10, 25, 55, 0.78) 0%,
-    rgba(10, 25, 55, 0.50) 50%,
-    rgba(10, 25, 55, 0.25) 100%
+    rgba(18, 35, 85, 0.78) 0%,
+    rgba(18, 35, 85, 0.50) 50%,
+    rgba(18, 35, 85, 0.25) 100%
   );
   z-index: 1;
 }
@@ -476,7 +476,7 @@ ul { list-style: none; }
   border-radius: 100px;
 }
 .tag-comp   { background: #FEF3C7; color: #92400E; }
-.tag-info   { background: #DBEAFE; color: #1E40AF; }
+.tag-info   { background: #E4EAFF; color: #2E4A8E; }
 .tag-rank   { background: #D1FAE5; color: #065F46; }
 .tag-notice { background: #FCE7F3; color: #9D174D; }
 .news-title {
@@ -710,7 +710,7 @@ ul { list-style: none; }
   border-color: var(--primary-light);
   color: #fff;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37,99,235,0.25);
+  box-shadow: 0 4px 12px rgba(75,108,183,0.25);
 }
 
 @media (max-width: 600px) {
@@ -916,7 +916,7 @@ textarea {
 }
 input:focus, select:focus, textarea:focus {
   border-color: var(--primary-light);
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+  box-shadow: 0 0 0 3px rgba(75,108,183,0.12);
 }
 textarea { min-height: 140px; resize: vertical; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
