@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>お問い合わせ｜JDSF 近畿中四国ブロック委員会</title>
-  <meta name="description" content="JDSF 近畿中四国ブロック委員会（西部ブロック）へのお問い合わせフォームです。">
+  <meta name="description" content="JDSF 近畿中四国ブロック委員会（西部ブロック）へのお問い合わせフォームです。府県を選択すると各連盟の担当者に直接お問い合わせいただけます。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
@@ -48,6 +48,51 @@
     .contact-info-icon { font-size: 1.25rem; flex-shrink: 0; margin-top: 2px; }
     .contact-info-label { font-size: 0.75rem; color: rgba(255,255,255,0.65); margin-bottom: 3px; }
     .contact-info-value { font-size: 0.9rem; color: #fff; font-weight: 500; line-height: 1.5; }
+    /* 送信先表示バッジ */
+    .pref-dest-box {
+      display: none;
+      margin-top: 8px;
+      padding: 10px 14px;
+      background: var(--bg-blue);
+      border-left: 3px solid var(--primary);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      font-size: 0.8125rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    /* 成功画面 */
+    .form-success {
+      display: none;
+      text-align: center;
+      padding: 56px 24px;
+    }
+    .form-success-icon {
+      font-size: 3.5rem;
+      margin-bottom: 20px;
+    }
+    .form-success h3 {
+      font-size: 1.375rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 12px;
+    }
+    .form-success p {
+      font-size: 0.9375rem;
+      color: var(--text-medium);
+      line-height: 1.75;
+    }
+    /* エラー表示 */
+    .form-error-msg {
+      display: none;
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      color: #B91C1C;
+    }
+    /* FAQ */
     .faq-list { display: grid; gap: 12px; margin-top: 32px; }
     .faq-item {
       background: var(--bg-white);
@@ -109,7 +154,7 @@
     <nav class="site-nav" aria-label="メインナビゲーション">
       <a href="index.html"        class="nav-link">ホーム</a>
       <a href="about.html"        class="nav-link">西部ブロックについて</a>
-      <a href="competitions.html" class="nav-link">競技会情報</a>
+      <a href="competitions.html" class="nav-link">競技会などの情報</a>
       <a href="rankings.html"     class="nav-link">ランキング</a>
       <a href="contact.html"      class="nav-link active nav-cta">お問い合わせ</a>
     </nav>
@@ -129,7 +174,7 @@
   <div class="container">
     <div class="page-hero-label">Contact</div>
     <h1 class="page-hero-title">お問い合わせ</h1>
-    <p class="page-hero-desc">競技会・ランキング・加盟に関するご質問はこちら</p>
+    <p class="page-hero-desc">府県を選択すると、各連盟の担当者に直接お問い合わせいただけます</p>
   </div>
 </div>
 
@@ -140,7 +185,52 @@
     <div>
       <div class="contact-form-wrap">
         <h2 class="contact-form-title">✉️ お問い合わせフォーム</h2>
+
+        <!-- 送信完了メッセージ（送信後に表示） -->
+        <div class="form-success" id="formSuccess">
+          <div class="form-success-icon">✅</div>
+          <h3>送信完了しました</h3>
+          <p>お問い合わせを受け付けました。<br>
+            ご入力のメールアドレスに受付確認をお送りしました。<br>
+            担当者より順次ご連絡いたします。</p>
+          <a href="index.html" class="btn btn-secondary" style="margin-top:24px;">トップページへ戻る</a>
+        </div>
+
+        <!-- フォーム本体 -->
         <form id="contactForm" novalidate>
+
+          <!-- ① 府県選択（ルーティングの核心） -->
+          <div class="form-group">
+            <label for="prefecture">お問い合わせ先の府県<span class="req">*</span></label>
+            <select id="prefecture" name="prefecture" required>
+              <option value="" disabled selected>府県を選択してください</option>
+              <optgroup label="近畿">
+                <option value="滋賀県">滋賀県</option>
+                <option value="京都府">京都府</option>
+                <option value="大阪府">大阪府</option>
+                <option value="兵庫県">兵庫県</option>
+                <option value="奈良県">奈良県</option>
+                <option value="和歌山県">和歌山県</option>
+              </optgroup>
+              <optgroup label="中国・四国">
+                <option value="鳥取県">鳥取県</option>
+                <option value="島根県">島根県</option>
+                <option value="岡山県">岡山県</option>
+                <option value="広島県">広島県</option>
+                <option value="香川県">香川県</option>
+                <option value="徳島県">徳島県</option>
+                <option value="愛媛県">愛媛県</option>
+                <option value="高知県">高知県</option>
+              </optgroup>
+              <option value="ブロック事務局">ブロック全体・該当府県なし（事務局宛）</option>
+            </select>
+            <!-- 選択後に送信先を表示 -->
+            <div class="pref-dest-box" id="prefDestBox">
+              📨 <span id="prefDestName"></span> の担当者に直接送信されます
+            </div>
+          </div>
+
+          <!-- ② 氏名・所属 -->
           <div class="form-row">
             <div class="form-group">
               <label for="name">お名前<span class="req">*</span></label>
@@ -151,40 +241,54 @@
               <input type="text" id="org" name="org" placeholder="○○府県ダンススポーツ連盟">
             </div>
           </div>
+
+          <!-- ③ メールアドレス -->
           <div class="form-group">
             <label for="email">メールアドレス<span class="req">*</span></label>
             <input type="email" id="email" name="email" placeholder="example@email.com" required>
           </div>
+
+          <!-- ④ 種別 -->
           <div class="form-group">
             <label for="category">お問い合わせ種別<span class="req">*</span></label>
             <select id="category" name="category" required>
               <option value="" disabled selected>選択してください</option>
-              <option value="competition">競技会・エントリーについて</option>
-              <option value="ranking">ランキングについて</option>
-              <option value="instructor">指導員認定について</option>
-              <option value="member">加盟・連盟活動について</option>
-              <option value="officer">役員・担当者へのご連絡（連盟関係者）</option>
-              <option value="other">その他</option>
+              <option value="競技会・エントリーについて">競技会・エントリーについて</option>
+              <option value="ランキングについて">ランキングについて</option>
+              <option value="指導員認定について">指導員認定について</option>
+              <option value="加盟・連盟活動について">加盟・連盟活動について</option>
+              <option value="役員・担当者へのご連絡">役員・担当者へのご連絡（連盟関係者）</option>
+              <option value="その他">その他</option>
             </select>
           </div>
+
+          <!-- ⑤ 件名 -->
           <div class="form-group">
             <label for="subject">件名<span class="req">*</span></label>
             <input type="text" id="subject" name="subject" placeholder="お問い合わせの件名をご入力ください" required>
           </div>
+
+          <!-- ⑥ 本文 -->
           <div class="form-group">
             <label for="message">お問い合わせ内容<span class="req">*</span></label>
             <textarea id="message" name="message" placeholder="詳細をご入力ください" required></textarea>
           </div>
+
+          <!-- ⑦ 同意 -->
           <div class="form-group">
             <label style="display:flex;align-items:flex-start;gap:10px;font-weight:400;cursor:pointer;">
-              <input type="checkbox" name="agree" required style="width:auto;margin-top:3px;">
+              <input type="checkbox" id="agree" name="agree" required style="width:auto;margin-top:3px;">
               <span style="font-size:0.875rem;">
                 <a href="privacy.html" target="_blank" style="color:var(--primary-light);">プライバシーポリシー</a>
                 に同意する<span class="req">*</span>
               </span>
             </label>
           </div>
-          <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
+
+          <!-- エラーメッセージ -->
+          <div class="form-error-msg" id="formError"></div>
+
+          <button type="submit" id="submitBtn" class="btn btn-primary" style="width:100%;justify-content:center;">
             送信する
           </button>
         </form>
@@ -226,7 +330,7 @@
       </div>
     </div>
 
-    <!-- サイドバー情報 -->
+    <!-- サイドバー -->
     <div>
       <div class="contact-info-card">
         <div class="contact-info-title">📞 連絡先情報</div>
@@ -235,7 +339,7 @@
             <span class="contact-info-icon">🏢</span>
             <div>
               <div class="contact-info-label">組織名</div>
-              <div class="contact-info-value">JDSF GD 西部ブロック<br>（日本ダンススポーツ連盟 西部ブロック）</div>
+              <div class="contact-info-value">JDSF近畿中四国ブロック委員会<br>（西部ブロック）</div>
             </div>
           </div>
           <div class="contact-info-item">
@@ -246,20 +350,27 @@
             </div>
           </div>
           <div class="contact-info-item">
-            <span class="contact-info-icon">🔗</span>
+            <span class="contact-info-icon">🗺️</span>
             <div>
-              <div class="contact-info-label">JDSF本部</div>
-              <div class="contact-info-value">
-                <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener"
-                   style="color:var(--accent-light);">www.jdsf.or.jp</a>
-              </div>
+              <div class="contact-info-label">担当エリア</div>
+              <div class="contact-info-value">近畿・中国・四国 14府県</div>
             </div>
           </div>
           <div class="contact-info-item">
             <span class="contact-info-icon">⏰</span>
             <div>
               <div class="contact-info-label">返信について</div>
-              <div class="contact-info-value">いただいたお問い合わせには、通常1週間以内にご返信します。</div>
+              <div class="contact-info-value">通常1週間以内にご返信します。</div>
+            </div>
+          </div>
+          <div class="contact-info-item">
+            <span class="contact-info-icon">🔗</span>
+            <div>
+              <div class="contact-info-label">JDSF本部</div>
+              <div class="contact-info-value">
+                <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener"
+                   style="color:rgba(255,255,255,0.85);">www.jdsf.or.jp</a>
+              </div>
             </div>
           </div>
         </div>
@@ -267,11 +378,22 @@
 
       <div style="background:var(--bg-blue);border-radius:var(--radius-lg);padding:20px;margin-top:16px;">
         <h3 style="font-size:0.9rem;font-weight:700;color:var(--primary);margin-bottom:10px;">
-          💡 府県連盟担当者の方へ
+          💡 ご利用方法
+        </h3>
+        <p style="font-size:0.8125rem;color:var(--text-medium);line-height:1.7;">
+          フォーム上部で <strong>府県を選択</strong> すると、
+          お問い合わせがその府県の担当者に直接届きます。<br>
+          ブロック全体に関するご質問は「ブロック事務局」をお選びください。
+        </p>
+      </div>
+
+      <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-top:16px;">
+        <h3 style="font-size:0.9rem;font-weight:700;color:var(--text-dark);margin-bottom:10px;">
+          📋 府県連盟担当者の方へ
         </h3>
         <p style="font-size:0.8125rem;color:var(--text-medium);line-height:1.7;">
           成績報告・書類提出・役員変更等の連絡は、
-          お問い合わせ種別で「役員・担当者へのご連絡」をお選びください。
+          種別で「役員・担当者へのご連絡」をお選びください。
         </p>
       </div>
     </div>
@@ -286,8 +408,14 @@
         <div class="footer-logo-mark">GD<br>西部</div>
         <div class="footer-logo-name">JDSF 近畿中四国ブロック委員会</div>
       </div>
-      <p class="footer-desc">JDSF近畿中四国ブロック委員会（西部ブロック）</p>
-      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="footer-jdsf">🔗 JDSF本部サイト</a>
+      <p class="footer-desc">
+        JDSF近畿中四国ブロック委員会（西部ブロック）は、<br>
+        近畿・中国・四国地方のダンススポーツ活動を<br>
+        支援・統括するブロック組織です。
+      </p>
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="footer-jdsf">
+        🔗 JDSF本部サイト
+      </a>
     </div>
     <div class="footer-col">
       <h4>サイトマップ</h4>
@@ -300,17 +428,20 @@
       </ul>
     </div>
     <div class="footer-col">
+      <h4>競技情報</h4>
+      <ul class="footer-links">
+        <li><a href="competitions.html">競技会日程</a></li>
+        <li><a href="rankings.html">ランキング</a></li>
+        <li><a href="competitions.html#docs">競技規程・申込書類</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
       <h4>関連リンク</h4>
       <ul class="footer-links">
         <li><a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener">JDSF本部</a></li>
         <li><a href="about.html#officers">役員一覧</a></li>
+        <li><a href="contact.html">お問い合わせ</a></li>
         <li><a href="privacy.html">プライバシーポリシー</a></li>
-      </ul>
-    </div>
-    <div class="footer-col">
-      <h4>お問い合わせ</h4>
-      <ul class="footer-links">
-        <li><a href="contact.html">お問い合わせフォーム</a></li>
       </ul>
     </div>
   </div>
@@ -325,11 +456,118 @@
 
 <script src="js/main.js"></script>
 <script>
-/* FAQ アコーディオン */
-document.querySelectorAll('.faq-q').forEach(q => {
-  q.addEventListener('click', () => {
-    const item = q.closest('.faq-item');
-    item.classList.toggle('open');
+'use strict';
+
+// ================================================================
+//  Google Apps Script のデプロイURL（デプロイ後にここを更新）
+// ================================================================
+var APPS_SCRIPT_URL = '';   // 例: 'https://script.google.com/macros/s/XXXXX/exec'
+
+// 府県 → 表示名マッピング（メールアドレスは GAS 側で管理）
+var PREF_NAMES = {
+  '滋賀県':        '滋賀県ダンススポーツ連盟',
+  '京都府':        '京都府ダンススポーツ連盟',
+  '大阪府':        '大阪府ダンススポーツ連盟',
+  '兵庫県':        '兵庫県ダンススポーツ連盟',
+  '奈良県':        '奈良県ダンススポーツ連盟',
+  '和歌山県':      '和歌山県ダンススポーツ連盟',
+  '鳥取県':        '鳥取県ダンススポーツ連盟',
+  '島根県':        '島根県ダンススポーツ連盟',
+  '岡山県':        '岡山県ダンススポーツ連盟',
+  '広島県':        '広島県ダンススポーツ連盟',
+  '香川県':        '香川県ダンススポーツ連盟',
+  '徳島県':        '徳島県ダンススポーツ連盟',
+  '愛媛県':        '愛媛県ダンススポーツ連盟',
+  '高知県':        '高知県ダンススポーツ連盟',
+  'ブロック事務局': 'JDSF近畿中四国ブロック委員会事務局'
+};
+
+// ── 府県選択 → 送信先表示 ──────────────────────────────────────
+document.getElementById('prefecture').addEventListener('change', function () {
+  var val  = this.value;
+  var box  = document.getElementById('prefDestBox');
+  var span = document.getElementById('prefDestName');
+  if (val) {
+    span.textContent = PREF_NAMES[val] || val;
+    box.style.display = 'block';
+  } else {
+    box.style.display = 'none';
+  }
+});
+
+// ── フォーム送信 ─────────────────────────────────────────────────
+document.getElementById('contactForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+
+  var errEl  = document.getElementById('formError');
+  var btn    = document.getElementById('submitBtn');
+  errEl.style.display = 'none';
+
+  // バリデーション
+  var prefecture = document.getElementById('prefecture').value;
+  var name       = document.getElementById('name').value.trim();
+  var email      = document.getElementById('email').value.trim();
+  var category   = document.getElementById('category').value;
+  var subject    = document.getElementById('subject').value.trim();
+  var message    = document.getElementById('message').value.trim();
+  var agree      = document.getElementById('agree').checked;
+
+  if (!prefecture) { return showError(errEl, 'お問い合わせ先の府県を選択してください。'); }
+  if (!name)       { return showError(errEl, 'お名前を入力してください。'); }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return showError(errEl, '正しいメールアドレスを入力してください。');
+  }
+  if (!category) { return showError(errEl, 'お問い合わせ種別を選択してください。'); }
+  if (!subject)  { return showError(errEl, '件名を入力してください。'); }
+  if (!message)  { return showError(errEl, 'お問い合わせ内容を入力してください。'); }
+  if (!agree)    { return showError(errEl, 'プライバシーポリシーへの同意が必要です。'); }
+
+  if (!APPS_SCRIPT_URL) {
+    return showError(errEl, '送信設定が未完了です。管理者にご連絡ください。（APPS_SCRIPT_URL未設定）');
+  }
+
+  // 送信中
+  btn.disabled    = true;
+  btn.textContent = '送信中...';
+
+  var payload = {
+    prefecture: prefecture,
+    name:       name,
+    org:        document.getElementById('org').value.trim(),
+    email:      email,
+    category:   category,
+    subject:    subject,
+    message:    message
+  };
+
+  fetch(APPS_SCRIPT_URL, {
+    method:  'POST',
+    mode:    'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body:    JSON.stringify(payload)
+  })
+  .then(function () {
+    // no-cors のため成功可否は判断できないが、送信済みとして扱う
+    document.getElementById('contactForm').style.display = 'none';
+    document.getElementById('formSuccess').style.display = 'block';
+  })
+  .catch(function () {
+    btn.disabled    = false;
+    btn.textContent = '送信する';
+    showError(errEl, '送信に失敗しました。時間をおいて再度お試しいただくか、直接メールでご連絡ください。');
+  });
+});
+
+function showError(el, msg) {
+  el.textContent     = msg;
+  el.style.display   = 'block';
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── FAQ アコーディオン ───────────────────────────────────────────
+document.querySelectorAll('.faq-q').forEach(function (q) {
+  q.addEventListener('click', function () {
+    q.closest('.faq-item').classList.toggle('open');
   });
 });
 </script>
