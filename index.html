@@ -324,7 +324,8 @@
       var grid = document.getElementById('news-grid');
       if (!grid) return;
 
-      var items = (data.news || []).filter(function (n) { return n.published; });
+      // fetch_news.py が公開済みのみ出力するため追加フィルター不要
+      var items = data.news || [];
       if (items.length === 0) {
         grid.innerHTML = '<p style="text-align:center;color:#718096;padding:32px 0;">現在、お知らせはありません。</p>';
         return;
@@ -335,7 +336,6 @@
 
       grid.innerHTML = latest.map(function (n) {
         var catCls = CAT_CLASS[n.category] || 'tag-info';
-        var link   = n.url ? n.url : '#';
         var aStart = n.url ? '<a href="' + n.url + '" class="news-more">' : '<span class="news-more" style="opacity:.4;cursor:default;">';
         var aEnd   = n.url ? '</a>' : '</span>';
         return '<article class="news-card">'
@@ -345,10 +345,20 @@
           + '<span class="tag ' + catCls + '">' + n.category + '</span>'
           + '</div>'
           + '<h3 class="news-title">' + n.title + '</h3>'
+          + (n.detail ? '<p class="news-card-detail">' + n.detail + '</p>' : '')
           + aStart + '詳細を見る' + aEnd
           + '</div>'
           + '</article>';
       }).join('');
+
+      // ニュースティッカーを動的更新
+      var tickerList = document.querySelector('.ticker-list');
+      if (tickerList && items.length > 0) {
+        tickerList.innerHTML = items.slice(0, 5).map(function (n) {
+          var href = n.url || 'news.html';
+          return '<a href="' + href + '">' + n.title + '</a>';
+        }).join('');
+      }
     })
     .catch(function (err) {
       console.warn('News load failed:', err);

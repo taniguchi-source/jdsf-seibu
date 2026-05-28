@@ -31,6 +31,9 @@ jobs:
       - name: Fetch training event data（西部ブロック）
         run: python scripts/fetch_events.py
 
+      - name: Fetch news data（お知らせ）
+        run: python scripts/fetch_news.py
+
       - name: Install lftp
         run: sudo apt-get install -y lftp
 

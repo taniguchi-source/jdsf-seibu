@@ -53,6 +53,13 @@
     .news-list-item:hover .nli-arrow { opacity: 1; }
     .news-list-item.no-link { cursor: default; }
     .news-list-item.no-link:hover { background: none; margin: 0; padding-left: 0; padding-right: 0; }
+    .nli-detail {
+      display: block;
+      font-size: 0.8125rem;
+      color: var(--text-light);
+      margin-top: 4px;
+      line-height: 1.45;
+    }
     /* カテゴリフィルター */
     .cat-filter {
       display: flex;
@@ -231,7 +238,8 @@
           + d.toLocaleDateString('ja-JP') + ' '
           + d.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
       }
-      allNews = (data.news || []).filter(function (n) { return n.published; });
+      // fetch_news.py が公開済みのみ出力するため追加フィルター不要
+      allNews = data.news || [];
       render();
     })
     .catch(function (err) {
@@ -261,7 +269,10 @@
       return '<' + tag + ' class="news-list-item' + noLinkCls + '"' + attrs + '>'
         + '<span class="nli-date">' + escHtml(n.date) + '</span>'
         + '<span class="nli-badge"><span class="tag ' + catCls + '">' + escHtml(n.category) + '</span></span>'
-        + '<span class="nli-body"><span class="nli-title">' + escHtml(n.title) + '</span></span>'
+        + '<span class="nli-body">'
+        + '<span class="nli-title">' + escHtml(n.title) + '</span>'
+        + (n.detail ? '<span class="nli-detail">' + escHtml(n.detail) + '</span>' : '')
+        + '</span>'
         + (hasLink ? '<span class="nli-arrow">→</span>' : '')
         + '</' + tag + '>';
     }).join('');

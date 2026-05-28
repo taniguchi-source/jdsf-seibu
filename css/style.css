@@ -496,6 +496,13 @@ ul { list-style: none; }
   margin-top: 14px;
 }
 .news-more::after { content: '→'; }
+.news-card-detail {
+  font-size: 0.8125rem;
+  color: var(--text-light);
+  line-height: 1.5;
+  margin: 6px 0 8px;
+  flex: none;
+}
 .news-footer { text-align: center; margin-top: 40px; }
 
 /* ===== About Section ===== */
