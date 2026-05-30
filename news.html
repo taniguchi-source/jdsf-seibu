@@ -143,9 +143,11 @@
     <div class="cat-filter" id="cat-filter">
       <button class="cat-btn active" data-cat="all">すべて</button>
       <button class="cat-btn" data-cat="競技会">競技会</button>
-      <a href="rankings.html" class="cat-btn">ランキング</a>
-      <button class="cat-btn" data-cat="お知らせ">お知らせ</button>
+      <button class="cat-btn" data-cat="指導員">指導員</button>
+      <button class="cat-btn" data-cat="イベント">イベント</button>
+      <button class="cat-btn" data-cat="本部お知らせ">本部お知らせ</button>
       <button class="cat-btn" data-cat="その他">その他</button>
+      <a href="rankings.html" class="cat-btn">ランキング →</a>
     </div>
 
     <!-- ニュース一覧 -->
@@ -221,10 +223,11 @@
   'use strict';
 
   var CAT_CLASS = {
-    '競技会':   'tag-comp',
-    'ランキング': 'tag-rank',
-    'お知らせ': 'tag-info',
-    'その他':   'tag-notice'
+    '競技会':     'tag-comp',
+    '指導員':     'tag-instructor',
+    'イベント':   'tag-event',
+    '本部お知らせ': 'tag-hq',
+    'その他':     'tag-notice'
   };
 
   var allNews  = [];
