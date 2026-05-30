@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 310 68" role="img" aria-label="公益社団法人 日本ダンススポーツ連盟">
+
+  <!-- ===== Left: Emblem box ===== -->
+  <rect x="1" y="1" width="64" height="64" rx="10" ry="10"
+        fill="white" stroke="#ddd" stroke-width="1.2"/>
+
+  <!-- 5-petal flower (center 33, 29) -->
+  <g transform="translate(33, 29)">
+    <ellipse cx="0" cy="-11" rx="4.8" ry="11.5" fill="#C8102E" transform="rotate(0)"/>
+    <ellipse cx="0" cy="-11" rx="4.8" ry="11.5" fill="#C8102E" transform="rotate(72)"/>
+    <ellipse cx="0" cy="-11" rx="4.8" ry="11.5" fill="#C8102E" transform="rotate(144)"/>
+    <ellipse cx="0" cy="-11" rx="4.8" ry="11.5" fill="#C8102E" transform="rotate(216)"/>
+    <ellipse cx="0" cy="-11" rx="4.8" ry="11.5" fill="#C8102E" transform="rotate(288)"/>
+    <circle r="5.2" fill="white"/>
+    <circle r="2.2" fill="#C8102E"/>
+  </g>
+
+  <!-- JDSF label inside box -->
+  <text x="33" y="59"
+        text-anchor="middle"
+        font-family="'Arial Black', Arial, sans-serif"
+        font-size="9" font-weight="900"
+        fill="#C8102E" letter-spacing="2.5">JDSF</text>
+
+  <!-- ===== Right: Text ===== -->
+  <!-- "Japan DanceSport Federation" – initials larger -->
+  <text x="78" y="26"
+        font-family="Arial, Helvetica, sans-serif"
+        fill="#111">
+    <tspan font-size="22" font-weight="900">J</tspan><tspan font-size="14" font-weight="400" baseline-shift="-2">apan&#160;</tspan><tspan font-size="22" font-weight="900">D</tspan><tspan font-size="14" font-weight="400">ance</tspan><tspan font-size="22" font-weight="900">S</tspan><tspan font-size="14" font-weight="400">port</tspan>
+  </text>
+  <text x="78" y="46"
+        font-family="Arial, Helvetica, sans-serif"
+        fill="#111">
+    <tspan font-size="22" font-weight="900">F</tspan><tspan font-size="14" font-weight="400">ederation</tspan>
+  </text>
+
+  <!-- Japanese name -->
+  <text x="78" y="62"
+        font-family="'Noto Sans JP', 'Hiragino Kaku Gothic Pro', sans-serif"
+        font-size="10" font-weight="400"
+        fill="#444"
+        letter-spacing="0.5">公益社団法人&#160;&#160;日本ダンススポーツ連盟</text>
+
+</svg>

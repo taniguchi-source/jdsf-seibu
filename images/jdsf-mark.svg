@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 54" role="img" aria-label="JDSF">
+  <!-- 5-petal flower emblem -->
+  <g transform="translate(24, 23)">
+    <!-- Petal 1 -->
+    <ellipse cx="0" cy="-10" rx="4.5" ry="10.5" fill="#C8102E" transform="rotate(0)"/>
+    <!-- Petal 2 -->
+    <ellipse cx="0" cy="-10" rx="4.5" ry="10.5" fill="#C8102E" transform="rotate(72)"/>
+    <!-- Petal 3 -->
+    <ellipse cx="0" cy="-10" rx="4.5" ry="10.5" fill="#C8102E" transform="rotate(144)"/>
+    <!-- Petal 4 -->
+    <ellipse cx="0" cy="-10" rx="4.5" ry="10.5" fill="#C8102E" transform="rotate(216)"/>
+    <!-- Petal 5 -->
+    <ellipse cx="0" cy="-10" rx="4.5" ry="10.5" fill="#C8102E" transform="rotate(288)"/>
+    <!-- Center white -->
+    <circle r="4.8" fill="white"/>
+    <!-- Center dot -->
+    <circle r="2" fill="#C8102E"/>
+  </g>
+  <!-- JDSF text -->
+  <text x="24" y="49"
+        text-anchor="middle"
+        font-family="Arial Black, 'Arial', sans-serif"
+        font-size="8.5"
+        font-weight="900"
+        fill="#C8102E"
+        letter-spacing="2.5">JDSF</text>
+</svg>
