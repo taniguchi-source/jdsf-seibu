@@ -50,7 +50,7 @@
       border: 1px solid rgba(75,108,183,0.18);
       border-radius: 4px;
       padding: 2px 8px 2px 6px;
-      margin-bottom: 6px;
+      white-space: nowrap;
     }
     .comp-row-meta {
       display: flex;
@@ -417,14 +417,13 @@
           links.push('<a href="' + c.result_url + '" target="_blank" rel="noopener" class="table-link">' + resultLabel + '</a>');
         }
 
-        var venueHtml = c.venue ? '<div class="comp-row-venue">📍 ' + c.venue + '</div>' : '';
+        var venueHtml = c.venue ? '<span class="comp-row-venue">📍 ' + c.venue + '</span>' : '';
 
         return '<div class="comp-row' + (isPast ? ' comp-row-past' : '') + '">'
           + '<div class="comp-row-date">' + (c.date || '') + '</div>'
           + '<div class="comp-row-body">'
           + '<div class="comp-row-name">' + (c.name || '') + '</div>'
-          + venueHtml
-          + '<div class="comp-row-meta">' + badge + links.join('') + '</div>'
+          + '<div class="comp-row-meta">' + venueHtml + badge + links.join('') + '</div>'
           + '</div>'
           + '</div>';
       });
