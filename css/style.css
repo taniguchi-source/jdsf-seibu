@@ -37,11 +37,11 @@ ul { list-style: none; }
 
 /* ===== Layout ===== */
 .container { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; }
-.section { padding: 80px 0; }
+.section { padding: 48px 0; }
 .section-alt { background: var(--bg-light); }
 
 /* ===== Section Header ===== */
-.section-header { text-align: center; margin-bottom: 52px; }
+.section-header { text-align: center; margin-bottom: 36px; }
 .section-label {
   display: inline-block;
   font-size: 0.75rem;
@@ -524,7 +524,7 @@ ul { list-style: none; }
   color: var(--text-light);
   white-space: nowrap;
 }
-.news-footer { text-align: center; margin-top: 40px; }
+.news-footer { text-align: center; margin-top: 20px; }
 
 /* ===== About Section ===== */
 .about-grid {
@@ -589,7 +589,7 @@ ul { list-style: none; }
 .comp-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  gap: 12px;
 }
 .comp-card {
   background: var(--bg-white);
