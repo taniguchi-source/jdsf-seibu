@@ -1,0 +1,29 @@
+{
+  "pref": {
+    "name": "サンプル県",
+    "name_full": "サンプル県ダンススポーツ連盟",
+    "name_short": "サンプル県連",
+    "en": "Sample",
+    "emoji": "🌟",
+    "color": "#0F766E",
+    "color_dark": "#0D5C55",
+    "color_light": "#CCFBF1",
+    "established": "1985年",
+    "address": "サンプル県サンプル市中央1-1-1",
+    "email": "info@sample-jdsf.example.jp",
+    "phone": "000-000-0000",
+    "website": "",
+    "description": "サンプル県ダンススポーツ連盟は、サンプル県内におけるダンススポーツ競技の普及・振興を目的として活動しています。JDSF近畿中四国ブロック委員会（西部ブロック）の加盟連盟として、ブロック競技会への参加・ランキング管理・指導員認定などの活動を担っています。"
+  },
+  "sections": {
+    "news":         { "enabled": true,  "title": "お知らせ",         "order": 1 },
+    "about":        { "enabled": true,  "title": "連盟について",     "order": 2 },
+    "officers":     { "enabled": true,  "title": "役員一覧",         "order": 3 },
+    "competitions": { "enabled": true,  "title": "府県競技会",       "order": 4 },
+    "instructors":  { "enabled": true,  "title": "指導員・審査情報", "order": 5 },
+    "circles":      { "enabled": false, "title": "サークル・活動",   "order": 6 },
+    "documents":    { "enabled": true,  "title": "書類ダウンロード", "order": 7 },
+    "contact":      { "enabled": true,  "title": "お問い合わせ",     "order": 8 },
+    "links":        { "enabled": true,  "title": "関連リンク",       "order": 9 }
+  }
+}

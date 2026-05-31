@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">府県ダンススポーツ連盟｜JDSF 近畿中四国ブロック委員会</title>
+  <meta name="description" id="page-desc" content="府県ダンススポーツ連盟の公式ページです。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <!-- 親サイトの共通CSS -->
+  <link rel="stylesheet" href="https://test.jdsf-seibu.com/css/style.css">
+  <style>
+    /* ===== 府県カラー（config.jsonで上書き） ===== */
+    :root {
+      --pc:       #0F766E;
+      --pc-dark:  #0D5C55;
+      --pc-light: #CCFBF1;
+    }
+
+    /* ===== ヒーロー ===== */
+    .pref-hero {
+      background: linear-gradient(140deg, var(--pc-dark) 0%, var(--pc) 100%);
+      color: #fff;
+      padding: 64px 0 48px;
+    }
+    .pref-hero-inner { display: flex; align-items: center; gap: 28px; }
+    .pref-hero-icon  { font-size: 3.5rem; flex-shrink: 0; line-height: 1; }
+    .pref-breadcrumb { font-size: 0.8rem; color: rgba(255,255,255,.6); margin-bottom: 8px; }
+    .pref-breadcrumb a { color: rgba(255,255,255,.75); text-decoration: none; }
+    .pref-title    { font-size: 2.125rem; font-weight: 900; line-height: 1.25; }
+    .pref-subtitle { font-size: 0.875rem; color: rgba(255,255,255,.75); margin-top: 6px; }
+
+    /* ===== セクション非表示クラス ===== */
+    .pref-section--hidden { display: none !important; }
+
+    /* ===== ナビ（固定されたページ内リンク） ===== */
+    .pref-pagenav {
+      background: #fff;
+      border-bottom: 1px solid var(--border, #E2E8F0);
+      position: sticky;
+      top: 64px;
+      z-index: 90;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .pref-pagenav-inner {
+      display: flex;
+      gap: 4px;
+      padding: 0 16px;
+    }
+    .pref-pagenav a {
+      display: inline-block;
+      padding: 12px 16px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-medium, #64748b);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      transition: color .2s, border-color .2s;
+    }
+    .pref-pagenav a:hover { color: var(--pc); border-color: var(--pc); }
+
+    /* ===== お知らせ ===== */
+    .pref-news-list { display: grid; gap: 0; }
+    .pref-news-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 16px 0; border-bottom: 1px solid var(--border, #E2E8F0);
+      text-decoration: none; color: inherit;
+    }
+    .pref-news-item:first-child { border-top: 1px solid var(--border, #E2E8F0); }
+    .pref-news-date { font-size: 0.75rem; color: var(--text-light, #94a3b8); white-space: nowrap; padding-top: 3px; flex-shrink: 0; width: 80px; }
+    .pref-news-title { font-size: 0.9375rem; font-weight: 600; color: var(--text-dark, #1e293b); }
+
+    /* ===== 連盟概要DL ===== */
+    .about-dl { display: grid; gap: 10px; font-size: 0.875rem; }
+    .about-dl-row { display: grid; grid-template-columns: 110px 1fr; gap: 8px; align-items: start; }
+    .about-dl dt { font-weight: 600; color: var(--text-light, #94a3b8); }
+
+    /* ===== 役員テーブル ===== */
+    .officer-tbl { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+    .officer-tbl th {
+      background: var(--pc); color: #fff;
+      padding: 10px 16px; text-align: left; font-size: 0.875rem; font-weight: 600;
+    }
+    .officer-tbl td { padding: 10px 16px; border-bottom: 1px solid var(--border, #E2E8F0); }
+    .officer-tbl tr:last-child td { border-bottom: none; }
+    .officer-tbl tr:hover td { background: var(--pc-light); }
+    .officer-tbl-wrap { overflow-x: auto; }
+
+    /* ===== 競技会カード ===== */
+    .comp-status-open  { background: #D1FAE5; color: #065F46; }
+    .comp-status-soon  { background: #FEF3C7; color: #92400E; }
+    .comp-status-closed { background: #F3F4F6; color: #6B7280; }
+    .comp-status-done  { background: #E0E7FF; color: #3730A3; }
+    .comp-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 6px; font-size: 0.8125rem; font-weight: 600;
+      text-decoration: none; transition: opacity .2s;
+    }
+    .comp-btn:hover { opacity: .8; }
+    .comp-btn-primary { background: var(--pc); color: #fff; }
+    .comp-btn-secondary { background: var(--pc-light); color: var(--pc-dark); }
+    .comp-card-pref {
+      background: #fff; border: 1px solid var(--border, #E2E8F0);
+      border-radius: 12px; padding: 20px 24px;
+      display: grid; grid-template-columns: 72px 1fr; gap: 20px; align-items: start;
+    }
+    .comp-datebox {
+      background: var(--pc); border-radius: 8px; color: #fff;
+      display: flex; flex-direction: column; align-items: center; padding: 8px 4px; text-align: center;
+    }
+    .comp-datebox .mon { font-size: 0.7rem; font-weight: 700; letter-spacing: .05em; }
+    .comp-datebox .day { font-size: 1.75rem; font-weight: 900; line-height: 1; }
+    .comp-datebox .yr  { font-size: 0.7rem; color: rgba(255,255,255,.7); }
+    .comp-grid-pref { display: grid; gap: 16px; }
+    .comp-name-pref { font-size: 1rem; font-weight: 700; color: var(--text-dark, #1e293b); margin-bottom: 6px; }
+    .comp-meta-pref { font-size: 0.8125rem; color: var(--text-light, #94a3b8); display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+    .comp-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .comp-tag  { background: var(--pc-light); color: var(--pc-dark); font-size: 0.75rem; font-weight: 600; padding: 2px 10px; border-radius: 100px; }
+    .comp-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .comp-status-badge { font-size: 0.75rem; font-weight: 700; padding: 3px 12px; border-radius: 100px; }
+
+    /* ===== 指導員セクション ===== */
+    .inst-card {
+      background: #fff; border: 1px solid var(--border, #E2E8F0);
+      border-radius: 12px; padding: 20px 24px;
+    }
+    .inst-date { font-size: 0.8125rem; color: var(--pc); font-weight: 700; margin-bottom: 6px; }
+    .inst-name { font-size: 1rem; font-weight: 700; color: var(--text-dark, #1e293b); margin-bottom: 8px; }
+    .inst-meta { font-size: 0.8125rem; color: var(--text-light, #94a3b8); display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
+    .inst-note { font-size: 0.8125rem; color: var(--text-medium, #475569); background: var(--pc-light); padding: 6px 12px; border-radius: 6px; margin-bottom: 10px; }
+    .inst-grid { display: grid; gap: 16px; }
+
+    /* ===== サークル ===== */
+    .circle-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+    .circle-card {
+      background: #fff; border: 1px solid var(--border, #E2E8F0);
+      border-radius: 10px; padding: 16px 20px;
+    }
+    .circle-name { font-size: 0.9375rem; font-weight: 700; color: var(--text-dark, #1e293b); margin-bottom: 4px; }
+    .circle-area { font-size: 0.8125rem; color: var(--text-light, #94a3b8); }
+
+    /* ===== 書類ダウンロード ===== */
+    .doc-list { display: grid; gap: 10px; }
+    .doc-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 18px; background: #fff;
+      border: 1px solid var(--border, #E2E8F0); border-radius: 10px;
+      text-decoration: none; color: inherit; transition: box-shadow .2s;
+    }
+    .doc-item:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); border-color: var(--pc); }
+    .doc-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .doc-name { font-size: 0.9375rem; font-weight: 600; color: var(--text-dark, #1e293b); }
+    .doc-meta { font-size: 0.75rem; color: var(--text-light, #94a3b8); margin-top: 2px; }
+    .doc-badge {
+      margin-left: auto; font-size: 0.75rem; font-weight: 700;
+      padding: 2px 10px; border-radius: 100px; flex-shrink: 0;
+    }
+    .doc-badge-pdf  { background: #FEE2E2; color: #991B1B; }
+    .doc-badge-xlsx { background: #D1FAE5; color: #065F46; }
+
+    /* ===== お問い合わせ ===== */
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+    .contact-box {
+      background: var(--pc-light); border-radius: 12px; padding: 28px;
+    }
+    .contact-box h3 { font-size: 1rem; font-weight: 700; color: var(--pc-dark); margin-bottom: 16px; }
+    .contact-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 0.9375rem; }
+    .contact-label { font-size: 0.75rem; color: var(--text-light, #94a3b8); width: 70px; flex-shrink: 0; }
+    .contact-val { font-weight: 600; color: var(--text-dark, #1e293b); }
+
+    /* ===== リンクカード ===== */
+    .link-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+    .link-card {
+      background: #fff; border: 1px solid var(--border, #E2E8F0);
+      border-radius: 12px; padding: 18px 20px;
+      display: flex; gap: 14px; align-items: center;
+      text-decoration: none; color: inherit; transition: box-shadow .2s, border-color .2s;
+    }
+    .link-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); border-color: var(--pc); }
+    .link-card-icon  { font-size: 1.75rem; flex-shrink: 0; }
+    .link-card-name  { font-size: 0.9375rem; font-weight: 700; color: var(--text-dark, #1e293b); }
+    .link-card-url   { font-size: 0.75rem; color: var(--text-light, #94a3b8); }
+
+    @media (max-width: 768px) {
+      .pref-hero-inner { flex-direction: column; gap: 12px; }
+      .pref-title { font-size: 1.625rem; }
+      .contact-grid { grid-template-columns: 1fr; }
+      .circle-grid  { grid-template-columns: 1fr 1fr; }
+      .link-grid    { grid-template-columns: 1fr 1fr; }
+      .comp-card-pref { grid-template-columns: 60px 1fr; gap: 14px; }
+    }
+    @media (max-width: 480px) {
+      .circle-grid { grid-template-columns: 1fr; }
+      .link-grid   { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== HEADER（西部ブロック共通） ===== -->
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="https://test.jdsf-seibu.com/" class="header-logo">
+      <img src="https://test.jdsf-seibu.com/images/jdsf-logo-official.png"
+           alt="公益社団法人日本ダンススポーツ連盟" class="header-logo-img" style="height:44px;width:auto;">
+      <div class="header-logo-text">
+        <div class="name">近畿中四国ブロック委員会</div>
+      </div>
+    </a>
+    <button class="hamburger" aria-label="メニュー" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-nav" aria-label="メインナビゲーション">
+      <a href="https://test.jdsf-seibu.com/"                  class="nav-link">ホーム</a>
+      <a href="https://test.jdsf-seibu.com/competitions.html" class="nav-link">競技会・指導員などの情報</a>
+      <a href="https://test.jdsf-seibu.com/rankings.html"     class="nav-link">ランキング</a>
+      <a href="https://test.jdsf-seibu.com/contact.html"      class="nav-link nav-cta">お問い合わせ</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ===== 府県連盟ヒーロー ===== -->
+<section class="pref-hero">
+  <div class="container pref-hero-inner">
+    <div class="pref-hero-icon" id="hero-emoji">🌟</div>
+    <div>
+      <div class="pref-breadcrumb">
+        <a href="https://test.jdsf-seibu.com/">ホーム</a> /
+        <span id="hero-pref-name">○○府県ダンススポーツ連盟</span>
+      </div>
+      <h1 class="pref-title" id="hero-title">○○府県<br>ダンススポーツ連盟</h1>
+      <p class="pref-subtitle">JDSF 近畿中四国ブロック委員会 加盟連盟</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ページ内ナビ ===== -->
+<nav class="pref-pagenav" id="pref-pagenav">
+  <div class="pref-pagenav-inner" id="pagenav-links"></div>
+</nav>
+
+<!-- ===== お知らせ ===== -->
+<section class="section" data-section="news" id="sec-news">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">News</div>
+      <h2 class="section-title">お知らせ</h2>
+    </div>
+    <div class="pref-news-list" id="news-list">
+      <p style="color:var(--text-light);padding:20px 0;">読み込み中...</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 連盟について ===== -->
+<section class="section section-alt" data-section="about" id="sec-about">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">About</div>
+      <h2 class="section-title">連盟について</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 360px;gap:48px;align-items:start;">
+      <div>
+        <p id="about-desc" style="font-size:1.0625rem;line-height:1.9;color:var(--text-dark);margin-bottom:0;"></p>
+      </div>
+      <div style="background:var(--pc-light,#CCFBF1);border-radius:12px;padding:24px;">
+        <h3 style="font-size:0.9375rem;font-weight:700;color:var(--pc-dark);margin-bottom:16px;">連盟概要</h3>
+        <dl class="about-dl" id="about-dl"></dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 役員一覧 ===== -->
+<section class="section" data-section="officers" id="sec-officers">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Officers</div>
+      <h2 class="section-title">役員一覧</h2>
+      <p class="section-desc" id="officers-year"></p>
+    </div>
+    <div class="officer-tbl-wrap">
+      <table class="officer-tbl">
+        <thead>
+          <tr>
+            <th style="width:180px;">役職</th>
+            <th>氏名</th>
+            <th>備考</th>
+          </tr>
+        </thead>
+        <tbody id="officers-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 府県競技会 ===== -->
+<section class="section section-alt" data-section="competitions" id="sec-competitions">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Competitions</div>
+      <h2 class="section-title">府県競技会</h2>
+      <p class="section-desc">府県連盟主催の競技会一覧</p>
+    </div>
+    <div class="comp-grid-pref" id="comp-list"></div>
+  </div>
+</section>
+
+<!-- ===== 指導員・審査情報 ===== -->
+<section class="section" data-section="instructors" id="sec-instructors">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Instructors</div>
+      <h2 class="section-title">指導員・<span>審査情報</span></h2>
+      <p class="section-desc">JDSF指導員認定審査のご案内</p>
+    </div>
+    <div class="inst-grid" id="inst-list"></div>
+  </div>
+</section>
+
+<!-- ===== サークル・活動 ===== -->
+<section class="section section-alt" data-section="circles" id="sec-circles">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Circles</div>
+      <h2 class="section-title">サークル・<span>活動</span></h2>
+      <p class="section-desc">加盟サークル・活動団体</p>
+    </div>
+    <div class="circle-grid" id="circle-list"></div>
+  </div>
+</section>
+
+<!-- ===== 書類ダウンロード ===== -->
+<section class="section" data-section="documents" id="sec-documents">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Documents</div>
+      <h2 class="section-title">書類ダウンロード</h2>
+    </div>
+    <div class="doc-list" id="doc-list"></div>
+  </div>
+</section>
+
+<!-- ===== お問い合わせ ===== -->
+<section class="section section-alt" data-section="contact" id="sec-contact">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Contact</div>
+      <h2 class="section-title">お問い合わせ</h2>
+    </div>
+    <div class="contact-grid">
+      <div class="contact-box">
+        <h3>📬 連絡先</h3>
+        <div id="contact-details"></div>
+        <p style="font-size:0.8125rem;color:var(--text-light);margin-top:12px;">
+          ※ 競技会・指導員審査に関するお問い合わせは<br>各担当窓口へお願いします。
+        </p>
+      </div>
+      <div class="contact-box">
+        <h3>🌐 西部ブロックへのお問い合わせ</h3>
+        <p style="font-size:0.875rem;color:var(--text-medium);line-height:1.7;margin-bottom:16px;">
+          ブロック全体に関するご質問・ご相談は<br>西部ブロックのお問い合わせフォームをご利用ください。
+        </p>
+        <a href="https://test.jdsf-seibu.com/contact.html"
+           style="display:inline-flex;align-items:center;gap:8px;background:var(--pc);color:#fff;
+                  padding:10px 20px;border-radius:8px;font-weight:700;font-size:0.875rem;text-decoration:none;">
+          西部ブロック お問い合わせフォーム →
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 関連リンク ===== -->
+<section class="section" data-section="links" id="sec-links">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Links</div>
+      <h2 class="section-title">関連リンク</h2>
+    </div>
+    <div class="link-grid">
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="link-card">
+        <span class="link-card-icon">🔗</span>
+        <div>
+          <div class="link-card-name">JDSF本部</div>
+          <div class="link-card-url">www.jdsf.or.jp</div>
+        </div>
+      </a>
+      <a href="https://test.jdsf-seibu.com/" class="link-card">
+        <span class="link-card-icon">🌐</span>
+        <div>
+          <div class="link-card-name">近畿中四国ブロック委員会</div>
+          <div class="link-card-url">jdsf-seibu.com</div>
+        </div>
+      </a>
+      <a href="https://test.jdsf-seibu.com/rankings.html" class="link-card">
+        <span class="link-card-icon">📊</span>
+        <div>
+          <div class="link-card-name">ブロックランキング</div>
+          <div class="link-card-url">GD年間ランキング</div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="site-footer">
+  <div class="container footer-top">
+    <div>
+      <div class="footer-logo">
+        <img src="https://test.jdsf-seibu.com/images/jdsf-mark.png"
+             alt="JDSF" class="footer-logo-mark-img" style="height:40px;width:auto;">
+        <div class="footer-logo-name" id="footer-name">○○府県ダンススポーツ連盟</div>
+      </div>
+      <p class="footer-desc">
+        JDSF 近畿中四国ブロック委員会 加盟連盟ページ
+      </p>
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="footer-jdsf">🔗 JDSF本部サイト</a>
+    </div>
+    <div class="footer-col">
+      <h4>このページ</h4>
+      <ul class="footer-links" id="footer-pagenav"></ul>
+    </div>
+    <div class="footer-col">
+      <h4>西部ブロック</h4>
+      <ul class="footer-links">
+        <li><a href="https://test.jdsf-seibu.com/">ホーム</a></li>
+        <li><a href="https://test.jdsf-seibu.com/competitions.html">競技会情報</a></li>
+        <li><a href="https://test.jdsf-seibu.com/rankings.html">ランキング</a></li>
+        <li><a href="https://test.jdsf-seibu.com/contact.html">お問い合わせ</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>関連</h4>
+      <ul class="footer-links">
+        <li><a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener">JDSF本部</a></li>
+        <li><a href="https://test.jdsf-seibu.com/privacy.html">プライバシーポリシー</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span id="footer-copy">© 2026 ○○府県ダンススポーツ連盟 / JDSF 近畿中四国ブロック委員会</span>
+    <div class="footer-bottom-links">
+      <a href="https://test.jdsf-seibu.com/privacy.html">プライバシーポリシー</a>
+      <a href="https://test.jdsf-seibu.com/contact.html">お問い合わせ</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ================================================================
+   府県連盟ページ 初期化スクリプト
+   config.json を読み込んで表示・非表示を制御する
+
+   新しいセクションの追加方法:
+   1. 上のHTMLに <section data-section="new_id" id="sec-new_id"> を追加
+   2. config.json の "sections" に { "enabled": true, "title": "セクション名" } を追加
+   3. 下の SECTION_ANCHORS にアンカー情報を追加
+   4. 必要ならデータJSONを data/ に追加してロード関数を書く
+================================================================ */
+
+// ページ内ナビのラベル（data-sectionキー → アンカー情報）
+const SECTION_ANCHORS = {
+  news:         { href: '#sec-news',         icon: '📢' },
+  about:        { href: '#sec-about',        icon: '🏛' },
+  officers:     { href: '#sec-officers',     icon: '👥' },
+  competitions: { href: '#sec-competitions', icon: '🏅' },
+  instructors:  { href: '#sec-instructors',  icon: '🎓' },
+  circles:      { href: '#sec-circles',      icon: '💃' },
+  documents:    { href: '#sec-documents',    icon: '📄' },
+  contact:      { href: '#sec-contact',      icon: '📬' },
+  links:        { href: '#sec-links',        icon: '🔗' },
+};
+
+const CAT_CLASS = {
+  '競技会': 'tag-comp', '指導員': 'tag-instructor',
+  'イベント': 'tag-event', '本部お知らせ': 'tag-hq', 'お知らせ': 'tag-hq', 'その他': 'tag-notice'
+};
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// 日付文字列から月・日・年を分解
+function parseCompDate(d) {
+  const [y, m, day] = d.split('-');
+  const MONTHS = ['','JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  return { y, m: MONTHS[+m] || m, d: day };
+}
+
+function statusBadge(s) {
+  const map = {
+    open:   ['open',   '受付中'],
+    soon:   ['soon',   '準備中'],
+    closed: ['closed', '締切'],
+    done:   ['done',   '終了'],
+  };
+  const [cls, label] = map[s] || ['soon','詳細未定'];
+  return `<span class="comp-status-badge comp-status-${cls}">${esc(label)}</span>`;
+}
+
+// ---- メイン初期化 ----
+async function init() {
+  const base = location.pathname.replace(/\/[^/]*$/, '/');
+
+  // 1. config.json を取得
+  const cfg = await fetch('config.json').then(r => r.json());
+  const pref = cfg.pref;
+  const sections = cfg.sections;
+
+  // 2. CSS カスタムプロパティ（府県カラー）を適用
+  const root = document.documentElement;
+  root.style.setProperty('--pc',       pref.color);
+  root.style.setProperty('--pc-dark',  pref.color_dark);
+  root.style.setProperty('--pc-light', pref.color_light);
+
+  // 3. 基本テキスト設定
+  document.getElementById('page-title').textContent = pref.name_full + '｜JDSF 近畿中四国ブロック委員会';
+  document.getElementById('page-desc').content = pref.name_full + 'の公式ページです。';
+  document.getElementById('hero-emoji').textContent = pref.emoji;
+  document.getElementById('hero-pref-name').textContent = pref.name_full;
+  document.getElementById('hero-title').innerHTML = pref.name + '<br>ダンススポーツ連盟';
+  document.getElementById('footer-name').textContent = pref.name_full;
+  document.getElementById('footer-copy').textContent =
+    '© 2026 ' + pref.name_full + ' / JDSF 近畿中四国ブロック委員会';
+
+  // 4. セクション表示/非表示 & ページ内ナビ構築
+  const navLinks = document.getElementById('pagenav-links');
+  const footerNav = document.getElementById('footer-pagenav');
+  const sortedKeys = Object.entries(sections)
+    .sort((a, b) => (a[1].order||99) - (b[1].order||99))
+    .map(([k]) => k);
+
+  sortedKeys.forEach(key => {
+    const sec = sections[key];
+    const el = document.querySelector(`[data-section="${key}"]`);
+    if (!el) return;
+
+    if (!sec.enabled) {
+      el.classList.add('pref-section--hidden');
+      return;
+    }
+
+    // ページ内ナビにリンク追加
+    const anchor = SECTION_ANCHORS[key] || { href: '#sec-' + key, icon: '•' };
+    const a = document.createElement('a');
+    a.href = anchor.href;
+    a.textContent = anchor.icon + ' ' + sec.title;
+    navLinks.appendChild(a);
+
+    const li = document.createElement('li');
+    li.innerHTML = `<a href="${esc(anchor.href)}">${esc(sec.title)}</a>`;
+    footerNav.appendChild(li);
+  });
+
+  // 5. 各セクションのデータ読み込み
+  const load = async (path) => {
+    try { return await fetch(path).then(r => r.json()); }
+    catch { return null; }
+  };
+
+  // お知らせ
+  if (sections.news?.enabled) {
+    const news = await load('data/news.json');
+    const el = document.getElementById('news-list');
+    if (news?.length) {
+      el.innerHTML = news.map(n => {
+        const cls = CAT_CLASS[n.category] || 'tag-notice';
+        const inner = `
+          <span class="pref-news-date">${esc(n.date)}</span>
+          <span class="tag ${cls}" style="flex-shrink:0;">${esc(n.category)}</span>
+          ${n.url
+            ? `<a href="${esc(n.url)}" class="pref-news-title">${esc(n.title)}</a>`
+            : `<span class="pref-news-title">${esc(n.title)}</span>`}`;
+        return `<div class="pref-news-item">${inner}</div>`;
+      }).join('');
+    } else {
+      el.innerHTML = '<p style="color:var(--text-light);padding:16px 0;">お知らせはありません。</p>';
+    }
+  }
+
+  // 連盟について
+  if (sections.about?.enabled) {
+    document.getElementById('about-desc').textContent = pref.description || '';
+    const rows = [
+      ['正式名称', pref.name_full],
+      ['設立',     pref.established],
+      ['所在地',   pref.address],
+      ['加盟ブロック', 'JDSF 近畿中四国ブロック委員会'],
+      ['メール',   pref.email],
+      ['電話',     pref.phone],
+    ].filter(([, v]) => v);
+    document.getElementById('about-dl').innerHTML = rows.map(([dt, dd]) =>
+      `<div class="about-dl-row"><dt>${esc(dt)}</dt><dd>${esc(dd)}</dd></div>`
+    ).join('');
+  }
+
+  // 役員
+  if (sections.officers?.enabled) {
+    const data = await load('data/officers.json');
+    if (data) {
+      document.getElementById('officers-year').textContent = data.year + '年度 役員（敬称略）';
+      document.getElementById('officers-tbody').innerHTML =
+        data.officers.map(o =>
+          `<tr><td>${esc(o.role)}</td><td>${esc(o.name)}</td><td>${esc(o.note||'')}</td></tr>`
+        ).join('');
+    }
+  }
+
+  // 府県競技会
+  if (sections.competitions?.enabled) {
+    const data = await load('data/competitions.json');
+    const el = document.getElementById('comp-list');
+    if (data?.length) {
+      el.innerHTML = data.map(c => {
+        const {y, m, d} = parseCompDate(c.date);
+        const tags = [...(c.disciplines||[]), ...(c.divisions||[])]
+          .map(t => `<span class="comp-tag">${esc(t)}</span>`).join('');
+        const actions = [
+          c.syllabus_url ? `<a href="${esc(c.syllabus_url)}" class="comp-btn comp-btn-secondary" target="_blank">シラバス</a>` : '',
+          c.entry_url    ? `<a href="${esc(c.entry_url)}"    class="comp-btn comp-btn-primary"   target="_blank">エントリー</a>` : '',
+          c.result_url   ? `<a href="${esc(c.result_url)}"   class="comp-btn comp-btn-secondary" target="_blank">結果</a>` : '',
+        ].filter(Boolean).join('');
+        return `
+          <div class="comp-card-pref">
+            <div class="comp-datebox">
+              <span class="mon">${esc(m)}</span>
+              <span class="day">${esc(d)}</span>
+              <span class="yr">${esc(y)}</span>
+            </div>
+            <div>
+              <div class="comp-name-pref">${esc(c.name)}</div>
+              <div class="comp-meta-pref">
+                ${c.venue ? `<span>📍 ${esc(c.venue)}</span>` : ''}
+              </div>
+              <div class="comp-tags">${tags}</div>
+              <div class="comp-actions">
+                ${statusBadge(c.status)}
+                ${actions}
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    } else {
+      el.innerHTML = '<p style="color:var(--text-light);padding:20px 0;">競技会情報はありません。</p>';
+    }
+  }
+
+  // 指導員審査
+  if (sections.instructors?.enabled) {
+    const data = await load('data/instructors.json');
+    const el = document.getElementById('inst-list');
+    if (data?.length) {
+      el.innerHTML = data.map(i => `
+        <div class="inst-card">
+          <div class="inst-date">📅 ${esc(i.date)} ${esc(i.time||'')}</div>
+          <div class="inst-name">${esc(i.name)}</div>
+          <div class="inst-meta">
+            ${i.venue ? `<span>📍 ${esc(i.venue)}</span>` : ''}
+            ${i.grades?.length ? `<span>🎓 ${i.grades.map(esc).join('・')}</span>` : ''}
+          </div>
+          ${i.note ? `<div class="inst-note">⚠️ ${esc(i.note)}</div>` : ''}
+          <div class="comp-actions">
+            ${i.syllabus_url ? `<a href="${esc(i.syllabus_url)}" class="comp-btn comp-btn-secondary" target="_blank">審査要項</a>` : ''}
+            ${i.apply_url   ? `<a href="${esc(i.apply_url)}"    class="comp-btn comp-btn-primary"   target="_blank">申込書</a>` : ''}
+          </div>
+        </div>`).join('');
+    }
+  }
+
+  // サークル
+  if (sections.circles?.enabled) {
+    const data = await load('data/circles.json');
+    const el = document.getElementById('circle-list');
+    if (data?.length) {
+      el.innerHTML = data.map(c => `
+        <div class="circle-card">
+          <div class="circle-name">💃 ${esc(c.name)}</div>
+          <div class="circle-area">📍 ${esc(c.area)}</div>
+          ${c.contact ? `<div style="font-size:0.8rem;margin-top:4px;color:var(--text-light);">${esc(c.contact)}</div>` : ''}
+        </div>`).join('');
+    }
+  }
+
+  // 書類ダウンロード
+  if (sections.documents?.enabled) {
+    const data = await load('data/documents.json');
+    const el = document.getElementById('doc-list');
+    if (data?.length) {
+      el.innerHTML = data.map(d => {
+        const icon  = d.type === 'PDF' ? '📕' : d.type === 'Excel' ? '📗' : '📄';
+        const badge = d.type === 'PDF' ? 'doc-badge-pdf' : d.type === 'Excel' ? 'doc-badge-xlsx' : '';
+        return `
+          <a href="${esc(d.url)}" class="doc-item" ${d.url && d.url !== '#' ? 'target="_blank" rel="noopener"' : ''}>
+            <span class="doc-icon">${icon}</span>
+            <div>
+              <div class="doc-name">${esc(d.name)}</div>
+              <div class="doc-meta">${esc(d.category)} · ${esc(d.date)}</div>
+            </div>
+            <span class="doc-badge ${badge}">${esc(d.type)}</span>
+          </a>`;
+      }).join('');
+    }
+  }
+
+  // お問い合わせ
+  if (sections.contact?.enabled) {
+    const rows = [
+      ['メール', pref.email  ? `<a href="mailto:${esc(pref.email)}" style="color:var(--pc);">${esc(pref.email)}</a>` : null],
+      ['電話',   pref.phone  ? `<a href="tel:${esc(pref.phone)}" style="color:var(--pc);">${esc(pref.phone)}</a>` : null],
+      ['所在地', pref.address ? esc(pref.address) : null],
+    ].filter(([, v]) => v);
+    document.getElementById('contact-details').innerHTML =
+      rows.map(([l, v]) =>
+        `<div class="contact-row"><span class="contact-label">${esc(l)}</span><span class="contact-val">${v}</span></div>`
+      ).join('');
+  }
+}
+
+init().catch(console.error);
+</script>
+
+<script src="https://test.jdsf-seibu.com/js/main.js"></script>
+</body>
+</html>

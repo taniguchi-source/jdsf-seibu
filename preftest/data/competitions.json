@@ -1,0 +1,35 @@
+[
+  {
+    "date": "2026-07-20",
+    "name": "2026年度 第1回サンプル県ダンススポーツ選手権大会",
+    "venue": "サンプル市民体育館",
+    "disciplines": ["ラテン", "スタンダード"],
+    "divisions": ["A級", "B級", "C級", "D級"],
+    "status": "open",
+    "syllabus_url": "#",
+    "entry_url": "#",
+    "result_url": ""
+  },
+  {
+    "date": "2026-09-15",
+    "name": "2026年度 第2回サンプル県ダンススポーツ選手権大会",
+    "venue": "未定",
+    "disciplines": ["ラテン", "スタンダード"],
+    "divisions": ["A級", "B級", "C級", "D級"],
+    "status": "soon",
+    "syllabus_url": "",
+    "entry_url": "",
+    "result_url": ""
+  },
+  {
+    "date": "2026-11-08",
+    "name": "2026年度 サンプル県ダンススポーツ交流大会（PD）",
+    "venue": "サンプル文化会館",
+    "disciplines": ["ラテン", "スタンダード"],
+    "divisions": ["PD"],
+    "status": "soon",
+    "syllabus_url": "",
+    "entry_url": "",
+    "result_url": ""
+  }
+]
