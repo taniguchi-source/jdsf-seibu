@@ -10,98 +10,171 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <style>
-    .officer-grid {
+    /* ===== 役員 ===== */
+    /* 執行部カード */
+    .exec-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 40px;
     }
-    .officer-card {
+    .exec-card {
       background: var(--bg-white);
       border: 1px solid var(--border);
+      border-top: 4px solid var(--primary);
       border-radius: var(--radius);
-      padding: 12px 16px;
+      padding: 18px 20px;
       display: flex;
-      align-items: center;
-      gap: 12px;
+      flex-direction: column;
+      gap: 6px;
     }
-    .officer-role {
-      font-size: 0.6875rem;
+    .exec-card.is-chief {
+      border-top-color: var(--accent, #C9A227);
+      background: linear-gradient(135deg, #fffdf4 0%, #fff 100%);
+    }
+    .exec-role {
+      font-size: 0.7rem;
       font-weight: 700;
+      letter-spacing: .06em;
       color: var(--primary-light);
       background: var(--bg-blue);
+      display: inline-block;
       padding: 2px 10px;
       border-radius: 100px;
-      white-space: nowrap;
-      flex-shrink: 0;
+      align-self: flex-start;
     }
-    .officer-name {
-      font-size: 1rem;
+    .exec-card.is-chief .exec-role {
+      color: #7a5c00;
+      background: #fff4cc;
+    }
+    .exec-name {
+      font-size: 1.125rem;
       font-weight: 800;
+      color: var(--text-dark);
+    }
+    .exec-pref {
+      font-size: 0.8rem;
+      color: var(--text-light);
+    }
+
+    /* 部長テーブル */
+    .officer-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+      margin-bottom: 40px;
+    }
+    .officer-table thead tr {
+      background: var(--primary);
+      color: #fff;
+    }
+    .officer-table thead th {
+      padding: 10px 16px;
+      font-weight: 600;
+      text-align: left;
+    }
+    .officer-table tbody tr {
+      border-bottom: 1px solid var(--border);
+    }
+    .officer-table tbody tr:nth-child(even) {
+      background: var(--bg-alt, #f8fafc);
+    }
+    .officer-table tbody td {
+      padding: 12px 16px;
+      vertical-align: middle;
+    }
+    .officer-table .td-role {
+      font-weight: 700;
+      color: var(--primary-light);
+      white-space: nowrap;
+    }
+    .officer-table .td-name {
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+    .officer-table .td-pref {
+      color: var(--text-light);
+    }
+
+    /* 府県会長テーブル */
+    .pref-section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--bg-blue);
+      border-left: 4px solid var(--primary);
+      padding: 7px 14px;
+      margin-bottom: 0;
+      border-radius: 0;
+    }
+    .pref-table-wrap + .pref-section-title {
+      margin-top: 16px;
+    }
+    .pref-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+    }
+    .pref-table thead tr {
+      background: #e8edf5;
+    }
+    .pref-table thead th {
+      padding: 8px 16px;
+      font-weight: 600;
+      color: var(--primary);
+      text-align: left;
+      font-size: 0.8125rem;
+    }
+    .pref-table tbody tr {
+      border-bottom: 1px solid var(--border);
+    }
+    .pref-table tbody tr:last-child {
+      border-bottom: none;
+    }
+    .pref-table tbody td {
+      padding: 11px 16px;
+      vertical-align: middle;
+    }
+    .pref-table .td-pref-name {
+      font-weight: 700;
       color: var(--text-dark);
       white-space: nowrap;
     }
-    .officer-pref {
-      font-size: 0.75rem;
+    .pref-table .td-role-name {
       color: var(--text-light);
-      white-space: nowrap;
-    }
-    .officer-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-    .history-list { display: grid; gap: 0; }
-    .history-item {
-      display: grid;
-      grid-template-columns: 120px 1fr;
-      gap: 24px;
-      padding: 20px 0;
-      border-bottom: 1px solid var(--border);
-      align-items: start;
-    }
-    .history-item:last-child { border-bottom: none; }
-    .history-year {
-      font-size: 0.9375rem;
-      font-weight: 700;
-      color: var(--primary-light);
-      padding-top: 2px;
-    }
-    .history-text {
-      font-size: 0.9375rem;
-      color: var(--text-medium);
-      line-height: 1.7;
-    }
-    .area-map {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-    }
-    .area-block {
-      background: var(--bg-white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-    }
-    .area-block h3 {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 14px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid var(--bg-blue);
-    }
-    .area-prefs { display: flex; flex-wrap: wrap; gap: 8px; }
-    .pref-chip {
-      background: var(--bg-blue);
-      color: var(--primary);
       font-size: 0.8125rem;
+    }
+    .pref-table .td-name {
       font-weight: 600;
-      padding: 4px 14px;
-      border-radius: 100px;
+      color: var(--text-dark);
     }
-    @media (max-width: 768px) {
-      .officer-grid { grid-template-columns: 1fr 1fr; }
-      .history-item { grid-template-columns: 80px 1fr; gap: 16px; }
-      .area-map { grid-template-columns: 1fr; }
+    .pref-table-wrap {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 4px;
     }
-    @media (max-width: 480px) {
-      .officer-grid { grid-template-columns: 1fr; }
+
+    /* 注記 */
+    .officers-note {
+      font-size: 0.8125rem;
+      color: var(--text-light);
+      margin-top: 12px;
+      text-align: right;
+    }
+
+    /* レスポンシブ */
+    @media (max-width: 640px) {
+      .exec-grid { grid-template-columns: 1fr 1fr; }
+      .officer-table, .pref-table { font-size: 0.875rem; }
+      .officer-table thead th, .officer-table tbody td,
+      .pref-table thead th, .pref-table tbody td { padding: 9px 10px; }
+    }
+    @media (max-width: 400px) {
+      .exec-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -230,92 +303,197 @@
     <div class="section-header">
       <div class="section-label">Officers</div>
       <h2 class="section-title">役員<span>一覧</span></h2>
-      <p class="section-desc">2026年度 GD西部ブロック役員（敬称略）</p>
+      <p class="section-desc">2026年度 近畿中四国ブロック委員会 役員（敬称略）</p>
     </div>
-    <div class="officer-grid">
-      <div class="officer-card">
-        <div class="officer-role">委員長</div>
-        <div class="officer-info"><div class="officer-name">谷口 主嘉</div></div>
+
+    <!-- ① 執行部 -->
+    <h3 style="font-size:0.9375rem;font-weight:700;color:var(--primary);border-left:4px solid var(--accent,#C9A227);padding-left:10px;margin-bottom:14px;">執行部</h3>
+    <div class="exec-grid">
+      <div class="exec-card is-chief">
+        <span class="exec-role">委員長</span>
+        <div class="exec-name">谷口 主嘉</div>
+        <div class="exec-pref">京都府連盟</div>
       </div>
-      <div class="officer-card">
-        <div class="officer-role">直前委員長</div>
-        <div class="officer-info"><div class="officer-name">天道 貞一</div><div class="officer-pref">大阪府連盟</div></div>
+      <div class="exec-card">
+        <span class="exec-role">直前委員長</span>
+        <div class="exec-name">天道 貞一</div>
+        <div class="exec-pref">大阪府連盟</div>
       </div>
-      <div class="officer-card">
-        <div class="officer-role">副委員長</div>
-        <div class="officer-info"><div class="officer-name">伊藤 康雅</div><div class="officer-pref">滋賀県連盟</div></div>
+      <div class="exec-card">
+        <span class="exec-role">副委員長</span>
+        <div class="exec-name">伊藤 康雅</div>
+        <div class="exec-pref">滋賀県連盟</div>
       </div>
-      <div class="officer-card">
-        <div class="officer-role">副委員長</div>
-        <div class="officer-info"><div class="officer-name">鈴江 潔</div><div class="officer-pref">事務局長</div></div>
+      <div class="exec-card">
+        <span class="exec-role">副委員長</span>
+        <div class="exec-name">鈴江 潔</div>
+        <div class="exec-pref">徳島県連盟</div>
       </div>
-      <div class="officer-card">
-        <div class="officer-role">副委員長</div>
-        <div class="officer-info"><div class="officer-name">野田 尚児</div><div class="officer-pref">和歌山県連盟</div></div>
-      </div>
-      <div class="officer-card">
-        <div class="officer-role">経理部長</div>
-        <div class="officer-info"><div class="officer-name">平川 順一</div></div>
-      </div>
-      <div class="officer-card">
-        <div class="officer-role">総務部長</div>
-        <div class="officer-info"><div class="officer-name">戸高 誠子</div><div class="officer-pref">香川県連盟</div></div>
-      </div>
-      <div class="officer-card">
-        <div class="officer-role">競技資格部長</div>
-        <div class="officer-info"><div class="officer-name">福井 道剛</div></div>
-      </div>
-      <div class="officer-card">
-        <div class="officer-role">広報部長</div>
-        <div class="officer-info"><div class="officer-name">藤田 由里佳</div></div>
-      </div>
-      <div class="officer-card">
-        <div class="officer-role">広報副部長</div>
-        <div class="officer-info"><div class="officer-name">日野 光江</div></div>
-      </div>
-      <div class="officer-card">
-        <div class="officer-role">指導部長</div>
-        <div class="officer-info"><div class="officer-name">藤本 悟</div><div class="officer-pref">兵庫県連盟</div></div>
-      </div>
-      <div class="officer-card">
-        <div class="officer-role">京都府会長</div>
-        <div class="officer-info"><div class="officer-name">松本 武士</div></div>
-      </div>
-      <div class="officer-card">
-        <div class="officer-role">奈良県会長</div>
-        <div class="officer-info"><div class="officer-name">阪田 麗二</div></div>
-      </div>
-      <div class="officer-card">
-        <div class="officer-role">岡山県会長</div>
-        <div class="officer-info"><div class="officer-name">守谷 和正</div></div>
-      </div>
-      <div class="officer-card">
-        <div class="officer-role">広島県会長</div>
-        <div class="officer-info"><div class="officer-name">西原 和也</div></div>
-      </div>
-      <div class="officer-card">
-        <div class="officer-role">鳥取県会長</div>
-        <div class="officer-info"><div class="officer-name">前田 博</div></div>
-      </div>
-      <div class="officer-card">
-        <div class="officer-role">島根県会長</div>
-        <div class="officer-info"><div class="officer-name">江田 哲也</div></div>
-      </div>
-      <div class="officer-card">
-        <div class="officer-role">徳島県会長</div>
-        <div class="officer-info"><div class="officer-name">山本 正美</div></div>
-      </div>
-      <div class="officer-card">
-        <div class="officer-role">高知県会長</div>
-        <div class="officer-info"><div class="officer-name">佐々木 浩一</div></div>
-      </div>
-      <div class="officer-card">
-        <div class="officer-role">愛媛県会長</div>
-        <div class="officer-info"><div class="officer-name">武田 真知子</div></div>
+      <div class="exec-card">
+        <span class="exec-role">副委員長</span>
+        <div class="exec-name">野田 尚児</div>
+        <div class="exec-pref">和歌山県連盟</div>
       </div>
     </div>
+
+    <!-- ② 委員長推薦委員（各部部長） -->
+    <h3 style="font-size:0.9375rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:10px;margin-bottom:14px;">委員長推薦委員（各部部長）</h3>
+    <div style="overflow-x:auto;margin-bottom:40px;">
+      <table class="officer-table">
+        <thead>
+          <tr>
+            <th style="width:160px;">役職</th>
+            <th>氏名</th>
+            <th>所属府県連盟</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="td-role">経理部長</td>
+            <td class="td-name">平川 順一</td>
+            <td class="td-pref">大阪府連盟</td>
+          </tr>
+          <tr>
+            <td class="td-role">総務部長</td>
+            <td class="td-name">戸高 誠子</td>
+            <td class="td-pref">香川県連盟</td>
+          </tr>
+          <tr>
+            <td class="td-role">競技資格部長</td>
+            <td class="td-name">福井 道剛</td>
+            <td class="td-pref">大阪府連盟</td>
+          </tr>
+          <tr>
+            <td class="td-role">指導部長</td>
+            <td class="td-name">藤本 悟</td>
+            <td class="td-pref">兵庫県連盟</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ③ 各府県連盟会長 -->
+    <h3 style="font-size:0.9375rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:10px;margin-bottom:14px;">各府県連盟会長</h3>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="pref-president-grid">
+
+      <!-- 近畿 -->
+      <div>
+        <div class="pref-section-title">近畿（6府県）</div>
+        <div class="pref-table-wrap">
+          <table class="pref-table">
+            <thead>
+              <tr>
+                <th>府県連盟</th>
+                <th>役職</th>
+                <th>氏名</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-pref-name">滋賀県</td>
+                <td class="td-role-name">理事長</td>
+                <td class="td-name">伊藤 康雅</td>
+              </tr>
+              <tr>
+                <td class="td-pref-name">京都府</td>
+                <td class="td-role-name">会長</td>
+                <td class="td-name">松本 武士</td>
+              </tr>
+              <tr>
+                <td class="td-pref-name">大阪府</td>
+                <td class="td-role-name">会長</td>
+                <td class="td-name">天道 貞一</td>
+              </tr>
+              <tr>
+                <td class="td-pref-name">兵庫県</td>
+                <td class="td-role-name">会長</td>
+                <td class="td-name">藤本 悟</td>
+              </tr>
+              <tr>
+                <td class="td-pref-name">奈良県</td>
+                <td class="td-role-name">会長</td>
+                <td class="td-name">阪田 麗二</td>
+              </tr>
+              <tr>
+                <td class="td-pref-name">和歌山県</td>
+                <td class="td-role-name">会長</td>
+                <td class="td-name">野田 尚児</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 中国・四国 -->
+      <div>
+        <div class="pref-section-title">中国・四国（8県）</div>
+        <div class="pref-table-wrap">
+          <table class="pref-table">
+            <thead>
+              <tr>
+                <th>府県連盟</th>
+                <th>役職</th>
+                <th>氏名</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-pref-name">鳥取県</td>
+                <td class="td-role-name">会長</td>
+                <td class="td-name">前田 博</td>
+              </tr>
+              <tr>
+                <td class="td-pref-name">島根県</td>
+                <td class="td-role-name">会長</td>
+                <td class="td-name">江田 哲也</td>
+              </tr>
+              <tr>
+                <td class="td-pref-name">岡山県</td>
+                <td class="td-role-name">会長</td>
+                <td class="td-name">守谷 和正</td>
+              </tr>
+              <tr>
+                <td class="td-pref-name">広島県</td>
+                <td class="td-role-name">会長</td>
+                <td class="td-name">西原 和也</td>
+              </tr>
+              <tr>
+                <td class="td-pref-name">香川県</td>
+                <td class="td-role-name">会長</td>
+                <td class="td-name">戸高 誠子</td>
+              </tr>
+              <tr>
+                <td class="td-pref-name">徳島県</td>
+                <td class="td-role-name">会長</td>
+                <td class="td-name">山本 正美</td>
+              </tr>
+              <tr>
+                <td class="td-pref-name">愛媛県</td>
+                <td class="td-role-name">会長</td>
+                <td class="td-name">武田 真知子</td>
+              </tr>
+              <tr>
+                <td class="td-pref-name">高知県</td>
+                <td class="td-role-name">会長</td>
+                <td class="td-name">佐々木 浩一</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <p class="officers-note">※ 役員データは2026年度時点。変更がある場合は随時更新します。</p>
+
   </div>
 </section>
+
+<style>
+  @media (max-width: 640px) {
+    .pref-president-grid { grid-template-columns: 1fr !important; }
+  }
+</style>
 
 <!-- JDSF組織図 -->
 <section class="section section-alt">
