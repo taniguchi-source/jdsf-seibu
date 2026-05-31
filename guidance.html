@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>その他情報｜JDSF 近畿中四国ブロック委員会</title>
-  <meta name="description" content="JDSF 近畿中四国ブロック委員会（西部ブロック）の指導員研修会・各種イベント・講習会情報をご案内します。">
+  <title>指導部情報｜JDSF 近畿中四国ブロック委員会</title>
+  <meta name="description" content="JDSF 近畿中四国ブロック委員会（西部ブロック）の指導員研修会・各種イベント情報をご案内します。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
@@ -14,58 +14,64 @@
     .event-card {
       background: var(--bg-white);
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 20px 24px;
-      margin-bottom: 16px;
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      margin-bottom: 10px;
       display: flex;
-      gap: 20px;
-      align-items: flex-start;
+      gap: 14px;
+      align-items: center;
       transition: var(--transition);
     }
     .event-card:hover { box-shadow: var(--shadow-hover); border-color: var(--primary-light); }
     .event-card-date {
       flex-shrink: 0;
-      min-width: 72px;
+      min-width: 54px;
       text-align: center;
       background: var(--bg-blue);
       border-radius: var(--radius);
-      padding: 10px 8px;
+      padding: 6px 6px;
     }
-    .event-card-date .ev-month { font-size: 0.75rem; font-weight: 700; color: var(--primary); }
-    .event-card-date .ev-day   { font-size: 1.75rem; font-weight: 900; color: var(--primary-dark); line-height: 1.1; }
-    .event-card-body { flex: 1; }
-    .event-card-name { font-size: 1rem; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; }
-    .event-card-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+    .event-card-date .ev-month { font-size: 0.7rem; font-weight: 700; color: var(--primary); }
+    .event-card-date .ev-day   { font-size: 1.375rem; font-weight: 900; color: var(--primary-dark); line-height: 1.1; }
+    .event-card-body { flex: 1; min-width: 0; }
+    .event-card-name { font-size: 0.9375rem; font-weight: 700; color: var(--text-dark); margin-bottom: 4px; }
     .event-type-badge {
       display: inline-block;
-      padding: 2px 10px;
-      font-size: 0.75rem;
+      padding: 1px 8px;
+      font-size: 0.7rem;
       font-weight: 700;
       border-radius: 20px;
       background: var(--primary);
       color: #fff;
     }
-    .event-type-badge.lecture { background: var(--accent); color: #fff; }
-    .event-type-badge.exam    { background: #e53e3e; color: #fff; }
+    .event-type-badge.lecture { background: var(--accent); }
+    .event-type-badge.exam    { background: #e53e3e; }
     .event-target-tag {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      padding: 2px 8px;
-      font-size: 0.75rem;
+      padding: 1px 7px;
+      font-size: 0.7rem;
       font-weight: 600;
       border-radius: 4px;
       background: var(--bg-blue);
       color: var(--primary);
       border: 1px solid rgba(37,99,235,0.2);
     }
-    .event-card-info { font-size: 0.875rem; color: var(--text-medium); }
-    .event-card-info span { margin-right: 16px; }
-    .event-card-notes { font-size: 0.8125rem; color: var(--text-light); margin-top: 4px; font-style: italic; }
-    .event-card-actions { margin-top: 10px; }
+    .event-card-info {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.8125rem;
+      color: var(--text-medium);
+      margin-top: 4px;
+    }
+    .event-card-notes { font-size: 0.775rem; color: var(--text-light); margin-top: 2px; font-style: italic; }
     .event-past .event-card-date { background: #f1f5f9; opacity: 0.7; }
     .event-past .event-card-name { color: var(--text-medium); }
-    @media (max-width: 600px) {
+
+    @media (max-width: 768px) {
       .event-card { flex-direction: column; gap: 12px; }
       .event-card-date { display: flex; gap: 6px; align-items: baseline; min-width: unset; padding: 6px 12px; }
       .event-card-date .ev-day { font-size: 1.25rem; }
@@ -88,9 +94,8 @@
     <nav class="site-nav" aria-label="メインナビゲーション">
       <a href="index.html"        class="nav-link">ホーム</a>
       <a href="competitions.html" class="nav-link">競技会情報</a>
-      <a href="guidance.html"     class="nav-link">指導部情報</a>
+      <a href="guidance.html"     class="nav-link active">指導部情報</a>
       <a href="rankings.html"     class="nav-link">ランキング</a>
-      <a href="members.html"      class="nav-link">加盟団体</a>
       <a href="contact.html"      class="nav-link nav-cta">お問い合わせ</a>
     </nav>
   </div>
@@ -100,24 +105,23 @@
   <div class="container">
     <ol class="breadcrumb-list">
       <li><a href="index.html">ホーム</a></li>
-      <li>その他情報</li>
+      <li>指導部情報</li>
     </ol>
   </div>
 </nav>
 
 <div class="page-hero">
   <div class="container">
-    <div class="page-hero-label">Information</div>
-    <h1 class="page-hero-title">その他情報</h1>
-    <p class="page-hero-desc">指導員研修会・各種イベント・講習会のご案内</p>
+    <div class="page-hero-label">Guidance</div>
+    <h1 class="page-hero-title">指導部情報</h1>
+    <p class="page-hero-desc">指導員研修会・各種イベントのご案内</p>
   </div>
 </div>
 
-<!-- ===== 研修イベント（JDSF自動取得） ===== -->
+<!-- ===== 指導員研修会・各種イベント ===== -->
 <section class="section">
   <div class="container">
-    <div class="section-header">
-      <div class="section-label">JDSF自動取得</div>
+    <div class="section-header" style="margin-bottom:20px;">
       <h2 class="section-title">指導員研修会・<span>各種イベント</span></h2>
       <p class="section-desc">
         JDSFシステム（<a href="https://adm.jdsf.jp/events/?b_id=5" target="_blank" rel="noopener"
@@ -126,13 +130,13 @@
     </div>
 
     <!-- 凡例 -->
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;align-items:center;">
       <span class="event-type-badge">研修</span>
-      <span style="font-size:0.875rem;color:var(--text-light);align-self:center;">＝ 研修会</span>
-      <span class="event-type-badge lecture">講習</span>
-      <span style="font-size:0.875rem;color:var(--text-light);align-self:center;">＝ 講習会（新規・更新）</span>
-      <span class="event-type-badge exam">試験</span>
-      <span style="font-size:0.875rem;color:var(--text-light);align-self:center;">＝ 資格試験</span>
+      <span style="font-size:0.8125rem;color:var(--text-light);">＝ 研修会</span>
+      <span class="event-type-badge lecture" style="margin-left:8px;">講習</span>
+      <span style="font-size:0.8125rem;color:var(--text-light);">＝ 講習会（新規・更新）</span>
+      <span class="event-type-badge exam" style="margin-left:8px;">試験</span>
+      <span style="font-size:0.8125rem;color:var(--text-light);">＝ 資格試験</span>
     </div>
 
     <!-- イベント描画領域 -->
@@ -152,6 +156,7 @@
   </div>
 </section>
 
+
 <footer class="site-footer">
   <div class="container footer-top">
     <div>
@@ -159,14 +164,8 @@
         <img src="images/jdsf-mark.png" alt="JDSF" class="footer-logo-mark-img" style="height:40px;width:auto;">
         <div class="footer-logo-name">JDSF 近畿中四国ブロック委員会</div>
       </div>
-      <p class="footer-desc">
-        JDSF近畿中四国ブロック委員会（西部ブロック）は、<br>
-        近畿・中国・四国地方のダンススポーツ活動を<br>
-        支援・統括するブロック組織です。
-      </p>
-      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="footer-jdsf">
-        🔗 JDSF本部サイト
-      </a>
+      <p class="footer-desc">JDSF近畿中四国ブロック委員会（西部ブロック）</p>
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="footer-jdsf">🔗 JDSF本部サイト</a>
     </div>
     <div class="footer-col">
       <h4>サイトマップ</h4>
@@ -174,25 +173,22 @@
         <li><a href="index.html">ホーム</a></li>
         <li><a href="about.html">西部ブロックについて</a></li>
         <li><a href="competitions.html">競技会情報</a></li>
+        <li><a href="guidance.html">指導部情報</a></li>
         <li><a href="rankings.html">ランキング</a></li>
-        <li><a href="members.html">加盟団体</a></li>
         <li><a href="contact.html">お問い合わせ</a></li>
       </ul>
     </div>
     <div class="footer-col">
-      <h4>その他情報</h4>
+      <h4>指導部情報</h4>
       <ul class="footer-links">
-        <li><a href="info.html">指導員研修会</a></li>
-        <li><a href="info.html">審判員研修会</a></li>
-        <li><a href="info.html">各種講習会</a></li>
+        <li><a href="guidance.html">指導員研修会</a></li>
+        <li><a href="guidance.html">各種イベント</a></li>
       </ul>
     </div>
     <div class="footer-col">
-      <h4>関連リンク</h4>
+      <h4>お問い合わせ</h4>
       <ul class="footer-links">
-        <li><a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener">JDSF本部</a></li>
-        <li><a href="about.html#officers">役員一覧</a></li>
-        <li><a href="contact.html">お問い合わせ</a></li>
+        <li><a href="contact.html">お問い合わせフォーム</a></li>
         <li><a href="privacy.html">プライバシーポリシー</a></li>
       </ul>
     </div>
@@ -240,7 +236,6 @@
         return;
       }
 
-      // 日付から月・日を抽出（「7月12日」→ month=7, day=12）
       function parseMD(dateStr) {
         var m = dateStr.match(/(\d+)月(\d+)日/);
         return m ? { month: m[1], day: m[2] } : { month: '?', day: '?' };
@@ -251,7 +246,6 @@
         var md      = parseMD(ev.date);
         var tc      = TYPE_CLASS[ev.type] || '';
 
-        // 対象資格タグ
         var targets = [];
         if (ev.target_instructor)  targets.push('指導員');
         if (ev.target_competition) targets.push('競技資格');
@@ -261,7 +255,6 @@
           return '<span class="event-target-tag">✓ ' + t + '</span>';
         }).join(' ');
 
-        // ステータス
         var statusHTML;
         var deadlinePast = ev.deadline && ev.deadline.replace(/\//g, '-') < today;
         if (isPast) {
@@ -273,7 +266,7 @@
         }
 
         var detailBtn = ev.detail_url
-          ? '<a href="' + ev.detail_url + '" target="_blank" rel="noopener" class="btn btn-secondary" style="padding:6px 16px;font-size:0.8125rem;">詳細を見る →</a>'
+          ? '<a href="' + ev.detail_url + '" target="_blank" rel="noopener" class="table-link" style="white-space:nowrap;">詳細 →</a>'
           : '';
 
         return '<div class="event-card' + (isPast ? ' event-past' : '') + '">'
@@ -282,7 +275,7 @@
           + '<div class="ev-day">'   + md.day   + '</div>'
           + '</div>'
           + '<div class="event-card-body">'
-          + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">'
+          + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;">'
           + '<span class="event-type-badge ' + tc + '">' + (ev.type || '研修') + '</span>'
           + targetHTML
           + statusHTML
@@ -290,9 +283,9 @@
           + '<div class="event-card-name">' + ev.name + '</div>'
           + '<div class="event-card-info">'
           + (ev.deadline ? '<span>📅 申込締切: ' + ev.deadline + '</span>' : '')
+          + detailBtn
           + '</div>'
           + (ev.notes ? '<div class="event-card-notes">📌 ' + ev.notes + '</div>' : '')
-          + '<div class="event-card-actions">' + detailBtn + '</div>'
           + '</div>'
           + '</div>';
       }).join('');
