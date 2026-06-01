@@ -1,0 +1,39 @@
+name: Update Officers News from Gmail
+
+on:
+  # Google Apps Scriptからのwebhook（手動トリガー）
+  repository_dispatch:
+    types: [officers-news-update]
+  # 毎日午前6時（JST）にも実行
+  schedule:
+    - cron: '0 21 * * *'   # UTC 21:00 = JST 06:00
+  # 手動実行も可能
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Write officers_news.json from payload
+        run: |
+          # repository_dispatch の場合はペイロードのJSONを使用
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            echo '${{ toJson(github.event.client_payload.data) }}' > data/officers_news.json
+          else
+            echo "Scheduled run: no update needed (use repository_dispatch to push data)"
+          fi
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet data/officers_news.json 2>/dev/null; then
+            echo "No changes."
+          else
+            git add data/officers_news.json
+            git commit -m "auto: 役員向けお知らせを更新 ($(date '+%Y-%m-%d %H:%M JST' -d '+9 hours'))"
+            git push
+          fi

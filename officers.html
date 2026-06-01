@@ -285,14 +285,17 @@
 
       <hr class="section-rule">
 
-      <!-- お知らせ -->
-      <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:12px;margin-bottom:20px;">
-        役員向けお知らせ
-      </h2>
-      <div style="background:var(--bg-blue);border-radius:var(--radius);padding:20px 24px;">
-        <p style="font-size:0.9375rem;color:var(--text-medium);text-align:center;padding:16px 0;">
-          現在、役員向けお知らせはありません。
-        </p>
+      <!-- 役員向けお知らせ（JDSFメール自動反映） -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:20px;">
+        <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:12px;margin:0;">
+          役員向けお知らせ <span style="font-size:0.75rem;font-weight:400;color:var(--text-light);">（JDSFからのメール自動反映）</span>
+        </h2>
+        <small id="officers-news-updated" style="color:var(--text-light);font-size:0.8rem;"></small>
+      </div>
+      <div id="officers-news-list">
+        <div style="background:var(--bg-blue);border-radius:var(--radius);padding:20px 24px;text-align:center;">
+          <span style="color:var(--text-light);font-size:0.9rem;">読み込み中...</span>
+        </div>
       </div>
 
     </div>
@@ -359,11 +362,52 @@
   function showContent() {
     loginScreen.style.display   = 'none';
     contentScreen.style.display = 'block';
+    loadOfficersNews();
   }
 
   // グローバルに公開
   window.doLogin  = doLogin;
   window.doLogout = doLogout;
+
+  // 認証後にお知らせを読み込む
+  function loadOfficersNews() {
+    var list    = document.getElementById('officers-news-list');
+    var updated = document.getElementById('officers-news-updated');
+    if (!list) return;
+
+    fetch('data/officers_news.json?_=' + Date.now())
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (updated && data.updated) {
+          var d = new Date(data.updated);
+          updated.textContent = '最終更新: ' + d.toLocaleDateString('ja-JP') + ' ' + d.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
+        }
+        var notices = data.notices || [];
+        if (notices.length === 0) {
+          list.innerHTML = '<div style="background:var(--bg-blue);border-radius:var(--radius);padding:20px 24px;text-align:center;">'
+            + '<p style="font-size:0.9375rem;color:var(--text-medium);padding:8px 0;">現在、役員向けお知らせはありません。</p>'
+            + '</div>';
+          return;
+        }
+        list.innerHTML = notices.map(function(n) {
+          return '<div style="border:1px solid var(--border);border-left:4px solid var(--primary-light);border-radius:var(--radius);padding:14px 18px;margin-bottom:10px;background:#fff;">'
+            + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;">'
+            + '<span style="font-size:0.775rem;color:var(--text-light);">📅 ' + (n.received || '') + '</span>'
+            + '<span style="font-size:0.75rem;font-weight:700;background:var(--bg-blue);color:var(--primary);padding:2px 10px;border-radius:100px;">📬 ' + (n.from || 'JDSF') + '</span>'
+            + '</div>'
+            + '<div style="font-size:0.9375rem;font-weight:700;color:var(--text-dark);margin-bottom:4px;">' + (n.subject || '') + '</div>'
+            + (n.body ? '<div style="font-size:0.8125rem;color:var(--text-medium);line-height:1.7;white-space:pre-wrap;">' + n.body + '</div>' : '')
+            + (n.url ? '<a href="' + n.url + '" target="_blank" rel="noopener" style="font-size:0.8125rem;color:var(--primary-light);display:inline-block;margin-top:6px;">詳細を見る →</a>' : '')
+            + '</div>';
+        }).join('');
+      })
+      .catch(function() {
+        list.innerHTML = '<div style="background:var(--bg-blue);border-radius:var(--radius);padding:20px 24px;text-align:center;">'
+          + '<p style="font-size:0.9rem;color:var(--text-light);">お知らせの読み込みに失敗しました。</p>'
+          + '</div>';
+      });
+  }
+
 }());
 </script>
 </body>
