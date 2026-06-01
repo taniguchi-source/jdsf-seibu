@@ -9,6 +9,54 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .comp-list { border-top: 1px solid var(--border); }
+    .comp-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 11px 4px;
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+    }
+    .comp-row:hover { background: var(--bg-blue); }
+    .comp-row-date {
+      flex-shrink: 0;
+      width: 60px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      line-height: 1.4;
+      padding-top: 2px;
+    }
+    .comp-row-body { flex: 1; min-width: 0; }
+    .comp-row-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      line-height: 1.5;
+      margin-bottom: 5px;
+      word-break: break-all;
+    }
+    .comp-row-venue {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.775rem;
+      font-weight: 600;
+      color: var(--primary);
+      background: var(--bg-blue);
+      border: 1px solid rgba(75,108,183,0.18);
+      border-radius: 4px;
+      padding: 2px 8px 2px 6px;
+      white-space: nowrap;
+    }
+    .comp-row-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+  </style>
 </head>
 <body>
 
@@ -148,8 +196,8 @@
       </div>
       <a href="competitions.html" class="btn btn-secondary" style="font-size:0.875rem;padding:8px 18px;white-space:nowrap;">競技会情報一覧を見る →</a>
     </div>
-    <div class="comp-grid" id="home-comp-grid">
-      <p style="text-align:center;color:var(--text-light);padding:32px 0;grid-column:1/-1;">読み込み中...</p>
+    <div id="home-comp-grid">
+      <p style="text-align:center;color:var(--text-light);padding:32px 0;">読み込み中...</p>
     </div>
   </div>
 </section>
@@ -224,8 +272,6 @@
   var grid = document.getElementById('home-comp-grid');
   if (!grid) return;
 
-  var MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-
   fetch('data/competitions_seibu.json')
     .then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -245,24 +291,21 @@
       });
 
       if (comps.length === 0) {
-        grid.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:32px 0;grid-column:1/-1;">'
+        grid.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:32px 0;">'
           + '直近1ヶ月以内の競技会はありません。</p>';
         return;
       }
 
-      grid.innerHTML = comps.map(function (c) {
-        var parts  = c.date_iso.split('-');
-        var month  = MONTHS[parseInt(parts[1], 10) - 1] || '';
-        var day    = parseInt(parts[2], 10);
-        var year   = parts[0] || '';
+      var rows = comps.map(function (c) {
+        var isPast = c.date_iso && c.date_iso < todayISO;
 
         var badge;
         if (c.has_result) {
-          badge = '<span class="comp-status status-closed">結果掲載済み</span>';
+          badge = '<span class="comp-status status-closed">結果掲載済</span>';
         } else if (c.has_participants) {
           badge = '<span class="comp-status status-open">参加者確認中</span>';
         } else {
-          badge = '<span class="comp-status status-soon">受付中 / 準備中</span>';
+          badge = '<span class="comp-status status-soon">受付中</span>';
         }
 
         var links = [];
@@ -274,34 +317,22 @@
           links.push('<a href="' + c.result_url + '" target="_blank" rel="noopener" class="table-link">' + lbl + '</a>');
         }
 
-        var venueHtml = c.venue
-          ? '<span style="display:inline-flex;align-items:center;font-size:0.75rem;font-weight:600;color:var(--primary);background:var(--bg-blue);border:1px solid rgba(75,108,183,0.18);border-radius:4px;padding:2px 8px 2px 6px;white-space:nowrap;">📍 ' + c.venue + '</span>'
-          : '';
+        var venueHtml = c.venue ? '<span class="comp-row-venue">📍 ' + c.venue + '</span>' : '';
 
-        // 会場・リンクボタン・バッジをすべて横一列に
-        var metaItems = [];
-        if (venueHtml) metaItems.push(venueHtml);
-        links.forEach(function(l){ metaItems.push(l); });
-        metaItems.push(badge);
-        var metaRow = '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px;">'
-          + metaItems.join('') + '</div>';
-
-        return '<div class="comp-card">'
-          + '<div class="comp-date-box">'
-          + '<span class="comp-month">' + month + '</span>'
-          + '<span class="comp-day">' + day + '</span>'
-          + '<span class="comp-year">' + year + '</span>'
-          + '</div>'
-          + '<div class="comp-info">'
-          + '<h3 class="comp-title">' + c.name + '</h3>'
-          + metaRow
+        return '<div class="comp-row' + (isPast ? ' comp-row-past' : '') + '">'
+          + '<div class="comp-row-date">' + (c.date || '') + '</div>'
+          + '<div class="comp-row-body">'
+          + '<div class="comp-row-name">' + (c.name || '') + '</div>'
+          + '<div class="comp-row-meta">' + venueHtml + badge + links.join('') + '</div>'
           + '</div>'
           + '</div>';
-      }).join('');
+      });
+
+      grid.innerHTML = '<div class="comp-list">' + rows.join('') + '</div>';
     })
     .catch(function (err) {
       console.warn('Home competition load failed:', err);
-      grid.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:32px 0;grid-column:1/-1;">'
+      grid.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:32px 0;">'
         + '競技会データの読み込みに失敗しました。</p>';
     });
 }());
