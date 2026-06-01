@@ -1,0 +1,38 @@
+name: Backup WordPress to old.jdsf-seibu.com
+
+on:
+  workflow_dispatch:   # 手動実行のみ
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    name: jdsf-seibu.com(WordPress) → old.jdsf-seibu.com
+    steps:
+      - name: Install lftp
+        run: sudo apt-get install -y lftp
+
+      - name: Download WordPress files from jdsf-seibu.com root
+        env:
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          mkdir -p /tmp/wp_backup
+          lftp -u "jdsfseibu,$FTP_PASS" ftp://sv16504.xserver.jp \
+            -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; \
+                mirror \
+                  --exclude old.jdsf-seibu.com/ \
+                  --exclude test.jdsf-seibu.com/ \
+                  --exclude preftest.jdsf-seibu.com/ \
+                  /jdsf-seibu.com/public_html/ \
+                  /tmp/wp_backup/; \
+                quit"
+
+      - name: Upload to old.jdsf-seibu.com
+        env:
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          lftp -u "jdsfseibu,$FTP_PASS" ftp://sv16504.xserver.jp \
+            -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; \
+                mirror -R --ignore-time \
+                  /tmp/wp_backup/ \
+                  /jdsf-seibu.com/public_html/old.jdsf-seibu.com/; \
+                quit"
