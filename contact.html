@@ -153,11 +153,13 @@
     </button>
     <nav class="site-nav" aria-label="メインナビゲーション">
       <a href="index.html"        class="nav-link">ホーム</a>
+      <a href="about.html"        class="nav-link">西部ブロックについて</a>
       <a href="competitions.html" class="nav-link">競技会情報</a>
       <a href="guidance.html"     class="nav-link">指導部情報</a>
       <a href="rankings.html"     class="nav-link">ランキング</a>
+      <a href="contact.html"      class="nav-link nav-cta">お問い合わせ</a>
       <a href="officers.html"     class="nav-link">役員用</a>
-      <a href="contact.html"      class="nav-link active nav-cta">お問い合わせ</a>
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="nav-link">JDSF公式サイト</a>
     </nav>
   </div>
 </header>
@@ -165,238 +167,15 @@
 <nav class="breadcrumb">
   <div class="container">
     <ol class="breadcrumb-list">
-      <li><a href="index.html">ホーム</a></li>
-      <li>お問い合わせ</li>
-    </ol>
-  </div>
-</nav>
-
-<div class="page-hero">
-  <div class="container">
-    <div class="page-hero-label">Contact</div>
-    <h1 class="page-hero-title">お問い合わせ</h1>
-    <p class="page-hero-desc">府県を選択すると、各連盟の担当者に直接お問い合わせいただけます</p>
-  </div>
-</div>
-
-<section class="section">
-  <div class="container contact-layout">
-
-    <!-- フォーム -->
-    <div>
-      <div class="contact-form-wrap">
-        <h2 class="contact-form-title">✉️ お問い合わせフォーム</h2>
-
-        <!-- 送信完了メッセージ（送信後に表示） -->
-        <div class="form-success" id="formSuccess">
-          <div class="form-success-icon">✅</div>
-          <h3>送信完了しました</h3>
-          <p>お問い合わせを受け付けました。<br>
-            ご入力のメールアドレスに受付確認をお送りしました。<br>
-            担当者より順次ご連絡いたします。</p>
-          <a href="index.html" class="btn btn-secondary" style="margin-top:24px;">トップページへ戻る</a>
-        </div>
-
-        <!-- フォーム本体 -->
-        <form id="contactForm" novalidate>
-
-          <!-- ① 府県選択（ルーティングの核心） -->
-          <div class="form-group">
-            <label for="prefecture">お問い合わせ先の府県<span class="req">*</span></label>
-            <select id="prefecture" name="prefecture" required>
-              <option value="" disabled selected>府県を選択してください</option>
-              <optgroup label="近畿">
-                <option value="滋賀県">滋賀県</option>
-                <option value="京都府">京都府</option>
-                <option value="大阪府">大阪府</option>
-                <option value="兵庫県">兵庫県</option>
-                <option value="奈良県">奈良県</option>
-                <option value="和歌山県">和歌山県</option>
-              </optgroup>
-              <optgroup label="中国・四国">
-                <option value="鳥取県">鳥取県</option>
-                <option value="島根県">島根県</option>
-                <option value="岡山県">岡山県</option>
-                <option value="広島県">広島県</option>
-                <option value="香川県">香川県</option>
-                <option value="徳島県">徳島県</option>
-                <option value="愛媛県">愛媛県</option>
-                <option value="高知県">高知県</option>
-              </optgroup>
-              <option value="ブロック事務局">ブロック全体・該当府県なし（事務局宛）</option>
-            </select>
-            <!-- 選択後に送信先を表示 -->
-            <div class="pref-dest-box" id="prefDestBox">
-              📨 <span id="prefDestName"></span> の担当者に直接送信されます
-            </div>
-          </div>
-
-          <!-- ② 氏名・所属 -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="name">お名前<span class="req">*</span></label>
-              <input type="text" id="name" name="name" placeholder="山田 太郎" required>
-            </div>
-            <div class="form-group">
-              <label for="org">所属団体・府県連盟</label>
-              <input type="text" id="org" name="org" placeholder="○○府県ダンススポーツ連盟">
-            </div>
-          </div>
-
-          <!-- ③ メールアドレス -->
-          <div class="form-group">
-            <label for="email">メールアドレス<span class="req">*</span></label>
-            <input type="email" id="email" name="email" placeholder="example@email.com" required>
-          </div>
-
-          <!-- ④ 種別 -->
-          <div class="form-group">
-            <label for="category">お問い合わせ種別<span class="req">*</span></label>
-            <select id="category" name="category" required>
-              <option value="" disabled selected>選択してください</option>
-              <option value="競技会・エントリーについて">競技会・エントリーについて</option>
-              <option value="ランキングについて">ランキングについて</option>
-              <option value="指導員認定について">指導員認定について</option>
-              <option value="加盟・連盟活動について">加盟・連盟活動について</option>
-              <option value="役員・担当者へのご連絡">役員・担当者へのご連絡（連盟関係者）</option>
-              <option value="その他">その他</option>
-            </select>
-          </div>
-
-          <!-- ⑤ 件名 -->
-          <div class="form-group">
-            <label for="subject">件名<span class="req">*</span></label>
-            <input type="text" id="subject" name="subject" placeholder="お問い合わせの件名をご入力ください" required>
-          </div>
-
-          <!-- ⑥ 本文 -->
-          <div class="form-group">
-            <label for="message">お問い合わせ内容<span class="req">*</span></label>
-            <textarea id="message" name="message" placeholder="詳細をご入力ください" required></textarea>
-          </div>
-
-          <!-- ⑦ 同意 -->
-          <div class="form-group">
-            <label style="display:flex;align-items:flex-start;gap:10px;font-weight:400;cursor:pointer;">
-              <input type="checkbox" id="agree" name="agree" required style="width:auto;margin-top:3px;">
-              <span style="font-size:0.875rem;">
-                <a href="privacy.html" target="_blank" style="color:var(--primary-light);">プライバシーポリシー</a>
-                に同意する<span class="req">*</span>
-              </span>
-            </label>
-          </div>
-
-          <!-- エラーメッセージ -->
-          <div class="form-error-msg" id="formError"></div>
-
-          <button type="submit" id="submitBtn" class="btn btn-primary" style="width:100%;justify-content:center;">
-            送信する
-          </button>
-        </form>
-      </div>
-
-    </div>
-
-    <!-- サイドバー -->
-    <div>
-      <div class="contact-info-card">
-        <div class="contact-info-title">📞 連絡先情報</div>
-        <div class="contact-info-list">
-          <div class="contact-info-item">
-            <span class="contact-info-icon">🏢</span>
-            <div>
-              <div class="contact-info-label">組織名</div>
-              <div class="contact-info-value">JDSF近畿中四国ブロック委員会<br>（西部ブロック）</div>
-            </div>
-          </div>
-          <div class="contact-info-item">
-            <span class="contact-info-icon">✉️</span>
-            <div>
-              <div class="contact-info-label">メール</div>
-              <div class="contact-info-value">info@jdsf-seibu.com<br><span style="font-size:0.75rem;opacity:0.75;">（フォームからのご連絡を推奨します）</span></div>
-            </div>
-          </div>
-          <div class="contact-info-item">
-            <span class="contact-info-icon">🗺️</span>
-            <div>
-              <div class="contact-info-label">担当エリア</div>
-              <div class="contact-info-value">近畿・中国・四国 14府県</div>
-            </div>
-          </div>
-          <div class="contact-info-item">
-            <span class="contact-info-icon">⏰</span>
-            <div>
-              <div class="contact-info-label">返信について</div>
-              <div class="contact-info-value">通常1週間以内にご返信します。</div>
-            </div>
-          </div>
-          <div class="contact-info-item">
-            <span class="contact-info-icon">🔗</span>
-            <div>
-              <div class="contact-info-label">JDSF本部</div>
-              <div class="contact-info-value">
-                <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener"
-                   style="color:rgba(255,255,255,0.85);">www.jdsf.or.jp</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div style="background:var(--bg-blue);border-radius:var(--radius-lg);padding:20px;margin-top:16px;">
-        <h3 style="font-size:0.9rem;font-weight:700;color:var(--primary);margin-bottom:10px;">
-          💡 ご利用方法
-        </h3>
-        <ul style="font-size:0.8125rem;color:var(--text-medium);line-height:1.8;padding-left:0;margin:0;list-style:none;">
-          <li>・フォーム上部で <strong>府県を選択</strong> すると、お問い合わせがその府県の担当者に直接届きます。</li>
-          <li>・各競技会についての問い合わせは、主催団体である府県連盟にお問い合わせをお願いします。</li>
-          <li>・ブロック全体に関するご質問は「ブロック担当者」をお選びください。</li>
-          <li>・ブロック自体は府県連盟の調整機関であるため、固定の事務局があるわけではありません。</li>
-          <li>・事務局が存在するのは本部のみとなります。</li>
-        </ul>
-      </div>
-
-    </div>
-
-  </div>
-</section>
-
-<footer class="site-footer">
-  <div class="container footer-top">
-    <div>
-      <div class="footer-logo">
-        <img src="images/jdsf-mark.png" alt="JDSF" class="footer-logo-mark-img" style="height:40px;width:auto;">
-        <div class="footer-logo-name">JDSF 近畿中四国ブロック委員会</div>
-      </div>
-      <p class="footer-desc">
-        JDSF近畿中四国ブロック委員会（西部ブロック）は、<br>
-        近畿・中国・四国地方のダンススポーツ活動を<br>
-        支援・統括するブロック組織です。
-      </p>
-      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="footer-jdsf">
-        🔗 JDSF本部サイト
-      </a>
-      <div style="display:flex;gap:8px;margin-top:14px;">
-        <a href="https://www.facebook.com/profile.php?id=61573910649655" target="_blank" rel="noopener" title="Facebook"
-           style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;background:#1877F2;color:#fff;border-radius:50%;font-size:0.95rem;text-decoration:none;">
-          <i class="fa-brands fa-facebook-f"></i>
-        </a>
-        <a href="https://lin.ee/PHZJcSf" target="_blank" rel="noopener" title="LINE公式"
-           style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;background:#06C755;color:#fff;border-radius:50%;font-size:0.95rem;text-decoration:none;">
-          <i class="fa-brands fa-line"></i>
-        </a>
-      </div>
-
-    </div>
-    <div class="footer-col">
-      <h4>サイトマップ</h4>
-      <ul class="footer-links">
-        <li><a href="index.html">ホーム</a></li>
-        <li><a href="about.html">西部ブロックについて</a></li>
-        <li><a href="competitions.html">競技会情報</a></li>
-        <li><a href="rankings.html">ランキング</a></li>
+      <li>
+      <a href="index.html"        class="nav-link">ホーム</a>
+      <a href="about.html"        class="nav-link">西部ブロックについて</a>
+      <a href="competitions.html" class="nav-link">競技会情報</a>
+      <a href="guidance.html"     class="nav-link">指導部情報</a>
+      <a href="rankings.html"     class="nav-link">ランキング</a>
+      <a href="contact.html"      class="nav-link nav-cta">お問い合わせ</a>
       <a href="officers.html"     class="nav-link">役員用</a>
-        <li><a href="contact.html">お問い合わせ</a></li>
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="nav-link">JDSF公式サイト</a></li>
       </ul>
     </div>
     <div class="footer-col">
