@@ -11,6 +11,18 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
+    /* スマホ専用バー：PCでは非表示、スマホで表示 */
+    .mobile-top-bar {
+      display: none;
+      background: var(--bg-light);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 0;
+    }
+    @media (max-width: 768px) {
+      .mobile-top-bar { display: block; }
+      .hero-carousel  { display: none; }      /* スマホではヒーロー非表示 */
+    }
+
     .comp-list { border-top: 1px solid var(--border); }
     .comp-row {
       display: flex;
@@ -85,6 +97,26 @@
     </nav>
   </div>
 </header>
+
+<!-- ===== スマホ専用バー（ヒーロー代替） ===== -->
+<div class="mobile-top-bar">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <p style="font-size:0.8rem;color:var(--text-medium);margin:0;line-height:1.5;">
+      JDSF近畿中四国ブロック委員会（西部ブロック）の公式サイトです。
+    </p>
+    <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
+      <span style="font-size:0.75rem;color:var(--text-light);">公式SNS：</span>
+      <a href="https://www.facebook.com/profile.php?id=61573910649655" target="_blank" rel="noopener" title="Facebook"
+         style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;background:#1877F2;color:#fff;border-radius:50%;font-size:0.85rem;text-decoration:none;">
+        <i class="fa-brands fa-facebook-f"></i>
+      </a>
+      <a href="https://lin.ee/PHZJcSf" target="_blank" rel="noopener" title="LINE公式"
+         style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;background:#06C755;color:#fff;border-radius:50%;font-size:0.85rem;text-decoration:none;">
+        <i class="fa-brands fa-line"></i>
+      </a>
+    </div>
+  </div>
+</div>
 
 <!-- ===== HERO CAROUSEL ===== -->
 <section class="hero hero-carousel">
