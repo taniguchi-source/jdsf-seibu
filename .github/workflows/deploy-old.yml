@@ -1,0 +1,31 @@
+name: Deploy to old.jdsf-seibu.com (XServer)
+
+on:
+  workflow_dispatch:   # 手動実行のみ（一度コピーしたら終了）
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Copy jdsf-seibu.com → old.jdsf-seibu.com
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install lftp
+        run: sudo apt-get install -y lftp
+
+      - name: Deploy to XServer (old.jdsf-seibu.com)
+        env:
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          lftp -u "jdsfseibu,$FTP_PASS" ftp://sv16504.xserver.jp \
+            -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; \
+                mirror -R --delete --ignore-time \
+                  --exclude ^\.git \
+                  --exclude ^\.github \
+                  --exclude ^scripts \
+                  --exclude ^preftest \
+                  --exclude ^pref \
+                  . \
+                  /jdsf-seibu.com/public_html/old.jdsf-seibu.com/; \
+                quit"
