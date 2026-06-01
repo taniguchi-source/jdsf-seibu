@@ -126,15 +126,83 @@
 <nav class="breadcrumb">
   <div class="container">
     <ol class="breadcrumb-list">
-      <li>
-      <a href="index.html"        class="nav-link">ホーム</a>
-      <a href="about.html"        class="nav-link">西部ブロックについて</a>
-      <a href="competitions.html" class="nav-link">競技会情報</a>
-      <a href="guidance.html"     class="nav-link">指導部情報</a>
-      <a href="rankings.html"     class="nav-link">ランキング</a>
-      <a href="contact.html"      class="nav-link nav-cta">お問い合わせ</a>
+      <li><a href="index.html">ホーム</a></li>
+      <li>お知らせ一覧</li>
+    </ol>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container">
+    <div class="page-hero-label">News</div>
+    <h1 class="page-hero-title">お知らせ一覧</h1>
+    <p class="page-hero-desc">西部ブロックからの最新情報・お知らせ</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+
+    <!-- カテゴリフィルター -->
+    <div class="cat-filter" id="cat-filter">
+      <button class="cat-btn active" data-cat="all">すべて</button>
+      <button class="cat-btn" data-cat="競技会">競技会</button>
+      <button class="cat-btn" data-cat="指導員">指導員</button>
+      <button class="cat-btn" data-cat="イベント">イベント</button>
+      <button class="cat-btn" data-cat="本部お知らせ">本部お知らせ</button>
+      <button class="cat-btn" data-cat="その他">その他</button>
+      <a href="rankings.html" class="cat-btn">ランキング →</a>
       <a href="officers.html"     class="nav-link">役員用</a>
-      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="nav-link">JDSF公式サイト</a></li>
+    </div>
+
+    <!-- ニュース一覧 -->
+    <div id="news-list-wrap">
+      <p style="text-align:center;padding:40px;color:var(--text-light);">読み込み中...</p>
+    </div>
+
+    <p style="text-align:right;margin-top:8px;">
+      <small id="news-updated" style="color:var(--text-light);font-size:0.8125rem;"></small>
+    </p>
+
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-top">
+    <div>
+      <div class="footer-logo">
+        <img src="images/jdsf-mark.png" alt="JDSF" class="footer-logo-mark-img" style="height:40px;width:auto;">
+        <div class="footer-logo-name">JDSF 近畿中四国ブロック委員会</div>
+      </div>
+      <p class="footer-desc">
+        JDSF近畿中四国ブロック委員会（西部ブロック）は、<br>
+        近畿・中国・四国地方のダンススポーツ活動を<br>
+        支援・統括するブロック組織です。
+      </p>
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="footer-jdsf">
+        🔗 JDSF本部サイト
+      </a>
+      <div style="display:flex;gap:8px;margin-top:14px;">
+        <a href="https://www.facebook.com/profile.php?id=61573910649655" target="_blank" rel="noopener" title="Facebook"
+           style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;background:#1877F2;color:#fff;border-radius:50%;font-size:0.95rem;text-decoration:none;">
+          <i class="fa-brands fa-facebook-f"></i>
+        </a>
+        <a href="https://lin.ee/PHZJcSf" target="_blank" rel="noopener" title="LINE公式"
+           style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;background:#06C755;color:#fff;border-radius:50%;font-size:0.95rem;text-decoration:none;">
+          <i class="fa-brands fa-line"></i>
+        </a>
+      </div>
+
+    </div>
+    <div class="footer-col">
+      <h4>サイトマップ</h4>
+      <ul class="footer-links">
+        <li><a href="index.html">ホーム</a></li>
+        <li><a href="about.html">西部ブロックについて</a></li>
+        <li><a href="competitions.html">競技会情報</a></li>
+        <li><a href="rankings.html">ランキング</a></li>
+      <a href="officers.html"     class="nav-link">役員用</a>
+        <li><a href="contact.html">お問い合わせ</a></li>
       </ul>
     </div>
     <div class="footer-col">
