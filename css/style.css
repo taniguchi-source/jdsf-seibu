@@ -327,7 +327,7 @@ ul { list-style: none; }
 }
 
 @media (max-width: 768px) {
-  .hero-carousel { height: 380px; }
+  .hero-carousel { height: auto; min-height: 380px; }
   .carousel-content { max-width: 100%; }
   .carousel-content .hero-desc br { display: none; }
   .carousel-arrow { width: 36px; height: 36px; font-size: 1.25rem; }
@@ -335,7 +335,7 @@ ul { list-style: none; }
   .carousel-next { right: 10px; }
 }
 @media (max-width: 480px) {
-  .hero-carousel { height: 320px; }
+  .hero-carousel { height: auto; min-height: 300px; }
 }
 
 .hero-grid {

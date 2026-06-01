@@ -138,11 +138,7 @@
     <span class="ticker-label">NEW</span>
     <div class="ticker-track">
       <div class="ticker-list">
-        <a href="#">2026年度 西部ブロック競技会 開催日程を公開しました</a>
-        <a href="#">2025年度 年間ランキング確定版を掲載しました</a>
-        <a href="#">指導員認定制度に関する重要なお知らせ</a>
-        <a href="#">JDSF本部よりブロック競技会規程の改定通達</a>
-        <a href="#">各府県連盟担当者の皆様へ：役員名簿更新のお願い</a>
+        <!-- news.jsonから動的に更新 -->
       </div>
     </div>
   </div>
@@ -417,11 +413,14 @@
 
       // ニュースティッカーを動的更新
       var tickerList = document.querySelector('.ticker-list');
-      if (tickerList && items.length > 0) {
+      var ticker = document.querySelector('.news-ticker');
+      if (items.length > 0 && tickerList) {
         tickerList.innerHTML = items.slice(0, 5).map(function (n) {
           var href = n.url || 'news.html';
           return '<a href="' + href + '">' + n.title + '</a>';
         }).join('');
+      } else if (ticker) {
+        ticker.style.display = 'none';
       }
     })
     .catch(function (err) {
