@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>役員用ページ｜JDSF 近畿中四国ブロック委員会</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ===== ログイン画面 ===== */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0D2347 0%, #1B3A6B 60%, #2563EB 100%);
+      padding: 24px;
+    }
+    .login-box {
+      background: #fff;
+      border-radius: 16px;
+      padding: 48px 40px 40px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .login-logo {
+      width: 56px;
+      height: 56px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin: 0 auto 20px;
+    }
+    .login-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+    .login-sub {
+      font-size: 0.8125rem;
+      color: var(--text-light);
+      margin-bottom: 32px;
+    }
+    .login-field {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .login-field input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .2s;
+      box-sizing: border-box;
+    }
+    .login-field input:focus { border-color: var(--primary-light); }
+    .login-field input.error { border-color: #e53e3e; }
+    .login-error {
+      color: #e53e3e;
+      font-size: 0.8125rem;
+      margin-bottom: 12px;
+      display: none;
+    }
+    .login-btn {
+      width: 100%;
+      padding: 13px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .login-btn:hover { background: var(--primary-dark, #0D2347); }
+    .login-back {
+      display: block;
+      margin-top: 20px;
+      font-size: 0.8125rem;
+      color: var(--text-light);
+      text-decoration: none;
+    }
+    .login-back:hover { color: var(--primary); }
+
+    /* ===== コンテンツ画面 ===== */
+    #content-screen { display: none; }
+
+    /* ===== カード ===== */
+    .portal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      margin-top: 8px;
+    }
+    .portal-card {
+      background: var(--bg-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: var(--transition);
+    }
+    .portal-card:hover { box-shadow: var(--shadow-hover); border-color: var(--primary-light); }
+    .portal-card-icon { font-size: 2rem; }
+    .portal-card-title { font-size: 1rem; font-weight: 700; color: var(--text-dark); }
+    .portal-card-desc  { font-size: 0.8125rem; color: var(--text-light); flex: 1; line-height: 1.7; }
+    .portal-card-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--primary-light);
+      text-decoration: none;
+      margin-top: 4px;
+    }
+    .portal-card-link:hover { color: var(--primary); }
+
+    /* 通知バッジ */
+    .portal-badge {
+      display: inline-block;
+      background: #FEF3C7;
+      color: #92400E;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 100px;
+      align-self: flex-start;
+    }
+
+    /* ログアウトボタン */
+    .logout-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 0.8125rem;
+      color: var(--text-light);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .2s;
+    }
+    .logout-btn:hover { border-color: #e53e3e; color: #e53e3e; }
+
+    /* 区切り */
+    .section-rule {
+      border: none;
+      border-top: 2px solid var(--bg-blue);
+      margin: 32px 0 24px;
+    }
+
+    @media (max-width: 480px) {
+      .login-box { padding: 36px 24px 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     ログイン画面
+============================================================ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">🔑</div>
+    <div class="login-title">役員専用ページ</div>
+    <div class="login-sub">JDSF 近畿中四国ブロック委員会</div>
+
+    <div class="login-field">
+      <input type="password" id="pw-input" placeholder="パスワードを入力" autocomplete="current-password">
+    </div>
+    <div class="login-error" id="login-error">パスワードが正しくありません。</div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">ログイン</button>
+    <a href="index.html" class="login-back">← ホームに戻る</a>
+  </div>
+</div>
+
+<!-- ============================================================
+     認証後コンテンツ
+============================================================ -->
+<div id="content-screen">
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="header-logo">
+        <img src="images/jdsf-logo-official.png" alt="公益社団法人日本ダンススポーツ連盟" class="header-logo-img" style="height:44px;width:auto;">
+        <div class="header-logo-text">
+          <div class="name">近畿中四国ブロック委員会</div>
+        </div>
+      </a>
+      <button class="hamburger" aria-label="メニュー" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" aria-label="メインナビゲーション">
+        <a href="index.html"        class="nav-link">ホーム</a>
+        <a href="competitions.html" class="nav-link">競技会情報</a>
+        <a href="guidance.html"     class="nav-link">指導部情報</a>
+        <a href="rankings.html"     class="nav-link">ランキング</a>
+        <a href="officers.html"     class="nav-link active">役員用</a>
+        <a href="contact.html"      class="nav-link nav-cta">お問い合わせ</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-hero">
+    <div class="container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div class="page-hero-label">Officers Portal</div>
+        <h1 class="page-hero-title">役員用ページ</h1>
+        <p class="page-hero-desc">近畿中四国ブロック委員会 役員・担当者専用</p>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">🔓 ログアウト</button>
+    </div>
+  </div>
+
+  <!-- ===== メインコンテンツ ===== -->
+  <section class="section">
+    <div class="container">
+
+      <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:12px;margin-bottom:20px;">
+        ポータルメニュー
+      </h2>
+
+      <div class="portal-grid">
+
+        <div class="portal-card">
+          <div class="portal-card-icon">📋</div>
+          <div class="portal-card-title">議事録・会議資料</div>
+          <div class="portal-card-desc">委員会会議の議事録および配布資料の閲覧・ダウンロード</div>
+          <a href="#minutes" class="portal-card-link">資料を見る →</a>
+        </div>
+
+        <div class="portal-card">
+          <div class="portal-card-icon">📊</div>
+          <div class="portal-card-title">ランキング管理資料</div>
+          <div class="portal-card-desc">ランキング集計シート・対象競技会一覧（内部用）</div>
+          <a href="#ranking-mgmt" class="portal-card-link">管理資料を見る →</a>
+        </div>
+
+        <div class="portal-card">
+          <div class="portal-card-icon">📬</div>
+          <div class="portal-card-title">JDSF通達・通知</div>
+          <div class="portal-card-desc">JDSF本部からの通達・通知のアーカイブ（役員共有用）</div>
+          <a href="#notices" class="portal-card-link">通達を見る →</a>
+        </div>
+
+        <div class="portal-card">
+          <div class="portal-card-icon">🗓️</div>
+          <span class="portal-badge">更新あり</span>
+          <div class="portal-card-title">年間スケジュール</div>
+          <div class="portal-card-desc">委員会・競技会・研修会の年間スケジュール（内部版）</div>
+          <a href="#schedule" class="portal-card-link">スケジュールを見る →</a>
+        </div>
+
+        <div class="portal-card">
+          <div class="portal-card-icon">📁</div>
+          <div class="portal-card-title">各種申請書類</div>
+          <div class="portal-card-desc">役員・担当者向け申請書類・フォーマット集</div>
+          <a href="#forms" class="portal-card-link">書類を見る →</a>
+        </div>
+
+        <div class="portal-card">
+          <div class="portal-card-icon">📞</div>
+          <div class="portal-card-title">役員連絡先一覧</div>
+          <div class="portal-card-desc">各府県連盟担当者の連絡先情報（取り扱い注意）</div>
+          <a href="#contacts" class="portal-card-link">連絡先を見る →</a>
+        </div>
+
+      </div>
+
+      <hr class="section-rule">
+
+      <!-- お知らせ -->
+      <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:12px;margin-bottom:20px;">
+        役員向けお知らせ
+      </h2>
+      <div style="background:var(--bg-blue);border-radius:var(--radius);padding:20px 24px;">
+        <p style="font-size:0.9375rem;color:var(--text-medium);text-align:center;padding:16px 0;">
+          現在、役員向けお知らせはありません。
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container footer-bottom" style="justify-content:center;">
+      <span>© 2026 JDSF 近畿中四国ブロック委員会｜役員専用ページ</span>
+    </div>
+  </footer>
+
+</div><!-- /#content-screen -->
+
+<script src="js/main.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ===== パスワード設定（変更する場合はここを書き換えてください） =====
+  var PASSWORD = 'seibu2026';
+  var SESSION_KEY = 'jdsf_seibu_officers_auth';
+  // ================================================================
+
+  var loginScreen  = document.getElementById('login-screen');
+  var contentScreen = document.getElementById('content-screen');
+  var pwInput      = document.getElementById('pw-input');
+  var loginError   = document.getElementById('login-error');
+
+  // 認証済みかチェック
+  if (sessionStorage.getItem(SESSION_KEY) === '1') {
+    showContent();
+  }
+
+  // Enterキーでログイン
+  if (pwInput) {
+    pwInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') doLogin();
+    });
+  }
+
+  function doLogin() {
+    var val = pwInput ? pwInput.value : '';
+    if (val === PASSWORD) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      showContent();
+    } else {
+      loginError.style.display = 'block';
+      if (pwInput) {
+        pwInput.classList.add('error');
+        pwInput.value = '';
+        pwInput.focus();
+      }
+    }
+  }
+
+  function doLogout() {
+    sessionStorage.removeItem(SESSION_KEY);
+    contentScreen.style.display = 'none';
+    loginScreen.style.display   = 'flex';
+    if (pwInput) { pwInput.value = ''; pwInput.classList.remove('error'); }
+    loginError.style.display = 'none';
+  }
+
+  function showContent() {
+    loginScreen.style.display   = 'none';
+    contentScreen.style.display = 'block';
+  }
+
+  // グローバルに公開
+  window.doLogin  = doLogin;
+  window.doLogout = doLogout;
+}());
+</script>
+</body>
+</html>
