@@ -1,0 +1,25 @@
+name: SSH Copy WordPress to old.jdsf-seibu.com
+
+on:
+  workflow_dispatch:
+
+jobs:
+  copy:
+    runs-on: ubuntu-latest
+    name: サーバー内でWP→old にコピー（SSH）
+    steps:
+      - name: Install sshpass
+        run: sudo apt-get install -y sshpass
+
+      - name: Server-side copy via SSH
+        env:
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          sshpass -p "$FTP_PASS" ssh -o StrictHostKeyChecking=no -p 10022 jdsfseibu@sv16504.xserver.jp \
+            "cp -rn /home/jdsfseibu/jdsf-seibu.com/public_html/. /home/jdsfseibu/jdsf-seibu.com/public_html/old.jdsf-seibu.com/ \
+             --exclude=old.jdsf-seibu.com \
+             --exclude=test.jdsf-seibu.com \
+             --exclude=preftest.jdsf-seibu.com 2>/dev/null || \
+             rsync -a --exclude=old.jdsf-seibu.com --exclude=test.jdsf-seibu.com --exclude=preftest.jdsf-seibu.com \
+             /home/jdsfseibu/jdsf-seibu.com/public_html/ \
+             /home/jdsfseibu/jdsf-seibu.com/public_html/old.jdsf-seibu.com/"
