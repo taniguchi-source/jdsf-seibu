@@ -352,7 +352,7 @@
           links.push('<a href="' + c.syllabus_url + '" target="_blank" rel="noopener" class="table-link">シラバス</a>');
         }
         if (c.result_url) {
-          var lbl = c.has_participants ? '参加者' : '結果';
+          var lbl = c.has_result ? '結果' : '参加者';
           links.push('<a href="' + c.result_url + '" target="_blank" rel="noopener" class="table-link">' + lbl + '</a>');
         }
 
