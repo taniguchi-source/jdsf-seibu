@@ -492,28 +492,39 @@
       });
   }
 
-  // 議事録リスト描画
+  // 議事録リスト描画（カテゴリ対応）
   function renderMinutes(years) {
     var el = document.getElementById('minutes-list');
     if (!el) return;
     var html = '';
     years.forEach(function(y) {
-      var items = y.items || [];
+      var cats = y.categories || [];
       html += '<div class="docs-year-block">'
-        + '<span class="docs-year-label">' + y.year + '年度</span>'
-        + '<div class="docs-list">';
-      if (items.length === 0) {
-        html += '<p style="color:var(--text-light);font-size:0.875rem;padding:8px 4px;">まだ登録されていません。</p>';
-      } else {
-        items.forEach(function(item) {
-          html += '<div class="docs-item">'
-            + '<span class="docs-item-date">📅 ' + (item.date || '') + '</span>'
-            + '<span class="docs-item-title">' + (item.title || '') + '</span>'
-            + (item.url ? '<a href="' + item.url + '" target="_blank" rel="noopener" class="docs-item-link">議事録を見る →</a>' : '')
-            + '</div>';
-        });
-      }
-      html += '</div></div>';
+        + '<span class="docs-year-label">' + y.year + '年度</span>';
+
+      cats.forEach(function(cat) {
+        var items = cat.items || [];
+        html += '<div style="margin-bottom:16px;">'
+          + '<div style="font-size:0.875rem;font-weight:700;color:var(--text-dark);'
+          + 'border-bottom:2px solid var(--bg-blue);padding:6px 0 6px 10px;margin-bottom:8px;">'
+          + '▍' + cat.name
+          + '</div>'
+          + '<div class="docs-list">';
+        if (items.length === 0) {
+          html += '<p style="color:var(--text-light);font-size:0.875rem;padding:4px 8px;">まだ登録されていません。</p>';
+        } else {
+          items.forEach(function(item) {
+            html += '<div class="docs-item">'
+              + '<span class="docs-item-date">📅 ' + (item.date || '') + '</span>'
+              + '<span class="docs-item-title">' + (item.title || '') + '</span>'
+              + (item.url ? '<a href="' + item.url + '" target="_blank" rel="noopener" class="docs-item-link">議事録を見る →</a>' : '')
+              + '</div>';
+          });
+        }
+        html += '</div></div>';
+      });
+
+      html += '</div>';
     });
     el.innerHTML = html || '<p style="color:var(--text-light);text-align:center;padding:24px;">データがありません。</p>';
   }
