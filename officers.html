@@ -166,8 +166,105 @@
       margin: 32px 0 24px;
     }
 
+    /* ===== 議事録・会議資料リスト ===== */
+    .docs-year-block { margin-bottom: 28px; }
+    .docs-year-label {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--bg-blue);
+      padding: 4px 14px;
+      border-radius: 100px;
+      display: inline-block;
+      margin-bottom: 12px;
+    }
+    .docs-list { display: flex; flex-direction: column; gap: 8px; }
+    .docs-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: var(--transition);
+    }
+    .docs-item:hover { border-color: var(--primary-light); background: var(--bg-blue); }
+    .docs-item-date {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      flex-shrink: 0;
+      min-width: 90px;
+    }
+    .docs-item-title {
+      flex: 1;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+    .docs-item-link {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--primary-light);
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+      padding: 4px 12px;
+      border: 1px solid var(--primary-light);
+      border-radius: 4px;
+      transition: var(--transition);
+    }
+    .docs-item-link:hover { background: var(--primary-light); color: #fff; }
+
+    /* 会議資料：ファイルリスト */
+    .mat-files {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .mat-file-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.775rem;
+      font-weight: 600;
+      color: #c0392b;
+      background: #fff5f5;
+      border: 1px solid #fed7d7;
+      border-radius: 4px;
+      padding: 3px 10px;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    .mat-file-link:hover { background: #c0392b; color: #fff; }
+
+    /* ===== スプレッドシートカード ===== */
+    .ss-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .ss-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    .ss-card:hover { border-color: var(--primary-light); box-shadow: var(--shadow-hover); }
+    .ss-card-icon { font-size: 1.75rem; flex-shrink: 0; }
+    .ss-card-title { font-size: 0.9375rem; font-weight: 700; color: var(--text-dark); }
+    .ss-card-desc  { font-size: 0.8125rem; color: var(--text-light); margin-top: 2px; }
+
     @media (max-width: 480px) {
       .login-box { padding: 36px 24px 28px; }
+      .docs-item { flex-wrap: wrap; }
+      .docs-item-date { min-width: unset; }
     }
   </style>
 </head>
@@ -244,48 +341,51 @@
 
         <div class="portal-card">
           <div class="portal-card-icon">📋</div>
-          <div class="portal-card-title">議事録・会議資料</div>
-          <div class="portal-card-desc">委員会会議の議事録および配布資料の閲覧・ダウンロード</div>
-          <a href="#minutes" class="portal-card-link">資料を見る →</a>
-        </div>
-
-        <div class="portal-card">
-          <div class="portal-card-icon">📊</div>
-          <div class="portal-card-title">ランキング管理資料</div>
-          <div class="portal-card-desc">ランキング集計シート・対象競技会一覧（内部用）</div>
-          <a href="#ranking-mgmt" class="portal-card-link">管理資料を見る →</a>
-        </div>
-
-        <div class="portal-card">
-          <div class="portal-card-icon">📬</div>
-          <div class="portal-card-title">JDSF通達・通知</div>
-          <div class="portal-card-desc">JDSF本部からの通達・通知のアーカイブ（役員共有用）</div>
-          <a href="#notices" class="portal-card-link">通達を見る →</a>
-        </div>
-
-        <div class="portal-card">
-          <div class="portal-card-icon">🗓️</div>
-          <span class="portal-badge">更新あり</span>
-          <div class="portal-card-title">年間スケジュール</div>
-          <div class="portal-card-desc">委員会・競技会・研修会の年間スケジュール（内部版）</div>
-          <a href="#schedule" class="portal-card-link">スケジュールを見る →</a>
+          <div class="portal-card-title">議事録</div>
+          <div class="portal-card-desc">委員会会議の議事録の閲覧</div>
+          <a href="#minutes" class="portal-card-link">議事録を見る →</a>
         </div>
 
         <div class="portal-card">
           <div class="portal-card-icon">📁</div>
-          <div class="portal-card-title">各種申請書類</div>
-          <div class="portal-card-desc">役員・担当者向け申請書類・フォーマット集</div>
-          <a href="#forms" class="portal-card-link">書類を見る →</a>
+          <div class="portal-card-title">会議資料（月別PDF）</div>
+          <div class="portal-card-desc">月別の会議配布資料PDFファイル</div>
+          <a href="#materials" class="portal-card-link">資料を見る →</a>
         </div>
 
         <div class="portal-card">
-          <div class="portal-card-icon">📞</div>
-          <div class="portal-card-title">役員連絡先一覧</div>
-          <div class="portal-card-desc">各府県連盟担当者の連絡先情報（取り扱い注意）</div>
-          <a href="#contacts" class="portal-card-link">連絡先を見る →</a>
+          <div class="portal-card-icon">📊</div>
+          <div class="portal-card-title">スプレッドシート</div>
+          <div class="portal-card-desc">役員共有のGoogleスプレッドシート</div>
+          <a href="#spreadsheets" class="portal-card-link">開く →</a>
         </div>
 
       </div>
+
+      <!-- ===== 議事録セクション ===== -->
+      <hr class="section-rule" id="minutes">
+      <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:12px;margin-bottom:20px;">
+        📋 議事録
+      </h2>
+      <div id="minutes-list">
+        <p style="color:var(--text-light);text-align:center;padding:24px;">読み込み中...</p>
+      </div>
+
+      <!-- ===== 会議資料セクション ===== -->
+      <hr class="section-rule" id="materials">
+      <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:12px;margin-bottom:20px;">
+        📁 会議資料（月別PDF）
+      </h2>
+      <div id="materials-list">
+        <p style="color:var(--text-light);text-align:center;padding:24px;">読み込み中...</p>
+      </div>
+
+      <!-- ===== スプレッドシートセクション ===== -->
+      <hr class="section-rule" id="spreadsheets">
+      <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:12px;margin-bottom:20px;">
+        🔗 スプレッドシート
+      </h2>
+      <div id="ss-list" class="ss-grid"></div>
 
       <hr class="section-rule">
 
@@ -366,12 +466,105 @@
   function showContent() {
     loginScreen.style.display   = 'none';
     contentScreen.style.display = 'block';
+    loadOfficersDocs();
     loadOfficersNews();
   }
 
   // グローバルに公開
   window.doLogin  = doLogin;
   window.doLogout = doLogout;
+
+  // ===== 議事録・会議資料・スプレッドシートを読み込む =====
+  function loadOfficersDocs() {
+    fetch('data/officers_docs.json?_=' + Date.now())
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        renderMinutes(data.minutes || []);
+        renderMaterials(data.materials || []);
+        renderSpreadsheets(data.spreadsheets || []);
+      })
+      .catch(function() {
+        var empty = '<p style="color:var(--text-light);text-align:center;padding:24px;">データの読み込みに失敗しました。</p>';
+        ['minutes-list','materials-list','ss-list'].forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) el.innerHTML = empty;
+        });
+      });
+  }
+
+  // 議事録リスト描画
+  function renderMinutes(years) {
+    var el = document.getElementById('minutes-list');
+    if (!el) return;
+    var html = '';
+    years.forEach(function(y) {
+      var items = y.items || [];
+      html += '<div class="docs-year-block">'
+        + '<span class="docs-year-label">' + y.year + '年度</span>'
+        + '<div class="docs-list">';
+      if (items.length === 0) {
+        html += '<p style="color:var(--text-light);font-size:0.875rem;padding:8px 4px;">まだ登録されていません。</p>';
+      } else {
+        items.forEach(function(item) {
+          html += '<div class="docs-item">'
+            + '<span class="docs-item-date">📅 ' + (item.date || '') + '</span>'
+            + '<span class="docs-item-title">' + (item.title || '') + '</span>'
+            + (item.url ? '<a href="' + item.url + '" target="_blank" rel="noopener" class="docs-item-link">議事録を見る →</a>' : '')
+            + '</div>';
+        });
+      }
+      html += '</div></div>';
+    });
+    el.innerHTML = html || '<p style="color:var(--text-light);text-align:center;padding:24px;">データがありません。</p>';
+  }
+
+  // 会議資料リスト描画
+  function renderMaterials(years) {
+    var el = document.getElementById('materials-list');
+    if (!el) return;
+    var html = '';
+    years.forEach(function(y) {
+      var items = y.items || [];
+      html += '<div class="docs-year-block">'
+        + '<span class="docs-year-label">' + y.year + '年度</span>'
+        + '<div class="docs-list">';
+      if (items.length === 0) {
+        html += '<p style="color:var(--text-light);font-size:0.875rem;padding:8px 4px;">まだ登録されていません。</p>';
+      } else {
+        items.forEach(function(item) {
+          var files = (item.files || []).map(function(f) {
+            return '<a href="' + f.url + '" target="_blank" rel="noopener" class="mat-file-link">📄 ' + f.name + '</a>';
+          }).join('');
+          html += '<div class="docs-item">'
+            + '<span class="docs-item-date">📅 ' + (item.date || '') + '</span>'
+            + '<span class="docs-item-title">' + (item.title || '') + '</span>'
+            + (files ? '<div class="mat-files">' + files + '</div>' : '')
+            + '</div>';
+        });
+      }
+      html += '</div></div>';
+    });
+    el.innerHTML = html || '<p style="color:var(--text-light);text-align:center;padding:24px;">データがありません。</p>';
+  }
+
+  // スプレッドシートカード描画
+  function renderSpreadsheets(sheets) {
+    var el = document.getElementById('ss-list');
+    if (!el) return;
+    if (sheets.length === 0) {
+      el.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:24px;">スプレッドシートが登録されていません。</p>';
+      return;
+    }
+    el.innerHTML = sheets.map(function(s) {
+      return '<a href="' + (s.url || '#') + '" target="_blank" rel="noopener" class="ss-card">'
+        + '<div class="ss-card-icon">' + (s.icon || '📊') + '</div>'
+        + '<div>'
+        + '<div class="ss-card-title">' + (s.title || '') + '</div>'
+        + (s.desc ? '<div class="ss-card-desc">' + s.desc + '</div>' : '')
+        + '</div>'
+        + '</a>';
+    }).join('');
+  }
 
   // 認証後にお知らせを読み込む
   function loadOfficersNews() {
