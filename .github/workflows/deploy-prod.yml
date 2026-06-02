@@ -29,12 +29,12 @@ jobs:
             --exclude='scripts/' \
             --exclude='preftest/' \
             --exclude='pref/' \
-            --filter='protect test.jdsf-seibu.com/' \
-            --filter='protect old.jdsf-seibu.com/' \
-            --filter='protect nara.jdsf-seibu.com/' \
-            --filter='protect nara1.jdsf-seibu.com/' \
-            --filter='protect hyogo.jdsf-seibu.com/' \
-            --filter='protect hiroshima.jdsf-seibu.com/' \
+            --exclude='test.jdsf-seibu.com/' \
+            --exclude='old.jdsf-seibu.com/' \
+            --exclude='nara.jdsf-seibu.com/' \
+            --exclude='nara1.jdsf-seibu.com/' \
+            --exclude='hyogo.jdsf-seibu.com/' \
+            --exclude='hiroshima.jdsf-seibu.com/' \
             ./ jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/
 
       - name: Cleanup
