@@ -221,8 +221,6 @@ ul { list-style: none; }
 .hero-main {
   display: flex;
   height: 330px;
-  max-width: 800px;
-  margin: 0 auto;
 }
 
 /* カルーセル左側（2/3幅） */
@@ -483,9 +481,6 @@ ul { list-style: none; }
   color: #fff;
   padding: 10px 0;
   overflow: hidden;
-  margin-top: -150px;
-  position: relative;
-  z-index: 10;
 }
 .ticker-inner {
   display: flex;
