@@ -17,10 +17,6 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY_B64 }}" | base64 -d > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -p 10022 sv16504.xserver.jp >> ~/.ssh/known_hosts 2>/dev/null
-          echo "=== Key fingerprint ==="
-          ssh-keygen -l -f ~/.ssh/deploy_key
-          echo "=== SSH test ==="
-          ssh -i ~/.ssh/deploy_key -p 10022 -v -o StrictHostKeyChecking=no jdsfseibu@sv16504.xserver.jp "echo SSH_OK" 2>&1 | tail -10 || true
 
       - name: Deploy via rsync
         run: |
