@@ -3,6 +3,8 @@ DirectoryIndex index.html index.htm
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+  # jdsf-seibu.com 本体のみに適用（サブドメインには適用しない）
+  RewriteCond %{HTTP_HOST} ^(www\.)?jdsf-seibu\.com$ [NC]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^ index.html [L]
