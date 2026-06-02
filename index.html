@@ -324,6 +324,7 @@
     .then(function (data) {
       var today = new Date();
       today.setHours(0, 0, 0, 0);
+      var todayISO = today.toISOString().slice(0, 10);  /* isPast判定用 */
 
       var from = new Date(today);
       from.setDate(from.getDate() - 7);       /* 1週間前 */
