@@ -402,6 +402,7 @@ ul { list-style: none; }
     flex-direction: column;
     height: auto;
     padding: 0 !important;  /* .hero { padding: 72px... } を上書き */
+    margin-left: 0;         /* PC用の左マージンをリセット */
   }
   .hero-carousel-wrapper { display: none !important; }   /* スマホではカルーセル非表示 */
   .hero-pref-links-wrapper {
@@ -410,18 +411,19 @@ ul { list-style: none; }
     overflow-y: visible;
     border-left: none;
     background: #f0f4f8;
-    padding: 12px;
+    padding: 10px;
   }
   .hero-pref-links {
     grid-template-rows: unset;
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: 6px;
   }
   .hero-pref-links a,
   .hero-pref-link-disabled {
     padding: 10px 4px;
     /* 画面幅に応じて自動スケール: 320px→9.6px 〜 480px以上→12.8px */
     font-size: clamp(0.6rem, 3vw, 0.8rem);
+    white-space: nowrap;    /* 1行に収める（折り返し禁止） */
   }
 }
 
