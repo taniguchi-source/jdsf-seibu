@@ -1,8 +1,6 @@
 name: Deploy to test.jdsf-seibu.com
 
 on:
-  push:
-    branches: [ master, main ]
   workflow_dispatch:
 
 jobs:

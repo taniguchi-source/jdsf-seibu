@@ -1,6 +1,8 @@
 name: Deploy to jdsf-seibu.com (本番)
 
 on:
+  push:
+    branches: [ master, main ]
   workflow_dispatch:
 
 jobs:
