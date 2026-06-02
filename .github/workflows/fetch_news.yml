@@ -2,7 +2,7 @@ name: Update News Data
 
 on:
   schedule:
-    - cron: '0 21 * * *'  # 毎日 06:00 JST
+    - cron: '30 21 * * *'  # 毎日 06:30 JST（fetch_competitions と時間をずらす）
   workflow_dispatch:
 
 jobs:
@@ -21,12 +21,20 @@ jobs:
       - name: Fetch news data（お知らせ）
         run: python scripts/fetch_news.py
 
-      - name: Install lftp
-        run: sudo apt-get install -y lftp
-
-      - name: Upload news.json to XServer
-        env:
-          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+      - name: Setup SSH key
         run: |
-          lftp -u "jdsfseibu,$FTP_PASS" ftp://sv16504.xserver.jp \
-            -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; put -O /jdsf-seibu.com/public_html/test.jdsf-seibu.com/data/ data/news.json; quit"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY_B64 }}" | base64 -d > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p 10022 sv16504.xserver.jp >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy news.json to production via rsync
+        run: |
+          rsync -avz \
+            -e "ssh -i ~/.ssh/deploy_key -p 10022 -o StrictHostKeyChecking=no" \
+            data/news.json \
+            jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/data/
+
+      - name: Cleanup
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

@@ -1,8 +1,6 @@
-name: Deploy to XServer
+name: Fetch & Deploy Data
 
 on:
-  push:
-    branches: [ master ]       # コードを更新したとき
   schedule:
     - cron: '0 21 * * *'       # 毎日 06:00 JST（データ自動取得）
   workflow_dispatch:             # 手動実行も可能
@@ -10,8 +8,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout repository
@@ -34,17 +30,22 @@ jobs:
       - name: Fetch news data（お知らせ）
         run: python scripts/fetch_news.py
 
-      - name: Install lftp
-        run: sudo apt-get install -y lftp
-
-      - name: Deploy to XServer via FTP
-        env:
-          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+      - name: Setup SSH key
         run: |
-          lftp -u "jdsfseibu,$FTP_PASS" ftp://sv16504.xserver.jp \
-            -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; \
-                mirror -R --delete --ignore-time --exclude ^\.git --exclude ^\.github --exclude ^scripts . /jdsf-seibu.com/public_html/test.jdsf-seibu.com/; \
-                put -O /jdsf-seibu.com/public_html/test.jdsf-seibu.com/data/ data/news.json; \
-                put -O /jdsf-seibu.com/public_html/test.jdsf-seibu.com/data/ data/competitions_seibu.json; \
-                put -O /jdsf-seibu.com/public_html/test.jdsf-seibu.com/data/ data/events_seibu.json; \
-                quit"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY_B64 }}" | base64 -d > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p 10022 sv16504.xserver.jp >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy data/*.json to production via rsync
+        run: |
+          rsync -avz \
+            -e "ssh -i ~/.ssh/deploy_key -p 10022 -o StrictHostKeyChecking=no" \
+            data/competitions_seibu.json \
+            data/events_seibu.json \
+            data/news.json \
+            jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/data/
+
+      - name: Cleanup
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
