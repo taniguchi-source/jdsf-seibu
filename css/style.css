@@ -401,25 +401,27 @@ ul { list-style: none; }
   .hero-main {
     flex-direction: column;
     height: auto;
-    padding: 0;        /* .heroクラスのpadding 72px/56pxを打ち消す */
+    padding: 0;
   }
-  .hero-carousel-wrapper { height: 260px; }
+  .hero-carousel-wrapper { display: none; }   /* スマホではカルーセル非表示 */
   .hero-pref-links-wrapper {
     flex: none;
-    overflow-y: auto;
+    width: 100%;
+    overflow-y: visible;
     border-left: none;
-    border-top: 1px solid #d0d9e4;
-    padding: 10px;
+    background: #f0f4f8;
+    padding: 12px;
   }
   .hero-pref-links {
     grid-template-rows: unset;
     grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
   }
-  .carousel-content { max-width: 100%; }
-  .carousel-content .hero-desc br { display: none; }
-  .carousel-arrow { width: 36px; height: 36px; font-size: 1.25rem; }
-  .carousel-prev { left: 10px; }
-  .carousel-next { right: 10px; }
+  .hero-pref-links a,
+  .hero-pref-link-disabled {
+    padding: 10px 6px;
+    font-size: 0.8rem;
+  }
 }
 
 .hero-grid {
