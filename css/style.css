@@ -221,6 +221,7 @@ ul { list-style: none; }
 .hero-main {
   display: flex;
   height: 330px;
+  margin-left: 24px;
 }
 
 /* カルーセル左側（2/3幅） */
