@@ -398,7 +398,11 @@ ul { list-style: none; }
 }
 
 @media (max-width: 768px) {
-  .hero-main { flex-direction: column; height: auto; }
+  .hero-main {
+    flex-direction: column;
+    height: auto;
+    padding: 0;        /* .heroクラスのpadding 72px/56pxを打ち消す */
+  }
   .hero-carousel-wrapper { height: 260px; }
   .hero-pref-links-wrapper {
     flex: none;
