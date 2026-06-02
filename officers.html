@@ -508,7 +508,21 @@
       html += '<div class="docs-year-block">'
         + '<span class="docs-year-label">' + y.year + '年度</span>'
         + '<div class="docs-list">';
-      if (items.length === 0) {
+
+      // Google Drive フォルダリンクがあれば先に表示
+      if (y.folder_url) {
+        html += '<div style="margin-bottom:12px;">'
+          + '<a href="' + y.folder_url + '" target="_blank" rel="noopener" '
+          + 'style="display:inline-flex;align-items:center;gap:8px;background:var(--primary);color:#fff;'
+          + 'padding:8px 18px;border-radius:6px;font-size:0.875rem;font-weight:700;text-decoration:none;">'
+          + '📁 Google Drive で全資料を見る →'
+          + '</a>'
+          + '<p style="margin-top:8px;font-size:0.8125rem;color:var(--text-light);">'
+          + '事務局がGoogleドライブに資料を追加すると自動的に反映されます。</p>'
+          + '</div>';
+      }
+
+      if (items.length === 0 && !y.folder_url) {
         html += '<p style="color:var(--text-light);font-size:0.875rem;padding:8px 4px;">まだ登録されていません。</p>';
       } else {
         items.forEach(function(item) {
