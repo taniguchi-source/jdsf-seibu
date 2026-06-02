@@ -401,9 +401,9 @@ ul { list-style: none; }
   .hero-main {
     flex-direction: column;
     height: auto;
-    padding: 0;
+    padding: 0 !important;  /* .hero { padding: 72px... } を上書き */
   }
-  .hero-carousel-wrapper { display: none; }   /* スマホではカルーセル非表示 */
+  .hero-carousel-wrapper { display: none !important; }   /* スマホではカルーセル非表示 */
   .hero-pref-links-wrapper {
     flex: none;
     width: 100%;
