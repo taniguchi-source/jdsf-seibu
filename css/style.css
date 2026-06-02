@@ -152,7 +152,7 @@ ul { list-style: none; }
   flex-shrink: 0;
 }
 .header-logo-img {
-  height: 54px;
+  height: 64px;
   width: auto;
   display: block;
   flex-shrink: 0;
