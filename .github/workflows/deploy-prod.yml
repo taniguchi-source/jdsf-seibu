@@ -6,29 +6,35 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: GitHubリポジトリ → jdsf-seibu.com（本番）
+    name: rsync → jdsf-seibu.com（本番）
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install lftp
-        run: sudo apt-get install -y lftp
-
-      - name: Deploy to XServer (jdsf-seibu.com)
-        env:
-          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+      - name: Setup SSH key
         run: |
-          lftp -u "jdsfseibu,$FTP_PASS" ftp://sv16504.xserver.jp \
-            -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; \
-                mirror -R --transfer-all --delete \
-                  --exclude ^\.git \
-                  --exclude ^\.github \
-                  --exclude ^scripts \
-                  --exclude ^preftest \
-                  --exclude ^pref \
-                  --exclude-glob test.jdsf-seibu.com \
-                  --exclude-glob old.jdsf-seibu.com \
-                  --exclude-glob nara.jdsf-seibu.com \
-                  . \
-                  /jdsf-seibu.com/public_html/; \
-                quit"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY_B64 }}" | base64 -d > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p 10022 sv16504.xserver.jp >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy via rsync
+        run: |
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/deploy_key -p 10022 -o StrictHostKeyChecking=no" \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='scripts/' \
+            --exclude='preftest/' \
+            --exclude='pref/' \
+            --filter='protect test.jdsf-seibu.com/' \
+            --filter='protect old.jdsf-seibu.com/' \
+            --filter='protect nara.jdsf-seibu.com/' \
+            --filter='protect nara1.jdsf-seibu.com/' \
+            --filter='protect hyogo.jdsf-seibu.com/' \
+            --filter='protect hiroshima.jdsf-seibu.com/' \
+            ./ phrs592515@sv16504.xserver.jp:/home/phrs592515/jdsf-seibu.com/public_html/
+
+      - name: Cleanup
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
