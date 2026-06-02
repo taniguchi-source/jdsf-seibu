@@ -1077,8 +1077,9 @@ textarea { min-height: 140px; resize: vertical; }
   .hamburger    { display: flex; flex-shrink: 0; }
   .header-logo  { min-width: 0; overflow: hidden; }
   .header-logo-text { min-width: 0; }
-  .header-logo-text .org  { display: none; }   /* 「公益社団法人…」はモバイルで非表示 */
-  .header-logo-text .name { font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .header-logo-text .org  { display: none; }      /* 「公益社団法人…」はモバイルで非表示 */
+  .header-tsusho { display: none; }               /* 「（通称 西部ブロック）」はモバイルで非表示 */
+  .header-logo-text .name { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .header-logo-img { height: 44px; }
   .section      { padding: 56px 0; }
   .section-title { font-size: 1.625rem; }
