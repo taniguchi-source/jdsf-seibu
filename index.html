@@ -337,7 +337,9 @@
         var isPast = c.date_iso && c.date_iso < todayISO;
 
         var badge;
-        if (c.has_result) {
+        if (c.has_result && c.result_url) {
+          badge = ''; // 「結果」ボタンが表示されるためバッジは不要
+        } else if (c.has_result) {
           badge = '<span class="comp-status status-closed">結果掲載済</span>';
         } else if (c.has_participants) {
           badge = '<span class="comp-status status-open">参加者確認中</span>';
