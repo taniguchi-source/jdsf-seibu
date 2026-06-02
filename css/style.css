@@ -399,23 +399,23 @@ ul { list-style: none; }
 
 @media (max-width: 768px) {
   .hero-main { flex-direction: column; height: auto; }
-  .hero-carousel-wrapper { height: 300px; }
+  .hero-carousel-wrapper { height: 260px; }
   .hero-pref-links-wrapper {
     flex: none;
-    height: auto;
-    max-height: 200px;
+    overflow-y: auto;
     border-left: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    border-top: 1px solid #d0d9e4;
+    padding: 10px;
+  }
+  .hero-pref-links {
+    grid-template-rows: unset;
+    grid-template-columns: repeat(2, 1fr);
   }
   .carousel-content { max-width: 100%; }
   .carousel-content .hero-desc br { display: none; }
   .carousel-arrow { width: 36px; height: 36px; font-size: 1.25rem; }
   .carousel-prev { left: 10px; }
   .carousel-next { right: 10px; }
-}
-@media (max-width: 480px) {
-  .hero-carousel-wrapper { height: auto; min-height: 250px; }
-  .hero-pref-links-wrapper { max-height: 150px; }
 }
 
 .hero-grid {
