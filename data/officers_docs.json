@@ -29,51 +29,32 @@
         {
           "name": "西部ブロック委員会",
           "items": [
-            { "date": "2026年5月15日", "title": "第168回 西部ブロック委員会", "url": "docs/meetings/minutes/西部ブロック委員会/168/minutes.html" },
-            { "date": "2026年4月24日", "title": "第167回 西部ブロック委員会", "url": "docs/meetings/minutes/西部ブロック委員会/167/minutes.html" },
-            { "date": "2026年3月20日", "title": "第166回 西部ブロック委員会", "url": "docs/meetings/minutes/西部ブロック委員会/166/minutes.html" },
-            { "date": "2026年2月20日", "title": "第165回 西部ブロック委員会", "url": "docs/meetings/minutes/西部ブロック委員会/165/minutes_165.html" },
-            { "date": "2026年1月23日", "title": "第164回 西部ブロック委員会", "url": "docs/meetings/minutes/西部ブロック委員会/164/minutes.html" }
+            {
+              "date": "第159〜168回",
+              "title": "JDSF 西部ブロック委員会 AI議事録一覧",
+              "url": "docs/meetings/minutes/西部ブロック委員会/index.html"
+            }
           ]
         },
         {
           "name": "西部ブロック戦実行委員会",
           "items": [
-            { "date": "2026年6月1日", "title": "第1回 2026西部ブロック戦実行委員会", "url": "docs/meetings/minutes/2026西部ブロック戦実行委員会/2026-1/minutes.html" }
+            {
+              "date": "第1回〜",
+              "title": "2026西部ブロック戦実行委員会 AI議事録一覧",
+              "url": "docs/meetings/minutes/2026西部ブロック戦実行委員会/index.html"
+            }
           ]
         },
         {
           "name": "グランプリ実行委員会",
           "items": [
-            { "date": "2026年4月14日", "title": "第5回 グランプリin京都実行委員会", "url": "docs/meetings/minutes/2026グランプリ実行委員会/5/minutes.html" },
-            { "date": "2026年3月31日", "title": "第4回 グランプリin京都実行委員会", "url": "docs/meetings/minutes/2026グランプリ実行委員会/4/minutes.html" },
-            { "date": "2026年3月17日", "title": "第3回 グランプリin京都実行委員会", "url": "docs/meetings/minutes/2026グランプリ実行委員会/3/minutes.html" },
-            { "date": "2026年2月17日", "title": "第2回 グランプリin京都実行委員会", "url": "docs/meetings/minutes/2026グランプリ実行委員会/2/minutes.html" },
-            { "date": "2026年2月3日",  "title": "第1回 グランプリin京都実行委員会", "url": "docs/meetings/minutes/2026グランプリ実行委員会/1/minutes.html" }
+            {
+              "date": "第1〜5回",
+              "title": "グランプリin京都実行委員会 AI議事録一覧",
+              "url": "docs/meetings/minutes/2026グランプリ実行委員会/index.html"
+            }
           ]
-        }
-      ]
-    },
-    {
-      "year": "2025",
-      "categories": [
-        {
-          "name": "西部ブロック委員会",
-          "items": [
-            { "date": "2025年12月19日", "title": "第163回 西部ブロック委員会", "url": "docs/meetings/minutes/西部ブロック委員会/163/minutes.html" },
-            { "date": "2025年11月21日", "title": "第162回 西部ブロック委員会", "url": "docs/meetings/minutes/西部ブロック委員会/162/minutes.html" },
-            { "date": "2025年10月17日", "title": "第161回 西部ブロック委員会", "url": "docs/meetings/minutes/西部ブロック委員会/161/minutes.html" },
-            { "date": "2025年9月19日",  "title": "第160回 西部ブロック委員会", "url": "docs/meetings/minutes/西部ブロック委員会/160/minutes.html" },
-            { "date": "2025年8月22日",  "title": "第159回 西部ブロック委員会", "url": "docs/meetings/minutes/西部ブロック委員会/159/minutes.html" }
-          ]
-        },
-        {
-          "name": "西部ブロック戦実行委員会",
-          "items": []
-        },
-        {
-          "name": "グランプリ実行委員会",
-          "items": []
         }
       ]
     }
