@@ -152,10 +152,11 @@ ul { list-style: none; }
   flex-shrink: 0;
 }
 .header-logo-img {
-  height: 44px;
+  height: 54px;
   width: auto;
   display: block;
   flex-shrink: 0;
+  overflow: visible;
 }
 .header-logo-text { line-height: 1.25; }
 .header-logo-text .org  { font-size: 0.6875rem; color: var(--text-light); font-weight: 500; }
