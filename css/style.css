@@ -217,12 +217,57 @@ ul { list-style: none; }
   overflow: hidden;
 }
 
-/* ===== Hero Carousel ===== */
-.hero-carousel {
+/* ===== Hero Main Layout ===== */
+.hero-main {
+  display: flex;
   height: 330px;
-  width: 66.67%;
-  margin-left: auto;
-  margin-right: auto;
+}
+
+/* カルーセル左側（2/3幅） */
+.hero-carousel-wrapper {
+  flex: 2;
+  position: relative;
+  overflow: hidden;
+}
+
+/* リンク右側（1/3幅） */
+.hero-pref-links-wrapper {
+  flex: 1;
+  background: rgba(46, 74, 142, 0.15);
+  backdrop-filter: blur(8px);
+  padding: 16px;
+  overflow-y: auto;
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.hero-pref-links {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  height: fit-content;
+}
+
+.hero-pref-links a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  text-align: center;
+  text-decoration: none;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.hero-pref-links a:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #fff;
 }
 
 /* スライド */
@@ -331,7 +376,15 @@ ul { list-style: none; }
 }
 
 @media (max-width: 768px) {
-  .hero-carousel { height: auto; min-height: 380px; }
+  .hero-main { flex-direction: column; height: auto; }
+  .hero-carousel-wrapper { height: 300px; }
+  .hero-pref-links-wrapper {
+    flex: none;
+    height: auto;
+    max-height: 200px;
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+  }
   .carousel-content { max-width: 100%; }
   .carousel-content .hero-desc br { display: none; }
   .carousel-arrow { width: 36px; height: 36px; font-size: 1.25rem; }
@@ -339,7 +392,8 @@ ul { list-style: none; }
   .carousel-next { right: 10px; }
 }
 @media (max-width: 480px) {
-  .hero-carousel { height: auto; min-height: 300px; }
+  .hero-carousel-wrapper { height: auto; min-height: 250px; }
+  .hero-pref-links-wrapper { max-height: 150px; }
 }
 
 .hero-grid {

@@ -120,46 +120,70 @@
 </div>
 
 <!-- ===== HERO CAROUSEL ===== -->
-<section class="hero hero-carousel">
-  <!-- スライド画像 -->
-  <div class="carousel-slides">
-    <div class="carousel-slide active" style="background-image:url('images/hero-3.jpg')"></div>
-    <div class="carousel-slide"        style="background-image:url('images/hero-2.png')"></div>
-    <div class="carousel-slide"        style="background-image:url('images/hero-1.png')"></div>
-  </div>
-  <!-- グラデーションオーバーレイ -->
-  <div class="carousel-overlay"></div>
-
-  <!-- テキストコンテンツ -->
-  <div class="container carousel-content">
-    <div class="hero-badge" style="display:inline-flex;">
-      <span class="hero-badge-dot"></span>
-      JDSF 近畿中四国ブロック委員会 公式サイト
+<section class="hero hero-main">
+  <!-- 左側：カルーセル（2/3幅） -->
+  <div class="hero-carousel-wrapper">
+    <!-- スライド画像 -->
+    <div class="carousel-slides">
+      <div class="carousel-slide active" style="background-image:url('images/hero-3.jpg')"></div>
+      <div class="carousel-slide"        style="background-image:url('images/hero-2.png')"></div>
+      <div class="carousel-slide"        style="background-image:url('images/hero-1.png')"></div>
     </div>
-    <p class="hero-desc">
-      JDSF近畿中四国ブロック委員会は、近畿・中国・四国地方を管轄し、<br>
-      14の府県連盟が協力して競技ダンスの普及・振興に取り組んでいます。
-    </p>
-    <div style="display:flex;gap:10px;margin-top:16px;align-items:center;">
-      <span style="font-size:0.8rem;color:rgba(255,255,255,0.75);">公式SNS：</span>
-      <a href="https://www.facebook.com/profile.php?id=61573910649655" target="_blank" rel="noopener" title="Facebook"
-         style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:#1877F2;color:#fff;border-radius:50%;font-size:1rem;text-decoration:none;">
-        <i class="fa-brands fa-facebook-f"></i>
-      </a>
-      <a href="https://lin.ee/PHZJcSf" target="_blank" rel="noopener" title="LINE公式"
-         style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:#06C755;color:#fff;border-radius:50%;font-size:1rem;text-decoration:none;">
-        <i class="fa-brands fa-line"></i>
-      </a>
+    <!-- グラデーションオーバーレイ -->
+    <div class="carousel-overlay"></div>
+
+    <!-- テキストコンテンツ -->
+    <div class="container carousel-content">
+      <div class="hero-badge" style="display:inline-flex;">
+        <span class="hero-badge-dot"></span>
+        JDSF 近畿中四国ブロック委員会 公式サイト
+      </div>
+      <p class="hero-desc">
+        JDSF近畿中四国ブロック委員会は、近畿・中国・四国地方を管轄し、<br>
+        14の府県連盟が協力して競技ダンスの普及・振興に取り組んでいます。
+      </p>
+      <div style="display:flex;gap:10px;margin-top:16px;align-items:center;">
+        <span style="font-size:0.8rem;color:rgba(255,255,255,0.75);">公式SNS：</span>
+        <a href="https://www.facebook.com/profile.php?id=61573910649655" target="_blank" rel="noopener" title="Facebook"
+           style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:#1877F2;color:#fff;border-radius:50%;font-size:1rem;text-decoration:none;">
+          <i class="fa-brands fa-facebook-f"></i>
+        </a>
+        <a href="https://lin.ee/PHZJcSf" target="_blank" rel="noopener" title="LINE公式"
+           style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:#06C755;color:#fff;border-radius:50%;font-size:1rem;text-decoration:none;">
+          <i class="fa-brands fa-line"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- ナビゲーション -->
+    <button class="carousel-arrow carousel-prev" aria-label="前へ">&#8249;</button>
+    <button class="carousel-arrow carousel-next" aria-label="次へ">&#8250;</button>
+    <div class="carousel-dots">
+      <button class="carousel-dot active" data-index="0" aria-label="スライド1"></button>
+      <button class="carousel-dot"        data-index="1" aria-label="スライド2"></button>
+      <button class="carousel-dot"        data-index="2" aria-label="スライド3"></button>
     </div>
   </div>
 
-  <!-- ナビゲーション -->
-  <button class="carousel-arrow carousel-prev" aria-label="前へ">&#8249;</button>
-  <button class="carousel-arrow carousel-next" aria-label="次へ">&#8250;</button>
-  <div class="carousel-dots">
-    <button class="carousel-dot active" data-index="0" aria-label="スライド1"></button>
-    <button class="carousel-dot"        data-index="1" aria-label="スライド2"></button>
-    <button class="carousel-dot"        data-index="2" aria-label="スライド3"></button>
+  <!-- 右側：ダンスポーツ連盟リンク（1/3幅） -->
+  <div class="hero-pref-links-wrapper">
+    <div class="hero-pref-links">
+      <a href="#shiga">滋賀県</a>
+      <a href="#kyoto">京都府</a>
+      <a href="#osaka">大阪府</a>
+      <a href="#hyogo">兵庫県</a>
+      <a href="#nara">奈良県</a>
+      <a href="#wakayama">和歌山県</a>
+      <a href="#tottori">鳥取県</a>
+      <a href="#shimane">島根県</a>
+      <a href="#okayama">岡山県</a>
+      <a href="#hiroshima">広島県</a>
+      <a href="#yamaguchi">山口県</a>
+      <a href="#tokushima">徳島県</a>
+      <a href="#kagawa">香川県</a>
+      <a href="#ehime">愛媛県</a>
+      <a href="#kochi">高知県</a>
+    </div>
   </div>
 </section>
 
