@@ -287,21 +287,7 @@
             </div>
           </div>
 
-          <!-- ④ 種別 -->
-          <div class="form-group">
-            <label for="category">お問い合わせ種別<span class="req">*</span></label>
-            <select id="category" name="category" required>
-              <option value="" disabled selected>選択してください</option>
-              <option value="競技会・エントリーについて">競技会・エントリーについて</option>
-              <option value="ランキングについて">ランキングについて</option>
-              <option value="指導員認定について">指導員認定について</option>
-              <option value="加盟・連盟活動について">加盟・連盟活動について</option>
-              <option value="役員・担当者へのご連絡">役員・担当者へのご連絡（連盟関係者）</option>
-              <option value="その他">その他</option>
-            </select>
-          </div>
-
-          <!-- ⑤ 件名 -->
+          <!-- ④ 件名 -->
           <div class="form-group">
             <label for="subject">件名<span class="req">*</span></label>
             <input type="text" id="subject" name="subject" placeholder="お問い合わせの件名をご入力ください" required>
@@ -445,7 +431,6 @@ document.getElementById('contactForm').addEventListener('submit', function (e) {
   var name       = document.getElementById('name').value.trim();
   var email      = document.getElementById('email').value.trim();
   var tel        = document.getElementById('tel').value.trim();
-  var category   = document.getElementById('category').value;
   var subject    = document.getElementById('subject').value.trim();
   var message    = document.getElementById('message').value.trim();
   var agree      = document.getElementById('agree').checked;
@@ -456,7 +441,6 @@ document.getElementById('contactForm').addEventListener('submit', function (e) {
     return showError(errEl, '正しいメールアドレスを入力してください。');
   }
   if (!tel) { return showError(errEl, '電話番号を入力してください。'); }
-  if (!category) { return showError(errEl, 'お問い合わせ種別を選択してください。'); }
   if (!subject)  { return showError(errEl, '件名を入力してください。'); }
   if (!message)  { return showError(errEl, 'お問い合わせ内容を入力してください。'); }
   if (!agree)    { return showError(errEl, 'プライバシーポリシーへの同意が必要です。'); }
@@ -475,7 +459,6 @@ document.getElementById('contactForm').addEventListener('submit', function (e) {
     org:        document.getElementById('org').value.trim(),
     email:      email,
     tel:        tel,
-    category:   category,
     subject:    subject,
     message:    message
   };
