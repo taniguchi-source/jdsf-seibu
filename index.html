@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20260602">
+  <link rel="stylesheet" href="css/style.css?v=20260602b">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     /* スマホ専用バー：PCでは非表示、スマホで表示 */
@@ -20,6 +20,13 @@
     }
     @media (max-width: 768px) {
       .mobile-top-bar { display: block; }
+      /* ヘッダー：通称・公益法人名を非表示にしてハンバーガーを表示 */
+      .header-tsusho                { display: none !important; }
+      .header-logo-text .org        { display: none !important; }
+      .header-logo-text .name       { font-size: 0.9rem !important; white-space: nowrap; }
+      .header-logo-img              { height: 44px !important; }
+      .hamburger                    { display: flex !important; flex-shrink: 0 !important; }
+      .header-logo                  { overflow: hidden; min-width: 0; }
     }
 
     .comp-list { border-top: 1px solid var(--border); }
