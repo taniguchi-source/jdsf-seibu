@@ -234,18 +234,20 @@ ul { list-style: none; }
 /* リンク右側（1/3幅） */
 .hero-pref-links-wrapper {
   flex: 1;
-  background: linear-gradient(135deg, rgba(46, 74, 142, 0.35), rgba(75, 108, 183, 0.25));
-  backdrop-filter: blur(8px);
-  padding: 12px;
-  overflow-y: auto;
-  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(240, 244, 248, 0.92);
+  padding: 10px;
+  overflow-y: hidden;
+  border-left: 1px solid #d0d9e4;
+  display: flex;
+  flex-direction: column;
 }
 
 .hero-pref-links {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 5px;
-  height: fit-content;
+  flex: 1;
+  grid-template-rows: repeat(7, 1fr);
 }
 
 .hero-pref-links a {
