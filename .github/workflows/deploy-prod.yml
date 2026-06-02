@@ -36,6 +36,10 @@ jobs:
             --exclude='hyogo.jdsf-seibu.com/' \
             --exclude='hiroshima.jdsf-seibu.com/' \
             --exclude='docs/meetings/' \
+            --exclude='data/news.json' \
+            --exclude='data/competitions_seibu.json' \
+            --exclude='data/events_seibu.json' \
+            --exclude='data/officers_news.json' \
             ./ jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/
 
       - name: Cleanup
