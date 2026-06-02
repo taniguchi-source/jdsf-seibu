@@ -324,14 +324,17 @@
     .then(function (data) {
       var today = new Date();
       today.setHours(0, 0, 0, 0);
-      var todayISO = today.toISOString().slice(0, 10);
+
+      var from = new Date(today);
+      from.setDate(from.getDate() - 7);       /* 1週間前 */
+      var fromISO = from.toISOString().slice(0, 10);
 
       var limit = new Date(today);
-      limit.setMonth(limit.getMonth() + 1);
+      limit.setMonth(limit.getMonth() + 1);   /* 1ヶ月後 */
       var limitISO = limit.toISOString().slice(0, 10);
 
       var comps = (data.competitions || []).filter(function (c) {
-        return c.date_iso && c.date_iso >= todayISO && c.date_iso <= limitISO;
+        return c.date_iso && c.date_iso >= fromISO && c.date_iso <= limitISO;
       });
 
       if (comps.length === 0) {
