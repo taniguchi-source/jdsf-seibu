@@ -232,8 +232,60 @@
     </div>
 
     <!-- 業務一覧テーブル -->
-    <div style="overflow-x:auto;">
-      <table style="width:100%;border-collapse:collapse;font-size:0.9375rem;">
+    <style>
+      .mission-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9375rem;
+      }
+      /* スマホ: カード形式に変換 */
+      @media (max-width: 640px) {
+        .mission-table-wrap { overflow-x: visible !important; }
+        .mission-table thead { display: none; }
+        .mission-table tbody tr {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: baseline;
+          gap: 0 8px;
+          padding: 14px 14px 12px;
+          border-bottom: 1px solid var(--border);
+        }
+        .mission-table tbody tr:nth-child(even) {
+          background: var(--bg-alt, #f8fafc);
+        }
+        /* No. バッジ */
+        .mission-table tbody td.td-no {
+          order: 1;
+          width: auto;
+          padding: 0;
+          font-size: 1rem;
+          font-weight: 700;
+          color: var(--primary-light);
+          line-height: 1.5;
+        }
+        /* 業務内容（タイトル） */
+        .mission-table tbody td.td-mission {
+          order: 2;
+          flex: 1 1 0;
+          padding: 0;
+          font-weight: 700;
+          font-size: 1rem;
+          color: var(--text-dark);
+          line-height: 1.5;
+        }
+        /* わかりやすく言うと（説明） */
+        .mission-table tbody td.td-desc {
+          order: 3;
+          width: 100%;
+          padding: 6px 0 0 0;
+          color: var(--text-medium);
+          font-size: 0.875rem;
+          line-height: 1.7;
+        }
+      }
+    </style>
+    <div class="mission-table-wrap" style="overflow-x:auto;">
+      <table class="mission-table">
         <thead>
           <tr style="background:var(--primary);color:#fff;">
             <th style="padding:12px 16px;text-align:center;width:48px;font-weight:600;white-space:nowrap;">No.</th>
@@ -243,44 +295,44 @@
         </thead>
         <tbody>
           <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:14px 16px;text-align:center;font-weight:700;color:var(--primary-light);">①</td>
-            <td style="padding:14px 16px;font-weight:600;color:var(--text-dark);">会員拡大・組織基盤強化</td>
-            <td style="padding:14px 16px;color:var(--text-medium);">ブロック内の各府県連盟の会員を増やし、組織をより強固にするための支援をします。</td>
+            <td class="td-no" style="padding:14px 16px;text-align:center;font-weight:700;color:var(--primary-light);">①</td>
+            <td class="td-mission" style="padding:14px 16px;font-weight:600;color:var(--text-dark);">会員拡大・組織基盤強化</td>
+            <td class="td-desc" style="padding:14px 16px;color:var(--text-medium);">ブロック内の各府県連盟の会員を増やし、組織をより強固にするための支援をします。</td>
           </tr>
           <tr style="border-bottom:1px solid var(--border);background:var(--bg-alt,#f8fafc);">
-            <td style="padding:14px 16px;text-align:center;font-weight:700;color:var(--primary-light);">②</td>
-            <td style="padding:14px 16px;font-weight:600;color:var(--text-dark);">情報共有・総合調整</td>
-            <td style="padding:14px 16px;color:var(--text-medium);">JDSFからの通達や各連盟の情報をブロック内で共有し、横断的な調整を行います。</td>
+            <td class="td-no" style="padding:14px 16px;text-align:center;font-weight:700;color:var(--primary-light);">②</td>
+            <td class="td-mission" style="padding:14px 16px;font-weight:600;color:var(--text-dark);">情報共有・総合調整</td>
+            <td class="td-desc" style="padding:14px 16px;color:var(--text-medium);">JDSFからの通達や各連盟の情報をブロック内で共有し、横断的な調整を行います。</td>
           </tr>
           <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:14px 16px;text-align:center;font-weight:700;color:var(--primary-light);">③</td>
-            <td style="padding:14px 16px;font-weight:600;color:var(--text-dark);">国民スポーツ大会への対応</td>
-            <td style="padding:14px 16px;color:var(--text-medium);">国スポに向けた機運醸成・環境整備、ブロック内の選手育成・強化に関する支援と調整を行います。</td>
+            <td class="td-no" style="padding:14px 16px;text-align:center;font-weight:700;color:var(--primary-light);">③</td>
+            <td class="td-mission" style="padding:14px 16px;font-weight:600;color:var(--text-dark);">国民スポーツ大会への対応</td>
+            <td class="td-desc" style="padding:14px 16px;color:var(--text-medium);">国スポに向けた機運醸成・環境整備、ブロック内の選手育成・強化に関する支援と調整を行います。</td>
           </tr>
           <tr style="border-bottom:1px solid var(--border);background:var(--bg-alt,#f8fafc);">
-            <td style="padding:14px 16px;text-align:center;font-weight:700;color:var(--primary-light);">④</td>
-            <td style="padding:14px 16px;font-weight:600;color:var(--text-dark);">JDSF主催競技会の主管・調整</td>
-            <td style="padding:14px 16px;color:var(--text-medium);">ブロック内で開催されるJDSF主催の競技会について、主管・開催日程・競技区分等を調整します。</td>
+            <td class="td-no" style="padding:14px 16px;text-align:center;font-weight:700;color:var(--primary-light);">④</td>
+            <td class="td-mission" style="padding:14px 16px;font-weight:600;color:var(--text-dark);">JDSF主催競技会の主管・調整</td>
+            <td class="td-desc" style="padding:14px 16px;color:var(--text-medium);">ブロック内で開催されるJDSF主催の競技会について、主管・開催日程・競技区分等を調整します。</td>
           </tr>
           <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:14px 16px;text-align:center;font-weight:700;color:var(--primary-light);">⑤</td>
-            <td style="padding:14px 16px;font-weight:600;color:var(--text-dark);">府県連盟主催競技会の調整</td>
-            <td style="padding:14px 16px;color:var(--text-medium);">各府県連盟が主催する競技会の開催日程・競技区分等が重複・競合しないよう調整します。（派遣選考会の担当県調整を含む）</td>
+            <td class="td-no" style="padding:14px 16px;text-align:center;font-weight:700;color:var(--primary-light);">⑤</td>
+            <td class="td-mission" style="padding:14px 16px;font-weight:600;color:var(--text-dark);">府県連盟主催競技会の調整</td>
+            <td class="td-desc" style="padding:14px 16px;color:var(--text-medium);">各府県連盟が主催する競技会の開催日程・競技区分等が重複・競合しないよう調整します。（派遣選考会の担当県調整を含む）</td>
           </tr>
           <tr style="border-bottom:1px solid var(--border);background:var(--bg-alt,#f8fafc);">
-            <td style="padding:14px 16px;text-align:center;font-weight:700;color:var(--primary-light);">⑥</td>
-            <td style="padding:14px 16px;font-weight:600;color:var(--text-dark);">ブロックランキングの管理・公表</td>
-            <td style="padding:14px 16px;color:var(--text-medium);">ランキング対象競技会を指定し、集計した年間ランキングを公表します。</td>
+            <td class="td-no" style="padding:14px 16px;text-align:center;font-weight:700;color:var(--primary-light);">⑥</td>
+            <td class="td-mission" style="padding:14px 16px;font-weight:600;color:var(--text-dark);">ブロックランキングの管理・公表</td>
+            <td class="td-desc" style="padding:14px 16px;color:var(--text-medium);">ランキング対象競技会を指定し、集計した年間ランキングを公表します。</td>
           </tr>
           <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:14px 16px;text-align:center;font-weight:700;color:var(--primary-light);">⑦</td>
-            <td style="padding:14px 16px;font-weight:600;color:var(--text-dark);">講習会・資格審査の開催・調整</td>
-            <td style="padding:14px 16px;color:var(--text-medium);">競技資格・指導員資格に関する研修会・講習会・技術認定会などを開催・調整し、周知します。</td>
+            <td class="td-no" style="padding:14px 16px;text-align:center;font-weight:700;color:var(--primary-light);">⑦</td>
+            <td class="td-mission" style="padding:14px 16px;font-weight:600;color:var(--text-dark);">講習会・資格審査の開催・調整</td>
+            <td class="td-desc" style="padding:14px 16px;color:var(--text-medium);">競技資格・指導員資格に関する研修会・講習会・技術認定会などを開催・調整し、周知します。</td>
           </tr>
           <tr style="background:var(--bg-alt,#f8fafc);">
-            <td style="padding:14px 16px;text-align:center;font-weight:700;color:var(--primary-light);">⑧</td>
-            <td style="padding:14px 16px;font-weight:600;color:var(--text-dark);">その他の業務・サービス</td>
-            <td style="padding:14px 16px;color:var(--text-medium);">上記のほか、ブロックで調整が必要な業務やサービスを行います。</td>
+            <td class="td-no" style="padding:14px 16px;text-align:center;font-weight:700;color:var(--primary-light);">⑧</td>
+            <td class="td-mission" style="padding:14px 16px;font-weight:600;color:var(--text-dark);">その他の業務・サービス</td>
+            <td class="td-desc" style="padding:14px 16px;color:var(--text-medium);">上記のほか、ブロックで調整が必要な業務やサービスを行います。</td>
           </tr>
         </tbody>
       </table>
