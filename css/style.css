@@ -419,8 +419,9 @@ ul { list-style: none; }
   }
   .hero-pref-links a,
   .hero-pref-link-disabled {
-    padding: 10px 6px;
-    font-size: 0.8rem;
+    padding: 10px 4px;
+    /* 画面幅に応じて自動スケール: 320px→9.6px 〜 480px以上→12.8px */
+    font-size: clamp(0.6rem, 3vw, 0.8rem);
   }
 }
 
