@@ -3,15 +3,21 @@
 
   "spreadsheets": [
     {
-      "title": "（スプレッドシート名1）",
-      "desc": "URLと名称を設定してください",
-      "url": "#",
+      "title": "西部ブロック委員会",
+      "desc": "委員会共有スプレッドシート",
+      "url": "https://docs.google.com/spreadsheets/d/1fpEa8jiIk9hUKyDOp4yWvBKaoPek-LsF2SPhDRTFX0g/edit?gid=610743852#gid=610743852",
       "icon": "📊"
     },
     {
-      "title": "（スプレッドシート名2）",
-      "desc": "URLと名称を設定してください",
-      "url": "#",
+      "title": "西部ブロック戦実行委員会",
+      "desc": "西部ブロック戦共有スプレッドシート",
+      "url": "https://docs.google.com/spreadsheets/d/1_6N0fR_gTafB3Mao49xi8vSW1uM5ja0QHSF0m9yXHxs/edit?gid=248025061#gid=248025061",
+      "icon": "📊"
+    },
+    {
+      "title": "グランプリin京都実行委員会",
+      "desc": "グランプリin京都共有スプレッドシート",
+      "url": "https://docs.google.com/spreadsheets/d/1x3E2uHdN5R0lyusyqPSu5-DBZEs3v9q53Le9qvc-I0E/edit?gid=2102230955#gid=2102230955",
       "icon": "📊"
     }
   ],
