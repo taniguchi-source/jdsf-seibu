@@ -323,7 +323,10 @@
       var limitISO = limit.toISOString().slice(0, 10);
 
       var comps = (data.competitions || []).filter(function (c) {
-        return c.date_iso && c.date_iso >= fromISO && c.date_iso <= limitISO;
+        if (!c.date_iso || c.date_iso < fromISO || c.date_iso > limitISO) return false;
+        /* 大会名先頭10文字に「PD」が含まれる場合は除外 */
+        if (c.name && c.name.slice(0, 10).indexOf('PD') !== -1) return false;
+        return true;
       });
 
       if (comps.length === 0) {

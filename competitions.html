@@ -356,7 +356,10 @@
       }
 
       var today = new Date().toISOString().slice(0, 10);
-      var comps = data.competitions || [];
+      /* 大会名先頭10文字に「PD」が含まれる競技会を除外 */
+      var comps = (data.competitions || []).filter(function (c) {
+        return !(c.name && c.name.slice(0, 10).indexOf('PD') !== -1);
+      });
 
       if (comps.length === 0) {
         wrap.innerHTML = '<p style="text-align:center;padding:32px;color:var(--text-light);">現在、対象競技会はありません。</p>';
