@@ -275,10 +275,16 @@
             </div>
           </div>
 
-          <!-- ③ メールアドレス -->
-          <div class="form-group">
-            <label for="email">メールアドレス<span class="req">*</span></label>
-            <input type="email" id="email" name="email" placeholder="example@email.com" required>
+          <!-- ③ メールアドレス・電話番号 -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">メールアドレス<span class="req">*</span></label>
+              <input type="email" id="email" name="email" placeholder="example@email.com" required>
+            </div>
+            <div class="form-group">
+              <label for="tel">電話番号<span class="req">*</span></label>
+              <input type="tel" id="tel" name="tel" placeholder="090-0000-0000" required>
+            </div>
           </div>
 
           <!-- ④ 種別 -->
@@ -438,6 +444,7 @@ document.getElementById('contactForm').addEventListener('submit', function (e) {
   var prefecture = document.getElementById('prefecture').value;
   var name       = document.getElementById('name').value.trim();
   var email      = document.getElementById('email').value.trim();
+  var tel        = document.getElementById('tel').value.trim();
   var category   = document.getElementById('category').value;
   var subject    = document.getElementById('subject').value.trim();
   var message    = document.getElementById('message').value.trim();
@@ -448,6 +455,7 @@ document.getElementById('contactForm').addEventListener('submit', function (e) {
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return showError(errEl, '正しいメールアドレスを入力してください。');
   }
+  if (!tel) { return showError(errEl, '電話番号を入力してください。'); }
   if (!category) { return showError(errEl, 'お問い合わせ種別を選択してください。'); }
   if (!subject)  { return showError(errEl, '件名を入力してください。'); }
   if (!message)  { return showError(errEl, 'お問い合わせ内容を入力してください。'); }
@@ -466,6 +474,7 @@ document.getElementById('contactForm').addEventListener('submit', function (e) {
     name:       name,
     org:        document.getElementById('org').value.trim(),
     email:      email,
+    tel:        tel,
     category:   category,
     subject:    subject,
     message:    message
