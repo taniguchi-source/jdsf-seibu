@@ -22,7 +22,7 @@ jobs:
         run: |
           lftp -u "jdsfseibu,$FTP_PASS" ftp://sv16504.xserver.jp \
             -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; \
-                mirror -R --ignore-time \
+                mirror -R --transfer-all \
                   --exclude ^\.git \
                   --exclude ^\.github \
                   --exclude ^scripts \
