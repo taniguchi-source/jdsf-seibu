@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=20260603b">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     /* ===== 競技会リスト（ホームページと同じスタイル） ===== */
@@ -315,7 +315,7 @@
           links.push('<a href="' + c.syllabus_url + '" target="_blank" rel="noopener" class="table-link">シラバス</a>');
         }
         if (c.result_url) {
-          var lbl = c.has_participants ? '参加者' : '結果';
+          var lbl = c.has_result ? '結果' : '参加者';
           links.push('<a href="' + c.result_url + '" target="_blank" rel="noopener" class="table-link">' + lbl + '</a>');
         }
 
