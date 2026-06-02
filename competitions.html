@@ -11,33 +11,53 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-    /* ===== 競技会カードグリッド（news-card スタイル流用） ===== */
-    .comp-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
+    /* ===== 競技会リスト（ホームページと同じスタイル） ===== */
+    .comp-list { border-top: 1px solid var(--border); }
+    .comp-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 13px 4px;
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
     }
-    .comp-card-past { opacity: 0.6; }
-    .comp-venue-tag {
+    .comp-row:hover { background: var(--bg-blue); }
+    .comp-row-past { opacity: 0.6; }
+    .comp-row-date {
+      flex-shrink: 0;
+      width: 64px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      line-height: 1.4;
+      padding-top: 2px;
+    }
+    .comp-row-body { flex: 1; min-width: 0; }
+    .comp-row-name {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      line-height: 1.5;
+      margin-bottom: 6px;
+      word-break: break-all;
+    }
+    .comp-row-venue {
       display: inline-flex;
       align-items: center;
-      font-size: 0.7rem;
+      font-size: 0.775rem;
       font-weight: 600;
       color: var(--primary);
       background: var(--bg-blue);
       border: 1px solid rgba(75,108,183,0.18);
       border-radius: 4px;
-      padding: 2px 8px;
+      padding: 2px 8px 2px 6px;
       white-space: nowrap;
     }
-    @media (max-width: 1024px) { .comp-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 600px)  { .comp-grid { grid-template-columns: 1fr; } }
-
-    /* 日付を大きく・太く */
-    .comp-grid .news-date {
-      font-size: 1.4rem;
-      font-weight: 800;
-      color: var(--primary-dark);
+    .comp-row-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
     }
 
     .doc-grid {
@@ -281,43 +301,38 @@
       var rows = comps.map(function (c) {
         var isPast = c.date_iso && c.date_iso < today;
 
-        // ステータスバッジ（タグ色）
+        // ステータスバッジ
         var badge;
-        if (isPast && c.has_result) {
-          badge = '<span class="tag tag-notice">結果掲載済</span>';
-        } else if (isPast) {
-          badge = '<span class="tag tag-notice">終了</span>';
+        if (c.has_result) {
+          badge = '<span class="comp-status status-closed">結果掲載済</span>';
         } else if (c.has_participants) {
-          badge = '<span class="tag tag-event">参加者確認中</span>';
+          badge = '<span class="comp-status status-open">参加者確認中</span>';
         } else {
-          badge = '<span class="tag tag-comp">受付中</span>';
+          badge = '<span class="comp-status status-soon">受付中</span>';
         }
 
-        // リンク
-        var mainUrl = c.result_url || c.syllabus_url || '';
-        var linkLabel = c.has_result ? '結果を見る' : (c.has_participants ? '参加者を見る' : (c.syllabus_url ? 'シラバスを見る' : ''));
-        var aStart = mainUrl ? '<a href="' + mainUrl + '" target="_blank" rel="noopener" class="news-more">' : '<span class="news-more" style="opacity:.4;cursor:default;">';
-        var aEnd   = mainUrl ? '</a>' : '</span>';
-        var linkText = linkLabel || '詳細を見る';
+        // リンクボタン
+        var links = [];
+        if (c.syllabus_url) {
+          links.push('<a href="' + c.syllabus_url + '" target="_blank" rel="noopener" class="table-link">シラバス</a>');
+        }
+        if (c.result_url) {
+          var lbl = c.has_participants ? '参加者' : '結果';
+          links.push('<a href="' + c.result_url + '" target="_blank" rel="noopener" class="table-link">' + lbl + '</a>');
+        }
 
-        var venueHtml = c.venue ? '<span class="comp-venue-tag">📍 ' + c.venue + '</span>' : '';
+        var venueHtml = c.venue ? '<span class="comp-row-venue">📍 ' + c.venue + '</span>' : '';
 
-        return '<article class="news-card' + (isPast ? ' comp-card-past' : '') + '">'
-          + '<div class="news-card-body">'
-          + '<div class="news-meta">'
-          + '<span class="news-date">' + (c.date || '') + '</span>'
-          + badge
+        return '<div class="comp-row' + (isPast ? ' comp-row-past' : '') + '">'
+          + '<div class="comp-row-date">' + (c.date || '') + '</div>'
+          + '<div class="comp-row-body">'
+          + '<div class="comp-row-name">' + (c.name || '') + '</div>'
+          + '<div class="comp-row-meta">' + venueHtml + badge + links.join('') + '</div>'
           + '</div>'
-          + '<h3 class="news-title">' + (c.name || '') + '</h3>'
-          + (c.venue ? '<p class="news-card-detail">' + venueHtml + '</p>' : '')
-          + '<div class="news-card-footer">'
-          + aStart + linkText + aEnd
-          + '</div>'
-          + '</div>'
-          + '</article>';
+          + '</div>';
       });
 
-      wrap.innerHTML = '<div class="comp-grid">' + rows.join('') + '</div>';
+      wrap.innerHTML = '<div class="comp-list">' + rows.join('') + '</div>';
     })
     .catch(function (err) {
       console.warn('JDSF competition data load failed:', err);
