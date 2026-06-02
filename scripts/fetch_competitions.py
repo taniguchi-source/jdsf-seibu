@@ -77,6 +77,25 @@ def fetch_venue(detail_url):
     return ''
 
 
+def check_result_url(result_url):
+    """
+    result_url が実際に HTTP 200 で応答するか確認する。
+    adm.jdsf.jp の ◎ マークはJDSF事務局の手動更新待ちになることがあるため、
+    kyougi.jdsf.or.jp の結果ページを直接確認して has_result を補完する。
+    """
+    if not result_url or 'kyougi.jdsf' not in result_url:
+        return False
+    try:
+        resp = requests.head(result_url, headers=HEADERS, timeout=10, allow_redirects=True)
+        return resp.status_code == 200
+    except Exception:
+        try:
+            resp = requests.get(result_url, headers=HEADERS, timeout=10)
+            return resp.status_code == 200
+        except Exception:
+            return False
+
+
 def fetch_year(year):
     """Fetch all block-S competitions for the given fiscal year."""
     params = {'year': year, 'block_id': BLOCK_ID}
@@ -180,6 +199,17 @@ def main():
             time.sleep(0.5)  # polite delay
         else:
             print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:30]}... → (詳細URLなし)")
+
+    # result_url が実際に存在するか確認して has_result を補完
+    # adm.jdsf.jp の ◎ マーク更新はJDSF事務局の手動作業のため遅延する場合がある
+    print(f"\n結果URL確認中（adm未更新分の補完）...")
+    for i, c in enumerate(unique):
+        if not c.get('has_result') and c.get('result_url'):
+            live = check_result_url(c['result_url'])
+            if live:
+                c['has_result'] = True
+                print(f"  [{i+1}] ◎補完: {c['date']} {c['name'][:30]}... → has_result=True")
+            time.sleep(0.3)
 
     output = {
         'updated':      datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
