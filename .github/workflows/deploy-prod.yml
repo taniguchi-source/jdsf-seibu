@@ -20,7 +20,7 @@ jobs:
           echo "=== Key fingerprint ==="
           ssh-keygen -l -f ~/.ssh/deploy_key
           echo "=== SSH test ==="
-          ssh -i ~/.ssh/deploy_key -p 10022 -v -o StrictHostKeyChecking=no phrs592515@sv16504.xserver.jp "echo SSH_OK" 2>&1 | tail -10 || true
+          ssh -i ~/.ssh/deploy_key -p 10022 -v -o StrictHostKeyChecking=no jdsfseibu@sv16504.xserver.jp "echo SSH_OK" 2>&1 | tail -10 || true
 
       - name: Deploy via rsync
         run: |
@@ -37,7 +37,7 @@ jobs:
             --filter='protect nara1.jdsf-seibu.com/' \
             --filter='protect hyogo.jdsf-seibu.com/' \
             --filter='protect hiroshima.jdsf-seibu.com/' \
-            ./ phrs592515@sv16504.xserver.jp:/home/phrs592515/jdsf-seibu.com/public_html/
+            ./ jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/
 
       - name: Cleanup
         if: always()
