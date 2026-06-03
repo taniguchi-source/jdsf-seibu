@@ -359,6 +359,69 @@
       </h2>
       <div id="ss-list" class="ss-grid"></div>
 
+      <!-- ===== 役員からのお知らせ（手動投稿） ===== -->
+      <hr class="section-rule" id="officer-notices">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+        <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:12px;margin:0;">
+          🔔 役員からのお知らせ
+        </h2>
+        <button onclick="toggleNoticeForm()" id="notice-form-toggle-btn"
+          style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:0.875rem;font-weight:700;font-family:inherit;cursor:pointer;transition:background .2s;">
+          ＋ 新しいお知らせを投稿
+        </button>
+      </div>
+
+      <!-- 投稿フォーム（初期は非表示） -->
+      <div id="notice-form-wrap" style="display:none;background:var(--bg-blue);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px;">
+        <h3 style="font-size:0.9375rem;font-weight:700;color:var(--primary);margin:0 0 16px;">📝 お知らせを入力してください</h3>
+        <div style="display:grid;gap:14px;">
+          <div>
+            <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">
+              氏名 <span style="color:#e53e3e;font-size:0.75rem;">（必須）</span>
+            </label>
+            <input type="text" id="notice-name" placeholder="例：山田 太郎"
+              style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;background:#fff;">
+          </div>
+          <div>
+            <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">
+              タイトル <span style="color:#e53e3e;font-size:0.75rem;">（必須）</span>
+            </label>
+            <input type="text" id="notice-title" placeholder="例：2026年度ブロック戦について"
+              style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;background:#fff;">
+          </div>
+          <div>
+            <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">詳細内容</label>
+            <textarea id="notice-detail" rows="4" placeholder="お知らせの詳細を入力してください…"
+              style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;resize:vertical;background:#fff;"></textarea>
+          </div>
+          <div>
+            <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">
+              関連URL <span style="font-size:0.75rem;font-weight:400;color:var(--text-light);">（任意）</span>
+            </label>
+            <input type="url" id="notice-url" placeholder="https://…"
+              style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;background:#fff;">
+          </div>
+          <div id="notice-form-msg" style="display:none;padding:8px 14px;border-radius:6px;font-size:0.875rem;"></div>
+          <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+            <button onclick="toggleNoticeForm()"
+              style="padding:10px 22px;background:none;border:1.5px solid var(--border);border-radius:8px;font-size:0.875rem;font-family:inherit;cursor:pointer;color:var(--text-light);">
+              キャンセル
+            </button>
+            <button id="notice-submit-btn" onclick="submitNotice()"
+              style="padding:10px 28px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:0.875rem;font-weight:700;font-family:inherit;cursor:pointer;">
+              投稿する →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- お知らせカード一覧 -->
+      <div id="officer-notices-list">
+        <div style="background:var(--bg-blue);border-radius:var(--radius);padding:20px 24px;text-align:center;">
+          <span style="color:var(--text-light);font-size:0.9rem;">読み込み中...</span>
+        </div>
+      </div>
+
       <hr class="section-rule">
 
       <!-- 役員向けお知らせ（JDSFメール自動反映） -->
@@ -440,6 +503,7 @@
     contentScreen.style.display = 'block';
     loadOfficersDocs();
     loadOfficersNews();
+    loadOfficerNotices();
   }
 
   // グローバルに公開
@@ -601,6 +665,152 @@
           + '</div>';
       });
   }
+
+  // ===== 役員からのお知らせ（手動投稿） =====
+  var NOTICE_TOKEN = 'jdsfseibu2026';
+
+  function loadOfficerNotices() {
+    fetch('data/officers_notices.json?_=' + Date.now())
+      .then(function(r) { return r.json(); })
+      .then(function(data) { renderOfficerNotices(data.notices || []); })
+      .catch(function() { renderOfficerNotices([]); });
+  }
+
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function renderOfficerNotices(notices) {
+    var el = document.getElementById('officer-notices-list');
+    if (!el) return;
+    if (notices.length === 0) {
+      el.innerHTML = '<div style="background:var(--bg-blue);border-radius:var(--radius);padding:20px 24px;text-align:center;">'
+        + '<p style="font-size:0.9375rem;color:var(--text-medium);padding:8px 0;">現在、お知らせはありません。</p>'
+        + '</div>';
+      return;
+    }
+    el.innerHTML = '<div class="news-grid">'
+      + notices.map(function(n) {
+          var safeId     = (n.id || '').replace(/'/g, "\\'");
+          var safeName   = escHtml(n.name   || '未入力');
+          var safeTitle  = escHtml(n.title  || '');
+          var safeDetail = (n.detail || '').split('\n').map(escHtml).join('<br>');
+          var safeDate   = escHtml(n.date   || '');
+          var safeUrl    = escHtml(n.url    || '');
+          return '<article class="news-card">'
+            + '<div class="news-card-body">'
+            + '<div class="news-meta">'
+            + '<span class="news-date">📅 ' + safeDate + '</span>'
+            + '<span class="tag tag-hq">👤 ' + safeName + '</span>'
+            + '</div>'
+            + '<h3 class="news-title">' + safeTitle + '</h3>'
+            + (n.detail ? '<p class="news-card-detail">' + safeDetail + '</p>' : '')
+            + '<div class="news-card-footer">'
+            + (n.url
+                ? '<a href="' + safeUrl + '" target="_blank" rel="noopener" class="news-more">詳細を見る</a>'
+                : '<span style="flex:1;"></span>')
+            + '<button onclick="deleteOfficerNotice(\'' + safeId + '\')" '
+            + 'style="font-size:0.775rem;color:#c0392b;background:#fff5f5;border:1px solid #fed7d7;'
+            + 'border-radius:4px;padding:3px 10px;cursor:pointer;font-family:inherit;flex-shrink:0;">🗑 削除</button>'
+            + '</div>'
+            + '</div>'
+            + '</article>';
+        }).join('')
+      + '</div>';
+  }
+
+  function toggleNoticeForm() {
+    var wrap = document.getElementById('notice-form-wrap');
+    var btn  = document.getElementById('notice-form-toggle-btn');
+    if (!wrap) return;
+    var isOpen = wrap.style.display !== 'none';
+    wrap.style.display = isOpen ? 'none' : 'block';
+    if (btn) btn.textContent = isOpen ? '＋ 新しいお知らせを投稿' : '✕ フォームを閉じる';
+  }
+
+  function submitNotice() {
+    var name   = (document.getElementById('notice-name')   || {value:''}).value.trim();
+    var title  = (document.getElementById('notice-title')  || {value:''}).value.trim();
+    var detail = (document.getElementById('notice-detail') || {value:''}).value.trim();
+    var url    = (document.getElementById('notice-url')    || {value:''}).value.trim();
+    var msgEl  = document.getElementById('notice-form-msg');
+    var btn    = document.getElementById('notice-submit-btn');
+
+    function showMsg(txt, isErr) {
+      if (!msgEl) return;
+      msgEl.style.display    = 'block';
+      msgEl.style.background = isErr ? '#FFF5F5' : '#F0FFF4';
+      msgEl.style.color      = isErr ? '#C53030' : '#276749';
+      msgEl.style.border     = '1px solid ' + (isErr ? '#FEB2B2' : '#9AE6B4');
+      msgEl.textContent      = txt;
+    }
+
+    if (!name || !title) {
+      showMsg('⚠ 氏名とタイトルは必須です。', true);
+      return;
+    }
+
+    if (btn) { btn.disabled = true; btn.textContent = '投稿中…'; }
+    if (msgEl) msgEl.style.display = 'none';
+
+    var fd = new FormData();
+    fd.append('token',  NOTICE_TOKEN);
+    fd.append('name',   name);
+    fd.append('title',  title);
+    fd.append('detail', detail);
+    fd.append('url',    url);
+
+    fetch('api/save_notice.php', { method: 'POST', body: fd })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.ok) {
+          ['notice-name','notice-title','notice-detail','notice-url'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.value = '';
+          });
+          toggleNoticeForm();
+          loadOfficerNotices();
+        } else {
+          showMsg('⚠ ' + (res.error || 'エラーが発生しました'), true);
+        }
+      })
+      .catch(function() {
+        showMsg('⚠ 通信エラーが発生しました。', true);
+      })
+      .finally(function() {
+        if (btn) { btn.disabled = false; btn.textContent = '投稿する →'; }
+      });
+  }
+
+  function deleteOfficerNotice(id) {
+    if (!confirm('このお知らせを削除しますか？')) return;
+    var fd = new FormData();
+    fd.append('token', NOTICE_TOKEN);
+    fd.append('id',    id);
+
+    fetch('api/delete_notice.php', { method: 'POST', body: fd })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.ok) {
+          loadOfficerNotices();
+        } else {
+          alert('削除に失敗しました：' + (res.error || ''));
+        }
+      })
+      .catch(function() {
+        alert('通信エラーが発生しました。');
+      });
+  }
+
+  // グローバルに公開（HTML onclickから呼び出せるように）
+  window.toggleNoticeForm      = toggleNoticeForm;
+  window.submitNotice          = submitNotice;
+  window.deleteOfficerNotice   = deleteOfficerNotice;
 
 }());
 </script>
