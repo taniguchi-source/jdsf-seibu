@@ -330,12 +330,9 @@
     </div>
   </div>
 
-  <!-- ===== メインコンテンツ ===== -->
-  <section class="section">
+  <!-- ===== 1. 役員内部連絡 (白) ===== -->
+  <section id="officer-notices" style="background:#ffffff;padding:20px 0 36px;">
     <div class="container">
-
-      <!-- ===== 役員内部連絡（手動投稿） ===== -->
-      <hr class="section-rule" id="officer-notices">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
         <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:12px;margin:0;">
           🔔 役員内部連絡
@@ -398,32 +395,40 @@
           <span style="color:var(--text-light);font-size:0.9rem;">読み込み中...</span>
         </div>
       </div>
+    </div>
+  </section>
 
-      <!-- ===== スプレッドシートセクション ===== -->
-      <hr class="section-rule" id="spreadsheets">
-      <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:12px;margin-bottom:20px;">
+  <!-- ===== 2. スプレッドシート (淡い青緑) ===== -->
+  <section id="spreadsheets" style="background:#eef6f2;border-top:1px solid #d4e8de;border-bottom:1px solid #d4e8de;padding:32px 0;">
+    <div class="container">
+      <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid #52a87a;padding-left:12px;margin-bottom:20px;">
         🔗 スプレッドシート
       </h2>
       <div id="ss-list" class="ss-grid"></div>
+    </div>
+  </section>
 
-      <!-- ===== 会議資料セクション ===== -->
-      <hr class="section-rule" id="materials">
-      <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:12px;margin-bottom:20px;">
+  <!-- ===== 3. 会議資料 (淡い黄) ===== -->
+  <section id="materials" style="background:#fefaf0;border-bottom:1px solid #e8dfc0;padding:32px 0;">
+    <div class="container">
+      <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid #c8a940;padding-left:12px;margin-bottom:20px;">
         📁 会議資料（月別PDF）
       </h2>
       <div id="materials-list">
         <p style="color:var(--text-light);text-align:center;padding:24px;">読み込み中...</p>
       </div>
+    </div>
+  </section>
 
-      <!-- ===== 議事録セクション ===== -->
-      <hr class="section-rule" id="minutes">
+  <!-- ===== 4. 議事録 (淡い青) ===== -->
+  <section id="minutes" style="background:#f0f4fc;border-bottom:1px solid #cdd8f0;padding:32px 0 48px;">
+    <div class="container">
       <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:12px;margin-bottom:20px;">
         📋 議事録
       </h2>
       <div id="minutes-list">
         <p style="color:var(--text-light);text-align:center;padding:24px;">読み込み中...</p>
       </div>
-
     </div>
   </section>
 
