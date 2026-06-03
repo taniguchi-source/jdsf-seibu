@@ -225,23 +225,17 @@
           ? '<span class="event-row-venue">📍 ' + ev.venue + '</span>'
           : '';
 
-        // 締切バッジ（申込締切日ベース）
+        // 締切バッジ（詳細ページ形式: "2026年5月26日(火)"）
         var badge = '';
         if (ev.deadline) {
-          // deadline 形式: "2026/04/13" → ISO "2026-04-13"
-          var dlIso = ev.deadline.replace(/\//g, '-');
-          // "○月○日" 形式にも対応
-          var dlM = ev.deadline.match(/(\d+)月(\d+)日/);
-          if (dlM) {
-            dlIso = today.slice(0, 4) + '-' + ('0' + dlM[1]).slice(-2) + '-' + ('0' + dlM[2]).slice(-2);
+          var dlParts = ev.deadline.match(/(\d{4})年(\d+)月(\d+)日/);
+          if (dlParts) {
+            var dlIso   = dlParts[1] + '-' + ('0' + dlParts[2]).slice(-2) + '-' + ('0' + dlParts[3]).slice(-2);
+            var dlShort = dlParts[2] + '月' + dlParts[3] + '日';
+            badge = dlIso < today
+              ? '<span class="comp-status status-closed">受付締切済</span>'
+              : '<span class="comp-status status-soon">締切: ' + dlShort + '</span>';
           }
-          var dlShort = (function() {
-            var m = ev.deadline.match(/(\d+)[\/月](\d+)/);
-            return m ? m[1] + '月' + parseInt(m[2]) + '日' : ev.deadline;
-          })();
-          badge = dlIso < today
-            ? '<span class="comp-status status-closed">受付締切済</span>'
-            : '<span class="comp-status status-soon">締切: ' + dlShort + '</span>';
         }
 
         // シラバスボタン
@@ -249,10 +243,16 @@
           ? '<a href="' + ev.syllabus_url + '" target="_blank" rel="noopener" class="table-link">シラバス</a>'
           : '';
 
+        // 備考テキスト
+        var notesHtml = ev.notes
+          ? '<div style="font-size:0.8rem;color:var(--text-light);margin-top:3px;">📌 ' + ev.notes + '</div>'
+          : '';
+
         return '<div class="event-row' + (isPast ? ' event-row-past' : '') + '">'
           + '<div class="event-row-date">' + (ev.date || '') + '</div>'
           + '<div class="event-row-body">'
           + '<div class="event-row-name">' + (ev.name || '') + '</div>'
+          + notesHtml
           + '<div class="event-row-meta">'
           + typeTag
           + venueHtml

@@ -54,11 +54,12 @@ def parse_date_iso(date_raw, code):
 def fetch_event_detail(detail_url):
     """
     Fetch event detail page and extract:
-      - venue (開催地)
+      - venue    (会場名)
+      - deadline (締切日)  e.g. "2026年5月26日(火)"
       - syllabus URL (シラバス表示 link)
-    Returns dict with 'venue' and 'syllabus_url'.
+    Returns dict with 'venue', 'deadline', and 'syllabus_url'.
     """
-    result = {'venue': '', 'syllabus_url': ''}
+    result = {'venue': '', 'deadline': '', 'syllabus_url': ''}
     if not detail_url:
         return result
     try:
@@ -66,20 +67,22 @@ def fetch_event_detail(detail_url):
         resp.raise_for_status()
         soup = BeautifulSoup(resp.content.decode('utf-8'), 'html.parser')
 
-        # Extract venue from table (th=「会場名」)
+        # Extract venue / deadline from table
         for th in soup.find_all('th'):
             label = th.get_text(strip=True)
+            td = th.find_next_sibling('td')
+            if not td:
+                continue
             if label in ('会場名', '会場', '開催地'):
-                td = th.find_next_sibling('td')
-                if td:
-                    result['venue'] = td.get_text(strip=True)
-                break
+                result['venue'] = td.get_text(strip=True)
+            elif label == '締切日':
+                result['deadline'] = td.get_text(strip=True)
 
         # Extract syllabus URL (link text containing「シラバス」)
         for a in soup.find_all('a'):
             href = a.get('href', '')
             text = a.get_text(strip=True)
-            if href and 'シラバス' in text:  # 「シラバス」
+            if href and 'シラバス' in text:
                 if not href.startswith('http'):
                     href = 'https://adm.jdsf.jp' + href
                 result['syllabus_url'] = href
@@ -169,14 +172,17 @@ def main():
     # 日付でソート
     events.sort(key=lambda e: e['date_iso'] or '9999-99-99')
 
-    # 各イベントの詳細ページから会場・シラバスURLを取得
-    print(f"\n詳細情報（会場・シラバス）を取得中...")
+    # 各イベントの詳細ページから会場・締切日・シラバスURLを取得
+    print(f"\n詳細情報（会場・締切日・シラバス）を取得中...")
     for i, ev in enumerate(events):
         if ev.get('detail_url'):
             info = fetch_event_detail(ev['detail_url'])
             ev['venue']        = info['venue']
             ev['syllabus_url'] = info['syllabus_url']
-            print(f"  [{i+1}/{len(events)}] {ev['date']} {ev['name'][:30]}... → 会場:{info['venue'] or '(なし)'} シラバス:{'あり' if info['syllabus_url'] else 'なし'}")
+            # 詳細ページの締切日で上書き（より正確）
+            if info['deadline']:
+                ev['deadline'] = info['deadline']
+            print(f"  [{i+1}/{len(events)}] {ev['date']} {ev['name'][:30]}... → 会場:{info['venue'] or '(なし)'} 締切:{info['deadline'] or '(なし)'} シラバス:{'あり' if info['syllabus_url'] else 'なし'}")
             time.sleep(0.5)  # polite delay
 
     output = {
