@@ -399,7 +399,104 @@
     </div>
   </section>
 
-  <!-- ===== 2. スプレッドシート (淡い青緑) ===== -->
+  <!-- ===== 2. 公開お知らせ管理 (淡いサーモン) ===== -->
+  <section id="public-news" style="background:#fff5f0;border-top:1px solid #f0d8cc;border-bottom:1px solid #f0d8cc;padding:32px 0 40px;">
+    <div class="container">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+        <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid #e07040;padding-left:12px;margin:0;">
+          📢 公開お知らせ管理
+          <small style="font-size:0.75rem;font-weight:400;color:var(--text-light);display:block;margin-top:4px;">（トップページ・お知らせページに掲載されます）</small>
+        </h2>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <a href="news.html" target="_blank" rel="noopener"
+            style="font-size:0.8125rem;color:var(--text-light);text-decoration:none;">公開ページを確認 →</a>
+          <button onclick="toggleNewsForm()" id="news-form-toggle-btn"
+            style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#e07040;color:#fff;border:none;border-radius:6px;font-size:0.875rem;font-weight:700;font-family:inherit;cursor:pointer;transition:background .2s;">
+            ＋ お知らせを投稿
+          </button>
+        </div>
+      </div>
+
+      <!-- 投稿フォーム（初期は非表示） -->
+      <div id="news-form-wrap" style="display:none;background:#fff;border:1px solid #f0d8cc;border-radius:var(--radius-lg);padding:24px;margin-bottom:24px;">
+        <h3 style="font-size:0.9375rem;font-weight:700;color:#c05020;margin:0 0 16px;">📝 お知らせを入力してください</h3>
+        <div style="display:grid;gap:14px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div>
+              <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">
+                カテゴリ <span style="color:#e53e3e;font-size:0.75rem;">（必須）</span>
+              </label>
+              <select id="news-category"
+                style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;background:#fff;">
+                <option value="">選択してください</option>
+                <option value="競技会">競技会</option>
+                <option value="指導員">指導員</option>
+                <option value="イベント">イベント</option>
+                <option value="ランキング">ランキング</option>
+                <option value="本部お知らせ">本部お知らせ</option>
+                <option value="その他">その他</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">
+                実施日・対象日 <span style="font-size:0.75rem;font-weight:400;color:var(--text-light);">（任意）</span>
+              </label>
+              <input type="date" id="news-event-date"
+                style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;background:#fff;">
+            </div>
+          </div>
+          <div>
+            <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">
+              タイトル <span style="color:#e53e3e;font-size:0.75rem;">（必須）</span>
+            </label>
+            <input type="text" id="news-title" placeholder="例：2026年度ブロック戦の開催について"
+              style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;background:#fff;">
+          </div>
+          <div>
+            <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">詳細内容 <span style="font-size:0.75rem;font-weight:400;color:var(--text-light);">（任意）</span></label>
+            <textarea id="news-detail" rows="3" placeholder="補足説明などを入力してください…"
+              style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;resize:vertical;background:#fff;"></textarea>
+          </div>
+          <div>
+            <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">
+              関連URL <span style="font-size:0.75rem;font-weight:400;color:var(--text-light);">（任意）</span>
+            </label>
+            <input type="url" id="news-url" placeholder="https://…"
+              style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;background:#fff;">
+          </div>
+          <div>
+            <label style="display:inline-flex;align-items:center;gap:8px;font-size:0.875rem;font-weight:600;color:var(--text-dark);cursor:pointer;">
+              <input type="checkbox" id="news-always-show" style="width:16px;height:16px;cursor:pointer;">
+              常に表示する（期限なし）
+            </label>
+            <p style="font-size:0.775rem;color:var(--text-light);margin:4px 0 0 24px;">チェックなしの場合でも削除するまで表示されます。</p>
+          </div>
+          <div id="news-form-msg" style="display:none;padding:8px 14px;border-radius:6px;font-size:0.875rem;"></div>
+          <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+            <button onclick="toggleNewsForm()"
+              style="padding:10px 22px;background:none;border:1.5px solid var(--border);border-radius:8px;font-size:0.875rem;font-family:inherit;cursor:pointer;color:var(--text-light);">
+              キャンセル
+            </button>
+            <button id="news-submit-btn" onclick="submitNews()"
+              style="padding:10px 28px;background:#e07040;color:#fff;border:none;border-radius:8px;font-size:0.875rem;font-weight:700;font-family:inherit;cursor:pointer;">
+              投稿する →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 現在のお知らせ一覧 -->
+      <div id="public-news-list">
+        <div style="background:#fff;border-radius:var(--radius);padding:20px 24px;text-align:center;">
+          <span style="color:var(--text-light);font-size:0.9rem;">読み込み中...</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== 3. スプレッドシート (淡い青緑) ===== -->
   <section id="spreadsheets" style="background:#eef6f2;border-top:1px solid #d4e8de;border-bottom:1px solid #d4e8de;padding:32px 0;">
     <div class="container">
       <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid #52a87a;padding-left:12px;margin-bottom:20px;">
@@ -496,6 +593,7 @@
     contentScreen.style.display = 'block';
     loadOfficersDocs();
     loadOfficerNotices();
+    loadPublicNews();
   }
 
   // グローバルに公開
@@ -773,10 +871,144 @@
       });
   }
 
+  // ===== 公開お知らせ管理 =====
+  var CAT_CLASS = {
+    '競技会':     'tag-comp',
+    '指導員':     'tag-instructor',
+    'イベント':   'tag-event',
+    'ランキング': 'tag-rank',
+    '本部お知らせ': 'tag-hq',
+    'その他':     'tag-notice'
+  };
+
+  function loadPublicNews() {
+    fetch('data/news.json?_=' + Date.now())
+      .then(function(r) { return r.json(); })
+      .then(function(data) { renderPublicNews(data.news || []); })
+      .catch(function() { renderPublicNews([]); });
+  }
+
+  function renderPublicNews(items) {
+    var el = document.getElementById('public-news-list');
+    if (!el) return;
+    if (items.length === 0) {
+      el.innerHTML = '<div style="background:#fff;border-radius:var(--radius);padding:16px 20px;text-align:center;">'
+        + '<p style="color:var(--text-light);font-size:0.9rem;">現在、公開お知らせはありません。</p>'
+        + '</div>';
+      return;
+    }
+    var rows = items.map(function(n) {
+      var safeId    = escHtml(n.id    || '');
+      var safeTitle = escHtml(n.title || '');
+      var catCls    = CAT_CLASS[n.category] || 'tag-info';
+      var leftDate  = escHtml(n.event_date || n.date || '');
+      var pubDate   = escHtml(n.date || '');
+      return '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;'
+        + 'background:#fff;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;">'
+        + '<span style="font-size:0.8rem;color:var(--text-light);flex-shrink:0;min-width:76px;">📅 ' + leftDate + '</span>'
+        + '<span class="tag ' + catCls + '" style="flex-shrink:0;">' + escHtml(n.category || '') + '</span>'
+        + '<span style="flex:1;font-size:0.9375rem;font-weight:600;color:var(--text-dark);">' + safeTitle + '</span>'
+        + '<span style="font-size:0.775rem;color:var(--text-light);flex-shrink:0;">公開: ' + pubDate + '</span>'
+        + '<button onclick="deletePublicNews(\'' + safeId + '\')" '
+        + 'style="font-size:0.775rem;color:#c0392b;background:#fff5f5;border:1px solid #fed7d7;'
+        + 'border-radius:4px;padding:3px 10px;cursor:pointer;font-family:inherit;flex-shrink:0;">🗑 削除</button>'
+        + '</div>';
+    });
+    el.innerHTML = '<p style="font-size:0.8125rem;color:var(--text-light);margin:0 0 10px;">全 '
+      + items.length + ' 件（新しい順）</p>' + rows.join('');
+  }
+
+  function toggleNewsForm() {
+    var wrap = document.getElementById('news-form-wrap');
+    var btn  = document.getElementById('news-form-toggle-btn');
+    if (!wrap) return;
+    var isOpen = wrap.style.display !== 'none';
+    wrap.style.display = isOpen ? 'none' : 'block';
+    if (btn) btn.textContent = isOpen ? '＋ お知らせを投稿' : '✕ フォームを閉じる';
+  }
+
+  function submitNews() {
+    var category   = (document.getElementById('news-category')    || {value:''}).value.trim();
+    var title      = (document.getElementById('news-title')       || {value:''}).value.trim();
+    var detail     = (document.getElementById('news-detail')      || {value:''}).value.trim();
+    var url        = (document.getElementById('news-url')         || {value:''}).value.trim();
+    var eventDate  = (document.getElementById('news-event-date')  || {value:''}).value.trim();
+    var alwaysShow = (document.getElementById('news-always-show') || {checked:false}).checked;
+    var msgEl      = document.getElementById('news-form-msg');
+    var btn        = document.getElementById('news-submit-btn');
+
+    function showMsg(txt, isErr) {
+      if (!msgEl) return;
+      msgEl.style.display    = 'block';
+      msgEl.style.background = isErr ? '#FFF5F5' : '#F0FFF4';
+      msgEl.style.color      = isErr ? '#C53030' : '#276749';
+      msgEl.style.border     = '1px solid ' + (isErr ? '#FEB2B2' : '#9AE6B4');
+      msgEl.textContent      = txt;
+    }
+
+    if (!category || !title) {
+      showMsg('⚠ カテゴリとタイトルは必須です。', true);
+      return;
+    }
+
+    if (btn) { btn.disabled = true; btn.textContent = '投稿中…'; }
+    if (msgEl) msgEl.style.display = 'none';
+
+    var fd = new FormData();
+    fd.append('token',       NOTICE_TOKEN);
+    fd.append('category',    category);
+    fd.append('title',       title);
+    fd.append('detail',      detail);
+    fd.append('url',         url);
+    fd.append('event_date',  eventDate);
+    fd.append('always_show', alwaysShow ? '1' : '0');
+
+    fetch('api/save_news.php', { method: 'POST', body: fd })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.ok) {
+          ['news-category','news-title','news-detail','news-url','news-event-date'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.value = '';
+          });
+          var cb = document.getElementById('news-always-show');
+          if (cb) cb.checked = false;
+          if (msgEl) msgEl.style.display = 'none';
+          toggleNewsForm();
+          loadPublicNews();
+        } else {
+          showMsg('⚠ ' + (res.error || 'エラーが発生しました'), true);
+        }
+      })
+      .catch(function() {
+        showMsg('⚠ 通信エラーが発生しました。', true);
+      })
+      .finally(function() {
+        if (btn) { btn.disabled = false; btn.textContent = '投稿する →'; }
+      });
+  }
+
+  function deletePublicNews(id) {
+    if (!confirm('このお知らせを削除しますか？\n（公開ページからも削除されます）')) return;
+    var fd = new FormData();
+    fd.append('token', NOTICE_TOKEN);
+    fd.append('id',    id);
+    fetch('api/delete_news.php', { method: 'POST', body: fd })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.ok) { loadPublicNews(); }
+        else { alert('削除に失敗しました：' + (res.error || '')); }
+      })
+      .catch(function() { alert('通信エラーが発生しました。'); });
+  }
+
   // グローバルに公開（HTML onclickから呼び出せるように）
   window.toggleNoticeForm      = toggleNoticeForm;
   window.submitNotice          = submitNotice;
   window.deleteOfficerNotice   = deleteOfficerNotice;
+  window.toggleNewsForm        = toggleNewsForm;
+  window.submitNews            = submitNews;
+  window.deletePublicNews      = deletePublicNews;
 
 }());
 </script>

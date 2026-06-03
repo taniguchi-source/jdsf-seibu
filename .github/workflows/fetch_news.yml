@@ -1,9 +1,10 @@
 name: Update News Data
 
 on:
-  schedule:
-    - cron: '30 21 * * *'  # 毎日 06:30 JST（fetch_competitions と時間をずらす）
-  workflow_dispatch:
+  # スプレッドシート連携を廃止し役員ページからの手動投稿に移行（2026-06-03）
+  # schedule:
+  #   - cron: '30 21 * * *'  # 毎日 06:30 JST
+  workflow_dispatch:  # 必要時は手動実行可能
 
 jobs:
   update-news:
