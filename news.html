@@ -48,10 +48,12 @@
     }
     .nli-arrow {
       flex-shrink: 0;
-      font-size: 1rem;
-      color: var(--primary-light);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--primary);
       padding-top: 3px;
-      opacity: 0;
+      white-space: nowrap;
+      opacity: 0.7;
       transition: opacity .2s;
     }
     .news-list-item:hover .nli-arrow { opacity: 1; }
@@ -282,7 +284,7 @@
         + (n.detail ? '<span class="nli-detail">' + escHtml(n.detail) + '</span>' : '')
         + '<span class="nli-pub-date">公開: ' + escHtml(n.date) + '</span>'
         + '</span>'
-        + (hasLink ? '<span class="nli-arrow">→</span>' : '')
+        + (hasLink ? '<span class="nli-arrow">詳細を見る →</span>' : '')
         + '</' + tag + '>';
     }).join('');
   }
