@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>役員内部連絡 全件｜JDSF 近畿中四国ブロック委員会</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20260603b">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* ===== ログイン画面 ===== */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0D2347 0%, #1B3A6B 60%, #2563EB 100%);
+      padding: 24px;
+    }
+    .login-box {
+      background: #fff;
+      border-radius: 16px;
+      padding: 48px 40px 40px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .login-logo {
+      width: 56px; height: 56px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      margin: 0 auto 20px;
+    }
+    .login-title { font-size: 1.25rem; font-weight: 800; color: var(--text-dark); margin-bottom: 4px; }
+    .login-sub   { font-size: 0.8125rem; color: var(--text-light); margin-bottom: 32px; }
+    .login-field { position: relative; margin-bottom: 16px; }
+    .login-field input {
+      width: 100%; padding: 12px 16px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 1rem; font-family: inherit; outline: none;
+      transition: border-color .2s; box-sizing: border-box;
+    }
+    .login-field input:focus { border-color: var(--primary-light); }
+    .login-field input.error { border-color: #e53e3e; }
+    .login-error { color: #e53e3e; font-size: 0.8125rem; margin-bottom: 12px; display: none; }
+    .login-btn {
+      width: 100%; padding: 13px;
+      background: var(--primary); color: #fff; border: none; border-radius: 8px;
+      font-size: 1rem; font-weight: 700; font-family: inherit; cursor: pointer; transition: background .2s;
+    }
+    .login-btn:hover { background: var(--primary-dark, #0D2347); }
+    .login-back { display: block; margin-top: 20px; font-size: 0.8125rem; color: var(--text-light); text-decoration: none; }
+    .login-back:hover { color: var(--primary); }
+
+    #content-screen { display: none; }
+
+    .logout-btn {
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      padding: 6px 14px; font-size: 0.8125rem; color: var(--text-light);
+      cursor: pointer; font-family: inherit; transition: all .2s;
+    }
+    .logout-btn:hover { border-color: #e53e3e; color: #e53e3e; }
+
+    @media (max-width: 480px) { .login-box { padding: 36px 24px 28px; } }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     ログイン画面
+============================================================ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">🔑</div>
+    <div class="login-title">役員専用ページ</div>
+    <div class="login-sub">JDSF 近畿中四国ブロック委員会</div>
+    <div class="login-field">
+      <input type="password" id="pw-input" placeholder="パスワードを入力" autocomplete="current-password">
+    </div>
+    <div class="login-error" id="login-error">パスワードが正しくありません。</div>
+    <button class="login-btn" onclick="doLogin()">ログイン</button>
+    <a href="index.html" class="login-back">← ホームに戻る</a>
+  </div>
+</div>
+
+<!-- ============================================================
+     認証後コンテンツ
+============================================================ -->
+<div id="content-screen">
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="header-logo">
+        <img src="images/jdsf-mark.png" alt="JDSFマーク" class="header-logo-img">
+        <div class="header-logo-text">
+          <div class="org">公益社団法人日本ダンススポーツ連盟</div>
+          <div class="name">近畿中四国ブロック委員会<span style="font-size:0.7em;font-weight:500;color:var(--text-light);">（通称 西部ブロック）</span></div>
+        </div>
+      </a>
+      <button class="hamburger" aria-label="メニュー" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" aria-label="メインナビゲーション">
+        <a href="index.html"        class="nav-link">ホーム</a>
+        <a href="about.html"        class="nav-link">西部ブロックについて</a>
+        <a href="competitions.html" class="nav-link">競技会情報</a>
+        <a href="guidance.html"     class="nav-link">指導員情報</a>
+        <a href="contact.html"      class="nav-link nav-cta">お問い合わせ</a>
+        <a href="officers.html"     class="nav-link active">役員用</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-hero">
+    <div class="container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div class="page-hero-label">Officers Portal</div>
+        <h1 class="page-hero-title">役員内部連絡 — 全件</h1>
+        <p class="page-hero-desc">近畿中四国ブロック委員会 役員・担当者専用</p>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <a href="officers.html" style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.4);border-radius:6px;font-size:0.875rem;font-weight:700;text-decoration:none;">
+          ← 役員ページに戻る
+        </a>
+        <button class="logout-btn" onclick="doLogout()">🔓 ログアウト</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 全件リスト ===== -->
+  <section style="background:#ffffff;padding:28px 0 56px;">
+    <div class="container">
+
+      <!-- 件数表示 -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+        <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:12px;margin:0;">
+          🔔 役員内部連絡
+          <span id="notice-count" style="font-size:0.8125rem;font-weight:400;color:var(--text-light);margin-left:8px;"></span>
+        </h2>
+        <a href="officers.html" style="font-size:0.875rem;color:var(--text-light);text-decoration:none;">
+          ← 役員ページに戻る（最新3件表示）
+        </a>
+      </div>
+
+      <!-- カード一覧 -->
+      <div id="all-notices-list">
+        <div style="background:var(--bg-blue);border-radius:var(--radius);padding:20px 24px;text-align:center;">
+          <span style="color:var(--text-light);font-size:0.9rem;">読み込み中...</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container footer-bottom" style="justify-content:center;">
+      <span>© 2026 JDSF 近畿中四国ブロック委員会｜役員専用ページ</span>
+    </div>
+  </footer>
+
+</div><!-- /#content-screen -->
+
+<script src="js/main.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var PASSWORD    = 'seibu2026';
+  var SESSION_KEY = 'jdsf_seibu_officers_auth';
+  var NOTICE_TOKEN = 'jdsfseibu2026';
+
+  var loginScreen   = document.getElementById('login-screen');
+  var contentScreen = document.getElementById('content-screen');
+  var pwInput       = document.getElementById('pw-input');
+  var loginError    = document.getElementById('login-error');
+
+  if (sessionStorage.getItem(SESSION_KEY) === '1') {
+    showContent();
+  }
+
+  if (pwInput) {
+    pwInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') doLogin();
+    });
+  }
+
+  function doLogin() {
+    var val = pwInput ? pwInput.value : '';
+    if (val === PASSWORD) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      showContent();
+    } else {
+      loginError.style.display = 'block';
+      if (pwInput) { pwInput.classList.add('error'); pwInput.value = ''; pwInput.focus(); }
+    }
+  }
+
+  function doLogout() {
+    sessionStorage.removeItem(SESSION_KEY);
+    contentScreen.style.display = 'none';
+    loginScreen.style.display   = 'flex';
+    if (pwInput) { pwInput.value = ''; pwInput.classList.remove('error'); }
+    loginError.style.display = 'none';
+  }
+
+  function showContent() {
+    loginScreen.style.display   = 'none';
+    contentScreen.style.display = 'block';
+    loadAllNotices();
+  }
+
+  window.doLogin  = doLogin;
+  window.doLogout = doLogout;
+
+  // ===== ユーティリティ =====
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // ===== 全件取得・描画 =====
+  function loadAllNotices() {
+    fetch('data/officers_notices.json?_=' + Date.now())
+      .then(function(r) { return r.json(); })
+      .then(function(data) { renderAll(data.notices || []); })
+      .catch(function() { renderAll([]); });
+  }
+
+  function renderAll(notices) {
+    var el      = document.getElementById('all-notices-list');
+    var countEl = document.getElementById('notice-count');
+    if (!el) return;
+
+    if (countEl) {
+      countEl.textContent = notices.length > 0 ? '（全 ' + notices.length + ' 件）' : '';
+    }
+
+    if (notices.length === 0) {
+      el.innerHTML = '<div style="background:var(--bg-blue);border-radius:var(--radius);padding:20px 24px;text-align:center;">'
+        + '<p style="font-size:0.9375rem;color:var(--text-medium);padding:8px 0;">現在、お知らせはありません。</p>'
+        + '</div>';
+      return;
+    }
+
+    el.innerHTML = '<div class="news-grid">'
+      + notices.map(function(n) {
+          var safeId     = (n.id || '').replace(/'/g, "\\'");
+          var safeName   = escHtml(n.name   || '未入力');
+          var safeTitle  = escHtml(n.title  || '');
+          var safeDetail = (n.detail || '').split('\n').map(escHtml).join('<br>');
+          var safeDate   = escHtml(n.date   || '');
+          var safeUrl    = escHtml(n.url    || '');
+          return '<article class="news-card">'
+            + '<div class="news-card-body">'
+            + '<div class="news-meta">'
+            + '<span class="news-date">📅 ' + safeDate + '</span>'
+            + '<span class="tag tag-hq">👤 ' + safeName + '</span>'
+            + '</div>'
+            + '<h3 class="news-title">' + safeTitle + '</h3>'
+            + (n.detail ? '<p class="news-card-detail">' + safeDetail + '</p>' : '')
+            + '<div class="news-card-footer">'
+            + (n.url
+                ? '<a href="' + safeUrl + '" target="_blank" rel="noopener" class="news-more">詳細を見る</a>'
+                : '<span style="flex:1;"></span>')
+            + '<button onclick="deleteNotice(\'' + safeId + '\')" '
+            + 'style="font-size:0.775rem;color:#c0392b;background:#fff5f5;border:1px solid #fed7d7;'
+            + 'border-radius:4px;padding:3px 10px;cursor:pointer;font-family:inherit;flex-shrink:0;">🗑 削除</button>'
+            + '</div>'
+            + '</div>'
+            + '</article>';
+        }).join('')
+      + '</div>';
+  }
+
+  function deleteNotice(id) {
+    if (!confirm('このお知らせを削除しますか？')) return;
+    var fd = new FormData();
+    fd.append('token', NOTICE_TOKEN);
+    fd.append('id',    id);
+    fetch('api/delete_notice.php', { method: 'POST', body: fd })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.ok) { loadAllNotices(); }
+        else { alert('削除に失敗しました：' + (res.error || '')); }
+      })
+      .catch(function() { alert('通信エラーが発生しました。'); });
+  }
+
+  window.deleteNotice = deleteNotice;
+
+}());
+</script>
+</body>
+</html>

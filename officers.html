@@ -336,6 +336,7 @@
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
         <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:12px;margin:0;">
           🔔 役員内部連絡
+          <small style="font-size:0.75rem;font-weight:400;color:var(--text-light);display:block;margin-top:4px;">（役員は誰でもここに書き込んで連絡用に使うことができます。最新の3件のみ表示されます）</small>
         </h2>
         <button onclick="toggleNoticeForm()" id="notice-form-toggle-btn"
           style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:0.875rem;font-weight:700;font-family:inherit;cursor:pointer;transition:background .2s;">
@@ -639,6 +640,33 @@
       .replace(/'/g, '&#39;');
   }
 
+  function buildNoticeCard(n) {
+    var safeId     = (n.id || '').replace(/'/g, "\\'");
+    var safeName   = escHtml(n.name   || '未入力');
+    var safeTitle  = escHtml(n.title  || '');
+    var safeDetail = (n.detail || '').split('\n').map(escHtml).join('<br>');
+    var safeDate   = escHtml(n.date   || '');
+    var safeUrl    = escHtml(n.url    || '');
+    return '<article class="news-card">'
+      + '<div class="news-card-body">'
+      + '<div class="news-meta">'
+      + '<span class="news-date">📅 ' + safeDate + '</span>'
+      + '<span class="tag tag-hq">👤 ' + safeName + '</span>'
+      + '</div>'
+      + '<h3 class="news-title">' + safeTitle + '</h3>'
+      + (n.detail ? '<p class="news-card-detail">' + safeDetail + '</p>' : '')
+      + '<div class="news-card-footer">'
+      + (n.url
+          ? '<a href="' + safeUrl + '" target="_blank" rel="noopener" class="news-more">詳細を見る</a>'
+          : '<span style="flex:1;"></span>')
+      + '<button onclick="deleteOfficerNotice(\'' + safeId + '\')" '
+      + 'style="font-size:0.775rem;color:#c0392b;background:#fff5f5;border:1px solid #fed7d7;'
+      + 'border-radius:4px;padding:3px 10px;cursor:pointer;font-family:inherit;flex-shrink:0;">🗑 削除</button>'
+      + '</div>'
+      + '</div>'
+      + '</article>';
+  }
+
   function renderOfficerNotices(notices) {
     var el = document.getElementById('officer-notices-list');
     if (!el) return;
@@ -648,34 +676,19 @@
         + '</div>';
       return;
     }
-    el.innerHTML = '<div class="news-grid">'
-      + notices.map(function(n) {
-          var safeId     = (n.id || '').replace(/'/g, "\\'");
-          var safeName   = escHtml(n.name   || '未入力');
-          var safeTitle  = escHtml(n.title  || '');
-          var safeDetail = (n.detail || '').split('\n').map(escHtml).join('<br>');
-          var safeDate   = escHtml(n.date   || '');
-          var safeUrl    = escHtml(n.url    || '');
-          return '<article class="news-card">'
-            + '<div class="news-card-body">'
-            + '<div class="news-meta">'
-            + '<span class="news-date">📅 ' + safeDate + '</span>'
-            + '<span class="tag tag-hq">👤 ' + safeName + '</span>'
-            + '</div>'
-            + '<h3 class="news-title">' + safeTitle + '</h3>'
-            + (n.detail ? '<p class="news-card-detail">' + safeDetail + '</p>' : '')
-            + '<div class="news-card-footer">'
-            + (n.url
-                ? '<a href="' + safeUrl + '" target="_blank" rel="noopener" class="news-more">詳細を見る</a>'
-                : '<span style="flex:1;"></span>')
-            + '<button onclick="deleteOfficerNotice(\'' + safeId + '\')" '
-            + 'style="font-size:0.775rem;color:#c0392b;background:#fff5f5;border:1px solid #fed7d7;'
-            + 'border-radius:4px;padding:3px 10px;cursor:pointer;font-family:inherit;flex-shrink:0;">🗑 削除</button>'
-            + '</div>'
-            + '</div>'
-            + '</article>';
-        }).join('')
-      + '</div>';
+    var shown = notices.slice(0, 3);
+    var html = '<div class="news-grid">' + shown.map(buildNoticeCard).join('') + '</div>';
+    if (notices.length > 3) {
+      html += '<div style="text-align:center;margin-top:20px;">'
+        + '<a href="officers_notices_all.html" '
+        + 'style="display:inline-flex;align-items:center;gap:6px;padding:10px 26px;'
+        + 'background:#fff;border:2px solid var(--primary);border-radius:6px;'
+        + 'font-size:0.875rem;font-weight:700;color:var(--primary);text-decoration:none;">'
+        + '📋 全 ' + notices.length + ' 件を表示する →'
+        + '</a>'
+        + '</div>';
+    }
+    el.innerHTML = html;
   }
 
   function toggleNoticeForm() {
