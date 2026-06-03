@@ -14,21 +14,53 @@
   <link rel="stylesheet" href="css/style.css?v=20260603b">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-    /* ===== 指導員イベントグリッド（news-card スタイル流用） ===== */
-    .event-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
+    /* ===== イベントリスト（競技会ページと同じスタイル） ===== */
+    .event-list { border-top: 1px solid var(--border); }
+    .event-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 13px 4px;
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
     }
-    .event-card-past { opacity: 0.6; }
-    @media (max-width: 1024px) { .event-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 600px)  { .event-grid { grid-template-columns: 1fr; } }
-
-    /* 日付を大きく・太く */
-    .event-grid .news-date {
-      font-size: 1.4rem;
-      font-weight: 800;
+    .event-row:hover { background: var(--bg-blue); }
+    .event-row-past { opacity: 0.6; }
+    .event-row-date {
+      flex-shrink: 0;
+      width: 64px;
+      font-size: 0.875rem;
+      font-weight: 700;
       color: var(--primary-dark);
+      line-height: 1.4;
+      padding-top: 2px;
+    }
+    .event-row-body { flex: 1; min-width: 0; }
+    .event-row-name {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      line-height: 1.5;
+      margin-bottom: 6px;
+      word-break: break-all;
+    }
+    .event-row-venue {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.775rem;
+      font-weight: 600;
+      color: var(--primary);
+      background: var(--bg-blue);
+      border: 1px solid rgba(75,108,183,0.18);
+      border-radius: 4px;
+      padding: 2px 8px 2px 6px;
+      white-space: nowrap;
+    }
+    .event-row-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
     }
   </style>
 </head>
@@ -157,7 +189,9 @@
   var updated = document.getElementById('events-updated');
   if (!wrap) return;
 
-  fetch('data/events_seibu.json')
+  var TYPE_TAG = { '研修': 'tag-event', '講習': 'tag-instructor', '試験': 'tag-comp' };
+
+  fetch('data/events_seibu.json?_=' + Date.now())
     .then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
@@ -178,40 +212,58 @@
         return;
       }
 
-      var TYPE_TAG = { '研修': 'tag-event', '講習': 'tag-instructor', '試験': 'tag-comp' };
-
-      var html = evs.map(function (ev) {
-        var isPast      = ev.date_iso && ev.date_iso < today;
+      var rows = evs.map(function (ev) {
+        var isPast       = ev.date_iso && ev.date_iso < today;
         var deadlinePast = ev.deadline && ev.deadline.replace(/\//g, '-') < today;
-        var tagCls      = TYPE_TAG[ev.type] || 'tag-event';
-        // 終了・締切済はグレー
-        if (isPast || deadlinePast) tagCls = 'tag-notice';
 
-        // detail
-        var detail = ev.date || '';
-        if (ev.deadline) detail += (detail ? '　' : '') + '申込締切: ' + ev.deadline;
-        if (ev.notes)    detail += (detail ? '　' : '') + ev.notes;
+        // イベント種別タグ
+        var tagCls = isPast || deadlinePast ? 'tag-notice' : (TYPE_TAG[ev.type] || 'tag-event');
+        var typeTag = '<span class="tag ' + tagCls + '">' + (ev.type || '研修') + '</span>';
 
-        var aStart = ev.detail_url ? '<a href="' + ev.detail_url + '" target="_blank" rel="noopener" class="news-more">' : '<span class="news-more" style="opacity:.4;cursor:default;">';
-        var aEnd   = ev.detail_url ? '</a>' : '</span>';
+        // 会場ピル
+        var venueHtml = ev.venue
+          ? '<span class="event-row-venue">📍 ' + ev.venue + '</span>'
+          : '';
 
-        return '<article class="news-card' + (isPast ? ' event-card-past' : '') + '">'
-          + '<div class="news-card-body">'
-          + '<div class="news-meta">'
-          + '<span class="news-date">' + (ev.date || '') + '</span>'
-          + '<span class="tag ' + tagCls + '">' + (ev.type || '研修') + '</span>'
+        // 締切バッジ（申込締切日ベース）
+        var badge = '';
+        if (ev.deadline) {
+          // deadline 形式: "2026/04/13" → ISO "2026-04-13"
+          var dlIso = ev.deadline.replace(/\//g, '-');
+          // "○月○日" 形式にも対応
+          var dlM = ev.deadline.match(/(\d+)月(\d+)日/);
+          if (dlM) {
+            dlIso = today.slice(0, 4) + '-' + ('0' + dlM[1]).slice(-2) + '-' + ('0' + dlM[2]).slice(-2);
+          }
+          var dlShort = (function() {
+            var m = ev.deadline.match(/(\d+)[\/月](\d+)/);
+            return m ? m[1] + '月' + parseInt(m[2]) + '日' : ev.deadline;
+          })();
+          badge = dlIso < today
+            ? '<span class="comp-status status-closed">受付締切済</span>'
+            : '<span class="comp-status status-soon">締切: ' + dlShort + '</span>';
+        }
+
+        // シラバスボタン
+        var syllabusBtn = ev.syllabus_url
+          ? '<a href="' + ev.syllabus_url + '" target="_blank" rel="noopener" class="table-link">シラバス</a>'
+          : '';
+
+        return '<div class="event-row' + (isPast ? ' event-row-past' : '') + '">'
+          + '<div class="event-row-date">' + (ev.date || '') + '</div>'
+          + '<div class="event-row-body">'
+          + '<div class="event-row-name">' + (ev.name || '') + '</div>'
+          + '<div class="event-row-meta">'
+          + typeTag
+          + venueHtml
+          + badge
+          + syllabusBtn
           + '</div>'
-          + '<h3 class="news-title">' + (ev.name || '') + '</h3>'
-          + (ev.deadline ? '<p class="news-card-detail">📅 申込締切: ' + ev.deadline + '</p>' : '')
-          + (ev.notes    ? '<p class="news-card-detail">📌 ' + ev.notes + '</p>' : '')
-          + '<div class="news-card-footer">'
-          + aStart + '詳細を見る' + aEnd
           + '</div>'
-          + '</div>'
-          + '</article>';
+          + '</div>';
       }).join('');
 
-      wrap.innerHTML = '<div class="event-grid">' + html + '</div>';
+      wrap.innerHTML = '<div class="event-list">' + rows + '</div>';
     })
     .catch(function (err) {
       console.warn('JDSF events data load failed:', err);

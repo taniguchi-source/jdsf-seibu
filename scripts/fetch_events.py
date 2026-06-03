@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 JDSF 西部ブロック 研修イベントデータ取得スクリプト
 Fetches western block (block S / b_id=5) training event data from adm.jdsf.jp
@@ -14,11 +15,22 @@ from bs4 import BeautifulSoup
 import json
 import re
 import os
+import io
+import sys
+import time
 from datetime import datetime
+
+# Force UTF-8 output to avoid encoding errors on Windows
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
 BASE_URL  = 'https://adm.jdsf.jp/events/'
 BLOCK_ID  = 5   # S = 西部ブロック
 OUTPUT_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'events_seibu.json')
+
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (compatible; JDSF-SeibuBot/1.0; +https://jdsf-seibu.com/)',
+    'Accept-Language': 'ja,en;q=0.5',
+}
 
 
 def get_fiscal_year():
@@ -39,15 +51,49 @@ def parse_date_iso(date_raw, code):
     return f"{year}-{month:02d}-{day:02d}"
 
 
+def fetch_event_detail(detail_url):
+    """
+    Fetch event detail page and extract:
+      - venue (開催地)
+      - syllabus URL (シラバス表示 link)
+    Returns dict with 'venue' and 'syllabus_url'.
+    """
+    result = {'venue': '', 'syllabus_url': ''}
+    if not detail_url:
+        return result
+    try:
+        resp = requests.get(detail_url, headers=HEADERS, timeout=15)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.content.decode('utf-8'), 'html.parser')
+
+        # Extract venue from table (th=「会場名」)
+        for th in soup.find_all('th'):
+            label = th.get_text(strip=True)
+            if label in ('会場名', '会場', '開催地'):
+                td = th.find_next_sibling('td')
+                if td:
+                    result['venue'] = td.get_text(strip=True)
+                break
+
+        # Extract syllabus URL (link text containing「シラバス」)
+        for a in soup.find_all('a'):
+            href = a.get('href', '')
+            text = a.get_text(strip=True)
+            if href and 'シラバス' in text:  # 「シラバス」
+                if not href.startswith('http'):
+                    href = 'https://adm.jdsf.jp' + href
+                result['syllabus_url'] = href
+                break
+    except Exception as exc:
+        print(f"    詳細情報取得エラー ({detail_url}): {exc}")
+    return result
+
+
 def fetch_events():
     """Fetch all block-S training events (all years on one page)."""
     params = {'b_id': BLOCK_ID}
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (compatible; JDSF-SeibuBot/1.0; +https://jdsf-seibu.com/)',
-        'Accept-Language': 'ja,en;q=0.5',
-    }
 
-    resp = requests.get(BASE_URL, params=params, headers=headers, timeout=30)
+    resp = requests.get(BASE_URL, params=params, headers=HEADERS, timeout=30)
     resp.raise_for_status()
     resp.encoding = 'utf-8'
 
@@ -102,6 +148,8 @@ def fetch_events():
             'deadline':           deadline,
             'notes':              notes,
             'detail_url':         detail_url,
+            'venue':              '',   # filled in next step
+            'syllabus_url':       '',   # filled in next step
         })
 
     return events
@@ -120,6 +168,16 @@ def main():
 
     # 日付でソート
     events.sort(key=lambda e: e['date_iso'] or '9999-99-99')
+
+    # 各イベントの詳細ページから会場・シラバスURLを取得
+    print(f"\n詳細情報（会場・シラバス）を取得中...")
+    for i, ev in enumerate(events):
+        if ev.get('detail_url'):
+            info = fetch_event_detail(ev['detail_url'])
+            ev['venue']        = info['venue']
+            ev['syllabus_url'] = info['syllabus_url']
+            print(f"  [{i+1}/{len(events)}] {ev['date']} {ev['name'][:30]}... → 会場:{info['venue'] or '(なし)'} シラバス:{'あり' if info['syllabus_url'] else 'なし'}")
+            time.sleep(0.5)  # polite delay
 
     output = {
         'updated': datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
