@@ -310,6 +310,8 @@
           badge = '<span class="comp-status status-closed">結果掲載済</span>';
         } else if (c.has_participants) {
           badge = '<span class="comp-status status-open">参加者確認中</span>';
+        } else if (c.entry_deadline) {
+          badge = '<span class="comp-status status-soon">締切: ' + c.entry_deadline + '</span>';
         } else {
           badge = '<span class="comp-status status-soon">受付中</span>';
         }
