@@ -340,7 +340,7 @@
         </h2>
         <button onclick="toggleNoticeForm()" id="notice-form-toggle-btn"
           style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:0.875rem;font-weight:700;font-family:inherit;cursor:pointer;transition:background .2s;">
-          ＋ 新しいお知らせを投稿
+          ＋ 連絡事項を投稿
         </button>
       </div>
 
@@ -697,7 +697,7 @@
     if (!wrap) return;
     var isOpen = wrap.style.display !== 'none';
     wrap.style.display = isOpen ? 'none' : 'block';
-    if (btn) btn.textContent = isOpen ? '＋ 新しいお知らせを投稿' : '✕ フォームを閉じる';
+    if (btn) btn.textContent = isOpen ? '＋ 連絡事項を投稿' : '✕ フォームを閉じる';
   }
 
   function submitNotice() {
