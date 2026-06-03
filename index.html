@@ -305,7 +305,7 @@
   var grid = document.getElementById('home-comp-grid');
   if (!grid) return;
 
-  fetch('data/competitions_seibu.json')
+  fetch('data/competitions_seibu.json?_=' + Date.now())
     .then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
@@ -346,8 +346,19 @@
           badge = '<span class="comp-status status-closed">結果掲載済</span>';
         } else if (c.has_participants) {
           badge = '<span class="comp-status status-open">参加者確認中</span>';
+        } else if (c.entry_deadline) {
+          var dlParts = c.entry_deadline.match(/(\d{4})年(\d+)月(\d+)日/);
+          if (dlParts) {
+            var dlIso   = dlParts[1] + '-' + ('0' + dlParts[2]).slice(-2) + '-' + ('0' + dlParts[3]).slice(-2);
+            var dlShort = dlParts[2] + '月' + dlParts[3] + '日';
+            badge = dlIso < todayISO
+              ? '<span class="comp-status status-closed">受付締切済</span>'
+              : '<span class="comp-status status-soon">締切: ' + dlShort + '</span>';
+          } else {
+            badge = '';
+          }
         } else {
-          badge = '<span class="comp-status status-soon">受付中</span>';
+          badge = '';
         }
 
         var links = [];
