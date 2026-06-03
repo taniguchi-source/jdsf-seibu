@@ -538,6 +538,97 @@
 
 </div><!-- /#content-screen -->
 
+<!-- ===== 編集モーダル（公開お知らせ） ===== -->
+<div id="news-edit-modal"
+     style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.45);
+            align-items:center;justify-content:center;padding:16px;"
+     onclick="if(event.target===this)closeEditModal()">
+  <div style="background:#fff;border-radius:12px;max-width:560px;width:100%;max-height:90vh;
+              overflow-y:auto;padding:28px;box-shadow:0 8px 40px rgba(0,0,0,0.18);position:relative;">
+
+    <button onclick="closeEditModal()"
+      style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.25rem;
+             color:var(--text-light);cursor:pointer;line-height:1;">✕</button>
+
+    <h3 style="font-size:1rem;font-weight:700;color:#2563eb;margin:0 0 18px;padding-bottom:10px;
+               border-bottom:2px solid #bfdbfe;">✏ お知らせを編集</h3>
+
+    <input type="hidden" id="edit-news-id">
+
+    <div style="display:grid;gap:14px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">
+            カテゴリ <span style="color:#e53e3e;font-size:0.75rem;">（必須）</span>
+          </label>
+          <select id="edit-news-category"
+            style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;
+                   font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;background:#fff;">
+            <option value="">選択してください</option>
+            <option value="競技会">競技会</option>
+            <option value="指導員">指導員</option>
+            <option value="イベント">イベント</option>
+            <option value="ランキング">ランキング</option>
+            <option value="本部お知らせ">本部お知らせ</option>
+            <option value="その他">その他</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">
+            実施日・対象日 <span style="font-size:0.75rem;font-weight:400;color:var(--text-light);">（任意）</span>
+          </label>
+          <input type="date" id="edit-news-event-date"
+            style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;
+                   font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;background:#fff;">
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">
+          タイトル <span style="color:#e53e3e;font-size:0.75rem;">（必須）</span>
+        </label>
+        <input type="text" id="edit-news-title"
+          style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;
+                 font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;background:#fff;">
+      </div>
+
+      <div>
+        <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">
+          詳細内容 <span style="color:#e53e3e;font-size:0.75rem;">（必須）</span>
+        </label>
+        <textarea id="edit-news-detail" rows="3"
+          style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;
+                 font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;
+                 resize:vertical;background:#fff;"></textarea>
+      </div>
+
+      <div>
+        <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">
+          関連URL <span style="font-size:0.75rem;font-weight:400;color:var(--text-light);">（任意）</span>
+        </label>
+        <input type="url" id="edit-news-url" placeholder="https://…"
+          style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;
+                 font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;background:#fff;">
+      </div>
+
+      <div id="edit-news-msg" style="display:none;padding:8px 14px;border-radius:6px;font-size:0.875rem;"></div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+        <button onclick="closeEditModal()"
+          style="padding:10px 22px;background:none;border:1.5px solid var(--border);border-radius:8px;
+                 font-size:0.875rem;font-family:inherit;cursor:pointer;color:var(--text-light);">
+          キャンセル
+        </button>
+        <button id="edit-save-btn" onclick="saveEditedNews()"
+          style="padding:10px 28px;background:#2563eb;color:#fff;border:none;border-radius:8px;
+                 font-size:0.875rem;font-weight:700;font-family:inherit;cursor:pointer;">
+          保存する →
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="js/main.js"></script>
 <script>
 (function () {
@@ -872,6 +963,7 @@
   }
 
   // ===== 公開お知らせ管理 =====
+  var _publicNewsItems = [];   // 編集時に参照するキャッシュ
   var CAT_CLASS = {
     '競技会':     'tag-comp',
     '指導員':     'tag-instructor',
@@ -889,6 +981,7 @@
   }
 
   function renderPublicNews(items) {
+    _publicNewsItems = items;   // 編集用にキャッシュ
     var el = document.getElementById('public-news-list');
     if (!el) return;
     if (items.length === 0) {
@@ -917,6 +1010,9 @@
         + '<span style="flex:1;font-size:0.9375rem;font-weight:600;color:var(--text-dark);">' + safeTitle + '</span>'
         + pinBadge
         + '<span style="font-size:0.775rem;color:var(--text-light);flex-shrink:0;">公開: ' + pubDate + '</span>'
+        + '<button onclick="editPublicNews(\'' + safeId + '\')" '
+        + 'style="font-size:0.775rem;color:#2563eb;background:#eff6ff;border:1px solid #bfdbfe;'
+        + 'border-radius:4px;padding:3px 10px;cursor:pointer;font-family:inherit;flex-shrink:0;">✏ 変更</button>'
         + '<button onclick="deletePublicNews(\'' + safeId + '\')" '
         + 'style="font-size:0.775rem;color:#c0392b;background:#fff5f5;border:1px solid #fed7d7;'
         + 'border-radius:4px;padding:3px 10px;cursor:pointer;font-family:inherit;flex-shrink:0;">🗑 削除</button>'
@@ -1024,6 +1120,82 @@
       .catch(function() { alert('通信エラーが発生しました。'); });
   }
 
+  function editPublicNews(id) {
+    var n = _publicNewsItems.find(function(x) { return x.id === id; });
+    if (!n) { alert('該当するお知らせが見つかりません。'); return; }
+
+    // フォームに値をセット
+    document.getElementById('edit-news-id').value           = n.id;
+    document.getElementById('edit-news-category').value     = n.category || '';
+    document.getElementById('edit-news-title').value        = n.title   || '';
+    document.getElementById('edit-news-detail').value       = n.detail  || '';
+    document.getElementById('edit-news-url').value          = n.url     || '';
+    // event_date: 保存形式 "2026.06.02" → input用 "2026-06-02"
+    document.getElementById('edit-news-event-date').value   =
+      (n.event_date || '').replace(/\./g, '-');
+
+    var msg = document.getElementById('edit-news-msg');
+    if (msg) { msg.style.display = 'none'; msg.textContent = ''; }
+
+    var modal = document.getElementById('news-edit-modal');
+    if (modal) { modal.style.display = 'flex'; }
+  }
+
+  function closeEditModal() {
+    var modal = document.getElementById('news-edit-modal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  function saveEditedNews() {
+    var id       = (document.getElementById('edit-news-id')         || {value:''}).value.trim();
+    var category = (document.getElementById('edit-news-category')   || {value:''}).value.trim();
+    var title    = (document.getElementById('edit-news-title')      || {value:''}).value.trim();
+    var detail   = (document.getElementById('edit-news-detail')     || {value:''}).value.trim();
+    var url      = (document.getElementById('edit-news-url')        || {value:''}).value.trim();
+    var evDate   = (document.getElementById('edit-news-event-date') || {value:''}).value;
+
+    var msgEl = document.getElementById('edit-news-msg');
+    function showMsg(txt, isErr) {
+      if (!msgEl) return;
+      msgEl.textContent = txt;
+      msgEl.style.display = 'block';
+      msgEl.style.background = isErr ? '#fff5f5' : '#f0fff4';
+      msgEl.style.color       = isErr ? '#c0392b' : '#276749';
+      msgEl.style.border      = isErr ? '1px solid #fed7d7' : '1px solid #c6f6d5';
+    }
+
+    if (!category) { showMsg('⚠ カテゴリを選択してください', true); return; }
+    if (!title)    { showMsg('⚠ タイトルを入力してください', true); return; }
+    if (!detail)   { showMsg('⚠ 詳細内容を入力してください', true); return; }
+
+    var btn = document.getElementById('edit-save-btn');
+    if (btn) { btn.disabled = true; btn.textContent = '保存中...'; }
+
+    var fd = new FormData();
+    fd.append('token',      NOTICE_TOKEN);
+    fd.append('id',         id);
+    fd.append('category',   category);
+    fd.append('title',      title);
+    fd.append('detail',     detail);
+    fd.append('url',        url);
+    fd.append('event_date', evDate);
+
+    fetch('api/update_news.php', { method: 'POST', body: fd })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.ok) {
+          closeEditModal();
+          loadPublicNews();
+        } else {
+          showMsg('⚠ ' + (res.error || 'エラーが発生しました'), true);
+        }
+      })
+      .catch(function() { showMsg('⚠ 通信エラーが発生しました。', true); })
+      .finally(function() {
+        if (btn) { btn.disabled = false; btn.textContent = '保存する →'; }
+      });
+  }
+
   // グローバルに公開（HTML onclickから呼び出せるように）
   window.toggleNoticeForm      = toggleNoticeForm;
   window.submitNotice          = submitNotice;
@@ -1032,6 +1204,9 @@
   window.submitNews            = submitNews;
   window.deletePublicNews      = deletePublicNews;
   window.toggleAlwaysShow      = toggleAlwaysShow;
+  window.editPublicNews        = editPublicNews;
+  window.closeEditModal        = closeEditModal;
+  window.saveEditedNews        = saveEditedNews;
 
 }());
 </script>
