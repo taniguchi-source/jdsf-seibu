@@ -390,7 +390,9 @@
               style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;background:#fff;">
           </div>
           <div>
-            <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">詳細内容</label>
+            <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">
+              詳細内容 <span style="color:#e53e3e;font-size:0.75rem;">（必須）</span>
+            </label>
             <textarea id="notice-detail" rows="4" placeholder="お知らせの詳細を入力してください…"
               style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;resize:vertical;background:#fff;"></textarea>
           </div>
@@ -697,8 +699,8 @@
       msgEl.textContent      = txt;
     }
 
-    if (!name || !title) {
-      showMsg('⚠ 氏名とタイトルは必須です。', true);
+    if (!name || !title || !detail) {
+      showMsg('⚠ 氏名・タイトル・詳細内容は必須です。', true);
       return;
     }
 
