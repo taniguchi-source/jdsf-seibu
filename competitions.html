@@ -311,7 +311,12 @@
         } else if (c.has_participants) {
           badge = '<span class="comp-status status-open">参加者確認中</span>';
         } else if (c.entry_deadline) {
-          badge = '<span class="comp-status status-soon">締切: ' + c.entry_deadline + '</span>';
+          // "2026年5月23日(土)" → "5月23日" に短縮して表示
+          var dlShort = (function(raw) {
+            var m = raw.match(/(\d+)月(\d+)日/);
+            return m ? m[1] + '月' + m[2] + '日' : raw;
+          })(c.entry_deadline);
+          badge = '<span class="comp-status status-soon">締切: ' + dlShort + '</span>';
         } else {
           badge = '<span class="comp-status status-soon">受付中</span>';
         }
