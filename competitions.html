@@ -276,7 +276,7 @@
   if (!wrap) return;
 
   // GitHub Pages では data/ は同一オリジンなので CORS 不要
-  fetch('data/competitions_seibu.json')
+  fetch('data/competitions_seibu.json?_=' + Date.now())
     .then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
@@ -317,7 +317,7 @@
             var dlIso   = dlParts[1] + '-' + ('0' + dlParts[2]).slice(-2) + '-' + ('0' + dlParts[3]).slice(-2);
             var dlShort = dlParts[2] + '月' + dlParts[3] + '日';
             badge = dlIso < today
-              ? '<span class="comp-status status-closed">受付締切</span>'
+              ? '<span class="comp-status status-closed">受付締切済</span>'
               : '<span class="comp-status status-soon">締切: ' + dlShort + '</span>';
           } else {
             badge = '';
