@@ -454,7 +454,7 @@
               style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;background:#fff;">
           </div>
           <div>
-            <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">詳細内容 <span style="font-size:0.75rem;font-weight:400;color:var(--text-light);">（任意）</span></label>
+            <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">詳細内容 <span style="color:#e53e3e;font-size:0.75rem;">（必須）</span></label>
             <textarea id="news-detail" rows="3" placeholder="補足説明などを入力してください…"
               style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;resize:vertical;background:#fff;"></textarea>
           </div>
@@ -898,16 +898,21 @@
       return;
     }
     var rows = items.map(function(n) {
-      var safeId    = escHtml(n.id    || '');
-      var safeTitle = escHtml(n.title || '');
-      var catCls    = CAT_CLASS[n.category] || 'tag-info';
-      var leftDate  = escHtml(n.event_date || n.date || '');
-      var pubDate   = escHtml(n.date || '');
+      var safeId      = escHtml(n.id    || '');
+      var safeTitle   = escHtml(n.title || '');
+      var catCls      = CAT_CLASS[n.category] || 'tag-info';
+      var leftDate    = escHtml(n.event_date || n.date || '');
+      var pubDate     = escHtml(n.date || '');
+      var pinBadge    = n.always_show
+        ? '<span style="font-size:0.7rem;font-weight:700;background:#FEF3C7;color:#92400E;'
+          + 'border:1px solid #FCD34D;border-radius:4px;padding:2px 7px;flex-shrink:0;">📌 常に表示</span>'
+        : '';
       return '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;'
         + 'background:#fff;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;">'
         + '<span style="font-size:0.8rem;color:var(--text-light);flex-shrink:0;min-width:76px;">📅 ' + leftDate + '</span>'
         + '<span class="tag ' + catCls + '" style="flex-shrink:0;">' + escHtml(n.category || '') + '</span>'
         + '<span style="flex:1;font-size:0.9375rem;font-weight:600;color:var(--text-dark);">' + safeTitle + '</span>'
+        + pinBadge
         + '<span style="font-size:0.775rem;color:var(--text-light);flex-shrink:0;">公開: ' + pubDate + '</span>'
         + '<button onclick="deletePublicNews(\'' + safeId + '\')" '
         + 'style="font-size:0.775rem;color:#c0392b;background:#fff5f5;border:1px solid #fed7d7;'
@@ -946,8 +951,8 @@
       msgEl.textContent      = txt;
     }
 
-    if (!category || !title) {
-      showMsg('⚠ カテゴリとタイトルは必須です。', true);
+    if (!category || !title || !detail) {
+      showMsg('⚠ カテゴリ・タイトル・詳細内容は必須です。', true);
       return;
     }
 
