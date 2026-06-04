@@ -192,8 +192,6 @@ def main():
     for year in [current_year - 1, current_year, current_year + 1]:
         try:
             comps = fetch_year(year)
-            for c in comps:
-                c['fiscal_year'] = year   # 年度を付与
             all_comps.extend(comps)
             print(f"  {year}年度: {len(comps)} 件")
         except Exception as exc:
@@ -205,6 +203,15 @@ def main():
         if c['comp_no'] not in seen:
             seen.add(c['comp_no'])
             unique.append(c)
+
+    # Assign fiscal_year from comp_no (first 2 digits = last 2 of year)
+    # This is more reliable than the JDSF page year since competitions
+    # can appear on multiple years' pages.
+    for c in unique:
+        try:
+            c['fiscal_year'] = 2000 + int(c['comp_no'][:2])
+        except (ValueError, IndexError):
+            pass  # keep existing fiscal_year if already set
 
     # Sort chronologically
     unique.sort(key=lambda c: c['date_iso'] or '9999-99-99')
