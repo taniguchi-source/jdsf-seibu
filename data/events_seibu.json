@@ -1,21 +1,8 @@
 {
-  "updated": "2026-05-28T12:00:00",
+  "updated": "2026-06-04T00:05:03",
   "source": "https://adm.jdsf.jp/events/?b_id=5",
   "block": "S（西部ブロック／近畿・中国・四国）",
   "events": [
-    {
-      "date": "4月18日",
-      "date_iso": "2026-04-18",
-      "code": "260402",
-      "name": "2026年度 指導員研修会・審判員承認研修会 京都府",
-      "type": "研修",
-      "target_instructor": true,
-      "target_competition": false,
-      "target_judge": true,
-      "deadline": "2026/04/13",
-      "notes": "",
-      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1046"
-    },
     {
       "date": "6月7日",
       "date_iso": "2026-06-07",
@@ -25,22 +12,26 @@
       "target_instructor": true,
       "target_competition": false,
       "target_judge": false,
-      "deadline": "2026/05/26",
+      "deadline": "2026年5月26日(火)",
       "notes": "",
-      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1038"
+      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1038",
+      "venue": "松江市来待公民館",
+      "syllabus_url": "https://adm.jdsf.jp/uploads/event_syllabus/code/26/260601.pdf?d=1780499096"
     },
     {
       "date": "6月7日",
       "date_iso": "2026-06-07",
       "code": "260602",
-      "name": "2026年度JDSF公認指導員研修会（奈良県）",
+      "name": "2026年度JDSF公認指導員研修会(奈良県)",
       "type": "研修",
       "target_instructor": true,
       "target_competition": false,
       "target_judge": false,
-      "deadline": "2026/05/31",
+      "deadline": "2026年5月31日(日)",
       "notes": "",
-      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1066"
+      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1066",
+      "venue": "奈良市西部生涯スポーツセンター",
+      "syllabus_url": "https://adm.jdsf.jp/uploads/event_syllabus/code/26/260602.pdf?d=1780499097"
     },
     {
       "date": "7月4日",
@@ -51,9 +42,11 @@
       "target_instructor": true,
       "target_competition": false,
       "target_judge": false,
-      "deadline": "2026/06/26",
+      "deadline": "2026年6月26日(金)",
       "notes": "",
-      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1041"
+      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1041",
+      "venue": "坊ちゃんスタジアムスポーツフロア2",
+      "syllabus_url": "https://adm.jdsf.jp/uploads/event_syllabus/code/26/260701.pdf?d=1780499097"
     },
     {
       "date": "7月12日",
@@ -64,9 +57,11 @@
       "target_instructor": true,
       "target_competition": false,
       "target_judge": false,
-      "deadline": "2026/06/30",
+      "deadline": "2026年6月30日(火)",
       "notes": "",
-      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1048"
+      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1048",
+      "venue": "姫路市灘市民センター　大ホール",
+      "syllabus_url": "https://adm.jdsf.jp/uploads/event_syllabus/code/26/260702.pdf?d=1780499098"
     },
     {
       "date": "7月12日",
@@ -77,9 +72,26 @@
       "target_instructor": true,
       "target_competition": false,
       "target_judge": true,
-      "deadline": "2026/07/03",
+      "deadline": "2026年7月3日(金)",
       "notes": "",
-      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1077"
+      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1077",
+      "venue": "大阪市此花区民センター",
+      "syllabus_url": "https://adm.jdsf.jp/uploads/event_syllabus/code/26/260713.pdf?d=1780499099"
+    },
+    {
+      "date": "7月12日",
+      "date_iso": "2026-07-12",
+      "code": "260717",
+      "name": "2026年度 指導員研修会 広島県",
+      "type": "研修",
+      "target_instructor": true,
+      "target_competition": false,
+      "target_judge": false,
+      "deadline": "2026年7月5日(日)",
+      "notes": "",
+      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1090",
+      "venue": "中山福祉センター　ホール",
+      "syllabus_url": "https://adm.jdsf.jp/uploads/event_syllabus/code/26/260717.pdf?d=1780499100"
     },
     {
       "date": "7月20日",
@@ -90,9 +102,11 @@
       "target_instructor": true,
       "target_competition": false,
       "target_judge": false,
-      "deadline": "2026/07/11",
+      "deadline": "2026年7月11日(土)",
       "notes": "",
-      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1065"
+      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1065",
+      "venue": "滋賀県東近江市能登川コミュニティセンター",
+      "syllabus_url": "https://adm.jdsf.jp/uploads/event_syllabus/code/26/260709.pdf?d=1780499100"
     },
     {
       "date": "7月26日",
@@ -103,35 +117,41 @@
       "target_instructor": true,
       "target_competition": false,
       "target_judge": false,
-      "deadline": "2026/07/10",
-      "notes": "２回目講習会は、8月2日（日）",
-      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1052"
+      "deadline": "2026年7月10日(金)",
+      "notes": "２回目講習会は、8月2日(日)",
+      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1052",
+      "venue": "兵庫県姫路市灘市民センター",
+      "syllabus_url": "https://adm.jdsf.jp/uploads/event_syllabus/code/26/260703.pdf?d=1780499101"
     },
     {
       "date": "9月13日",
       "date_iso": "2026-09-13",
       "code": "260901",
-      "name": "2026年 指導員研修会 徳島県",
+      "name": "2026年、指導員研修会、徳島県",
       "type": "研修",
       "target_instructor": true,
       "target_competition": false,
       "target_judge": false,
-      "deadline": "2026/09/01",
+      "deadline": "2026年9月1日(火)",
       "notes": "",
-      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1057"
+      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1057",
+      "venue": "北島町役場7F",
+      "syllabus_url": "https://adm.jdsf.jp/uploads/event_syllabus/code/26/260901.pdf?d=1780499102"
     },
     {
       "date": "9月13日",
       "date_iso": "2026-09-13",
       "code": "260904",
-      "name": "2026年 和歌山県ダンススポーツ連盟公認指導員研修会",
+      "name": "2026年和歌山県ダンススポーツ連盟公認指導員研修会",
       "type": "講習",
       "target_instructor": true,
       "target_competition": false,
       "target_judge": false,
-      "deadline": "2026/09/01",
+      "deadline": "2026年9月1日(火)",
       "notes": "",
-      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1087"
+      "detail_url": "https://adm.jdsf.jp/event/detail.php?e_id=1087",
+      "venue": "海南市ノビノスホール",
+      "syllabus_url": "https://adm.jdsf.jp/uploads/event_syllabus/code/26/260904.pdf?d=1780499103"
     }
   ]
 }

@@ -1,5 +1,26 @@
 {
-  "updated": "",
-  "source": "",
-  "news": []
+  "updated": "2026-06-03T00:09:59",
+  "source": "https://docs.google.com/spreadsheets/d/1fpEa8jiIk9hUKyDOp4yWvBKaoPek-LsF2SPhDRTFX0g/",
+  "news": [
+    {
+      "id": "20260602002",
+      "date": "2026.06.02",
+      "event_date": "2026.06.02",
+      "category": "ランキング",
+      "title": "ブロックランキングの更新",
+      "detail": "5/31に開催された大阪府選手権の結果をランキングに反映させました。",
+      "url": "https://kyoto-jdsf.com/ranking/2026ranking.html",
+      "always_show": false
+    },
+    {
+      "id": "20260527001",
+      "date": "2026.05.27",
+      "event_date": "2026.06.01",
+      "category": "その他",
+      "title": "西部ブロックＨＰのリニューアル",
+      "detail": "西部ブロックＨＰのリニューアルをいたしました。\nまず西部ブロックのページをリニューアルし、\n各府県連盟の利用可能な共通ページも作成していきます。",
+      "url": "",
+      "always_show": true
+    }
+  ]
 }
