@@ -189,13 +189,15 @@ def main():
     current_year = get_fiscal_year()
     all_comps = []
 
-    for year in [current_year - 1, current_year, current_year + 1]:
+    # 2020年から翌年まで取得（過去データを含む）
+    fetch_years = list(range(2020, current_year + 2))
+    for year in fetch_years:
         try:
             comps = fetch_year(year)
             all_comps.extend(comps)
-            print(f"  {year}年度: {len(comps)} 件")
+            print(f"  {year}年: {len(comps)} 件")
         except Exception as exc:
-            print(f"  {year}年度 取得エラー: {exc}")
+            print(f"  {year}年 取得エラー: {exc}")
 
     # Deduplicate by comp_no, keep first occurrence
     seen, unique = set(), []
@@ -217,18 +219,25 @@ def main():
     unique.sort(key=lambda c: c['date_iso'] or '9999-99-99')
 
     # Fetch venue and entry_deadline from each competition's detail page
-    print(f"\n詳細情報（会場・主催者締切日）を取得中...")
+    # 2年以上前の競技会は会場のみ取得（エントリー情報不要）、詳細フェッチをスキップ可
+    today_iso = datetime.now().strftime('%Y-%m-%d')
+    cutoff_iso = str(datetime.now().year - 1) + '-01-01'  # 1年以上前はスキップ
+    print(f"\n詳細情報（会場・主催者締切日）を取得中... (※{cutoff_iso}以前はスキップ)")
     for i, c in enumerate(unique):
-        if 'detail.php' in c.get('detail_url', ''):
-            info = fetch_detail_info(c['detail_url'])
-            c['venue']          = info['venue']
-            c['entry_deadline'] = info['entry_deadline']
-            c['entry_url']      = info['entry_url']
-            entry_status = 'エントリー受付中' if info['entry_url'] else '受付なし'
-            print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:30]}... → 会場:{info['venue'] or '(なし)'} 締切:{info['entry_deadline'] or '(なし)'} {entry_status}")
-            time.sleep(0.5)  # polite delay
-        else:
+        if 'detail.php' not in c.get('detail_url', ''):
             print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:30]}... → (詳細URLなし)")
+            continue
+        # 1年以上前の競技会は詳細取得をスキップ（リクエスト数削減）
+        if c.get('date_iso', '') < cutoff_iso:
+            print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:30]}... → (過去データ・スキップ)")
+            continue
+        info = fetch_detail_info(c['detail_url'])
+        c['venue']          = info['venue']
+        c['entry_deadline'] = info['entry_deadline']
+        c['entry_url']      = info['entry_url']
+        entry_status = 'エントリー受付中' if info['entry_url'] else '受付なし'
+        print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:30]}... → 会場:{info['venue'] or '(なし)'} 締切:{info['entry_deadline'] or '(なし)'} {entry_status}")
+        time.sleep(0.5)  # polite delay
 
     # result_url が実際に存在するか確認して has_result を補完
     # adm.jdsf.jp の ◎ マーク更新はJDSF事務局の手動作業のため遅延する場合がある
