@@ -245,16 +245,16 @@ ul { list-style: none; }
 .hero-pref-links {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 5px;
+  gap: 4px;
   flex: 1;
-  grid-template-rows: repeat(7, 1fr);
+  grid-template-rows: repeat(8, 1fr);
 }
 
 .hero-pref-links a {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 4px;
+  padding: 4px 4px;
   font-size: 0.72rem;
   font-weight: 700;
   color: #000;
@@ -280,7 +280,7 @@ ul { list-style: none; }
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 4px;
+  padding: 4px 4px;
   font-size: 0.72rem;
   font-weight: 600;
   color: #aaa;
