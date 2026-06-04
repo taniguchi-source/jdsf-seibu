@@ -85,4 +85,22 @@ if ($written === false) {
     exit;
 }
 
+// GASでメーリングリストに通知（サーバーサイド）
+$gas_url = 'https://script.google.com/macros/s/AKfycbxMV9fLxcCrFn6cxjnOwGXDzEk2cP1pONhEsybIjo_sbe2xh0R2oNqZKsbNaPr1QwrO/exec';
+$gas_params = http_build_query([
+    'name'   => '公開お知らせ管理',
+    'title'  => '[' . $category . '] ' . $title,
+    'detail' => $detail . ($event_date ? "\n\n実施日：" . $event_display : ''),
+    'url'    => $url,
+]);
+if (function_exists('curl_init')) {
+    $ch = curl_init($gas_url . '?' . $gas_params);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    @curl_exec($ch);
+    curl_close($ch);
+}
+
 echo json_encode(['ok' => true, 'entry' => $entry], JSON_UNESCAPED_UNICODE);

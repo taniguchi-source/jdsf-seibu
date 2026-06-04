@@ -958,11 +958,6 @@
       .then(function(r) { return r.json(); })
       .then(function(res) {
         if (res.ok) {
-          // メーリングリスト（jdsf-gdwest@googlegroups.com）にメール送信
-          // GETリクエスト（CORS問題を回避）
-          var gasParams = new URLSearchParams({ name: name, title: title, detail: detail, url: url });
-          new Image().src = 'https://script.google.com/macros/s/AKfycbxMV9fLxcCrFn6cxjnOwGXDzEk2cP1pONhEsybIjo_sbe2xh0R2oNqZKsbNaPr1QwrO/exec?' + gasParams.toString();
-
           ['notice-name','notice-title','notice-detail','notice-url'].forEach(function(id) {
             var el = document.getElementById(id);
             if (el) el.value = '';
@@ -1110,15 +1105,6 @@
       .then(function(r) { return r.json(); })
       .then(function(res) {
         if (res.ok) {
-          // メーリングリスト（jdsf-gdwest@googlegroups.com）にメール送信
-          var gasParams2 = new URLSearchParams({
-            name: '公開お知らせ管理',
-            title: '[' + category + '] ' + title,
-            detail: detail + (eventDate ? '\n\n実施日：' + eventDate : ''),
-            url: url
-          });
-          new Image().src = 'https://script.google.com/macros/s/AKfycbxMV9fLxcCrFn6cxjnOwGXDzEk2cP1pONhEsybIjo_sbe2xh0R2oNqZKsbNaPr1QwrO/exec?' + gasParams2.toString();
-
           ['news-category','news-title','news-detail','news-url','news-event-date'].forEach(function(id) {
             var el = document.getElementById(id);
             if (el) el.value = '';
