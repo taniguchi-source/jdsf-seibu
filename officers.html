@@ -962,7 +962,7 @@
           fetch('https://script.google.com/macros/s/AKfycbxMV9fLxcCrFn6cxjnOwGXDzEk2cP1pONhEsybIjo_sbe2xh0R2oNqZKsbNaPr1QwrO/exec', {
             method: 'POST',
             mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify({ name: name, title: title, detail: detail, url: url })
           }).catch(function() {}); // メール送信エラーは無視（投稿自体は成功）
 
