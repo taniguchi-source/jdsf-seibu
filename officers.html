@@ -958,6 +958,14 @@
       .then(function(r) { return r.json(); })
       .then(function(res) {
         if (res.ok) {
+          // メーリングリスト（jdsf-gdwest@googlegroups.com）にメール送信
+          fetch('https://script.google.com/macros/s/AKfycbx4WSKBgirZg2gakGkVxzL7-e5CLcB4ufaK7SNse75SKPuwo5nhYsVNjqzikXp_eyRf/exec', {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name, title: title, detail: detail, url: url })
+          }).catch(function() {}); // メール送信エラーは無視（投稿自体は成功）
+
           ['notice-name','notice-title','notice-detail','notice-url'].forEach(function(id) {
             var el = document.getElementById(id);
             if (el) el.value = '';
