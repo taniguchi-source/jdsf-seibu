@@ -200,15 +200,15 @@
         JDSF公式サイトで確認する →
       </a>
     </div>
-    <!-- 年度切り替えボタン -->
+    <!-- 年切り替えボタン -->
     <div id="yr-filter" style="display:flex;gap:8px;margin-bottom:20px;">
       <button class="yr-btn active" data-year="2026"
         style="padding:6px 20px;border-radius:100px;font-size:0.8125rem;font-weight:700;border:1px solid var(--primary);background:var(--primary);color:#fff;cursor:pointer;font-family:inherit;">
-        2026年度
+        2026年
       </button>
       <button class="yr-btn" data-year="2025"
         style="padding:6px 20px;border-radius:100px;font-size:0.8125rem;font-weight:700;border:1px solid var(--border);background:var(--bg-white);color:var(--text-medium);cursor:pointer;font-family:inherit;">
-        2025年度
+        2025年
       </button>
     </div>
 
@@ -357,13 +357,14 @@
       + '</div>';
   }
 
-  /* ---- 年度でフィルタして描画 ---- */
+  /* ---- 年（1月〜12月）でフィルタして描画 ---- */
   function render() {
+    var yearStr = String(curYear);
     var comps = allComps.filter(function (c) {
-      return c.fiscal_year === curYear;
+      return c.date_iso && c.date_iso.slice(0, 4) === yearStr;
     });
     if (comps.length === 0) {
-      wrap.innerHTML = '<p style="text-align:center;padding:32px;color:var(--text-light);">' + curYear + '年度の競技会データはありません。</p>';
+      wrap.innerHTML = '<p style="text-align:center;padding:32px;color:var(--text-light);">' + curYear + '年の競技会データはありません。</p>';
       return;
     }
     wrap.innerHTML = '<div class="comp-list">' + comps.map(buildRow).join('') + '</div>';
