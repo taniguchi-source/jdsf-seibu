@@ -146,23 +146,41 @@ def fetch_year(year):
         syllabus_text = cell_texts[3] if len(cell_texts) > 3 else ''
         result_text   = cell_texts[4] if len(cell_texts) > 4 else ''
 
-        # Extract links from row
+        # 各セルのリンクを列ごとに直接取得
         detail_url, syllabus_url, result_url = '', '', ''
-        for a in row.find_all('a'):
-            href = a.get('href', '')
-            if not href:
-                continue
-            if not href.startswith('http'):
-                href = 'https://adm.jdsf.jp' + href
-            if 'detail.php' in href:
-                detail_url = href
-            elif '/syllabus/' in href:
-                syllabus_url = href
-            elif 'kyougi.jdsf' in href:
-                result_url = href
 
-        # 名前セル内の「詳細はこちら」等のリンクを補完取得
-        # （中止競技会でresult_urlが取れない場合の対策）
+        # 公認競技会番号列（cell[1]）: detail.phpリンク
+        if len(cells) > 1:
+            for a in cells[1].find_all('a'):
+                href = a.get('href', '')
+                if href and 'detail.php' in href:
+                    if not href.startswith('http'):
+                        href = 'https://adm.jdsf.jp' + href
+                    detail_url = href
+                    break
+
+        # シラバス列（cell[3]）: ○のリンクをそのまま取得（URL形式不問）
+        if len(cells) > 3:
+            for a in cells[3].find_all('a'):
+                href = a.get('href', '')
+                if href:
+                    if not href.startswith('http'):
+                        href = 'https://adm.jdsf.jp' + href
+                    syllabus_url = href
+                    break
+
+        # 結果列（cell[4]）: ◎または参のリンク
+        if len(cells) > 4:
+            for a in cells[4].find_all('a'):
+                href = a.get('href', '')
+                if href:
+                    if not href.startswith('http'):
+                        href = 'https://adm.jdsf.jp' + href
+                    result_url = href
+                    break
+
+        # 名前セル（cell[5]）に「詳細はこちら」等のリンクがある場合を補完
+        # （中止競技会で結果列にリンクがない場合の対策）
         if not result_url and len(cells) > 5:
             for a in cells[5].find_all('a'):
                 href = a.get('href', '')
@@ -170,17 +188,11 @@ def fetch_year(year):
                     continue
                 if not href.startswith('http'):
                     href = 'https://adm.jdsf.jp' + href
-                # detail.php・syllabus以外のリンクをお知らせURLとして取得
                 if 'detail.php' not in href and '/syllabus/' not in href:
                     result_url = href
                     break
 
-        # シラバスURLが取れなかった場合、comp_noからURLを構築
-        # 一覧ページにリンクが表示されなくなった古い競技会でも
-        # adm.jdsf.jp/competition/syllabus/{comp_no}/ で直接アクセス可能
         has_syllabus = '○' in syllabus_text
-        if has_syllabus and not syllabus_url:
-            syllabus_url = f'https://adm.jdsf.jp/competition/syllabus/{comp_no}/'
 
         date_iso = parse_date_iso(date_raw, comp_no)
 
