@@ -175,6 +175,13 @@ def fetch_year(year):
                     result_url = href
                     break
 
+        # シラバスURLが取れなかった場合、comp_noからURLを構築
+        # 一覧ページにリンクが表示されなくなった古い競技会でも
+        # adm.jdsf.jp/competition/syllabus/{comp_no}/ で直接アクセス可能
+        has_syllabus = '○' in syllabus_text
+        if has_syllabus and not syllabus_url:
+            syllabus_url = f'https://adm.jdsf.jp/competition/syllabus/{comp_no}/'
+
         date_iso = parse_date_iso(date_raw, comp_no)
 
         competitions.append({
@@ -186,7 +193,7 @@ def fetch_year(year):
             'entry_deadline':   '',   # filled in next step (主催者締切日)
             'entry_url':        '',   # filled in next step (エントリー受付中の場合)
             'online_entry':     online_entry,
-            'has_syllabus':     '○' in syllabus_text,
+            'has_syllabus':     has_syllabus,
             'has_result':       '◎' in result_text,
             'has_participants': '参' in result_text,
             'detail_url':       detail_url,
