@@ -192,13 +192,24 @@
 <!-- ===== JDSF公認 西部ブロック関連競技会（自動取得） ===== -->
 <section class="section" style="padding-top:20px;padding-bottom:10px;">
   <div class="container">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
       <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-dark);border-left:4px solid var(--primary);padding-left:12px;margin:0;line-height:1.3;">🏆 JDSF公認西部関連競技会</h2>
-      <a href="https://adm.jdsf.jp/competition/index.php?year=2026&block_id=5"
+      <a id="jdsf-official-link" href="https://adm.jdsf.jp/competition/index.php?year=2026&block_id=5"
          target="_blank" rel="noopener"
          class="btn btn-secondary" style="font-size:0.875rem;padding:8px 18px;white-space:nowrap;">
         JDSF公式サイトで確認する →
       </a>
+    </div>
+    <!-- 年度切り替えボタン -->
+    <div id="yr-filter" style="display:flex;gap:8px;margin-bottom:20px;">
+      <button class="yr-btn active" data-year="2026"
+        style="padding:6px 20px;border-radius:100px;font-size:0.8125rem;font-weight:700;border:1px solid var(--primary);background:var(--primary);color:#fff;cursor:pointer;font-family:inherit;">
+        2026年度
+      </button>
+      <button class="yr-btn" data-year="2025"
+        style="padding:6px 20px;border-radius:100px;font-size:0.8125rem;font-weight:700;border:1px solid var(--border);background:var(--bg-white);color:var(--text-medium);cursor:pointer;font-family:inherit;">
+        2025年度
+      </button>
     </div>
 
     <!-- テーブル描画領域 -->
@@ -275,82 +286,102 @@
   var updated = document.getElementById('jdsf-updated');
   if (!wrap) return;
 
-  // GitHub Pages では data/ は同一オリジンなので CORS 不要
+  var today   = new Date().toISOString().slice(0, 10);
+  var curYear = 2026;   // 表示中の年度（デフォルト）
+  var allComps = [];
+
+  /* ---- 年度ボタンの制御 ---- */
+  document.getElementById('yr-filter').addEventListener('click', function (e) {
+    var btn = e.target.closest('.yr-btn');
+    if (!btn) return;
+    curYear = parseInt(btn.dataset.year, 10);
+    document.querySelectorAll('.yr-btn').forEach(function (b) {
+      var isActive = b === btn;
+      b.classList.toggle('active', isActive);
+      b.style.background    = isActive ? 'var(--primary)' : 'var(--bg-white)';
+      b.style.color         = isActive ? '#fff' : 'var(--text-medium)';
+      b.style.borderColor   = isActive ? 'var(--primary)' : 'var(--border)';
+    });
+    // JDSFサイトリンクの年度を切り替え
+    var officialLink = document.getElementById('jdsf-official-link');
+    if (officialLink) officialLink.href = 'https://adm.jdsf.jp/competition/index.php?year=' + curYear + '&block_id=5';
+    render();
+  });
+
+  /* ---- 行のHTMLを生成 ---- */
+  function buildRow(c) {
+    var isPast = c.date_iso && c.date_iso < today;
+
+    var badge;
+    if (c.has_result && c.result_url) {
+      badge = '';
+    } else if (c.has_result) {
+      badge = '<span class="comp-status status-closed">結果掲載済</span>';
+    } else if (c.has_participants) {
+      badge = '<span class="comp-status status-open">参加者確認中</span>';
+    } else if (c.entry_deadline) {
+      var dlParts = c.entry_deadline.match(/(\d{4})年(\d+)月(\d+)日/);
+      if (dlParts) {
+        var dlIso   = dlParts[1] + '-' + ('0' + dlParts[2]).slice(-2) + '-' + ('0' + dlParts[3]).slice(-2);
+        var dlShort = dlParts[2] + '月' + dlParts[3] + '日';
+        badge = dlIso < today
+          ? '<span class="comp-status status-closed">受付締切済</span>'
+          : '<span class="comp-status status-soon">締切: ' + dlShort + '</span>';
+      } else {
+        badge = '';
+      }
+    } else {
+      badge = '';
+    }
+
+    var links = [];
+    if (c.syllabus_url) {
+      links.push('<a href="' + c.syllabus_url + '" target="_blank" rel="noopener" class="table-link">シラバス</a>');
+    }
+    if (c.entry_url) {
+      links.push('<a href="' + c.entry_url + '" target="_blank" rel="noopener" class="table-link" style="background:#e07040;color:#fff;border-color:#e07040;">エントリー</a>');
+    }
+    if (c.result_url) {
+      var lbl = c.has_result ? '結果' : '参加者';
+      links.push('<a href="' + c.result_url + '" target="_blank" rel="noopener" class="table-link">' + lbl + '</a>');
+    }
+
+    var venueHtml = c.venue ? '<span class="comp-row-venue">📍 ' + c.venue + '</span>' : '';
+
+    return '<div class="comp-row' + (isPast ? ' comp-row-past' : '') + '">'
+      + '<div class="comp-row-date">' + (c.date || '') + '</div>'
+      + '<div class="comp-row-body">'
+      + '<div class="comp-row-name">' + (c.name || '') + '</div>'
+      + '<div class="comp-row-meta">' + venueHtml + badge + links.join('') + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  /* ---- 年度でフィルタして描画 ---- */
+  function render() {
+    var comps = allComps.filter(function (c) {
+      return c.fiscal_year === curYear;
+    });
+    if (comps.length === 0) {
+      wrap.innerHTML = '<p style="text-align:center;padding:32px;color:var(--text-light);">' + curYear + '年度の競技会データはありません。</p>';
+      return;
+    }
+    wrap.innerHTML = '<div class="comp-list">' + comps.map(buildRow).join('') + '</div>';
+  }
+
+  /* ---- データ取得 ---- */
   fetch('data/competitions_seibu.json?_=' + Date.now())
     .then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     })
     .then(function (data) {
-      // 更新日時を表示
       if (updated && data.updated) {
         var d = new Date(data.updated);
         updated.textContent = 'データ更新日時: ' + d.toLocaleDateString('ja-JP') + ' ' + d.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
       }
-
-      var today = new Date().toISOString().slice(0, 10);
-      /* 大会名先頭10文字に「PD」が含まれる競技会を除外 */
-      var comps = (data.competitions || []).filter(function (c) {
-        return !(c.name && c.name.slice(0, 10).indexOf('PD') !== -1);
-      });
-
-      if (comps.length === 0) {
-        wrap.innerHTML = '<p style="text-align:center;padding:32px;color:var(--text-light);">現在、対象競技会はありません。</p>';
-        return;
-      }
-
-      var rows = comps.map(function (c) {
-        var isPast = c.date_iso && c.date_iso < today;
-
-        // ステータスバッジ（結果ボタンがある場合はバッジ不要）
-        var badge;
-        if (c.has_result && c.result_url) {
-          badge = ''; // 「結果」ボタンが表示されるためバッジは不要
-        } else if (c.has_result) {
-          badge = '<span class="comp-status status-closed">結果掲載済</span>';
-        } else if (c.has_participants) {
-          badge = '<span class="comp-status status-open">参加者確認中</span>';
-        } else if (c.entry_deadline) {
-          // "2026年5月23日(土)" を解析して過去かどうか判定
-          var dlParts = c.entry_deadline.match(/(\d{4})年(\d+)月(\d+)日/);
-          if (dlParts) {
-            var dlIso   = dlParts[1] + '-' + ('0' + dlParts[2]).slice(-2) + '-' + ('0' + dlParts[3]).slice(-2);
-            var dlShort = dlParts[2] + '月' + dlParts[3] + '日';
-            badge = dlIso < today
-              ? '<span class="comp-status status-closed">受付締切済</span>'
-              : '<span class="comp-status status-soon">締切: ' + dlShort + '</span>';
-          } else {
-            badge = '';
-          }
-        } else {
-          badge = '';
-        }
-
-        // リンクボタン
-        var links = [];
-        if (c.syllabus_url) {
-          links.push('<a href="' + c.syllabus_url + '" target="_blank" rel="noopener" class="table-link">シラバス</a>');
-        }
-        if (c.entry_url) {
-          links.push('<a href="' + c.entry_url + '" target="_blank" rel="noopener" class="table-link" style="background:#e07040;color:#fff;border-color:#e07040;">エントリー</a>');
-        }
-        if (c.result_url) {
-          var lbl = c.has_result ? '結果' : '参加者';
-          links.push('<a href="' + c.result_url + '" target="_blank" rel="noopener" class="table-link">' + lbl + '</a>');
-        }
-
-        var venueHtml = c.venue ? '<span class="comp-row-venue">📍 ' + c.venue + '</span>' : '';
-
-        return '<div class="comp-row' + (isPast ? ' comp-row-past' : '') + '">'
-          + '<div class="comp-row-date">' + (c.date || '') + '</div>'
-          + '<div class="comp-row-body">'
-          + '<div class="comp-row-name">' + (c.name || '') + '</div>'
-          + '<div class="comp-row-meta">' + venueHtml + badge + links.join('') + '</div>'
-          + '</div>'
-          + '</div>';
-      });
-
-      wrap.innerHTML = '<div class="comp-list">' + rows.join('') + '</div>';
+      allComps = data.competitions || [];
+      render();
     })
     .catch(function (err) {
       console.warn('JDSF competition data load failed:', err);

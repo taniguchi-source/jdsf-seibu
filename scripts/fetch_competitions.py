@@ -189,9 +189,11 @@ def main():
     current_year = get_fiscal_year()
     all_comps = []
 
-    for year in [current_year, current_year + 1]:
+    for year in [current_year - 1, current_year, current_year + 1]:
         try:
             comps = fetch_year(year)
+            for c in comps:
+                c['fiscal_year'] = year   # 年度を付与
             all_comps.extend(comps)
             print(f"  {year}年度: {len(comps)} 件")
         except Exception as exc:
