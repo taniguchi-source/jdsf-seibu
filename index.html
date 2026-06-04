@@ -320,7 +320,7 @@
       var fromISO = from.toISOString().slice(0, 10);
 
       var limit = new Date(today);
-      limit.setMonth(limit.getMonth() + 1);   /* 1ヶ月後 */
+      limit.setMonth(limit.getMonth() + 2);   /* 2ヶ月後 */
       var limitISO = limit.toISOString().slice(0, 10);
 
       var comps = (data.competitions || []).filter(function (c) {
