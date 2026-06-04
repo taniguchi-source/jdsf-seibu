@@ -221,15 +221,14 @@ def main():
     # Fetch venue and entry_deadline from each competition's detail page
     # 2年以上前の競技会は会場のみ取得（エントリー情報不要）、詳細フェッチをスキップ可
     today_iso = datetime.now().strftime('%Y-%m-%d')
-    cutoff_iso = str(datetime.now().year - 1) + '-01-01'  # 1年以上前はスキップ
+    cutoff_iso = '2019-01-01'  # 2020年以降は全て詳細取得（会場名を含む）
     print(f"\n詳細情報（会場・主催者締切日）を取得中... (※{cutoff_iso}以前はスキップ)")
     for i, c in enumerate(unique):
         if 'detail.php' not in c.get('detail_url', ''):
             print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:30]}... → (詳細URLなし)")
             continue
-        # 1年以上前の競技会は詳細取得をスキップ（リクエスト数削減）
         if c.get('date_iso', '') < cutoff_iso:
-            print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:30]}... → (過去データ・スキップ)")
+            print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:30]}... → (スキップ)")
             continue
         info = fetch_detail_info(c['detail_url'])
         c['venue']          = info['venue']
