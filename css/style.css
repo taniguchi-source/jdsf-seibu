@@ -276,6 +276,13 @@ ul { list-style: none; }
   transform: translateY(-1px);
 }
 
+/* 長いテキスト（JDSF広報誌など）が2行にならないよう画面幅に応じて縮小 */
+.hero-pref-links a:last-child {
+  white-space: nowrap;
+  font-size: clamp(0.42rem, 1.15vw, 0.72rem);
+  overflow: hidden;
+}
+
 .hero-pref-link-disabled {
   display: flex;
   align-items: center;
