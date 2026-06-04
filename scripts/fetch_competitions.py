@@ -161,6 +161,20 @@ def fetch_year(year):
             elif 'kyougi.jdsf' in href:
                 result_url = href
 
+        # 名前セル内の「詳細はこちら」等のリンクを補完取得
+        # （中止競技会でresult_urlが取れない場合の対策）
+        if not result_url and len(cells) > 5:
+            for a in cells[5].find_all('a'):
+                href = a.get('href', '')
+                if not href:
+                    continue
+                if not href.startswith('http'):
+                    href = 'https://adm.jdsf.jp' + href
+                # detail.php・syllabus以外のリンクをお知らせURLとして取得
+                if 'detail.php' not in href and '/syllabus/' not in href:
+                    result_url = href
+                    break
+
         date_iso = parse_date_iso(date_raw, comp_no)
 
         competitions.append({
