@@ -446,8 +446,10 @@
         return;
       }
 
-      // 最新3件だけ表示
-      var latest = items.slice(0, 3);
+      // 常に表示アイテムを先頭に、残りを最新3件で補完
+      var pinned  = items.filter(function (n) { return n.always_show; });
+      var regular = items.filter(function (n) { return !n.always_show; }).slice(0, 3);
+      var latest  = pinned.concat(regular);
 
       grid.innerHTML = latest.map(function (n) {
         var catCls = CAT_CLASS[n.category] || 'tag-info';
