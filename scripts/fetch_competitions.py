@@ -59,17 +59,20 @@ def parse_date_iso(date_raw, comp_no):
 def fetch_detail_info(detail_url):
     """
     Fetch competition detail page and extract:
-      - venue name (会場)
-      - entry deadline (主催者締切日)
-    Returns dict with 'venue' and 'entry_deadline'.
+      - venue name       (会場)
+      - entry deadline   (主催者締切日)
+      - entry_url        (エントリー受付中の場合は detail_url を返す)
+    Returns dict with 'venue', 'entry_deadline', and 'entry_url'.
     """
-    result = {'venue': '', 'entry_deadline': ''}
+    result = {'venue': '', 'entry_deadline': '', 'entry_url': ''}
     if not detail_url or 'detail.php' not in detail_url:
         return result
     try:
         resp = requests.get(detail_url, headers=HEADERS, timeout=15)
         resp.raise_for_status()
         soup = BeautifulSoup(resp.content.decode('utf-8'), 'html.parser')
+
+        # 会場・主催者締切日
         for th in soup.find_all('th'):
             label = th.get_text(strip=True)
             td = th.find_next_sibling('td')
@@ -79,6 +82,12 @@ def fetch_detail_info(detail_url):
                 result['venue'] = td.get_text(strip=True)
             elif label == '主催者締切日':
                 result['entry_deadline'] = td.get_text(strip=True)
+
+        # エントリー受付状態を確認（sc_entry_status_text）
+        status_el = soup.find(class_='sc_entry_status_text')
+        if status_el and 'エントリー受付中' in status_el.get_text():
+            result['entry_url'] = detail_url
+
     except Exception as exc:
         print(f"    詳細情報取得エラー ({detail_url}): {exc}")
     return result
@@ -161,6 +170,7 @@ def fetch_year(year):
             'name':             name,
             'venue':            '',   # filled in next step
             'entry_deadline':   '',   # filled in next step (主催者締切日)
+            'entry_url':        '',   # filled in next step (エントリー受付中の場合)
             'online_entry':     online_entry,
             'has_syllabus':     '○' in syllabus_text,
             'has_result':       '◎' in result_text,
@@ -204,7 +214,9 @@ def main():
             info = fetch_detail_info(c['detail_url'])
             c['venue']          = info['venue']
             c['entry_deadline'] = info['entry_deadline']
-            print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:30]}... → 会場:{info['venue'] or '(なし)'} 締切:{info['entry_deadline'] or '(なし)'}")
+            c['entry_url']      = info['entry_url']
+            entry_status = 'エントリー受付中' if info['entry_url'] else '受付なし'
+            print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:30]}... → 会場:{info['venue'] or '(なし)'} 締切:{info['entry_deadline'] or '(なし)'} {entry_status}")
             time.sleep(0.5)  # polite delay
         else:
             print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:30]}... → (詳細URLなし)")

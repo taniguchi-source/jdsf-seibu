@@ -331,6 +331,9 @@
         if (c.syllabus_url) {
           links.push('<a href="' + c.syllabus_url + '" target="_blank" rel="noopener" class="table-link">シラバス</a>');
         }
+        if (c.entry_url) {
+          links.push('<a href="' + c.entry_url + '" target="_blank" rel="noopener" class="table-link" style="background:#e07040;color:#fff;border-color:#e07040;">エントリー</a>');
+        }
         if (c.result_url) {
           var lbl = c.has_result ? '結果' : '参加者';
           links.push('<a href="' + c.result_url + '" target="_blank" rel="noopener" class="table-link">' + lbl + '</a>');
