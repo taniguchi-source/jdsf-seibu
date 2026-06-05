@@ -183,6 +183,10 @@ ul { list-style: none; }
   border-radius: 100px !important;
   font-weight: 600;
 }
+.nav-cta.active {
+  background: var(--primary-light) !important;
+  color: #fff !important;
+}
 .nav-cta:hover {
   background: var(--primary) !important;
   color: #fff !important;
