@@ -352,10 +352,16 @@
           🔔 役員内部連絡
           <small style="font-size:0.75rem;font-weight:400;color:var(--text-light);display:block;margin-top:4px;">（役員は誰でもここに書き込んで連絡用に使うことができます。最新の3件のみ表示されます）</small>
         </h2>
-        <button onclick="toggleNoticeForm()" id="notice-form-toggle-btn"
-          style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:0.875rem;font-weight:700;font-family:inherit;cursor:pointer;transition:background .2s;">
-          ＋ 連絡事項を投稿
-        </button>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <a href="officers_notices_all.html" target="_blank" rel="noopener"
+            style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#fff;color:var(--primary);border:2px solid var(--primary);border-radius:6px;font-size:0.875rem;font-weight:700;text-decoration:none;transition:background .2s;">
+            📋 連絡事項一覧
+          </a>
+          <button onclick="toggleNoticeForm()" id="notice-form-toggle-btn"
+            style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:0.875rem;font-weight:700;font-family:inherit;cursor:pointer;transition:background .2s;">
+            ＋ 連絡事項を投稿
+          </button>
+        </div>
       </div>
 
       <!-- 投稿フォーム（初期は非表示） -->
@@ -424,7 +430,9 @@
         </h2>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
           <a href="news.html" target="_blank" rel="noopener"
-            style="font-size:0.8125rem;color:var(--text-light);text-decoration:none;">公開ページを確認 →</a>
+            style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#fff;color:#e07040;border:2px solid #e07040;border-radius:6px;font-size:0.875rem;font-weight:700;text-decoration:none;transition:background .2s;">
+            📋 一覧
+          </a>
           <button onclick="toggleNewsForm()" id="news-form-toggle-btn"
             style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#e07040;color:#fff;border:none;border-radius:6px;font-size:0.875rem;font-weight:700;font-family:inherit;cursor:pointer;transition:background .2s;">
             ＋ お知らせを投稿
