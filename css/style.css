@@ -610,6 +610,10 @@ ul { list-style: none; }
   line-height: 1.5;
   margin: 6px 0 8px;
   flex: none;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .news-card-footer {
   display: flex;
