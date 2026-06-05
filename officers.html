@@ -350,7 +350,7 @@
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
         <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:12px;margin:0;">
           🔔 役員内部連絡
-          <small style="font-size:0.75rem;font-weight:400;color:var(--text-light);display:block;margin-top:4px;">（役員は誰でもここに書き込んで連絡用に使うことができます。最新の3件のみ表示されます）</small>
+          <small style="font-size:0.75rem;font-weight:400;color:var(--text-light);display:block;margin-top:4px;">（役員は誰でもここに書き込んで連絡用に使うことができます。最新の6件のみ表示されます）</small>
         </h2>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
           <a href="officers_notices_all.html" target="_blank" rel="noopener"
@@ -940,9 +940,9 @@
         + '</div>';
       return;
     }
-    var shown = notices.slice(0, 3);
+    var shown = notices.slice(0, 6);
     var html = '<div class="news-grid">' + shown.map(buildNoticeCard).join('') + '</div>';
-    if (notices.length > 3) {
+    if (notices.length > 6) {
       html += '<div style="text-align:center;margin-top:20px;">'
         + '<a href="officers_notices_all.html" '
         + 'style="display:inline-flex;align-items:center;gap:6px;padding:10px 26px;'
