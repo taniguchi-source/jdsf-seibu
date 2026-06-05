@@ -268,7 +268,7 @@
             </select>
             <!-- 選択後に送信先を表示 -->
             <div class="pref-dest-box" id="prefDestBox">
-              📨 <span id="prefDestName"></span> の担当者に直接送信されます
+              📨 <span id="prefDestName"></span>　<span id="prefDestPerson" style="font-weight:700;"></span> に直接送信されます
             </div>
           </div>
 
@@ -393,7 +393,14 @@
 // ================================================================
 //  Google Apps Script のデプロイURL（デプロイ後にここを更新）
 // ================================================================
-var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxuK2qcbO7rtLWQI9nxCYEwDVROkZYCklXPfcfuwOa9GgJppBo3l0bC-oq3JPbXnlB/exec';
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxS07Mxs6TZHdq0aGTay547EfIrN5igaJ527EaWl-O-RgHv7VHMllszJyMkI30qRU3A/exec';
+
+// GASから取得した府県→担当者データ（ページ読み込み時にフェッチ）
+var prefContactData = {};
+fetch(APPS_SCRIPT_URL + '?action=data')
+  .then(function(r) { return r.json(); })
+  .then(function(data) { prefContactData = data; })
+  .catch(function() {});
 
 // 府県 → 表示名マッピング（メールアドレスは GAS 側で管理）
 var PREF_NAMES = {
@@ -416,11 +423,14 @@ var PREF_NAMES = {
 
 // ── 府県選択 → 送信先表示 ──────────────────────────────────────
 document.getElementById('prefecture').addEventListener('change', function () {
-  var val  = this.value;
-  var box  = document.getElementById('prefDestBox');
-  var span = document.getElementById('prefDestName');
+  var val    = this.value;
+  var box    = document.getElementById('prefDestBox');
+  var span   = document.getElementById('prefDestName');
+  var person = document.getElementById('prefDestPerson');
   if (val) {
     span.textContent = PREF_NAMES[val] || val;
+    var contact = prefContactData[val];
+    person.textContent = (contact && contact.name) ? '担当：' + contact.name + '氏' : '';
     box.style.display = 'block';
   } else {
     box.style.display = 'none';
