@@ -51,6 +51,7 @@ jobs:
             -e "ssh -i ~/.ssh/deploy_key -p 10022 -o StrictHostKeyChecking=no" \
             --exclude='data/notices.json' \
             --exclude='data/news.json' \
+            --exclude='data/theme.json' \
             ./preftest/ jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/preftest.jdsf-seibu.com/public_html/
 
       - name: Cleanup

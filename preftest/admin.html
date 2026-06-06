@@ -102,7 +102,38 @@
       .login-box { padding:36px 24px 28px; }
       .news-row { flex-direction:column;align-items:flex-start; }
     }
+
+    /* ===== テーマピッカー ===== */
+    .theme-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(188px,1fr));
+      gap:12px;
+      margin-top:20px;
+    }
+    .theme-card {
+      background:#fff;border:2px solid transparent;border-radius:12px;padding:14px;
+      cursor:pointer;transition:all .18s;position:relative;
+    }
+    .theme-card:hover { transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.12); }
+    .theme-card.selected {
+      border-color:var(--primary,#1864AB);
+      box-shadow:0 0 0 3px rgba(24,100,171,.18);
+    }
+    .theme-swatch-bar {
+      height:44px;border-radius:6px;overflow:hidden;display:flex;margin-bottom:10px;
+    }
+    .theme-name { font-size:.8125rem;font-weight:700;color:#1a1a2e;margin-bottom:3px;line-height:1.3; }
+    .theme-sublabel { font-size:.7rem;color:#6B7280;line-height:1.4; }
+    .theme-badge {
+      position:absolute;top:8px;right:8px;
+      background:var(--primary,#1864AB);color:#fff;
+      font-size:.625rem;font-weight:800;padding:2px 7px;border-radius:100px;
+    }
+    @media(max-width:640px){ .theme-grid{grid-template-columns:1fr 1fr;} }
+    @media(max-width:360px){ .theme-grid{grid-template-columns:1fr;} }
   </style>
+  <!-- テーマCSS変数（最後に上書き） -->
+  <link rel="stylesheet" href="theme-vars.php">
 </head>
 <body>
 
@@ -257,6 +288,31 @@
     </div>
   </section>
 
+  <!-- ===== ③ 配色テーマ変更 ===== -->
+  <section style="background:linear-gradient(160deg,#0f1c35 0%,#1a3060 60%,#0f3060 100%);padding:36px 0 52px;">
+    <div class="container">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:10px;">
+        <div>
+          <h2 style="font-size:1.125rem;font-weight:700;color:#fff;margin:0 0 4px;">
+            🎨 配色テーマ変更
+          </h2>
+          <p style="font-size:.8125rem;color:rgba(255,255,255,.65);margin:0;">
+            70:25:5の法則に基づく10テーマ。選択してホームのイメージを一括変更できます。
+          </p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span id="theme-current-label" style="font-size:.8125rem;color:rgba(255,255,255,.7);"></span>
+          <button id="theme-save-btn" onclick="saveTheme()"
+            style="padding:10px 28px;background:#FCC419;color:#1a1a2e;border:none;border-radius:8px;font-size:.9rem;font-weight:800;cursor:pointer;transition:all .18s;">
+            ✓ このテーマを適用する
+          </button>
+        </div>
+      </div>
+      <div id="theme-save-msg" style="display:none;margin-top:14px;padding:10px 16px;border-radius:8px;font-size:.875rem;"></div>
+      <div id="theme-grid" class="theme-grid"></div>
+    </div>
+  </section>
+
   <footer class="site-footer">
     <div class="container footer-bottom" style="justify-content:center;">
       <span>© 2026 テストダンススポーツ連盟｜サイト管理</span>
@@ -359,6 +415,7 @@
     contentScreen.style.display = 'block';
     loadNotices();
     loadNews();
+    loadCurrentTheme();
   }
   window.doLogin  = doLogin;
   window.doLogout = doLogout;
@@ -602,6 +659,149 @@
   /* ===== ユーティリティ ===== */
   function escHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  /* ===================================================================
+     テーマ管理
+  =================================================================== */
+  var THEMES_DATA = [
+    { id:1,  name:'情熱・アクティブ',    label:'ラテン・競技志向',        base:'#F8F9FA', main:'#C92A2A', accent:'#FCC419' },
+    { id:2,  name:'優雅・フォーマル',    label:'スタンダード・品格志向',   base:'#F1F3F5', main:'#1864AB', accent:'#D4AF37' },
+    { id:3,  name:'爽やか・親しみやすさ',label:'普及・初心者歓迎',         base:'#FFFFFF',  main:'#228BE6', accent:'#FD7E14' },
+    { id:4,  name:'伝統・落ち着き',      label:'歴史・地域文化との融合',   base:'#FDFBF7', main:'#5F316E', accent:'#E6B422' },
+    { id:5,  name:'華やか・非日常',      label:'競技会・ドレスの輝き',     base:'#FDFDFD', main:'#343A40', accent:'#E64980' },
+    { id:6,  name:'健康・生涯スポーツ',  label:'シニア・健康増進',         base:'#F2F8F2', main:'#2B8A3E', accent:'#FAB005' },
+    { id:7,  name:'先進的・ユース世代',  label:'ジュニア育成・次世代',     base:'#F8F9FA', main:'#495057', accent:'#12B886' },
+    { id:8,  name:'ロマンチック・社交',  label:'ワルツ・パーティー',       base:'#FFF0F6', main:'#A61E4D', accent:'#EAA451' },
+    { id:9,  name:'権威・大会運営',      label:'チャンピオンシップ・公式', base:'#F8F9FA', main:'#0B284A', accent:'#C00000' },
+    { id:10, name:'アットホーム・親睦',  label:'サークル・地域密着',       base:'#FFFDF5', main:'#D9480F', accent:'#66A80F' },
+  ];
+
+  var _currentThemeId  = 2;
+  var _selectedThemeId = 2;
+
+  /* ---------- カラー演算ユーティリティ ---------- */
+  function _h2r(hex){ return [parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]; }
+  function _r2h(r,g,b){ return '#'+[r,g,b].map(function(x){return Math.max(0,Math.min(255,Math.round(x))).toString(16).padStart(2,'0');}).join(''); }
+  function _lt(hex,p){ var c=_h2r(hex); return _r2h(c[0]+(255-c[0])*p,c[1]+(255-c[1])*p,c[2]+(255-c[2])*p); }
+  function _dk(hex,p){ var c=_h2r(hex); return _r2h(c[0]*(1-p),c[1]*(1-p),c[2]*(1-p)); }
+  function _mx(h1,h2,w){ var a=_h2r(h1),b=_h2r(h2); return _r2h(a[0]*(1-w)+b[0]*w,a[1]*(1-w)+b[1]*w,a[2]*(1-w)+b[2]*w); }
+
+  /* ---------- CSSカスタムプロパティをJSで即時反映 ---------- */
+  function applyThemePreview(t) {
+    var root = document.documentElement;
+    root.style.setProperty('--primary',       t.main);
+    root.style.setProperty('--primary-dark',  _dk(t.main, 0.28));
+    root.style.setProperty('--primary-light', _lt(t.main, 0.24));
+    root.style.setProperty('--accent',        t.accent);
+    root.style.setProperty('--accent-light',  _lt(t.accent, 0.40));
+    root.style.setProperty('--bg-white',      t.base);
+    root.style.setProperty('--bg-light',      _mx(t.base, t.main, 0.04));
+    root.style.setProperty('--bg-blue',       _mx(t.base, t.main, 0.11));
+  }
+
+  /* ---------- テーマグリッド描画 ---------- */
+  function renderThemeGrid() {
+    var grid = document.getElementById('theme-grid');
+    var labelEl = document.getElementById('theme-current-label');
+    if (!grid) return;
+    grid.innerHTML = THEMES_DATA.map(function(t){
+      var isCurrent  = (t.id === _currentThemeId);
+      var isSelected = (t.id === _selectedThemeId);
+      return '<div class="theme-card'+(isSelected?' selected':'')+'" onclick="selectThemeId('+t.id+')" title="'+t.name+' — '+t.label+'">'
+        + (isCurrent ? '<div class="theme-badge">適用中</div>' : '')
+        + '<div class="theme-swatch-bar">'
+        +   '<div style="flex:70;background:'+t.base+'"></div>'
+        +   '<div style="flex:25;background:'+t.main+'"></div>'
+        +   '<div style="flex:5;background:'+t.accent+'"></div>'
+        + '</div>'
+        + '<div class="theme-name">'+escHtml(t.name)+'</div>'
+        + '<div class="theme-sublabel">'+escHtml(t.label)+'</div>'
+        + '<div style="display:flex;gap:6px;margin-top:8px;">'
+        +   '<span title="ベース(70%)" style="display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid #ccc;background:'+t.base+'"></span>'
+        +   '<span title="メイン(25%)" style="display:inline-block;width:14px;height:14px;border-radius:3px;background:'+t.main+'"></span>'
+        +   '<span title="アクセント(5%)" style="display:inline-block;width:14px;height:14px;border-radius:3px;background:'+t.accent+'"></span>'
+        +   '<span style="font-size:.65rem;color:#9ca3af;line-height:14px;margin-left:2px;">70 · 25 · 5</span>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+    var cur = THEMES_DATA.filter(function(t){return t.id===_currentThemeId;})[0];
+    var sel = THEMES_DATA.filter(function(t){return t.id===_selectedThemeId;})[0];
+    if (labelEl && sel) {
+      labelEl.textContent = (isSame ? '現在: ' : '選択中: ') + sel.name;
+    }
+    var isSame = (_currentThemeId === _selectedThemeId);
+    var saveBtn = document.getElementById('theme-save-btn');
+    if (saveBtn) {
+      saveBtn.style.opacity = isSame ? '0.55' : '1';
+      saveBtn.textContent = isSame ? '✓ 適用中のテーマ' : '✓ このテーマを適用する';
+    }
+  }
+
+  /* ---------- テーマ選択（プレビュー付き） ---------- */
+  function selectThemeId(id) {
+    _selectedThemeId = id;
+    var t = THEMES_DATA.filter(function(x){return x.id===id;})[0];
+    if (t) applyThemePreview(t); // ページ上で即時プレビュー
+    renderThemeGrid();
+  }
+  window.selectThemeId = selectThemeId;
+
+  /* ---------- テーマ保存 ---------- */
+  function saveTheme() {
+    if (_selectedThemeId === _currentThemeId) return;
+    var btn = document.getElementById('theme-save-btn');
+    var msg = document.getElementById('theme-save-msg');
+    if (btn) { btn.disabled=true; btn.textContent='保存中…'; }
+
+    var fd = new FormData();
+    fd.append('token', TOKEN);
+    fd.append('theme_id', _selectedThemeId);
+    fetch('api/save_theme.php', {method:'POST', body:fd})
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if (res.ok) {
+          _currentThemeId = _selectedThemeId;
+          // <link href="theme-vars.php"> を付け替えてサーバー側CSSも更新
+          var oldLink = document.querySelector('link[href*="theme-vars"]');
+          if (oldLink) {
+            var nl = document.createElement('link');
+            nl.rel  = 'stylesheet';
+            nl.href = 'theme-vars.php?_=' + Date.now();
+            oldLink.parentNode.insertBefore(nl, oldLink.nextSibling);
+            setTimeout(function(){ if(oldLink.parentNode) oldLink.parentNode.removeChild(oldLink); }, 600);
+          }
+          if (msg) {
+            msg.style.display='block';
+            msg.style.background='#ECFDF5';
+            msg.style.color='#065F46';
+            msg.style.border='1px solid #6EE7B7';
+            msg.textContent='✅ テーマを保存しました。ホームページにも即座に反映されています。';
+          }
+          renderThemeGrid();
+        } else {
+          if (msg) { msg.style.display='block';msg.style.background='#FFF5F5';msg.style.color='#C53030';msg.style.border='1px solid #FEB2B2';msg.textContent='⚠ '+(res.error||'エラーが発生しました'); }
+        }
+      })
+      .catch(function(){
+        if (msg) { msg.style.display='block';msg.style.background='#FFF5F5';msg.style.color='#C53030';msg.style.border='1px solid #FEB2B2';msg.textContent='⚠ 通信エラーが発生しました'; }
+      })
+      .finally(function(){
+        if (btn) { btn.disabled=false; }
+      });
+  }
+  window.saveTheme = saveTheme;
+
+  /* ---------- 現在のテーマ読込 ---------- */
+  function loadCurrentTheme() {
+    fetch('data/theme.json?_=' + Date.now())
+      .then(function(r){ return r.ok ? r.json() : {theme_id:2}; })
+      .then(function(data){
+        _currentThemeId  = data.theme_id || 2;
+        _selectedThemeId = _currentThemeId;
+        renderThemeGrid();
+      })
+      .catch(function(){ renderThemeGrid(); });
   }
 
 })();
