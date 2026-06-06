@@ -9,15 +9,15 @@ header('Cache-Control: no-store, no-cache, must-revalidate');
 
 // ── 10テーマ定義 ─────────────────────────────────────────────
 $THEMES = [
-  1  => ['name'=>'情熱・アクティブ',    'base'=>'#F8F9FA', 'main'=>'#C92A2A', 'accent'=>'#FCC419'],
+  1  => ['name'=>'情熱・アクティブ',    'base'=>'#F7F3EF', 'main'=>'#8C2333', 'accent'=>'#C8961E'],
   2  => ['name'=>'優雅・フォーマル',    'base'=>'#F1F3F5', 'main'=>'#1864AB', 'accent'=>'#D4AF37'],
   3  => ['name'=>'爽やか・親しみやすさ','base'=>'#FFFFFF',  'main'=>'#228BE6', 'accent'=>'#FD7E14'],
   4  => ['name'=>'伝統・落ち着き',      'base'=>'#FDFBF7', 'main'=>'#5F316E', 'accent'=>'#E6B422'],
-  5  => ['name'=>'華やか・非日常',      'base'=>'#FDFDFD', 'main'=>'#343A40', 'accent'=>'#E64980'],
+  5  => ['name'=>'華やか・非日常',      'base'=>'#FDFDFD', 'main'=>'#343A40', 'accent'=>'#C23B6E'],
   6  => ['name'=>'健康・生涯スポーツ',  'base'=>'#F2F8F2', 'main'=>'#2B8A3E', 'accent'=>'#FAB005'],
   7  => ['name'=>'先進的・ユース世代',  'base'=>'#F8F9FA', 'main'=>'#495057', 'accent'=>'#12B886'],
-  8  => ['name'=>'ロマンチック・社交',  'base'=>'#FFF0F6', 'main'=>'#A61E4D', 'accent'=>'#EAA451'],
-  9  => ['name'=>'権威・大会運営',      'base'=>'#F8F9FA', 'main'=>'#0B284A', 'accent'=>'#C00000'],
+  8  => ['name'=>'ロマンチック・社交',  'base'=>'#FEF9F6', 'main'=>'#6B2C40', 'accent'=>'#C09246'],
+  9  => ['name'=>'権威・大会運営',      'base'=>'#F8F9FA', 'main'=>'#0B284A', 'accent'=>'#9B1A28'],
   10 => ['name'=>'アットホーム・親睦',  'base'=>'#FFFDF5', 'main'=>'#D9480F', 'accent'=>'#66A80F'],
 ];
 
