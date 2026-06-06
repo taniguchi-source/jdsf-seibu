@@ -41,6 +41,7 @@ jobs:
             --exclude='data/events_seibu.json' \
             --exclude='data/officers_news.json' \
             --exclude='data/officers_notices.json' \
+            --exclude='data/references.json' \
             --exclude='uploads/' \
             ./ jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/
 
