@@ -630,20 +630,20 @@
         </div>
 
         <div id="ref-file-wrap" style="display:none;margin-bottom:16px;">
-          <label style="font-size:0.8125rem;font-weight:600;display:block;margin-bottom:6px;">
-            ファイル <span style="font-weight:400;color:var(--text-light);">（PDF・Word・Excel・PowerPoint等 20MB以内）</span>
-          </label>
-          <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
-            <div style="flex:2;min-width:200px;">
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;">
+            <div>
+              <label style="font-size:0.8125rem;font-weight:600;display:block;margin-bottom:6px;">
+                ファイル <span style="font-weight:400;color:var(--text-light);">（PDF・Word・Excel等 20MB以内）</span>
+              </label>
               <input type="file" id="ref-file"
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"
                 style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:0.875rem;box-sizing:border-box;">
             </div>
-            <div style="flex:1;min-width:160px;">
-              <label style="font-size:0.8125rem;font-weight:600;display:block;margin-bottom:4px;">
+            <div>
+              <label style="font-size:0.8125rem;font-weight:600;display:block;margin-bottom:6px;">
                 🔒 ダウンロード用PW <span style="font-weight:400;color:var(--text-light);">（任意）</span>
               </label>
-              <input type="text" id="ref-dl-password" placeholder="設定する場合のみ入力"
+              <input type="text" id="ref-dl-password" placeholder="任意：設定する場合のみ"
                 style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:0.875rem;box-sizing:border-box;">
             </div>
           </div>
