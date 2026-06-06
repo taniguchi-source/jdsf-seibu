@@ -19,7 +19,7 @@ if ($ref_password !== 'taniguchi') {
     exit;
 }
 
-$json_path = __DIR__ . '/../data/officers_docs.json';
+$json_path = __DIR__ . '/../data/references.json';
 $data = json_decode(file_get_contents($json_path), true);
 if (!isset($data['references'])) $data['references'] = [];
 

@@ -831,6 +831,7 @@
     loginScreen.style.display   = 'none';
     contentScreen.style.display = 'block';
     loadOfficersDocs();
+    loadReferences();
     loadOfficerNotices();
     loadPublicNews();
   }
@@ -839,6 +840,18 @@
   window.doLogin         = doLogin;
   window.doLogout        = doLogout;
   window.loadOfficersDocs = loadOfficersDocs;
+  window.loadReferences   = loadReferences;
+
+  // ===== その他参考資料を読み込む（独立ファイル） =====
+  function loadReferences() {
+    fetch('data/references.json?_=' + Date.now())
+      .then(function(r) { return r.json(); })
+      .then(function(data) { renderReferences(data.references || []); })
+      .catch(function() {
+        var el = document.getElementById('references-list');
+        if (el) el.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:24px;">データの読み込みに失敗しました。</p>';
+      });
+  }
 
   // ===== 議事録・会議資料・スプレッドシートを読み込む =====
   function loadOfficersDocs() {
@@ -848,11 +861,10 @@
         renderMinutes(data.minutes || []);
         renderMaterials(data.materials || []);
         renderSpreadsheets(data.spreadsheets || []);
-        renderReferences(data.references || []);
       })
       .catch(function() {
         var empty = '<p style="color:var(--text-light);text-align:center;padding:24px;">データの読み込みに失敗しました。</p>';
-        ['minutes-list','materials-list','ss-list','references-list'].forEach(function(id) {
+        ['minutes-list','materials-list','ss-list'].forEach(function(id) {
           var el = document.getElementById(id);
           if (el) el.innerHTML = empty;
         });
@@ -1067,7 +1079,7 @@
           document.getElementById('ref-dl-password').value = '';
           _refFormOpen = false;
           document.getElementById('ref-form-wrap').style.display = 'none';
-          loadOfficersDocs();
+          loadReferences();
         } else {
           errEl.textContent = res.error || '登録に失敗しました。';
           errEl.style.display = 'block';
@@ -1121,7 +1133,7 @@
     fetch('api/save_reference.php', { method: 'POST', body: fd })
       .then(function(r) { return r.json(); })
       .then(function(res) {
-        if (res.ok) loadOfficersDocs();
+        if (res.ok) loadReferences();
         else alert(res.error || '削除に失敗しました。');
       });
   }

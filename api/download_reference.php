@@ -2,7 +2,7 @@
 $id       = $_GET['id']       ?? '';
 $password = $_GET['password'] ?? '';
 
-$json_path = __DIR__ . '/../data/officers_docs.json';
+$json_path = __DIR__ . '/../data/references.json';
 $data = json_decode(file_get_contents($json_path), true);
 
 /* ── 該当アイテムを検索 ── */
