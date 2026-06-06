@@ -575,9 +575,83 @@
   <!-- ===== 5. その他参考資料 (淡い緑) ===== -->
   <section id="references" style="background:#f0faf4;border-bottom:1px solid #b8dfc8;padding:32px 0 48px;">
     <div class="container">
-      <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid #4caf80;padding-left:12px;margin-bottom:20px;">
-        📎 その他参考資料
-      </h2>
+
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+        <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid #4caf80;padding-left:12px;margin:0;">
+          📎 その他参考資料
+        </h2>
+        <button onclick="toggleRefForm()" id="ref-form-toggle-btn"
+          style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:8px 20px;
+                 background:var(--primary);color:#fff;border:none;border-radius:100px;
+                 font-size:0.875rem;font-weight:700;cursor:pointer;">
+          ＋ 資料を登録
+        </button>
+      </div>
+
+      <!-- 登録フォーム -->
+      <div id="ref-form-wrap" style="display:none;background:#fff;border:1px solid #b8dfc8;border-radius:12px;padding:24px;margin-bottom:24px;">
+        <h3 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:var(--text-dark);">参考資料を登録</h3>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div>
+            <label style="font-size:0.8125rem;font-weight:600;display:block;margin-bottom:4px;">日付 <span style="color:#B91C1C;">*</span></label>
+            <input type="date" id="ref-date"
+              style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:0.875rem;box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="font-size:0.8125rem;font-weight:600;display:block;margin-bottom:4px;">登録者 <span style="color:#B91C1C;">*</span></label>
+            <input type="text" id="ref-name" placeholder="例：山田 太郎"
+              style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:0.875rem;box-sizing:border-box;">
+          </div>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label style="font-size:0.8125rem;font-weight:600;display:block;margin-bottom:4px;">資料タイトル <span style="color:#B91C1C;">*</span></label>
+          <input type="text" id="ref-title" placeholder="例：2026年度規程集"
+            style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:0.875rem;box-sizing:border-box;">
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label style="font-size:0.8125rem;font-weight:600;display:block;margin-bottom:8px;">資料の種類</label>
+          <div style="display:flex;gap:20px;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.875rem;font-weight:400;">
+              <input type="radio" name="ref-type" value="url" checked onchange="toggleRefType(this.value)"> URLリンク
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.875rem;font-weight:400;">
+              <input type="radio" name="ref-type" value="upload" onchange="toggleRefType(this.value)"> ファイルアップロード
+            </label>
+          </div>
+        </div>
+
+        <div id="ref-url-wrap" style="margin-bottom:16px;">
+          <label style="font-size:0.8125rem;font-weight:600;display:block;margin-bottom:4px;">URL</label>
+          <input type="url" id="ref-url" placeholder="https://..."
+            style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:0.875rem;box-sizing:border-box;">
+        </div>
+
+        <div id="ref-file-wrap" style="display:none;margin-bottom:16px;">
+          <label style="font-size:0.8125rem;font-weight:600;display:block;margin-bottom:4px;">
+            ファイル <span style="font-weight:400;color:var(--text-light);">（PDF・Word・Excel・PowerPoint等 20MB以内）</span>
+          </label>
+          <input type="file" id="ref-file"
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"
+            style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:0.875rem;box-sizing:border-box;">
+        </div>
+
+        <div id="ref-error" style="display:none;color:#B91C1C;font-size:0.8125rem;padding:8px 12px;background:#fee2e2;border-radius:6px;margin-bottom:12px;"></div>
+
+        <div style="display:flex;gap:10px;">
+          <button onclick="submitReference()" id="ref-submit-btn"
+            style="padding:9px 24px;background:var(--primary);color:#fff;border:none;border-radius:100px;font-size:0.875rem;font-weight:700;cursor:pointer;">
+            登録する
+          </button>
+          <button onclick="toggleRefForm()"
+            style="padding:9px 18px;background:#f0f0f0;color:var(--text-medium);border:none;border-radius:100px;font-size:0.875rem;cursor:pointer;">
+            キャンセル
+          </button>
+        </div>
+      </div>
+
       <div id="references-list">
         <p style="color:var(--text-light);text-align:center;padding:24px;">読み込み中...</p>
       </div>
@@ -742,8 +816,9 @@
   }
 
   // グローバルに公開
-  window.doLogin  = doLogin;
-  window.doLogout = doLogout;
+  window.doLogin         = doLogin;
+  window.doLogout        = doLogout;
+  window.loadOfficersDocs = loadOfficersDocs;
 
   // ===== 議事録・会議資料・スプレッドシートを読み込む =====
   function loadOfficersDocs() {
@@ -851,16 +926,128 @@
       el.innerHTML = '<p style="color:var(--text-light);font-size:0.875rem;padding:8px 4px;">まだ登録されていません。</p>';
       return;
     }
-    var html = '<div class="docs-list">';
+    var html = '<div style="border-top:1px solid #b8dfc8;">';
     items.forEach(function(item) {
-      html += '<div class="docs-item">'
-        + (item.date ? '<span class="docs-item-date">📅 ' + item.date + '</span>' : '')
-        + '<span class="docs-item-title">' + (item.title || '') + '</span>'
-        + (item.url ? '<a href="' + item.url + '" target="_blank" rel="noopener" class="docs-item-link">資料を見る →</a>' : '')
+      var safeId = (item.id || '').replace(/'/g, "\\'");
+      var isUpload = item.url && !item.url.match(/^https?:\/\//);
+      var linkLabel = isUpload ? '📄 ダウンロード' : '🔗 資料を見る';
+      html += '<div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #b8dfc8;flex-wrap:wrap;">'
+        + '<span style="font-size:0.8rem;color:var(--text-light);flex-shrink:0;min-width:88px;">📅 ' + (item.date || '') + '</span>'
+        + '<span class="tag tag-hq" style="flex-shrink:0;">👤 ' + (item.name || '') + '</span>'
+        + '<div style="flex:1;min-width:180px;font-weight:700;font-size:0.9rem;color:var(--text-dark);">' + (item.title || '') + '</div>'
+        + '<div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">'
+        + (item.url ? '<a href="' + item.url + '" target="_blank" rel="noopener" '
+            + 'style="padding:5px 14px;background:#4caf80;color:#fff;border-radius:6px;font-size:0.8125rem;font-weight:700;text-decoration:none;">'
+            + linkLabel + '</a>' : '')
+        + '<button onclick="deleteReference(\'' + safeId + '\')" '
+            + 'style="padding:5px 12px;background:#fee2e2;color:#B91C1C;border:none;border-radius:6px;font-size:0.8125rem;cursor:pointer;">🗑 削除</button>'
+        + '</div>'
         + '</div>';
     });
     html += '</div>';
     el.innerHTML = html;
+  }
+
+  // ===== その他参考資料フォーム =====
+  var _refFormOpen = false;
+
+  function toggleRefForm() {
+    _refFormOpen = !_refFormOpen;
+    document.getElementById('ref-form-wrap').style.display = _refFormOpen ? 'block' : 'none';
+    if (_refFormOpen) {
+      var today = new Date().toISOString().split('T')[0];
+      document.getElementById('ref-date').value = today;
+    }
+  }
+
+  function toggleRefType(val) {
+    document.getElementById('ref-url-wrap').style.display  = val === 'url'    ? 'block' : 'none';
+    document.getElementById('ref-file-wrap').style.display = val === 'upload' ? 'block' : 'none';
+  }
+
+  function submitReference() {
+    var date  = document.getElementById('ref-date').value.trim();
+    var name  = document.getElementById('ref-name').value.trim();
+    var title = document.getElementById('ref-title').value.trim();
+    var type  = document.querySelector('input[name="ref-type"]:checked').value;
+    var url   = document.getElementById('ref-url').value.trim();
+    var file  = document.getElementById('ref-file').files[0];
+    var errEl = document.getElementById('ref-error');
+    var btn   = document.getElementById('ref-submit-btn');
+
+    errEl.style.display = 'none';
+
+    if (!date || !name || !title) {
+      errEl.textContent = '日付・登録者・資料タイトルは必須です。';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (type === 'url' && !url) {
+      errEl.textContent = 'URLを入力してください。';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (type === 'upload' && !file) {
+      errEl.textContent = 'ファイルを選択してください。';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '登録中...';
+
+    var fd = new FormData();
+    fd.append('token', 'jdsfseibu2026');
+    fd.append('action', 'add');
+    fd.append('date',  date);
+    fd.append('name',  name);
+    fd.append('title', title);
+    fd.append('type',  type);
+    if (type === 'url') {
+      fd.append('url', url);
+    } else {
+      fd.append('file', file);
+    }
+
+    fetch('api/save_reference.php', { method: 'POST', body: fd })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.ok) {
+          document.getElementById('ref-date').value  = '';
+          document.getElementById('ref-name').value  = '';
+          document.getElementById('ref-title').value = '';
+          document.getElementById('ref-url').value   = '';
+          document.getElementById('ref-file').value  = '';
+          _refFormOpen = false;
+          document.getElementById('ref-form-wrap').style.display = 'none';
+          loadOfficersDocs();
+        } else {
+          errEl.textContent = res.error || '登録に失敗しました。';
+          errEl.style.display = 'block';
+        }
+      })
+      .catch(function() {
+        errEl.textContent = '通信エラーが発生しました。';
+        errEl.style.display = 'block';
+      })
+      .finally(function() {
+        btn.disabled = false;
+        btn.textContent = '登録する';
+      });
+  }
+
+  function deleteReference(id) {
+    if (!confirm('この資料を削除しますか？')) return;
+    var fd = new FormData();
+    fd.append('token',  'jdsfseibu2026');
+    fd.append('action', 'delete');
+    fd.append('id',     id);
+    fetch('api/save_reference.php', { method: 'POST', body: fd })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.ok) loadOfficersDocs();
+        else alert('削除に失敗しました。');
+      });
   }
 
   // スプレッドシートカード描画
@@ -1306,6 +1493,10 @@
   }
 
   // グローバルに公開（HTML onclickから呼び出せるように）
+  window.toggleRefForm         = toggleRefForm;
+  window.toggleRefType         = toggleRefType;
+  window.submitReference       = submitReference;
+  window.deleteReference       = deleteReference;
   window.toggleNoticeForm      = toggleNoticeForm;
   window.submitNotice          = submitNotice;
   window.deleteOfficerNotice   = deleteOfficerNotice;
