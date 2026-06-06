@@ -272,10 +272,22 @@
     .ss-card-title { font-size: 0.9375rem; font-weight: 700; color: var(--text-dark); }
     .ss-card-desc  { font-size: 0.8125rem; color: var(--text-light); margin-top: 2px; }
 
+    /* 活動報告 + 会議資料 横並び */
+    .activity-materials-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+
     @media (max-width: 480px) {
       .login-box { padding: 36px 24px 28px; }
       .docs-item { flex-wrap: wrap; }
       .docs-item-date { min-width: unset; }
+      .activity-materials-grid { grid-template-columns: 1fr; gap: 28px; }
+    }
+    @media (max-width: 768px) {
+      .activity-materials-grid { grid-template-columns: 1fr; gap: 28px; }
     }
   </style>
 </head>
@@ -518,23 +530,40 @@
     </div>
   </section>
 
-  <!-- ===== 3. 府県連盟活動報告 (淡い紫) ===== -->
+  <!-- ===== 3. 府県連盟活動報告 ＋ 会議資料 (淡い紫) ===== -->
   <section id="activity-report" style="background:#f5f0fa;border-top:1px solid #ddd0ee;border-bottom:1px solid #ddd0ee;padding:32px 0;">
     <div class="container">
-      <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid #7c52a8;padding-left:12px;margin-bottom:20px;">
-        📝 西部ブロック府県連盟活動報告
-      </h2>
-      <p style="font-size:0.9rem;color:var(--text-medium);margin-bottom:20px;">
-        各府県連盟の活動内容をGoogleフォームよりご報告ください。
-      </p>
-      <a href="https://forms.gle/UVfPfd8SyD8Tii5x6" target="_blank" rel="noopener"
-         style="display:inline-flex;align-items:center;gap:10px;padding:14px 28px;background:#7c52a8;color:#fff;border-radius:8px;font-size:0.9375rem;font-weight:700;text-decoration:none;box-shadow:0 2px 8px rgba(124,82,168,0.35);transition:opacity .2s;"
-         onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white">
-          <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zM8 13h8v1H8v-1zm0 2h8v1H8v-1zm0 2h5v1H8v-1z"/>
-        </svg>
-        活動報告フォームを開く
-      </a>
+      <div class="activity-materials-grid">
+
+        <!-- 左：会議資料 -->
+        <div id="materials">
+          <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid #c8a940;padding-left:12px;margin-bottom:20px;">
+            📁 会議資料
+          </h2>
+          <div id="materials-list">
+            <p style="color:var(--text-light);text-align:center;padding:24px;">読み込み中...</p>
+          </div>
+        </div>
+
+        <!-- 右：府県連盟活動報告 -->
+        <div>
+          <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid #7c52a8;padding-left:12px;margin-bottom:20px;">
+            📝 西部ブロック府県連盟活動報告
+          </h2>
+          <p style="font-size:0.9rem;color:var(--text-medium);margin-bottom:20px;">
+            各府県連盟の活動内容をGoogleフォームよりご報告ください。
+          </p>
+          <a href="https://forms.gle/UVfPfd8SyD8Tii5x6" target="_blank" rel="noopener"
+             style="display:inline-flex;align-items:center;gap:10px;padding:14px 28px;background:#7c52a8;color:#fff;border-radius:8px;font-size:0.9375rem;font-weight:700;text-decoration:none;box-shadow:0 2px 8px rgba(124,82,168,0.35);transition:opacity .2s;"
+             onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white">
+              <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zM8 13h8v1H8v-1zm0 2h8v1H8v-1zm0 2h5v1H8v-1z"/>
+            </svg>
+            活動報告フォームを開く
+          </a>
+        </div>
+
+      </div>
     </div>
   </section>
 
@@ -545,18 +574,6 @@
         🔗 スプレッドシート
       </h2>
       <div id="ss-list" class="ss-grid"></div>
-    </div>
-  </section>
-
-  <!-- ===== 3. 会議資料 (淡い黄) ===== -->
-  <section id="materials" style="background:#fefaf0;border-bottom:1px solid #e8dfc0;padding:32px 0;">
-    <div class="container">
-      <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid #c8a940;padding-left:12px;margin-bottom:20px;">
-        📁 会議資料
-      </h2>
-      <div id="materials-list">
-        <p style="color:var(--text-light);text-align:center;padding:24px;">読み込み中...</p>
-      </div>
     </div>
   </section>
 
@@ -630,7 +647,7 @@
         </div>
 
         <div id="ref-file-wrap" style="display:none;margin-bottom:16px;">
-          <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:6px;">
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;">
             <div>
               <label style="font-size:0.8125rem;font-weight:600;display:block;margin-bottom:6px;">
                 ファイル <span style="font-weight:400;color:var(--text-light);">（PDF・Word・Excel等 20MB以内）</span>
@@ -645,11 +662,11 @@
               </label>
               <input type="text" id="ref-dl-password" placeholder="任意：設定する場合のみ"
                 style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:0.875rem;box-sizing:border-box;">
+              <p style="font-size:0.775rem;color:var(--text-light);margin:5px 0 0;line-height:1.5;">
+                💡 任意。設定しない場合は空欄のまま登録できます。
+              </p>
             </div>
           </div>
-          <p style="font-size:0.8rem;color:var(--text-light);margin:4px 0 0;">
-            💡 ダウンロード用PWは任意です。設定しない場合は空欄のまま登録できます。
-          </p>
         </div>
 
         <div style="margin-bottom:16px;">
@@ -783,17 +800,31 @@
   'use strict';
 
   // ===== パスワード設定（変更する場合はここを書き換えてください） =====
-  var PASSWORD = 'seibu2026';
+  var PASSWORD    = 'seibu2026';
   var SESSION_KEY = 'jdsf_seibu_officers_auth';
+  var EXPIRE_DAYS = 3; // ログイン状態を保持する日数（変更可）
   // ================================================================
 
-  var loginScreen  = document.getElementById('login-screen');
+  var loginScreen   = document.getElementById('login-screen');
   var contentScreen = document.getElementById('content-screen');
-  var pwInput      = document.getElementById('pw-input');
-  var loginError   = document.getElementById('login-error');
+  var pwInput       = document.getElementById('pw-input');
+  var loginError    = document.getElementById('login-error');
 
-  // 認証済みかチェック
-  if (sessionStorage.getItem(SESSION_KEY) === '1') {
+  // 認証チェック（有効期限付き）
+  function isAuthenticated() {
+    try {
+      var raw = localStorage.getItem(SESSION_KEY);
+      if (!raw) return false;
+      var data = JSON.parse(raw);
+      var expireMs = EXPIRE_DAYS * 24 * 60 * 60 * 1000;
+      if (Date.now() - data.ts < expireMs) return true;
+    } catch (e) {}
+    localStorage.removeItem(SESSION_KEY); // 期限切れは削除
+    return false;
+  }
+
+  // 起動時チェック
+  if (isAuthenticated()) {
     showContent();
   }
 
@@ -807,7 +838,7 @@
   function doLogin() {
     var val = pwInput ? pwInput.value : '';
     if (val === PASSWORD) {
-      sessionStorage.setItem(SESSION_KEY, '1');
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ ts: Date.now() }));
       showContent();
     } else {
       loginError.style.display = 'block';
@@ -820,7 +851,7 @@
   }
 
   function doLogout() {
-    sessionStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(SESSION_KEY);
     contentScreen.style.display = 'none';
     loginScreen.style.display   = 'flex';
     if (pwInput) { pwInput.value = ''; pwInput.classList.remove('error'); }
@@ -875,41 +906,33 @@
       });
   }
 
-  // 議事録リスト描画（カテゴリ対応）
+  // 議事録リスト描画（カード形式）
   function renderMinutes(years) {
     var el = document.getElementById('minutes-list');
     if (!el) return;
-    var html = '';
+    var cards = '';
     years.forEach(function(y) {
       var cats = y.categories || [];
-      html += '<div class="docs-year-block">'
-        + '<span class="docs-year-label">' + y.year + '年度</span>';
-
       cats.forEach(function(cat) {
         var items = cat.items || [];
-        html += '<div style="margin-bottom:16px;">'
-          + '<div style="font-size:0.875rem;font-weight:700;color:var(--text-dark);'
-          + 'border-bottom:2px solid var(--bg-blue);padding:6px 0 6px 10px;margin-bottom:8px;">'
-          + '▍' + cat.name
-          + '</div>'
-          + '<div class="docs-list">';
-        if (items.length === 0) {
-          html += '<p style="color:var(--text-light);font-size:0.875rem;padding:4px 8px;">まだ登録されていません。</p>';
-        } else {
-          items.forEach(function(item) {
-            html += '<div class="docs-item">'
-              + '<span class="docs-item-date">📅 ' + (item.date || '') + '</span>'
-              + '<span class="docs-item-title">' + (item.title || '') + '</span>'
-              + (item.url ? '<a href="' + item.url + '" target="_blank" rel="noopener" class="docs-item-link">議事録を見る →</a>' : '')
-              + '</div>';
-          });
-        }
-        html += '</div></div>';
+        items.forEach(function(item) {
+          var tag = item.url ? 'a' : 'div';
+          var attrs = item.url
+            ? ' href="' + item.url + '" target="_blank" rel="noopener"'
+            : '';
+          cards += '<' + tag + attrs + ' class="ss-card">'
+            + '<div class="ss-card-icon">📋</div>'
+            + '<div>'
+            + '<div class="ss-card-title">' + (cat.name || '') + '</div>'
+            + '<div class="ss-card-desc">' + (item.date || '') + '</div>'
+            + '</div>'
+            + '</' + tag + '>';
+        });
       });
-
-      html += '</div>';
     });
-    el.innerHTML = html || '<p style="color:var(--text-light);text-align:center;padding:24px;">データがありません。</p>';
+    el.innerHTML = cards
+      ? '<div class="ss-grid">' + cards + '</div>'
+      : '<p style="color:var(--text-light);text-align:center;padding:24px;">データがありません。</p>';
   }
 
   // 会議資料リスト描画
@@ -1184,27 +1207,18 @@
   var _officerNotices = [];
 
   function buildNoticeCard(n) {
-    var safeId     = (n.id || '').replace(/'/g, "\\'");
-    var safeName   = escHtml(n.name   || '未入力');
-    var safeTitle  = escHtml(n.title  || '');
-    var safeDetail = (n.detail || '').split('\n').map(escHtml).join('<br>');
-    var safeDate   = escHtml(n.date   || '');
+    var safeId   = (n.id || '').replace(/'/g, "\\'");
+    var safeTitle = escHtml(n.title || '');
+    var safeDate  = escHtml(n.date  || '');
     return '<article class="news-card">'
       + '<div class="news-card-body">'
-      + '<div class="news-meta">'
+      + '<div class="news-meta" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">'
       + '<span class="news-date">📅 ' + safeDate + '</span>'
-      + '<span class="tag tag-hq">👤 ' + safeName + '</span>'
-      + '</div>'
-      + '<h3 class="news-title">' + safeTitle + '</h3>'
-      + (n.detail ? '<p class="news-card-detail">' + safeDetail + '</p>' : '')
-      + '<div class="news-card-footer">'
-      + '<button onclick="openOfficerModal(\'' + safeId + '\')" class="news-more" '
+      + '<button onclick="openOfficerModal(\'' + safeId + '\')" '
       + 'style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:0.8125rem;'
-      + 'font-weight:600;color:var(--primary-light);display:inline-flex;align-items:center;gap:4px;padding:0;">詳細を見る</button>'
-      + '<button onclick="deleteOfficerNotice(\'' + safeId + '\')" '
-      + 'style="font-size:0.775rem;color:#c0392b;background:#fff5f5;border:1px solid #fed7d7;'
-      + 'border-radius:4px;padding:3px 10px;cursor:pointer;font-family:inherit;flex-shrink:0;">🗑 削除</button>'
+      + 'font-weight:600;color:var(--primary-light);display:inline-flex;align-items:center;gap:4px;padding:0;white-space:nowrap;">詳細を見る →</button>'
       + '</div>'
+      + '<h3 class="news-title" style="margin-top:10px;">' + safeTitle + '</h3>'
       + '</div>'
       + '</article>';
   }
