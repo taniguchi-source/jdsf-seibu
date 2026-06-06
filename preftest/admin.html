@@ -556,7 +556,10 @@
     fd.append('token', TOKEN); fd.append('slot', n);
     fd.append('enabled', enabled ? '1' : ''); fd.append('name', name); fd.append('url', url);
     fetch('api/save_nav.php', {method:'POST', body:fd})
-      .then(function(r){ return r.json(); })
+      .then(function(r){
+        if (!r.ok) return r.text().then(function(t){ throw new Error('HTTP ' + r.status + (t ? ': ' + t.substring(0,120) : '')); });
+        return r.json();
+      })
       .then(function(res){
         if (res.ok) {
           // ローカルキャッシュ更新
@@ -580,9 +583,9 @@
           if(m){m.style.display='block';m.style.background='#FFF5F5';m.style.color='#B91C1C';m.style.border='1px solid #FECACA';m.textContent='⚠ '+(res.error||'エラー');}
         }
       })
-      .catch(function(){
+      .catch(function(e){
         var m=document.getElementById('nav-msg-'+n);
-        if(m){m.style.display='block';m.style.background='#FFF5F5';m.style.color='#B91C1C';m.style.border='1px solid #FECACA';m.textContent='⚠ 通信エラー';}
+        if(m){m.style.display='block';m.style.background='#FFF5F5';m.style.color='#B91C1C';m.style.border='1px solid #FECACA';m.textContent='⚠ ' + (e && e.message ? e.message : '通信エラー');}
       });
   }
   window.saveNavSlot = saveNavSlot;
