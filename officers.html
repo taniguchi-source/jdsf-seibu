@@ -1207,13 +1207,17 @@
   var _officerNotices = [];
 
   function buildNoticeCard(n) {
-    var safeId   = (n.id || '').replace(/'/g, "\\'");
+    var safeId    = (n.id || '').replace(/'/g, "\\'");
     var safeTitle = escHtml(n.title || '');
     var safeDate  = escHtml(n.date  || '');
+    var safeName  = escHtml(n.name  || '');
     return '<article class="news-card">'
       + '<div class="news-card-body">'
       + '<div class="news-meta" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">'
+      + '<span style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;">'
       + '<span class="news-date">📅 ' + safeDate + '</span>'
+      + (safeName ? '<span style="font-size:0.78rem;font-weight:600;color:var(--text-light);">👤 ' + safeName + '</span>' : '')
+      + '</span>'
       + '<button onclick="openOfficerModal(\'' + safeId + '\')" '
       + 'style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:0.8125rem;'
       + 'font-weight:600;color:var(--primary-light);display:inline-flex;align-items:center;gap:4px;padding:0;white-space:nowrap;">詳細を見る →</button>'
