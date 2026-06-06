@@ -17,7 +17,7 @@ $THEMES = [
   6  => ['name'=>'健康・生涯スポーツ',  'base'=>'#F2F8F2', 'main'=>'#2B8A3E', 'accent'=>'#FAB005'],
   7  => ['name'=>'先進的・ユース世代',  'base'=>'#F8F9FA', 'main'=>'#495057', 'accent'=>'#12B886'],
   8  => ['name'=>'ロマンチック・社交',  'base'=>'#FEF9F6', 'main'=>'#6B2C40', 'accent'=>'#C09246'],
-  9  => ['name'=>'権威・大会運営',      'base'=>'#F8F9FA', 'main'=>'#0B284A', 'accent'=>'#9B1A28'],
+  9  => ['name'=>'柔雅・グレース',       'base'=>'#FFF5F8', 'main'=>'#B06880', 'accent'=>'#B89060'],
   10 => ['name'=>'アットホーム・親睦',  'base'=>'#FFFDF5', 'main'=>'#D9480F', 'accent'=>'#66A80F'],
 ];
 
