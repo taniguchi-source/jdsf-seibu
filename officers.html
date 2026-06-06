@@ -845,7 +845,11 @@
   // ===== その他参考資料を読み込む（独立ファイル） =====
   function loadReferences() {
     fetch('data/references.json?_=' + Date.now())
-      .then(function(r) { return r.json(); })
+      .then(function(r) {
+        if (r.status === 404) return { references: [] }; // ファイル未作成時は空扱い
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
       .then(function(data) { renderReferences(data.references || []); })
       .catch(function() {
         var el = document.getElementById('references-list');

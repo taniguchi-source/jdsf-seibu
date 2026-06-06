@@ -20,7 +20,8 @@ if ($ref_password !== 'taniguchi') {
 }
 
 $json_path = __DIR__ . '/../data/references.json';
-$data = json_decode(file_get_contents($json_path), true);
+$content   = @file_get_contents($json_path);
+$data      = ($content !== false) ? json_decode($content, true) : [];
 if (!isset($data['references'])) $data['references'] = [];
 
 $action = $_POST['action'] ?? 'add';
