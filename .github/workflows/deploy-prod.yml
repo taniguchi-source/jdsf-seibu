@@ -52,6 +52,8 @@ jobs:
             --exclude='data/notices.json' \
             --exclude='data/news.json' \
             --exclude='data/theme.json' \
+            --exclude='data/slides.json' \
+            --exclude='uploads/' \
             ./preftest/ jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/preftest.jdsf-seibu.com/public_html/
 
       - name: Cleanup

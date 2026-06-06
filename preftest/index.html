@@ -499,6 +499,26 @@
     });
   }
 })();
+
+/* ===== カルーセル画像の動的読み込み ===== */
+(function () {
+  fetch('data/slides.json?_=' + Date.now())
+    .then(function (r) { return r.ok ? r.json() : { slides: {} }; })
+    .then(function (data) {
+      var slides = data.slides || {};
+      var ts = Date.now();
+      for (var i = 1; i <= 3; i++) {
+        var url = slides['slide' + i];
+        if (url) {
+          var el = document.querySelector('.carousel-slide.slide-' + i);
+          if (el) {
+            el.style.background = 'url(' + url + '?v=' + ts + ') center / cover no-repeat';
+          }
+        }
+      }
+    })
+    .catch(function () { /* 画像なしの場合はCSSグラデーションをそのまま使用 */ });
+})();
 </script>
 
 </body>

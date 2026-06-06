@@ -288,7 +288,26 @@
     </div>
   </section>
 
-  <!-- ===== ③ 配色テーマ変更 ===== -->
+  <!-- ===== ③ カルーセル画像管理 ===== -->
+  <section style="background:var(--bg-light,#f4f6fa);border-top:1px solid var(--border,#e2e8f0);padding:28px 0 44px;">
+    <div class="container">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+        <div>
+          <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:12px;margin:0 0 6px;">
+            🖼 カルーセル画像管理
+          </h2>
+          <p style="font-size:.8125rem;color:var(--text-light);margin:0;padding-left:16px;">
+            推奨サイズ <strong>1440 × 600 px</strong>（JPG / PNG / WebP　最大 8 MB）<br>
+            画像を設定しないスライドはテーマカラーのグラデーションが表示されます。
+          </p>
+        </div>
+        <a href="index.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#fff;color:var(--primary);border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-weight:700;text-decoration:none;white-space:nowrap;">🔗 トップページを確認</a>
+      </div>
+      <div id="slides-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;"></div>
+    </div>
+  </section>
+
+  <!-- ===== ④ 配色テーマ変更 ===== -->
   <section style="background:linear-gradient(160deg,#0f1c35 0%,#1a3060 60%,#0f3060 100%);padding:36px 0 52px;">
     <div class="container">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:10px;">
@@ -416,6 +435,7 @@
     loadNotices();
     loadNews();
     loadCurrentTheme();
+    loadSlides();
   }
   window.doLogin  = doLogin;
   window.doLogout = doLogout;
@@ -802,6 +822,142 @@
         renderThemeGrid();
       })
       .catch(function(){ renderThemeGrid(); });
+  }
+
+  /* ===================================================================
+     カルーセル画像管理
+  =================================================================== */
+  var _slidesData = {};
+
+  /* ---------- slides.json 読込 ---------- */
+  function loadSlides() {
+    fetch('data/slides.json?_=' + Date.now())
+      .then(function(r){ return r.ok ? r.json() : {slides:{}}; })
+      .then(function(data){
+        _slidesData = data.slides || {};
+        renderSlidesGrid();
+      })
+      .catch(function(){ renderSlidesGrid(); });
+  }
+
+  /* ---------- グリッド描画 ---------- */
+  var _GRAD = [
+    'linear-gradient(135deg,#3a2848 0%,#5a4068 50%,#7a5888 100%)',
+    'linear-gradient(135deg,#203040 0%,#2c4458 40%,#385870 100%)',
+    'linear-gradient(135deg,#3a2848 0%,#5c3860 60%,#7a4878 100%)',
+  ];
+
+  function renderSlidesGrid() {
+    var grid = document.getElementById('slides-grid');
+    if (!grid) return;
+    grid.innerHTML = [1,2,3].map(function(n){
+      var key    = 'slide' + n;
+      var url    = _slidesData[key] || '';
+      var hasImg = !!url;
+      var ts     = Date.now();
+      var bgStyle = hasImg
+        ? 'background:url(' + url + '?v=' + ts + ') center/cover no-repeat;'
+        : 'background:' + _GRAD[n-1] + ';';
+
+      return '<div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);">'
+        /* プレビュー */
+        + '<div style="' + bgStyle + 'height:148px;position:relative;flex-shrink:0;">'
+        +   '<div style="position:absolute;inset:0;background:rgba(0,0,0,.32);display:flex;align-items:center;justify-content:center;">'
+        +     '<span style="color:#fff;font-size:1.25rem;font-weight:800;letter-spacing:.04em;text-shadow:0 2px 6px rgba(0,0,0,.6);">Slide ' + n + '</span>'
+        +   '</div>'
+        +   (hasImg
+              ? '<div style="position:absolute;top:8px;right:8px;background:#16A34A;color:#fff;font-size:.625rem;font-weight:800;padding:3px 9px;border-radius:100px;letter-spacing:.04em;">✓ 画像あり</div>'
+              : '<div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.45);color:rgba(255,255,255,.8);font-size:.625rem;font-weight:700;padding:3px 9px;border-radius:100px;">グラデーション</div>')
+        + '</div>'
+        /* カードボディ */
+        + '<div style="padding:14px 16px 16px;">'
+        +   '<div style="font-size:.875rem;font-weight:700;color:var(--text-dark);margin-bottom:10px;">スライド ' + n + '</div>'
+        /* ドロップゾーン */
+        +   '<div id="drop-' + n + '" '
+        +     'onclick="document.getElementById(\'file-' + n + '\').click()" '
+        +     'ondragover="event.preventDefault();this.style.borderColor=\'var(--primary)\';this.style.background=\'var(--bg-blue)\';" '
+        +     'ondragleave="this.style.borderColor=\'\';this.style.background=\'\';" '
+        +     'ondrop="event.preventDefault();this.style.borderColor=\'\';this.style.background=\'\';handleDrop(' + n + ',event);" '
+        +     'style="border:2px dashed var(--border);border-radius:8px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .18s;margin-bottom:10px;">'
+        +     '<div style="font-size:1.25rem;margin-bottom:4px;">📁</div>'
+        +     '<div style="font-size:.775rem;color:var(--text-light);line-height:1.5;">クリックまたはドラッグ&amp;ドロップ<br>JPG / PNG / WebP　最大 8MB</div>'
+        +   '</div>'
+        +   '<input type="file" id="file-' + n + '" accept="image/*" style="display:none;" onchange="handleFileInput(' + n + ',this)">'
+        /* ステータス/削除 */
+        +   '<div id="slide-msg-' + n + '" style="display:none;font-size:.8rem;margin-bottom:8px;padding:6px 10px;border-radius:6px;"></div>'
+        +   (hasImg
+              ? '<button onclick="deleteSlide(' + n + ')" style="width:100%;padding:8px;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;border-radius:6px;font-size:.775rem;font-weight:700;cursor:pointer;transition:all .18s;">'
+              + '🗑 画像を削除してグラデーションに戻す</button>'
+              : '')
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  /* ---------- ファイル操作 ---------- */
+  function handleFileInput(n, input) {
+    if (input.files && input.files[0]) uploadSlide(n, input.files[0]);
+    input.value = '';
+  }
+  function handleDrop(n, e) {
+    var files = e.dataTransfer.files;
+    if (files && files[0]) uploadSlide(n, files[0]);
+  }
+  window.handleFileInput = handleFileInput;
+  window.handleDrop      = handleDrop;
+  window.deleteSlide     = deleteSlide;
+
+  /* ---------- アップロード ---------- */
+  function uploadSlide(n, file) {
+    var msgEl = document.getElementById('slide-msg-' + n);
+    function showMsg(txt, ok) {
+      if (!msgEl) return;
+      msgEl.style.display   = 'block';
+      msgEl.style.background = ok ? '#F0FFF4' : '#FFF5F5';
+      msgEl.style.color      = ok ? '#166534' : '#B91C1C';
+      msgEl.style.border     = '1px solid ' + (ok ? '#86EFAC' : '#FECACA');
+      msgEl.textContent      = txt;
+    }
+    showMsg('⏳ アップロード中…', true);
+    msgEl.style.background = '#EFF6FF';
+    msgEl.style.color      = '#1D4ED8';
+    msgEl.style.border     = '1px solid #BFDBFE';
+
+    var fd = new FormData();
+    fd.append('token',     TOKEN);
+    fd.append('slide_num', n);
+    fd.append('image',     file);
+
+    fetch('api/upload_slide.php', { method: 'POST', body: fd })
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if (res.ok) {
+          _slidesData['slide' + n] = res.url;
+          renderSlidesGrid();
+        } else {
+          showMsg('⚠ ' + (res.error || 'エラーが発生しました'), false);
+        }
+      })
+      .catch(function(){ showMsg('⚠ 通信エラーが発生しました', false); });
+  }
+
+  /* ---------- 削除 ---------- */
+  function deleteSlide(n) {
+    if (!confirm('スライド' + n + 'の画像を削除して\nグラデーション表示に戻しますか？')) return;
+    var fd = new FormData();
+    fd.append('token',     TOKEN);
+    fd.append('slide_num', n);
+    fetch('api/delete_slide.php', { method: 'POST', body: fd })
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if (res.ok) {
+          delete _slidesData['slide' + n];
+          renderSlidesGrid();
+        } else {
+          alert(res.error || '削除に失敗しました');
+        }
+      })
+      .catch(function(){ alert('通信エラーが発生しました'); });
   }
 
 })();
