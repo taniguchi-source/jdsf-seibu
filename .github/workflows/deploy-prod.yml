@@ -45,18 +45,6 @@ jobs:
             --exclude='uploads/' \
             ./ jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/
 
-      - name: Deploy preftest subdomain
-        run: |
-          rsync -avz --delete \
-            -e "ssh -i ~/.ssh/deploy_key -p 10022 -o StrictHostKeyChecking=no" \
-            --exclude='data/notices.json' \
-            --exclude='data/news.json' \
-            --exclude='data/theme.json' \
-            --exclude='data/slides.json' \
-            --exclude='data/nav.json' \
-            --exclude='uploads/' \
-            ./preftest/ jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/preftest.jdsf-seibu.com/public_html/
-
       - name: Cleanup
         if: always()
         run: rm -f ~/.ssh/deploy_key
