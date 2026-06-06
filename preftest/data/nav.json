@@ -1,0 +1,10 @@
+{
+  "links": [
+    { "id": 1, "enabled": true,  "name": "ダンススポーツ連盟について", "url": "about.html" },
+    { "id": 2, "enabled": true,  "name": "競技会情報",               "url": "competitions.html" },
+    { "id": 3, "enabled": true,  "name": "指導員情報",               "url": "guidance.html" },
+    { "id": 4, "enabled": false, "name": "サイト4",                  "url": "page4.html" },
+    { "id": 5, "enabled": false, "name": "サイト5",                  "url": "page5.html" }
+  ],
+  "updated": ""
+}

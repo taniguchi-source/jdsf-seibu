@@ -255,12 +255,14 @@
       <span></span><span></span><span></span>
     </button>
     <nav class="site-nav" aria-label="メインナビゲーション">
-      <a href="index.html"        class="nav-link active">ホーム</a>
-      <a href="about.html"        class="nav-link">ダンススポーツ連盟について</a>
-      <a href="competitions.html" class="nav-link">競技会情報</a>
-      <a href="guidance.html"     class="nav-link">指導員情報</a>
-      <a href="contact.html"      class="nav-link nav-cta">お問い合わせ</a>
-      <a href="admin.html"        class="nav-link">サイト管理</a>
+      <a href="index.html" class="nav-link active">ホーム</a>
+      <span id="dynamic-nav" style="display:contents;">
+        <a href="about.html"        class="nav-link">ダンススポーツ連盟について</a>
+        <a href="competitions.html" class="nav-link">競技会情報</a>
+        <a href="guidance.html"     class="nav-link">指導員情報</a>
+      </span>
+      <a href="contact.html" class="nav-link nav-cta">お問い合わせ</a>
+      <a href="admin.html"   class="nav-link">サイト管理</a>
     </nav>
   </div>
 </header>
@@ -542,6 +544,26 @@
       }
     })
     .catch(function () { /* フォールバック: ハードコード内容をそのまま使用 */ });
+})();
+
+/* ===== ナビゲーション動的ロード ===== */
+(function () {
+  var container = document.getElementById('dynamic-nav');
+  if (!container) return;
+  fetch('data/nav.json?_=' + Date.now())
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (data) {
+      if (!data || !Array.isArray(data.links)) return;
+      var html = '';
+      data.links.forEach(function (link) {
+        if (!link.enabled) return;
+        var url  = String(link.url  || '#').replace(/"/g, '%22');
+        var name = String(link.name || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        html += '<a href="' + url + '" class="nav-link">' + name + '</a>';
+      });
+      container.innerHTML = html;
+    })
+    .catch(function () { /* フォールバック: デフォルトリンクをそのまま表示 */ });
 })();
 </script>
 
