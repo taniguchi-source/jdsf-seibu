@@ -11,121 +11,108 @@
   <link rel="stylesheet" href="https://jdsf-seibu.com/css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-    /* ===== ログイン画面 ===== */
+    /* ===== ログイン ===== */
     #login-screen {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #0D2347 0%, #1B3A6B 60%, #2563EB 100%);
-      padding: 24px;
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
+      background:linear-gradient(135deg,#0D2347 0%,#1B3A6B 60%,#2563EB 100%); padding:24px;
     }
     .login-box {
-      background: #fff;
-      border-radius: 16px;
-      padding: 48px 40px 40px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      text-align: center;
+      background:#fff; border-radius:16px; padding:48px 40px 40px;
+      width:100%; max-width:400px; box-shadow:0 20px 60px rgba(0,0,0,.3); text-align:center;
     }
-    .login-logo {
-      width: 56px; height: 56px;
-      background: var(--primary);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.5rem;
-      margin: 0 auto 20px;
-    }
-    .login-title { font-size: 1.25rem; font-weight: 800; color: var(--text-dark); margin-bottom: 4px; }
-    .login-sub   { font-size: 0.8125rem; color: var(--text-light); margin-bottom: 32px; }
-    .login-field { position: relative; margin-bottom: 16px; }
+    .login-logo { width:56px;height:56px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 20px; }
+    .login-title { font-size:1.25rem;font-weight:800;color:var(--text-dark);margin-bottom:4px; }
+    .login-sub   { font-size:.8125rem;color:var(--text-light);margin-bottom:32px; }
     .login-field input {
-      width: 100%; padding: 12px 16px;
-      border: 1.5px solid var(--border); border-radius: 8px;
-      font-size: 1rem; font-family: inherit; outline: none;
-      transition: border-color .2s; box-sizing: border-box;
+      width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:8px;
+      font-size:1rem;font-family:inherit;outline:none;transition:border-color .2s;box-sizing:border-box;
     }
-    .login-field input:focus { border-color: var(--primary-light); }
-    .login-field input.error { border-color: #e53e3e; }
-    .login-error { color: #e53e3e; font-size: 0.8125rem; margin-bottom: 12px; display: none; }
+    .login-field input:focus { border-color:var(--primary-light); }
+    .login-field input.error { border-color:#e53e3e; }
+    .login-error { color:#e53e3e;font-size:.8125rem;margin-bottom:12px;display:none; }
     .login-btn {
-      width: 100%; padding: 13px;
-      background: var(--primary); color: #fff;
-      border: none; border-radius: 8px;
-      font-size: 1rem; font-weight: 700; font-family: inherit;
-      cursor: pointer; transition: background .2s;
+      width:100%;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:8px;
+      font-size:1rem;font-weight:700;font-family:inherit;cursor:pointer;transition:background .2s;
     }
-    .login-btn:hover { background: #0D2347; }
-    .login-back { display: block; margin-top: 20px; font-size: 0.8125rem; color: var(--text-light); text-decoration: none; }
-    .login-back:hover { color: var(--primary); }
+    .login-btn:hover { background:#0D2347; }
+    .login-back { display:block;margin-top:20px;font-size:.8125rem;color:var(--text-light);text-decoration:none; }
+    .login-back:hover { color:var(--primary); }
 
     /* ===== コンテンツ ===== */
-    #content-screen { display: none; }
+    #content-screen { display:none; }
+    .logout-btn { background:none;border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:.8125rem;color:var(--text-light);cursor:pointer;font-family:inherit;transition:all .2s; }
+    .logout-btn:hover { border-color:#e53e3e;color:#e53e3e; }
 
-    /* ===== 管理メニューカード ===== */
-    .admin-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 20px;
-      margin-top: 24px;
+    /* ===== お知らせ行 ===== */
+    .news-row {
+      display:flex;align-items:center;gap:10px;padding:11px 14px;
+      background:#fff;border:1px solid var(--border);border-radius:8px;
+      font-size:.875rem;flex-wrap:wrap;
     }
-    .admin-card {
-      background: #fff;
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      padding: 28px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      transition: box-shadow .2s, border-color .2s;
-      cursor: pointer;
-      text-decoration: none;
+    .news-row + .news-row { margin-top:6px; }
+    .news-row-date { color:var(--text-light);font-size:.8rem;white-space:nowrap;flex-shrink:0; }
+    .news-row-title { flex:1;font-weight:600;color:var(--text-dark);min-width:140px; }
+    .news-row-actions { display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap; }
+    .btn-sm {
+      padding:4px 12px;border-radius:4px;font-size:.775rem;font-weight:600;
+      cursor:pointer;border:none;font-family:inherit;transition:all .2s;
     }
-    .admin-card:hover {
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      border-color: var(--primary-light);
-    }
-    .admin-card-icon { font-size: 2.25rem; }
-    .admin-card-title { font-size: 1rem; font-weight: 700; color: var(--text-dark); }
-    .admin-card-desc  { font-size: 0.8125rem; color: var(--text-light); line-height: 1.6; flex: 1; }
-    .admin-card-badge {
-      display: inline-block;
-      background: #EFF6FF;
-      color: #2563EB;
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 100px;
-      align-self: flex-start;
-    }
-    .admin-card-badge.coming {
-      background: #FEF3C7;
-      color: #92400E;
-    }
+    .btn-edit   { background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE; }
+    .btn-edit:hover { background:#2563EB;color:#fff; }
+    .btn-delete { background:#FFF5F5;color:#C53030;border:1px solid #FEB2B2; }
+    .btn-delete:hover { background:#C53030;color:#fff; }
+    .badge-always { background:#FEF3C7;color:#92400E;padding:3px 10px;border-radius:4px;font-size:.7rem;font-weight:700;white-space:nowrap; }
+    .badge-normal { background:#F0F4F8;color:#4A5568;padding:3px 10px;border-radius:4px;font-size:.7rem;font-weight:700;white-space:nowrap; }
+    .tag { display:inline-block;padding:2px 8px;border-radius:3px;font-size:.725rem;font-weight:700; }
+    .tag-競技会   { background:#EBF8FF;color:#2B6CB0; }
+    .tag-指導員   { background:#F0FFF4;color:#276749; }
+    .tag-イベント { background:#FFFFF0;color:#744210; }
+    .tag-ランキング { background:#FAF5FF;color:#553C9A; }
+    .tag-本部お知らせ { background:#FFF5F5;color:#C53030; }
+    .tag-その他  { background:#F7FAFC;color:#4A5568; }
 
-    .logout-btn {
-      background: none; border: 1px solid var(--border);
-      border-radius: 6px; padding: 6px 14px;
-      font-size: 0.8125rem; color: var(--text-light);
-      cursor: pointer; font-family: inherit; transition: all .2s;
+    /* ===== モーダル（編集） ===== */
+    .modal-overlay {
+      display:none;position:fixed;inset:0;z-index:9000;
+      background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:16px;
     }
-    .logout-btn:hover { border-color: #e53e3e; color: #e53e3e; }
+    .modal-box {
+      background:#fff;border-radius:12px;max-width:560px;width:100%;max-height:90vh;
+      overflow-y:auto;padding:28px;box-shadow:0 8px 40px rgba(0,0,0,.18);position:relative;
+    }
+    .modal-close { position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.25rem;color:var(--text-light);cursor:pointer; }
+    .form-label { font-size:.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px; }
+    .form-input {
+      width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;
+      font-size:.9375rem;font-family:inherit;box-sizing:border-box;outline:none;background:#fff;
+    }
+    .form-input:focus { border-color:var(--primary-light); }
+    select.form-input { cursor:pointer; }
 
-    @media (max-width: 480px) {
-      .login-box { padding: 36px 24px 28px; }
+    /* ===== 内部連絡カード ===== */
+    .notice-card {
+      background:#fff;border:1px solid var(--border);border-radius:10px;padding:18px 20px;
+      display:flex;flex-direction:column;gap:8px;
+    }
+    .notice-card-meta { display:flex;align-items:center;justify-content:space-between;gap:8px; }
+    .notice-card-date { font-size:.8rem;color:var(--text-light); }
+    .notice-card-title { font-size:.9375rem;font-weight:700;color:var(--text-dark); }
+
+    @media (max-width:480px) {
+      .login-box { padding:36px 24px 28px; }
+      .news-row { flex-direction:column;align-items:flex-start; }
     }
   </style>
 </head>
 <body>
 
-<!-- ===== ログイン画面 ===== -->
+<!-- ===== ログイン ===== -->
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">⚙️</div>
     <div class="login-title">サイト管理</div>
     <div class="login-sub">テストダンススポーツ連盟</div>
-    <div class="login-field">
+    <div class="login-field" style="margin-bottom:16px;">
       <input type="password" id="pw-input" placeholder="パスワードを入力" autocomplete="current-password">
     </div>
     <div class="login-error" id="login-error">パスワードが正しくありません。</div>
@@ -165,75 +152,108 @@
     </div>
   </div>
 
-  <section style="background:#f0f4f8;padding:32px 0 56px;">
+  <!-- ===== ① 管理者連絡 ===== -->
+  <section style="background:#fff;padding:28px 0 36px;">
     <div class="container">
-      <p style="font-size:0.875rem;color:var(--text-light);margin-bottom:4px;">
-        管理したいページを選んでください。各ページのコンテンツ（テキスト・画像・お知らせ等）をここから編集できます。
-      </p>
-
-      <div class="admin-grid">
-
-        <!-- ホーム -->
-        <a href="admin/home.html" class="admin-card">
-          <div class="admin-card-icon">🏠</div>
-          <div class="admin-card-title">ホームページ管理</div>
-          <div class="admin-card-desc">
-            トップページのカルーセル・お知らせ・競技会情報・ヒーローテキストを編集します。
-          </div>
-          <span class="admin-card-badge coming">準備中</span>
-        </a>
-
-        <!-- ダンススポーツ連盟について -->
-        <a href="admin/about.html" class="admin-card">
-          <div class="admin-card-icon">🏛</div>
-          <div class="admin-card-title">ダンススポーツ連盟について</div>
-          <div class="admin-card-desc">
-            連盟の概要・役員一覧・沿革・理念などの情報を編集します。
-          </div>
-          <span class="admin-card-badge coming">準備中</span>
-        </a>
-
-        <!-- お知らせ -->
-        <a href="admin/news.html" class="admin-card">
-          <div class="admin-card-icon">📢</div>
-          <div class="admin-card-title">お知らせ管理</div>
-          <div class="admin-card-desc">
-            トップページに表示されるお知らせ・最新情報の投稿・編集・削除を行います。
-          </div>
-          <span class="admin-card-badge coming">準備中</span>
-        </a>
-
-        <!-- 競技会情報 -->
-        <a href="admin/competitions.html" class="admin-card">
-          <div class="admin-card-icon">🏆</div>
-          <div class="admin-card-title">競技会情報管理</div>
-          <div class="admin-card-desc">
-            競技会の日程・会場・種目・申込情報の登録・更新を行います。
-          </div>
-          <span class="admin-card-badge coming">準備中</span>
-        </a>
-
-        <!-- 指導員情報 -->
-        <a href="admin/guidance.html" class="admin-card">
-          <div class="admin-card-icon">📋</div>
-          <div class="admin-card-title">指導員情報管理</div>
-          <div class="admin-card-desc">
-            指導員・審査員の情報や、認定試験のお知らせを管理します。
-          </div>
-          <span class="admin-card-badge coming">準備中</span>
-        </a>
-
-        <!-- お問い合わせ設定 -->
-        <a href="admin/contact.html" class="admin-card">
-          <div class="admin-card-icon">✉️</div>
-          <div class="admin-card-title">お問い合わせ設定</div>
-          <div class="admin-card-desc">
-            お問い合わせフォームの送信先メールアドレスや、自動返信文などを設定します。
-          </div>
-          <span class="admin-card-badge coming">準備中</span>
-        </a>
-
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+        <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:12px;margin:0;">
+          🔔 管理者連絡
+          <small style="font-size:.75rem;font-weight:400;color:var(--text-light);display:block;margin-top:4px;">（管理者のみ閲覧。最新6件表示）</small>
+        </h2>
+        <button onclick="toggleNoticeForm()" id="notice-form-toggle-btn"
+          style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:.875rem;font-weight:700;cursor:pointer;">
+          ＋ 連絡事項を投稿
+        </button>
       </div>
+
+      <!-- 投稿フォーム -->
+      <div id="notice-form-wrap" style="display:none;background:var(--bg-blue);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:24px;">
+        <h3 style="font-size:.9375rem;font-weight:700;color:var(--primary);margin:0 0 16px;">📝 連絡事項を入力</h3>
+        <div style="display:grid;gap:14px;">
+          <div><label class="form-label">氏名 <span style="color:#e53e3e;font-size:.75rem;">（必須）</span></label>
+            <input type="text" id="notice-name" class="form-input" placeholder="例：山田 太郎"></div>
+          <div><label class="form-label">タイトル <span style="color:#e53e3e;font-size:.75rem;">（必須）</span></label>
+            <input type="text" id="notice-title" class="form-input" placeholder="例：次回更新予定について"></div>
+          <div><label class="form-label">詳細内容 <span style="color:#e53e3e;font-size:.75rem;">（必須）</span></label>
+            <textarea id="notice-detail" rows="4" class="form-input" placeholder="連絡内容を入力…" style="resize:vertical;"></textarea></div>
+          <div><label class="form-label">関連URL <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（任意）</span></label>
+            <input type="url" id="notice-url" class="form-input" placeholder="https://…"></div>
+          <div id="notice-form-msg" style="display:none;padding:8px 14px;border-radius:6px;font-size:.875rem;"></div>
+          <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button onclick="toggleNoticeForm()" style="padding:10px 22px;background:none;border:1.5px solid var(--border);border-radius:8px;font-size:.875rem;cursor:pointer;color:var(--text-light);">キャンセル</button>
+            <button id="notice-submit-btn" onclick="submitNotice()" style="padding:10px 28px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.875rem;font-weight:700;cursor:pointer;">投稿する →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 連絡一覧 -->
+      <div id="notices-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
+        <div style="background:var(--bg-blue);border-radius:8px;padding:20px;text-align:center;grid-column:1/-1;">
+          <span style="color:var(--text-light);font-size:.9rem;">読み込み中...</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ② 公開お知らせ管理 ===== -->
+  <section style="background:#fff5f0;border-top:1px solid #f0d8cc;padding:28px 0 40px;">
+    <div class="container">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+        <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid #e07040;padding-left:12px;margin:0;">
+          📢 公開お知らせ管理
+          <small style="font-size:.75rem;font-weight:400;color:var(--text-light);display:block;margin-top:4px;">（トップページに掲載されます）</small>
+        </h2>
+        <div style="display:flex;gap:10px;">
+          <a href="news.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#fff;color:#e07040;border:2px solid #e07040;border-radius:6px;font-size:.875rem;font-weight:700;text-decoration:none;">📋 一覧</a>
+          <button onclick="toggleNewsForm()" id="news-form-toggle-btn"
+            style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#e07040;color:#fff;border:none;border-radius:6px;font-size:.875rem;font-weight:700;cursor:pointer;">
+            ＋ お知らせを投稿
+          </button>
+        </div>
+      </div>
+
+      <!-- 投稿フォーム -->
+      <div id="news-form-wrap" style="display:none;background:#fff;border:1px solid #f0d8cc;border-radius:12px;padding:24px;margin-bottom:24px;">
+        <h3 style="font-size:.9375rem;font-weight:700;color:#c05020;margin:0 0 16px;">📝 お知らせを入力</h3>
+        <div style="display:grid;gap:14px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div><label class="form-label">カテゴリ <span style="color:#e53e3e;font-size:.75rem;">（必須）</span></label>
+              <select id="news-category" class="form-input">
+                <option value="">選択してください</option>
+                <option value="競技会">競技会</option>
+                <option value="指導員">指導員</option>
+                <option value="イベント">イベント</option>
+                <option value="ランキング">ランキング</option>
+                <option value="本部お知らせ">本部お知らせ</option>
+                <option value="その他">その他</option>
+              </select>
+            </div>
+            <div><label class="form-label">実施日 <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（任意）</span></label>
+              <input type="date" id="news-event-date" class="form-input"></div>
+          </div>
+          <div><label class="form-label">タイトル <span style="color:#e53e3e;font-size:.75rem;">（必須）</span></label>
+            <input type="text" id="news-title" class="form-input" placeholder="例：2026年度大会の開催について"></div>
+          <div><label class="form-label">詳細内容 <span style="color:#e53e3e;font-size:.75rem;">（必須）</span></label>
+            <textarea id="news-detail" rows="3" class="form-input" style="resize:vertical;" placeholder="補足説明…"></textarea></div>
+          <div><label class="form-label">関連URL <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（任意）</span></label>
+            <input type="url" id="news-url" class="form-input" placeholder="https://…"></div>
+          <div>
+            <label style="display:inline-flex;align-items:center;gap:8px;font-size:.875rem;font-weight:600;cursor:pointer;">
+              <input type="checkbox" id="news-always-show" style="width:16px;height:16px;cursor:pointer;">
+              常に表示する（期限なし）
+            </label>
+          </div>
+          <div id="news-form-msg" style="display:none;padding:8px 14px;border-radius:6px;font-size:.875rem;"></div>
+          <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button onclick="toggleNewsForm()" style="padding:10px 22px;background:none;border:1.5px solid var(--border);border-radius:8px;font-size:.875rem;cursor:pointer;color:var(--text-light);">キャンセル</button>
+            <button id="news-submit-btn" onclick="submitNews()" style="padding:10px 28px;background:#e07040;color:#fff;border:none;border-radius:8px;font-size:.875rem;font-weight:700;cursor:pointer;">投稿する →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- お知らせ一覧 -->
+      <div id="news-count" style="font-size:.8125rem;color:var(--text-light);margin-bottom:10px;"></div>
+      <div id="news-list"></div>
     </div>
   </section>
 
@@ -245,13 +265,58 @@
 
 </div><!-- /#content-screen -->
 
+<!-- ===== 編集モーダル ===== -->
+<div id="edit-modal" class="modal-overlay" onclick="if(event.target===this)closeEditModal()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeEditModal()">✕</button>
+    <h3 style="font-size:1rem;font-weight:700;color:#2563EB;margin:0 0 18px;padding-bottom:10px;border-bottom:2px solid #BFDBFE;">✏ お知らせを編集</h3>
+    <input type="hidden" id="edit-news-id">
+    <div style="display:grid;gap:14px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div><label class="form-label">カテゴリ <span style="color:#e53e3e;font-size:.75rem;">（必須）</span></label>
+          <select id="edit-news-category" class="form-input">
+            <option value="競技会">競技会</option><option value="指導員">指導員</option>
+            <option value="イベント">イベント</option><option value="ランキング">ランキング</option>
+            <option value="本部お知らせ">本部お知らせ</option><option value="その他">その他</option>
+          </select></div>
+        <div><label class="form-label">実施日 <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（任意）</span></label>
+          <input type="date" id="edit-news-event-date" class="form-input"></div>
+      </div>
+      <div><label class="form-label">タイトル <span style="color:#e53e3e;font-size:.75rem;">（必須）</span></label>
+        <input type="text" id="edit-news-title" class="form-input"></div>
+      <div><label class="form-label">詳細内容 <span style="color:#e53e3e;font-size:.75rem;">（必須）</span></label>
+        <textarea id="edit-news-detail" rows="3" class="form-input" style="resize:vertical;"></textarea></div>
+      <div><label class="form-label">関連URL <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（任意）</span></label>
+        <input type="url" id="edit-news-url" class="form-input" placeholder="https://…"></div>
+      <div id="edit-news-msg" style="display:none;padding:8px 14px;border-radius:6px;font-size:.875rem;"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button onclick="closeEditModal()" style="padding:10px 22px;background:none;border:1.5px solid var(--border);border-radius:8px;font-size:.875rem;cursor:pointer;color:var(--text-light);">キャンセル</button>
+        <button id="edit-save-btn" onclick="saveEditedNews()" style="padding:10px 28px;background:#2563EB;color:#fff;border:none;border-radius:8px;font-size:.875rem;font-weight:700;cursor:pointer;">保存する →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 連絡詳細モーダル ===== -->
+<div id="notice-modal-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this){this.style.display='none';document.body.style.overflow='';}">
+  <div style="background:#fff;border-radius:12px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;padding:28px;box-shadow:0 8px 40px rgba(0,0,0,.18);position:relative;">
+    <button onclick="document.getElementById('notice-modal-overlay').style.display='none';document.body.style.overflow='';" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.25rem;color:var(--text-light);cursor:pointer;">✕</button>
+    <div id="notice-modal-meta" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:.85rem;color:var(--text-light);"></div>
+    <h3 id="notice-modal-title" style="font-size:1.0625rem;font-weight:700;margin:0 0 12px;"></h3>
+    <p id="notice-modal-detail" style="font-size:.9rem;color:var(--text-medium);line-height:1.8;white-space:pre-wrap;margin:0 0 12px;"></p>
+    <div id="notice-modal-url"></div>
+  </div>
+</div>
+
 <script>
 (function () {
   'use strict';
 
-  var PASSWORD    = 'admin2026'; // ← パスワードはここを変更
+  /* ===== 認証 ===== */
+  var PASSWORD    = 'admin2026';   // ← 変更可
   var SESSION_KEY = 'preftest_admin_auth';
   var EXPIRE_DAYS = 3;
+  var TOKEN       = 'preftest2026'; // PHP API 共通トークン
 
   var loginScreen   = document.getElementById('login-screen');
   var contentScreen = document.getElementById('content-screen');
@@ -264,18 +329,13 @@
       if (!raw) return false;
       var data = JSON.parse(raw);
       if (Date.now() - data.ts < EXPIRE_DAYS * 24 * 60 * 60 * 1000) return true;
-    } catch (e) {}
+    } catch(e) {}
     localStorage.removeItem(SESSION_KEY);
     return false;
   }
-
   if (isAuthenticated()) showContent();
 
-  if (pwInput) {
-    pwInput.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') doLogin();
-    });
-  }
+  if (pwInput) pwInput.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
 
   function doLogin() {
     var val = pwInput ? pwInput.value : '';
@@ -284,25 +344,266 @@
       showContent();
     } else {
       loginError.style.display = 'block';
-      if (pwInput) { pwInput.classList.add('error'); pwInput.value = ''; pwInput.focus(); }
+      if (pwInput) { pwInput.classList.add('error'); pwInput.value=''; pwInput.focus(); }
     }
   }
-
   function doLogout() {
     localStorage.removeItem(SESSION_KEY);
     contentScreen.style.display = 'none';
     loginScreen.style.display   = 'flex';
-    if (pwInput) { pwInput.value = ''; pwInput.classList.remove('error'); }
+    if (pwInput) { pwInput.value=''; pwInput.classList.remove('error'); }
     loginError.style.display = 'none';
   }
-
   function showContent() {
     loginScreen.style.display   = 'none';
     contentScreen.style.display = 'block';
+    loadNotices();
+    loadNews();
   }
-
   window.doLogin  = doLogin;
   window.doLogout = doLogout;
+
+  /* ===== 管理者連絡 ===== */
+  var _notices = [];
+
+  function loadNotices() {
+    fetch('data/notices.json?_=' + Date.now())
+      .then(function(r){ return r.ok ? r.json() : {notices:[]}; })
+      .then(function(data){ _notices = data.notices || []; renderNotices(_notices); })
+      .catch(function(){ renderNotices([]); });
+  }
+
+  function renderNotices(notices) {
+    var el = document.getElementById('notices-list');
+    if (!el) return;
+    if (!notices.length) {
+      el.innerHTML = '<div style="background:var(--bg-blue);border-radius:8px;padding:20px;text-align:center;grid-column:1/-1;"><p style="color:var(--text-medium);margin:0;">現在、連絡事項はありません。</p></div>';
+      return;
+    }
+    el.innerHTML = notices.slice(0,6).map(function(n){
+      var safeId = (n.id||'').replace(/'/g,"\\'");
+      return '<div class="notice-card">'
+        + '<div class="notice-card-meta">'
+        + '<span class="notice-card-date">📅 '+(n.date||'')+'</span>'
+        + '<button onclick="openNoticeModal(\''+safeId+'\')" style="background:none;border:none;cursor:pointer;font-size:.8125rem;font-weight:600;color:var(--primary-light);padding:0;">詳細を見る →</button>'
+        + '</div>'
+        + '<div class="notice-card-title">'+escHtml(n.title||'')+'</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  function openNoticeModal(id) {
+    var n = null;
+    for (var i=0; i<_notices.length; i++) { if(_notices[i].id===id){ n=_notices[i]; break; } }
+    if (!n) return;
+    document.getElementById('notice-modal-meta').innerHTML = '<span>📅 '+escHtml(n.date||'')+'</span><span style="color:var(--primary);">👤 '+escHtml(n.name||'')+'</span>';
+    document.getElementById('notice-modal-title').textContent  = n.title||'';
+    document.getElementById('notice-modal-detail').textContent = n.detail||'';
+    var urlDiv = document.getElementById('notice-modal-url');
+    if (n.url) {
+      urlDiv.innerHTML = '<a href="'+escHtml(n.url)+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;padding:10px 22px;background:var(--primary);color:#fff;border-radius:6px;font-size:.875rem;font-weight:700;text-decoration:none;">🔗 リンクを開く</a>';
+    } else { urlDiv.innerHTML=''; }
+    var ov = document.getElementById('notice-modal-overlay');
+    ov.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+  window.openNoticeModal = openNoticeModal;
+
+  var _noticeFormOpen = false;
+  function toggleNoticeForm() {
+    _noticeFormOpen = !_noticeFormOpen;
+    var wrap = document.getElementById('notice-form-wrap');
+    var btn  = document.getElementById('notice-form-toggle-btn');
+    if (wrap) wrap.style.display = _noticeFormOpen ? 'block' : 'none';
+    if (btn)  btn.textContent = _noticeFormOpen ? '✕ フォームを閉じる' : '＋ 連絡事項を投稿';
+  }
+  window.toggleNoticeForm = toggleNoticeForm;
+
+  function submitNotice() {
+    var name   = (document.getElementById('notice-name')  ||{value:''}).value.trim();
+    var title  = (document.getElementById('notice-title') ||{value:''}).value.trim();
+    var detail = (document.getElementById('notice-detail')||{value:''}).value.trim();
+    var url    = (document.getElementById('notice-url')   ||{value:''}).value.trim();
+    var msgEl  = document.getElementById('notice-form-msg');
+    var btn    = document.getElementById('notice-submit-btn');
+
+    function showMsg(txt, isErr) {
+      if (!msgEl) return;
+      msgEl.style.display='block';
+      msgEl.style.background = isErr?'#FFF5F5':'#F0FFF4';
+      msgEl.style.color      = isErr?'#C53030':'#276749';
+      msgEl.style.border     = '1px solid '+(isErr?'#FEB2B2':'#9AE6B4');
+      msgEl.textContent=txt;
+    }
+    if (!name||!title||!detail) { showMsg('⚠ 氏名・タイトル・詳細は必須です。', true); return; }
+    if (btn) { btn.disabled=true; btn.textContent='投稿中…'; }
+    if (msgEl) msgEl.style.display='none';
+
+    var fd = new FormData();
+    fd.append('token', TOKEN); fd.append('name',name); fd.append('title',title); fd.append('detail',detail); fd.append('url',url);
+    fetch('api/save_notice.php', {method:'POST',body:fd})
+      .then(function(r){return r.json();})
+      .then(function(res){
+        if (res.ok) {
+          ['notice-name','notice-title','notice-detail','notice-url'].forEach(function(id){ var el=document.getElementById(id); if(el)el.value=''; });
+          toggleNoticeForm();
+          loadNotices();
+        } else { showMsg('⚠ '+(res.error||'エラーが発生しました'), true); }
+      })
+      .catch(function(){ showMsg('⚠ 通信エラーが発生しました。', true); })
+      .finally(function(){ if(btn){btn.disabled=false;btn.textContent='投稿する →';} });
+  }
+  window.submitNotice = submitNotice;
+
+  /* ===== 公開お知らせ ===== */
+  var _newsList = [];
+
+  function loadNews() {
+    fetch('data/news.json?_=' + Date.now())
+      .then(function(r){ return r.ok ? r.json() : {news:[]}; })
+      .then(function(data){ _newsList = data.news||[]; renderNews(_newsList); })
+      .catch(function(){ renderNews([]); });
+  }
+
+  function renderNews(news) {
+    var countEl = document.getElementById('news-count');
+    var listEl  = document.getElementById('news-list');
+    if (!listEl) return;
+    if (countEl) countEl.textContent = news.length ? '全 '+news.length+' 件（新しい順）' : '';
+    if (!news.length) {
+      listEl.innerHTML = '<div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:20px;text-align:center;"><p style="color:var(--text-medium);margin:0;">まだお知らせはありません。</p></div>';
+      return;
+    }
+    listEl.innerHTML = news.map(function(n){
+      var safeId = (n.id||'').replace(/'/g,"\\'");
+      var tagCls = 'tag tag-'+(n.category||'その他');
+      var badge  = n.always_show
+        ? '<span class="badge-always">★ 常に表示</span>'
+        : '<span class="badge-normal">一般表示</span>';
+      return '<div class="news-row">'
+        + '<span class="news-row-date">📅 '+(n.event_date||n.date||'')+'</span>'
+        + '<span class="tag '+tagCls+'">'+(n.category||'')+'</span>'
+        + '<span class="news-row-title">'+escHtml(n.title||'')+'</span>'
+        + '<div class="news-row-actions">'
+        + badge
+        + '<span style="font-size:.75rem;color:var(--text-light);">公開: '+(n.date||'')+'</span>'
+        + '<button class="btn-sm btn-edit" onclick="openEditModal(\''+safeId+'\')">➜ 変更</button>'
+        + '<button class="btn-sm btn-delete" onclick="deleteNews(\''+safeId+'\')">🗑 削除</button>'
+        + '</div></div>';
+    }).join('');
+  }
+
+  function deleteNews(id) {
+    if (!confirm('このお知らせを削除しますか？')) return;
+    var fd = new FormData();
+    fd.append('token', TOKEN); fd.append('id', id);
+    fetch('api/delete_news.php', {method:'POST',body:fd})
+      .then(function(r){return r.json();})
+      .then(function(res){ if(res.ok) loadNews(); else alert(res.error||'削除に失敗しました。'); });
+  }
+  window.deleteNews = deleteNews;
+
+  /* ===== 投稿フォーム ===== */
+  var _newsFormOpen = false;
+  function toggleNewsForm() {
+    _newsFormOpen = !_newsFormOpen;
+    var wrap = document.getElementById('news-form-wrap');
+    var btn  = document.getElementById('news-form-toggle-btn');
+    if (wrap) wrap.style.display = _newsFormOpen ? 'block' : 'none';
+    if (btn)  btn.textContent    = _newsFormOpen ? '✕ フォームを閉じる' : '＋ お知らせを投稿';
+  }
+  window.toggleNewsForm = toggleNewsForm;
+
+  function submitNews() {
+    var category   = (document.getElementById('news-category')   ||{value:''}).value;
+    var title      = (document.getElementById('news-title')      ||{value:''}).value.trim();
+    var detail     = (document.getElementById('news-detail')     ||{value:''}).value.trim();
+    var url        = (document.getElementById('news-url')        ||{value:''}).value.trim();
+    var eventDate  = (document.getElementById('news-event-date') ||{value:''}).value;
+    var alwaysShow = (document.getElementById('news-always-show')||{checked:false}).checked;
+    var msgEl = document.getElementById('news-form-msg');
+    var btn   = document.getElementById('news-submit-btn');
+
+    function showMsg(txt,isErr){ if(!msgEl)return; msgEl.style.display='block'; msgEl.style.background=isErr?'#FFF5F5':'#F0FFF4'; msgEl.style.color=isErr?'#C53030':'#276749'; msgEl.style.border='1px solid '+(isErr?'#FEB2B2':'#9AE6B4'); msgEl.textContent=txt; }
+
+    if (!category||!title||!detail) { showMsg('⚠ カテゴリ・タイトル・詳細は必須です。',true); return; }
+    if (btn) { btn.disabled=true; btn.textContent='投稿中…'; }
+    if (msgEl) msgEl.style.display='none';
+
+    var fd = new FormData();
+    fd.append('token',TOKEN); fd.append('category',category); fd.append('title',title);
+    fd.append('detail',detail); fd.append('url',url); fd.append('event_date',eventDate);
+    fd.append('always_show', alwaysShow?'1':'');
+    fetch('api/save_news.php', {method:'POST',body:fd})
+      .then(function(r){return r.json();})
+      .then(function(res){
+        if (res.ok) {
+          ['news-category','news-title','news-detail','news-url','news-event-date'].forEach(function(id){ var el=document.getElementById(id); if(el)el.value=''; });
+          var cb=document.getElementById('news-always-show'); if(cb)cb.checked=false;
+          toggleNewsForm(); loadNews();
+        } else { showMsg('⚠ '+(res.error||'エラーが発生しました'),true); }
+      })
+      .catch(function(){ showMsg('⚠ 通信エラー',true); })
+      .finally(function(){ if(btn){btn.disabled=false;btn.textContent='投稿する →';} });
+  }
+  window.submitNews = submitNews;
+
+  /* ===== 編集モーダル ===== */
+  function openEditModal(id) {
+    var n = null;
+    for (var i=0;i<_newsList.length;i++){ if(_newsList[i].id===id){n=_newsList[i];break;} }
+    if (!n) return;
+    document.getElementById('edit-news-id').value        = n.id||'';
+    document.getElementById('edit-news-category').value  = n.category||'';
+    document.getElementById('edit-news-title').value     = n.title||'';
+    document.getElementById('edit-news-detail').value    = n.detail||'';
+    document.getElementById('edit-news-url').value       = n.url||'';
+    // event_date を YYYY-MM-DD に変換
+    var ed = (n.event_date||'').replace(/\./g,'-');
+    document.getElementById('edit-news-event-date').value = ed;
+    var msgEl=document.getElementById('edit-news-msg'); if(msgEl)msgEl.style.display='none';
+    var ov=document.getElementById('edit-modal'); ov.style.display='flex'; document.body.style.overflow='hidden';
+  }
+  function closeEditModal() {
+    var ov=document.getElementById('edit-modal'); ov.style.display='none'; document.body.style.overflow='';
+  }
+  function saveEditedNews() {
+    var id       = (document.getElementById('edit-news-id')         ||{value:''}).value;
+    var category = (document.getElementById('edit-news-category')   ||{value:''}).value;
+    var title    = (document.getElementById('edit-news-title')      ||{value:''}).value.trim();
+    var detail   = (document.getElementById('edit-news-detail')     ||{value:''}).value.trim();
+    var url      = (document.getElementById('edit-news-url')        ||{value:''}).value.trim();
+    var eventDate=(document.getElementById('edit-news-event-date')  ||{value:''}).value;
+    var msgEl=document.getElementById('edit-news-msg');
+    var btn  =document.getElementById('edit-save-btn');
+
+    function showMsg(txt,isErr){ if(!msgEl)return; msgEl.style.display='block'; msgEl.style.background=isErr?'#FFF5F5':'#F0FFF4'; msgEl.style.color=isErr?'#C53030':'#276749'; msgEl.style.border='1px solid '+(isErr?'#FEB2B2':'#9AE6B4'); msgEl.textContent=txt; }
+
+    if (!category||!title||!detail) { showMsg('⚠ カテゴリ・タイトル・詳細は必須です。',true); return; }
+    if (btn) { btn.disabled=true; btn.textContent='保存中…'; }
+    if (msgEl) msgEl.style.display='none';
+
+    var fd=new FormData();
+    fd.append('token',TOKEN);fd.append('id',id);fd.append('category',category);
+    fd.append('title',title);fd.append('detail',detail);fd.append('url',url);fd.append('event_date',eventDate);
+    fetch('api/update_news.php',{method:'POST',body:fd})
+      .then(function(r){return r.json();})
+      .then(function(res){
+        if(res.ok){ closeEditModal(); loadNews(); }
+        else { showMsg('⚠ '+(res.error||'更新に失敗しました'),true); }
+      })
+      .catch(function(){ showMsg('⚠ 通信エラー',true); })
+      .finally(function(){ if(btn){btn.disabled=false;btn.textContent='保存する →';} });
+  }
+  window.openEditModal   = openEditModal;
+  window.closeEditModal  = closeEditModal;
+  window.saveEditedNews  = saveEditedNews;
+
+  /* ===== ユーティリティ ===== */
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
 })();
 </script>
 
