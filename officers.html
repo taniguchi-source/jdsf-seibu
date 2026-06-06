@@ -572,6 +572,18 @@
     </div>
   </section>
 
+  <!-- ===== 5. その他参考資料 (淡い緑) ===== -->
+  <section id="references" style="background:#f0faf4;border-bottom:1px solid #b8dfc8;padding:32px 0 48px;">
+    <div class="container">
+      <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid #4caf80;padding-left:12px;margin-bottom:20px;">
+        📎 その他参考資料
+      </h2>
+      <div id="references-list">
+        <p style="color:var(--text-light);text-align:center;padding:24px;">読み込み中...</p>
+      </div>
+    </div>
+  </section>
+
   <footer class="site-footer">
     <div class="container footer-bottom" style="justify-content:center;">
       <span>© 2026 JDSF 近畿中四国ブロック委員会｜役員専用ページ</span>
@@ -741,10 +753,11 @@
         renderMinutes(data.minutes || []);
         renderMaterials(data.materials || []);
         renderSpreadsheets(data.spreadsheets || []);
+        renderReferences(data.references || []);
       })
       .catch(function() {
         var empty = '<p style="color:var(--text-light);text-align:center;padding:24px;">データの読み込みに失敗しました。</p>';
-        ['minutes-list','materials-list','ss-list'].forEach(function(id) {
+        ['minutes-list','materials-list','ss-list','references-list'].forEach(function(id) {
           var el = document.getElementById(id);
           if (el) el.innerHTML = empty;
         });
@@ -828,6 +841,26 @@
       html += '</div></div>';
     });
     el.innerHTML = html || '<p style="color:var(--text-light);text-align:center;padding:24px;">データがありません。</p>';
+  }
+
+  // その他参考資料リスト描画
+  function renderReferences(items) {
+    var el = document.getElementById('references-list');
+    if (!el) return;
+    if (!items || items.length === 0) {
+      el.innerHTML = '<p style="color:var(--text-light);font-size:0.875rem;padding:8px 4px;">まだ登録されていません。</p>';
+      return;
+    }
+    var html = '<div class="docs-list">';
+    items.forEach(function(item) {
+      html += '<div class="docs-item">'
+        + (item.date ? '<span class="docs-item-date">📅 ' + item.date + '</span>' : '')
+        + '<span class="docs-item-title">' + (item.title || '') + '</span>'
+        + (item.url ? '<a href="' + item.url + '" target="_blank" rel="noopener" class="docs-item-link">資料を見る →</a>' : '')
+        + '</div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
   }
 
   // スプレッドシートカード描画
