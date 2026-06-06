@@ -85,6 +85,8 @@ if ($type === 'upload') {
     $url = 'uploads/references/' . $safe_name;
 }
 
+$download_password = trim($_POST['download_password'] ?? '');
+
 $new_item = [
     'id'    => 'ref_' . time() . '_' . rand(100, 999),
     'date'  => $date,
@@ -92,6 +94,9 @@ $new_item = [
     'title' => $title,
     'url'   => $url,
 ];
+if ($download_password !== '') {
+    $new_item['download_password'] = $download_password;
+}
 
 array_unshift($data['references'], $new_item); // 新しい順（先頭に追加）
 $data['updated'] = date('Y-m-d');

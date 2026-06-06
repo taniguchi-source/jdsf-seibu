@@ -630,12 +630,23 @@
         </div>
 
         <div id="ref-file-wrap" style="display:none;margin-bottom:16px;">
-          <label style="font-size:0.8125rem;font-weight:600;display:block;margin-bottom:4px;">
+          <label style="font-size:0.8125rem;font-weight:600;display:block;margin-bottom:6px;">
             ファイル <span style="font-weight:400;color:var(--text-light);">（PDF・Word・Excel・PowerPoint等 20MB以内）</span>
           </label>
-          <input type="file" id="ref-file"
-            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"
-            style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:0.875rem;box-sizing:border-box;">
+          <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+            <div style="flex:2;min-width:200px;">
+              <input type="file" id="ref-file"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"
+                style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:0.875rem;box-sizing:border-box;">
+            </div>
+            <div style="flex:1;min-width:160px;">
+              <label style="font-size:0.8125rem;font-weight:600;display:block;margin-bottom:4px;">
+                🔒 ダウンロード用PW <span style="font-weight:400;color:var(--text-light);">（任意）</span>
+              </label>
+              <input type="text" id="ref-dl-password" placeholder="設定する場合のみ入力"
+                style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:0.875rem;box-sizing:border-box;">
+            </div>
+          </div>
         </div>
 
         <div style="margin-bottom:16px;">
@@ -936,15 +947,31 @@
     items.forEach(function(item) {
       var safeId = (item.id || '').replace(/'/g, "\\'");
       var isUpload = item.url && !item.url.match(/^https?:\/\//);
-      var linkLabel = isUpload ? '📄 ダウンロード' : '🔗 資料を見る';
+      var hasDownloadPw = !!item.download_password;
+
+      var linkHtml = '';
+      if (item.url) {
+        if (isUpload && hasDownloadPw) {
+          // パスワード保護あり → JS経由でダウンロード
+          linkHtml = '<button onclick="downloadRef(\'' + safeId + '\')" '
+            + 'style="padding:5px 14px;background:#4caf80;color:#fff;border:none;border-radius:6px;font-size:0.8125rem;font-weight:700;cursor:pointer;">🔒 ダウンロード</button>';
+        } else if (isUpload) {
+          // アップロードファイル（パスワードなし）
+          linkHtml = '<a href="api/download_reference.php?id=' + encodeURIComponent(item.id) + '" '
+            + 'style="padding:5px 14px;background:#4caf80;color:#fff;border-radius:6px;font-size:0.8125rem;font-weight:700;text-decoration:none;">📄 ダウンロード</a>';
+        } else {
+          // URLリンク
+          linkHtml = '<a href="' + item.url + '" target="_blank" rel="noopener" '
+            + 'style="padding:5px 14px;background:#4caf80;color:#fff;border-radius:6px;font-size:0.8125rem;font-weight:700;text-decoration:none;">🔗 資料を見る</a>';
+        }
+      }
+
       html += '<div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #b8dfc8;flex-wrap:wrap;">'
         + '<span style="font-size:0.8rem;color:var(--text-light);flex-shrink:0;min-width:88px;">📅 ' + (item.date || '') + '</span>'
         + '<span class="tag tag-hq" style="flex-shrink:0;">👤 ' + (item.name || '') + '</span>'
         + '<div style="flex:1;min-width:180px;font-weight:700;font-size:0.9rem;color:var(--text-dark);">' + (item.title || '') + '</div>'
         + '<div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">'
-        + (item.url ? '<a href="' + item.url + '" target="_blank" rel="noopener" '
-            + 'style="padding:5px 14px;background:#4caf80;color:#fff;border-radius:6px;font-size:0.8125rem;font-weight:700;text-decoration:none;">'
-            + linkLabel + '</a>' : '')
+        + linkHtml
         + '<button onclick="deleteReference(\'' + safeId + '\')" '
             + 'style="padding:5px 12px;background:#fee2e2;color:#B91C1C;border:none;border-radius:6px;font-size:0.8125rem;cursor:pointer;">🗑 削除</button>'
         + '</div>'
@@ -1020,6 +1047,8 @@
       fd.append('url', url);
     } else {
       fd.append('file', file);
+      var dlPw = document.getElementById('ref-dl-password').value;
+      if (dlPw) fd.append('download_password', dlPw);
     }
 
     fetch('api/save_reference.php', { method: 'POST', body: fd })
@@ -1031,7 +1060,8 @@
           document.getElementById('ref-title').value    = '';
           document.getElementById('ref-url').value      = '';
           document.getElementById('ref-file').value     = '';
-          document.getElementById('ref-password').value = '';
+          document.getElementById('ref-password').value    = '';
+          document.getElementById('ref-dl-password').value = '';
           _refFormOpen = false;
           document.getElementById('ref-form-wrap').style.display = 'none';
           loadOfficersDocs();
@@ -1048,6 +1078,31 @@
         btn.disabled = false;
         btn.textContent = '登録する';
       });
+  }
+
+  function downloadRef(id) {
+    var password = prompt('🔒 ダウンロード用パスワードを入力してください：');
+    if (password === null) return; // キャンセル
+    var url = 'api/download_reference.php?id=' + encodeURIComponent(id) + '&password=' + encodeURIComponent(password);
+    fetch(url)
+      .then(function(r) {
+        if (r.ok) {
+          // ファイルダウンロード
+          return r.blob().then(function(blob) {
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            var disp = r.headers.get('Content-Disposition') || '';
+            var m = disp.match(/filename\*?=(?:UTF-8'')?([^;]+)/i);
+            a.download = m ? decodeURIComponent(m[1].replace(/"/g,'')) : 'download';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          });
+        } else {
+          return r.json().then(function(j) { alert(j.error || 'ダウンロードに失敗しました。'); });
+        }
+      })
+      .catch(function() { alert('通信エラーが発生しました。'); });
   }
 
   function deleteReference(id) {
@@ -1511,6 +1566,7 @@
   }
 
   // グローバルに公開（HTML onclickから呼び出せるように）
+  window.downloadRef           = downloadRef;
   window.toggleRefForm         = toggleRefForm;
   window.toggleRefType         = toggleRefType;
   window.submitReference       = submitReference;
