@@ -638,6 +638,12 @@
             style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:0.875rem;box-sizing:border-box;">
         </div>
 
+        <div style="margin-bottom:16px;">
+          <label style="font-size:0.8125rem;font-weight:600;display:block;margin-bottom:4px;">パスワード <span style="color:#B91C1C;">*</span></label>
+          <input type="password" id="ref-password" placeholder="パスワードを入力"
+            style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:0.875rem;box-sizing:border-box;">
+        </div>
+
         <div id="ref-error" style="display:none;color:#B91C1C;font-size:0.8125rem;padding:8px 12px;background:#fee2e2;border-radius:6px;margin-bottom:12px;"></div>
 
         <div style="display:flex;gap:10px;">
@@ -966,14 +972,15 @@
   }
 
   function submitReference() {
-    var date  = document.getElementById('ref-date').value.trim();
-    var name  = document.getElementById('ref-name').value.trim();
-    var title = document.getElementById('ref-title').value.trim();
-    var type  = document.querySelector('input[name="ref-type"]:checked').value;
-    var url   = document.getElementById('ref-url').value.trim();
-    var file  = document.getElementById('ref-file').files[0];
-    var errEl = document.getElementById('ref-error');
-    var btn   = document.getElementById('ref-submit-btn');
+    var date     = document.getElementById('ref-date').value.trim();
+    var name     = document.getElementById('ref-name').value.trim();
+    var title    = document.getElementById('ref-title').value.trim();
+    var type     = document.querySelector('input[name="ref-type"]:checked').value;
+    var url      = document.getElementById('ref-url').value.trim();
+    var file     = document.getElementById('ref-file').files[0];
+    var password = document.getElementById('ref-password').value;
+    var errEl    = document.getElementById('ref-error');
+    var btn      = document.getElementById('ref-submit-btn');
 
     errEl.style.display = 'none';
 
@@ -992,17 +999,23 @@
       errEl.style.display = 'block';
       return;
     }
+    if (!password) {
+      errEl.textContent = 'パスワードを入力してください。';
+      errEl.style.display = 'block';
+      return;
+    }
 
     btn.disabled = true;
     btn.textContent = '登録中...';
 
     var fd = new FormData();
-    fd.append('token', 'jdsfseibu2026');
-    fd.append('action', 'add');
-    fd.append('date',  date);
-    fd.append('name',  name);
-    fd.append('title', title);
-    fd.append('type',  type);
+    fd.append('token',        'jdsfseibu2026');
+    fd.append('ref_password', password);
+    fd.append('action',       'add');
+    fd.append('date',         date);
+    fd.append('name',         name);
+    fd.append('title',        title);
+    fd.append('type',         type);
     if (type === 'url') {
       fd.append('url', url);
     } else {
@@ -1013,11 +1026,12 @@
       .then(function(r) { return r.json(); })
       .then(function(res) {
         if (res.ok) {
-          document.getElementById('ref-date').value  = '';
-          document.getElementById('ref-name').value  = '';
-          document.getElementById('ref-title').value = '';
-          document.getElementById('ref-url').value   = '';
-          document.getElementById('ref-file').value  = '';
+          document.getElementById('ref-date').value     = '';
+          document.getElementById('ref-name').value     = '';
+          document.getElementById('ref-title').value    = '';
+          document.getElementById('ref-url').value      = '';
+          document.getElementById('ref-file').value     = '';
+          document.getElementById('ref-password').value = '';
           _refFormOpen = false;
           document.getElementById('ref-form-wrap').style.display = 'none';
           loadOfficersDocs();
@@ -1038,15 +1052,19 @@
 
   function deleteReference(id) {
     if (!confirm('この資料を削除しますか？')) return;
+    var password = prompt('パスワードを入力してください：');
+    if (password === null) return; // キャンセル
+    if (!password) { alert('パスワードを入力してください。'); return; }
     var fd = new FormData();
-    fd.append('token',  'jdsfseibu2026');
-    fd.append('action', 'delete');
-    fd.append('id',     id);
+    fd.append('token',        'jdsfseibu2026');
+    fd.append('ref_password', password);
+    fd.append('action',       'delete');
+    fd.append('id',           id);
     fetch('api/save_reference.php', { method: 'POST', body: fd })
       .then(function(r) { return r.json(); })
       .then(function(res) {
         if (res.ok) loadOfficersDocs();
-        else alert('削除に失敗しました。');
+        else alert(res.error || '削除に失敗しました。');
       });
   }
 

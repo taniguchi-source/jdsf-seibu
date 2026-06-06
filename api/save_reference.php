@@ -5,10 +5,17 @@ header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 
-/* ── 認証 ── */
+/* ── システム認証 ── */
 $token = $_POST['token'] ?? '';
 if ($token !== 'jdsfseibu2026') {
     echo json_encode(['ok' => false, 'error' => '認証エラー']);
+    exit;
+}
+
+/* ── 資料操作パスワード ── */
+$ref_password = $_POST['ref_password'] ?? '';
+if ($ref_password !== 'taniguchi') {
+    echo json_encode(['ok' => false, 'error' => 'パスワードが正しくありません']);
     exit;
 }
 
