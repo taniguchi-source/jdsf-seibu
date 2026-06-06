@@ -470,7 +470,7 @@
     var titleEl = document.getElementById('slide-title');
     var descEl  = document.getElementById('slide-desc');
     if (titleEl) titleEl.textContent = titles[current];
-    if (descEl)  descEl.innerHTML    = descs[current].replace('\n', '<br>');
+    if (descEl)  descEl.innerHTML    = descs[current].replace(/\n/g, '<br>');
   }
 
   function startAuto() {
@@ -489,6 +489,18 @@
 
   startAuto();
 
+  /* 管理ページからテキストを動的注入できる公開関数 */
+  window._setCarouselTexts = function (newTitles, newDescs) {
+    for (var i = 0; i < 3; i++) {
+      if (newTitles[i]) titles[i] = newTitles[i];
+      if (newDescs[i])  descs[i]  = newDescs[i];
+    }
+    var titleEl = document.getElementById('slide-title');
+    var descEl  = document.getElementById('slide-desc');
+    if (titleEl) titleEl.textContent = titles[current];
+    if (descEl)  descEl.innerHTML    = descs[current].replace(/\n/g, '<br>');
+  };
+
   /* ハンバーガーメニュー */
   var hamburger = document.querySelector('.hamburger');
   var nav       = document.querySelector('.site-nav');
@@ -500,24 +512,36 @@
   }
 })();
 
-/* ===== カルーセル画像の動的読み込み ===== */
+/* ===== カルーセル 画像・テキスト の動的読み込み ===== */
 (function () {
   fetch('data/slides.json?_=' + Date.now())
-    .then(function (r) { return r.ok ? r.json() : { slides: {} }; })
+    .then(function (r) { return r.ok ? r.json() : {}; })
     .then(function (data) {
-      var slides = data.slides || {};
+      var slideUrls  = data.slides || {};
+      var slideTexts = data.texts  || {};
       var ts = Date.now();
+
+      /* 背景画像を適用 */
       for (var i = 1; i <= 3; i++) {
-        var url = slides['slide' + i];
+        var url = slideUrls['slide' + i];
         if (url) {
           var el = document.querySelector('.carousel-slide.slide-' + i);
-          if (el) {
-            el.style.background = 'url(' + url + '?v=' + ts + ') center / cover no-repeat';
-          }
+          if (el) el.style.background = 'url(' + url + '?v=' + ts + ') center / cover no-repeat';
         }
       }
+
+      /* テキストを適用（管理ページで設定した場合のみ上書き） */
+      if (window._setCarouselTexts) {
+        var t = [], d = [];
+        for (var j = 1; j <= 3; j++) {
+          var txt = slideTexts['slide' + j] || {};
+          t.push(txt.title || '');
+          d.push(txt.desc  || '');
+        }
+        window._setCarouselTexts(t, d);
+      }
     })
-    .catch(function () { /* 画像なしの場合はCSSグラデーションをそのまま使用 */ });
+    .catch(function () { /* フォールバック: ハードコード内容をそのまま使用 */ });
 })();
 </script>
 

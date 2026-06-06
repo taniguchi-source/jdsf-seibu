@@ -825,22 +825,40 @@
   }
 
   /* ===================================================================
-     カルーセル画像管理
+     カルーセル管理（テキスト設定 + 背景画像アップロード）
   =================================================================== */
-  var _slidesData = {};
+  var _slidesData  = {};
+  var _slidesTexts = {};
 
-  /* ---------- slides.json 読込 ---------- */
+  var _DEFAULT_TEXTS = [
+    { title: 'ダンススポーツの普及・振興',
+      desc:  'テストダンススポーツ連盟は、地域のダンススポーツ競技の\n発展と会員の技術向上を支援する連盟です。' },
+    { title: '競技者の育成と技術向上',
+      desc:  '県内各地でスタンダード・ラテン種目の競技会・\n講習会を定期的に開催しています。' },
+    { title: '地域スポーツコミュニティを支援',
+      desc:  '初心者から上級者まで、すべてのダンサーが\n活躍できる環境づくりに取り組んでいます。' },
+  ];
+
   function loadSlides() {
     fetch('data/slides.json?_=' + Date.now())
-      .then(function(r){ return r.ok ? r.json() : {slides:{}}; })
+      .then(function(r){ return r.ok ? r.json() : {}; })
       .then(function(data){
-        _slidesData = data.slides || {};
+        _slidesData  = data.slides || {};
+        _slidesTexts = data.texts  || {};
         renderSlidesGrid();
       })
       .catch(function(){ renderSlidesGrid(); });
   }
 
-  /* ---------- グリッド描画 ---------- */
+  function _getSlideText(n) {
+    var saved = _slidesTexts['slide' + n] || {};
+    var def   = _DEFAULT_TEXTS[n - 1]    || {};
+    return {
+      title: saved.title !== undefined ? saved.title : (def.title || ''),
+      desc:  saved.desc  !== undefined ? saved.desc  : (def.desc  || ''),
+    };
+  }
+
   var _GRAD = [
     'linear-gradient(135deg,#3a2848 0%,#5a4068 50%,#7a5888 100%)',
     'linear-gradient(135deg,#203040 0%,#2c4458 40%,#385870 100%)',
@@ -850,51 +868,100 @@
   function renderSlidesGrid() {
     var grid = document.getElementById('slides-grid');
     if (!grid) return;
+    var ts = Date.now();
     grid.innerHTML = [1,2,3].map(function(n){
       var key    = 'slide' + n;
       var url    = _slidesData[key] || '';
       var hasImg = !!url;
-      var ts     = Date.now();
       var bgStyle = hasImg
         ? 'background:url(' + url + '?v=' + ts + ') center/cover no-repeat;'
         : 'background:' + _GRAD[n-1] + ';';
+      var txt = _getSlideText(n);
+      var previewTitle = escHtml(txt.title || '（タイトル未設定）');
+      var previewDescLine = (txt.desc || '').split('\n')[0];
+      if (previewDescLine.length > 34) previewDescLine = previewDescLine.substring(0,34) + '…';
 
       return '<div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);">'
-        /* プレビュー */
-        + '<div style="' + bgStyle + 'height:148px;position:relative;flex-shrink:0;">'
-        +   '<div style="position:absolute;inset:0;background:rgba(0,0,0,.32);display:flex;align-items:center;justify-content:center;">'
-        +     '<span style="color:#fff;font-size:1.25rem;font-weight:800;letter-spacing:.04em;text-shadow:0 2px 6px rgba(0,0,0,.6);">Slide ' + n + '</span>'
+        + '<div style="' + bgStyle + 'height:148px;position:relative;">'
+        +   '<div style="position:absolute;inset:0;background:rgba(0,0,0,.42);display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;padding:12px 14px;gap:4px;">'
+        +     '<div style="color:#fff;font-size:.9375rem;font-weight:800;text-shadow:0 2px 4px rgba(0,0,0,.5);line-height:1.3;">' + previewTitle + '</div>'
+        +     (previewDescLine ? '<div style="color:rgba(255,255,255,.78);font-size:.7rem;">' + escHtml(previewDescLine) + '</div>' : '')
         +   '</div>'
         +   (hasImg
-              ? '<div style="position:absolute;top:8px;right:8px;background:#16A34A;color:#fff;font-size:.625rem;font-weight:800;padding:3px 9px;border-radius:100px;letter-spacing:.04em;">✓ 画像あり</div>'
-              : '<div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.45);color:rgba(255,255,255,.8);font-size:.625rem;font-weight:700;padding:3px 9px;border-radius:100px;">グラデーション</div>')
+              ? '<div style="position:absolute;top:8px;right:8px;background:#16A34A;color:#fff;font-size:.6rem;font-weight:800;padding:2px 8px;border-radius:100px;">✓ 画像あり</div>'
+              : '<div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.4);color:rgba(255,255,255,.72);font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:100px;">グラデーション</div>')
         + '</div>'
-        /* カードボディ */
         + '<div style="padding:14px 16px 16px;">'
-        +   '<div style="font-size:.875rem;font-weight:700;color:var(--text-dark);margin-bottom:10px;">スライド ' + n + '</div>'
-        /* ドロップゾーン */
+        +   '<div style="font-size:.8125rem;font-weight:800;color:var(--primary);margin-bottom:12px;">スライド ' + n + '</div>'
+        +   '<div style="font-size:.7rem;font-weight:700;color:var(--text-light);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">テキスト設定</div>'
+        +   '<div style="display:grid;gap:8px;margin-bottom:8px;">'
+        +     '<div><label style="font-size:.75rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:3px;">タイトル</label>'
+        +     '<input type="text" id="slide-title-input-' + n + '" value="' + escHtml(txt.title) + '" '
+        +       'placeholder="例：ダンススポーツの普及・振興" '
+        +       'style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-family:inherit;box-sizing:border-box;outline:none;" '
+        +       'onfocus="this.style.borderColor=\'var(--primary)\'" onblur="this.style.borderColor=\'var(--border)\'"></div>'
+        +     '<div><label style="font-size:.75rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:3px;">サブタイトル <span style="font-weight:400;color:var(--text-light);">（改行可）</span></label>'
+        +     '<textarea id="slide-desc-input-' + n + '" rows="2" '
+        +       'placeholder="例：地域のダンススポーツ競技の発展を支援します。" '
+        +       'style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-family:inherit;resize:vertical;box-sizing:border-box;outline:none;line-height:1.55;" '
+        +       'onfocus="this.style.borderColor=\'var(--primary)\'" onblur="this.style.borderColor=\'var(--border)\'">' + escHtml(txt.desc) + '</textarea></div>'
+        +   '</div>'
+        +   '<div id="slide-text-msg-' + n + '" style="display:none;font-size:.775rem;padding:5px 10px;border-radius:5px;margin-bottom:8px;"></div>'
+        +   '<button onclick="saveSlideText(' + n + ')" style="width:100%;padding:8px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:14px;">💾 テキストを保存する</button>'
+        +   '<div style="border-top:1px solid var(--border);margin-bottom:12px;"></div>'
+        +   '<div style="font-size:.7rem;font-weight:700;color:var(--text-light);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">背景画像</div>'
         +   '<div id="drop-' + n + '" '
         +     'onclick="document.getElementById(\'file-' + n + '\').click()" '
         +     'ondragover="event.preventDefault();this.style.borderColor=\'var(--primary)\';this.style.background=\'var(--bg-blue)\';" '
         +     'ondragleave="this.style.borderColor=\'\';this.style.background=\'\';" '
         +     'ondrop="event.preventDefault();this.style.borderColor=\'\';this.style.background=\'\';handleDrop(' + n + ',event);" '
-        +     'style="border:2px dashed var(--border);border-radius:8px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .18s;margin-bottom:10px;">'
-        +     '<div style="font-size:1.25rem;margin-bottom:4px;">📁</div>'
-        +     '<div style="font-size:.775rem;color:var(--text-light);line-height:1.5;">クリックまたはドラッグ&amp;ドロップ<br>JPG / PNG / WebP　最大 8MB</div>'
+        +     'style="border:2px dashed var(--border);border-radius:8px;padding:11px 8px;text-align:center;cursor:pointer;transition:all .18s;margin-bottom:8px;">'
+        +     '<div style="font-size:1.1rem;margin-bottom:2px;">📁</div>'
+        +     '<div style="font-size:.725rem;color:var(--text-light);line-height:1.5;">クリックまたはドラッグ&amp;ドロップ<br>JPG / PNG / WebP　最大 8MB</div>'
         +   '</div>'
         +   '<input type="file" id="file-' + n + '" accept="image/*" style="display:none;" onchange="handleFileInput(' + n + ',this)">'
-        /* ステータス/削除 */
-        +   '<div id="slide-msg-' + n + '" style="display:none;font-size:.8rem;margin-bottom:8px;padding:6px 10px;border-radius:6px;"></div>'
+        +   '<div id="slide-msg-' + n + '" style="display:none;font-size:.775rem;margin-bottom:8px;padding:5px 10px;border-radius:5px;"></div>'
         +   (hasImg
-              ? '<button onclick="deleteSlide(' + n + ')" style="width:100%;padding:8px;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;border-radius:6px;font-size:.775rem;font-weight:700;cursor:pointer;transition:all .18s;">'
-              + '🗑 画像を削除してグラデーションに戻す</button>'
+              ? '<button onclick="deleteSlide(' + n + ')" style="width:100%;padding:7px;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;border-radius:6px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;">🗑 画像削除（グラデーションに戻す）</button>'
               : '')
-        + '</div>'
-        + '</div>';
+        + '</div></div>';
     }).join('');
   }
 
-  /* ---------- ファイル操作 ---------- */
+  function saveSlideText(n) {
+    var titleEl = document.getElementById('slide-title-input-' + n);
+    var descEl  = document.getElementById('slide-desc-input-'  + n);
+    var title   = titleEl ? titleEl.value.trim() : '';
+    var desc    = descEl  ? descEl.value         : '';
+    var fd = new FormData();
+    fd.append('token', TOKEN); fd.append('slide_num', n);
+    fd.append('title', title); fd.append('desc', desc);
+    fetch('api/save_slide_text.php', {method:'POST', body:fd})
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if (res.ok) {
+          _slidesTexts['slide' + n] = {title:title, desc:desc};
+          renderSlidesGrid();
+          setTimeout(function(){
+            var el = document.getElementById('slide-text-msg-' + n);
+            if (!el) return;
+            el.style.display='block'; el.style.background='#F0FFF4';
+            el.style.color='#166534'; el.style.border='1px solid #86EFAC';
+            el.textContent='✅ テキストを保存しました';
+            setTimeout(function(){ var e2=document.getElementById('slide-text-msg-'+n); if(e2)e2.style.display='none'; },3000);
+          },0);
+        } else {
+          var m=document.getElementById('slide-text-msg-'+n);
+          if(m){m.style.display='block';m.style.background='#FFF5F5';m.style.color='#B91C1C';m.style.border='1px solid #FECACA';m.textContent='⚠ '+(res.error||'エラー');}
+        }
+      })
+      .catch(function(){
+        var m=document.getElementById('slide-text-msg-'+n);
+        if(m){m.style.display='block';m.style.background='#FFF5F5';m.style.color='#B91C1C';m.style.border='1px solid #FECACA';m.textContent='⚠ 通信エラー';}
+      });
+  }
+  window.saveSlideText = saveSlideText;
+
   function handleFileInput(n, input) {
     if (input.files && input.files[0]) uploadSlide(n, input.files[0]);
     input.value = '';
@@ -907,55 +974,37 @@
   window.handleDrop      = handleDrop;
   window.deleteSlide     = deleteSlide;
 
-  /* ---------- アップロード ---------- */
   function uploadSlide(n, file) {
     var msgEl = document.getElementById('slide-msg-' + n);
     function showMsg(txt, ok) {
       if (!msgEl) return;
-      msgEl.style.display   = 'block';
-      msgEl.style.background = ok ? '#F0FFF4' : '#FFF5F5';
-      msgEl.style.color      = ok ? '#166534' : '#B91C1C';
-      msgEl.style.border     = '1px solid ' + (ok ? '#86EFAC' : '#FECACA');
-      msgEl.textContent      = txt;
+      msgEl.style.display='block';
+      msgEl.style.background=ok?'#EFF6FF':'#FFF5F5';
+      msgEl.style.color=ok?'#1D4ED8':'#B91C1C';
+      msgEl.style.border='1px solid '+(ok?'#BFDBFE':'#FECACA');
+      msgEl.textContent=txt;
     }
     showMsg('⏳ アップロード中…', true);
-    msgEl.style.background = '#EFF6FF';
-    msgEl.style.color      = '#1D4ED8';
-    msgEl.style.border     = '1px solid #BFDBFE';
-
     var fd = new FormData();
-    fd.append('token',     TOKEN);
-    fd.append('slide_num', n);
-    fd.append('image',     file);
-
-    fetch('api/upload_slide.php', { method: 'POST', body: fd })
+    fd.append('token', TOKEN); fd.append('slide_num', n); fd.append('image', file);
+    fetch('api/upload_slide.php', {method:'POST', body:fd})
       .then(function(r){ return r.json(); })
       .then(function(res){
-        if (res.ok) {
-          _slidesData['slide' + n] = res.url;
-          renderSlidesGrid();
-        } else {
-          showMsg('⚠ ' + (res.error || 'エラーが発生しました'), false);
-        }
+        if (res.ok) { _slidesData['slide'+n]=res.url; renderSlidesGrid(); }
+        else { showMsg('⚠ '+(res.error||'エラー'), false); }
       })
-      .catch(function(){ showMsg('⚠ 通信エラーが発生しました', false); });
+      .catch(function(){ showMsg('⚠ 通信エラー', false); });
   }
 
-  /* ---------- 削除 ---------- */
   function deleteSlide(n) {
-    if (!confirm('スライド' + n + 'の画像を削除して\nグラデーション表示に戻しますか？')) return;
+    if (!confirm('スライド'+n+'の画像を削除して\nグラデーション表示に戻しますか？')) return;
     var fd = new FormData();
-    fd.append('token',     TOKEN);
-    fd.append('slide_num', n);
-    fetch('api/delete_slide.php', { method: 'POST', body: fd })
+    fd.append('token', TOKEN); fd.append('slide_num', n);
+    fetch('api/delete_slide.php', {method:'POST', body:fd})
       .then(function(r){ return r.json(); })
       .then(function(res){
-        if (res.ok) {
-          delete _slidesData['slide' + n];
-          renderSlidesGrid();
-        } else {
-          alert(res.error || '削除に失敗しました');
-        }
+        if (res.ok) { delete _slidesData['slide'+n]; renderSlidesGrid(); }
+        else { alert(res.error||'削除に失敗しました'); }
       })
       .catch(function(){ alert('通信エラーが発生しました'); });
   }
