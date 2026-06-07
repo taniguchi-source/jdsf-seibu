@@ -28,6 +28,7 @@ jobs:
             --exclude='.github/' \
             --exclude='scripts/' \
             --exclude='preftest/' \
+            --exclude='preftest.jdsf-seibu.com/' \
             --exclude='pref/' \
             --exclude='test.jdsf-seibu.com/' \
             --exclude='old.jdsf-seibu.com/' \
