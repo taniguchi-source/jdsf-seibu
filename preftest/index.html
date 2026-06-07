@@ -351,22 +351,8 @@
       <h2 class="pref-section-title">📢 お知らせ・最新情報</h2>
       <a href="news.html" style="font-size:0.875rem;color:var(--primary);font-weight:700;text-decoration:none;">お知らせ一覧を見る →</a>
     </div>
-    <div class="placeholder-cards">
-      <div class="placeholder-card">
-        <div class="placeholder-card-date">📅 2026-06-01</div>
-        <div class="placeholder-card-title">【ダミー】2026年度総会のお知らせ</div>
-        <div class="placeholder-card-body">2026年度定期総会を下記の通り開催いたします。会員の皆様はご出席ください。</div>
-      </div>
-      <div class="placeholder-card">
-        <div class="placeholder-card-date">📅 2026-05-20</div>
-        <div class="placeholder-card-title">【ダミー】ブロック戦の参加申込受付開始</div>
-        <div class="placeholder-card-body">2026年度ブロック戦の参加申込受付を開始しました。期限内にお申し込みください。</div>
-      </div>
-      <div class="placeholder-card">
-        <div class="placeholder-card-date">📅 2026-05-10</div>
-        <div class="placeholder-card-title">【ダミー】指導員認定試験のご案内</div>
-        <div class="placeholder-card-body">今年度の指導員認定試験について案内をアップしました。詳細は指導員情報ページをご覧ください。</div>
-      </div>
+    <div id="top-news-list" class="placeholder-cards">
+      <p style="color:var(--text-light);font-size:0.9rem;padding:8px 0;">読み込み中...</p>
     </div>
   </div>
 </section>
@@ -544,6 +530,46 @@
       }
     })
     .catch(function () { /* フォールバック: ハードコード内容をそのまま使用 */ });
+})();
+
+/* ===== トップページ お知らせ動的ロード ===== */
+(function () {
+  var CAT_CLASS = {
+    '競技会':       'tag-comp',
+    '指導員':       'tag-instructor',
+    'イベント':     'tag-event',
+    '本部お知らせ': 'tag-hq',
+    'ランキング':   'tag-notice',
+    'その他':       'tag-notice'
+  };
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  var el = document.getElementById('top-news-list');
+  if (!el) return;
+  fetch('data/news.json?_=' + Date.now())
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .then(function (data) {
+      var news = (data.news || []).filter(function (n) { return n.published !== false; });
+      if (news.length === 0) {
+        el.innerHTML = '<p style="color:var(--text-light);font-size:0.9rem;padding:8px 0;">現在、お知らせはありません。</p>';
+        return;
+      }
+      el.innerHTML = news.slice(0, 3).map(function (n) {
+        var catCls = CAT_CLASS[n.category] || 'tag-info';
+        var detail = (n.detail || '').length > 60 ? n.detail.substring(0, 60) + '…' : (n.detail || '');
+        var href   = n.id ? 'news-detail.html?id=' + encodeURIComponent(n.id) : 'news.html';
+        return '<a href="' + href + '" class="placeholder-card" style="text-decoration:none;color:inherit;">'
+          + '<div class="placeholder-card-date" style="display:flex;align-items:center;gap:6px;">📅 ' + escHtml(n.date)
+          + ' <span class="tag ' + catCls + '" style="font-size:0.7rem;">' + escHtml(n.category || '') + '</span></div>'
+          + '<div class="placeholder-card-title">' + escHtml(n.title) + '</div>'
+          + (detail ? '<div class="placeholder-card-body">' + escHtml(detail) + '</div>' : '')
+          + '</a>';
+      }).join('');
+    })
+    .catch(function () {
+      el.innerHTML = '<p style="color:var(--text-light);font-size:0.9rem;padding:8px 0;">お知らせの読み込みに失敗しました。</p>';
+    });
 })();
 
 /* ===== ナビゲーション動的ロード ===== */
