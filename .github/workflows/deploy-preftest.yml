@@ -27,6 +27,7 @@ jobs:
                 set net:timeout 30; set net:max-retries 3; \
                 mirror -R --delete \
                   --exclude '^data/' \
+                  --exclude '^uploads/' \
                   preftest/ \
                   /jdsf-seibu.com/public_html/preftest.jdsf-seibu.com/; \
                 quit"

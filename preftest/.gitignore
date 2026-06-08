@@ -2,3 +2,6 @@
 data/nav.json
 data/contents.json
 data/news.json
+# アップロードファイル（サーバー上で管理）
+uploads/*
+!uploads/.gitkeep

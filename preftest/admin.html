@@ -268,12 +268,15 @@
       <!-- 種類 -->
       <div>
         <label class="form-label">種類</label>
-        <div style="display:flex;gap:24px;padding:10px 14px;background:#f8fafc;border-radius:8px;border:1.5px solid var(--border);">
+        <div style="display:flex;flex-wrap:wrap;gap:16px;padding:10px 14px;background:#f8fafc;border-radius:8px;border:1.5px solid var(--border);">
           <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;">
             <input type="radio" name="cd-type" value="text" checked onchange="switchContentType('text')" style="cursor:pointer;accent-color:var(--primary);"> 📝 テキスト
           </label>
           <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;">
             <input type="radio" name="cd-type" value="sheet" onchange="switchContentType('sheet')" style="cursor:pointer;accent-color:var(--primary);"> 📊 Googleスプレッドシート
+          </label>
+          <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;">
+            <input type="radio" name="cd-type" value="file" onchange="switchContentType('file')" style="cursor:pointer;accent-color:var(--primary);"> 🖼️ 画像・PDF
           </label>
         </div>
       </div>
@@ -281,6 +284,31 @@
       <div id="cd-text-section">
         <label class="form-label">内容 <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（任意）</span></label>
         <textarea id="cd-body" rows="6" class="form-input" style="resize:vertical;line-height:1.7;" placeholder="ここにコンテンツの内容を入力してください..."></textarea>
+      </div>
+      <!-- 画像・PDFセクション -->
+      <div id="cd-file-section" style="display:none;">
+        <div style="display:grid;gap:12px;">
+          <!-- 現在のファイル表示 -->
+          <div id="cd-file-current" style="display:none;align-items:center;gap:10px;padding:10px 14px;background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:8px;">
+            <span style="font-size:1.25rem;">📎</span>
+            <span id="cd-file-name" style="flex:1;font-size:.875rem;font-weight:600;color:var(--text-dark);word-break:break-all;"></span>
+            <button onclick="clearContentFile()" style="background:none;border:1px solid #FCA5A5;border-radius:5px;color:#B91C1C;font-size:.75rem;padding:3px 10px;cursor:pointer;white-space:nowrap;font-family:inherit;">✕ 削除</button>
+          </div>
+          <!-- アップロード -->
+          <div>
+            <label class="form-label">ファイルを選択 <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（jpg / png / gif / pdf　最大10MB）</span></label>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input type="file" id="cd-file-input" accept=".jpg,.jpeg,.png,.gif,.pdf"
+                style="flex:1;min-width:0;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:.875rem;font-family:inherit;background:#fff;">
+              <button onclick="uploadContentFile()" id="cd-upload-btn"
+                style="padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">⬆ アップロード</button>
+            </div>
+          </div>
+          <!-- プレビュー -->
+          <div id="cd-file-preview"></div>
+          <!-- 保存URL（隠しフィールド） -->
+          <input type="hidden" id="cd-file-url">
+        </div>
       </div>
       <!-- スプレッドシートセクション -->
       <div id="cd-sheet-section" style="display:none;">
@@ -741,7 +769,8 @@
       var safeTitle = escHtml(item.title || 'コンテンツ' + (idx + 1));
       var enabled   = item.enabled !== false;
       var isSheet   = item.type === 'sheet';
-      var typeIcon  = isSheet ? '📊 ' : '';
+      var isFile    = item.type === 'file';
+      var typeIcon  = isSheet ? '📊 ' : (isFile ? '🖼️ ' : '');
       return '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;'
         + 'background:' + (enabled ? '#EFF6FF' : '#F1F5F9') + ';'
         + 'border:1px solid ' + (enabled ? '#BFDBFE' : 'var(--border)') + ';'
@@ -765,7 +794,7 @@
     var k = String(siteId);
     if (!_contentData[k]) _contentData[k] = [];
     var num = _contentData[k].length + 1;
-    _contentData[k].push({ id: k + '_' + Date.now(), title: 'コンテンツ' + num, enabled: true, type: 'text', body: '', sheet_url: '', sheet_name: '' });
+    _contentData[k].push({ id: k + '_' + Date.now(), title: 'コンテンツ' + num, enabled: true, type: 'text', body: '', sheet_url: '', sheet_name: '', file_url: '' });
     var el = document.getElementById('content-chips-' + k);
     if (el) el.innerHTML = renderContentChips(k);
   }
@@ -825,6 +854,25 @@
     if (sheetUrl)  sheetUrl.value  = item.sheet_url  || '';
     if (sheetName) sheetName.value = item.sheet_name || '';
     if (sheetPrev) sheetPrev.innerHTML = '';
+    // ファイルフィールド
+    var fileUrl   = document.getElementById('cd-file-url');
+    var fileName  = document.getElementById('cd-file-name');
+    var fileCur   = document.getElementById('cd-file-current');
+    var filePrev  = document.getElementById('cd-file-preview');
+    var fileInput = document.getElementById('cd-file-input');
+    var fUrl = item.file_url || '';
+    if (fileUrl)   fileUrl.value        = fUrl;
+    if (fileInput) fileInput.value      = '';
+    if (fileCur)   fileCur.style.display = fUrl ? 'flex' : 'none';
+    if (fileName)  fileName.textContent = fUrl ? fUrl.split('/').pop() : '';
+    if (filePrev) {
+      if (fUrl) {
+        var fExt = fUrl.split('.').pop();
+        renderFilePreview(fUrl, fExt, filePrev);
+      } else {
+        filePrev.innerHTML = '';
+      }
+    }
     var msg = document.getElementById('cd-msg');
     if (msg) msg.style.display = 'none';
     var ov = document.getElementById('content-detail-modal');
@@ -852,6 +900,7 @@
     }
     var sheetUrl  = ((document.getElementById('cd-sheet-url')  || {value:''}).value || '').trim();
     var sheetName = ((document.getElementById('cd-sheet-name') || {value:''}).value || '').trim();
+    var fileUrl   = ((document.getElementById('cd-file-url')   || {value:''}).value || '').trim();
     if (!title) {
       if (msg) { msg.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;border-radius:6px;padding:8px 14px;'; msg.textContent='⚠ タイトルを入力してください'; }
       return;
@@ -863,6 +912,7 @@
       item.type       = type;
       item.sheet_url  = sheetUrl;
       item.sheet_name = sheetName;
+      item.file_url   = fileUrl;
     }
     var chipsEl = document.getElementById('content-chips-' + siteId);
     if (chipsEl) chipsEl.innerHTML = renderContentChips(siteId);
@@ -874,8 +924,71 @@
   function switchContentType(type) {
     var textSec  = document.getElementById('cd-text-section');
     var sheetSec = document.getElementById('cd-sheet-section');
+    var fileSec  = document.getElementById('cd-file-section');
     if (textSec)  textSec.style.display  = (type === 'text')  ? '' : 'none';
     if (sheetSec) sheetSec.style.display = (type === 'sheet') ? '' : 'none';
+    if (fileSec)  fileSec.style.display  = (type === 'file')  ? '' : 'none';
+  }
+
+  /* ===== ファイルアップロード ===== */
+  function uploadContentFile() {
+    var input   = document.getElementById('cd-file-input');
+    var preview = document.getElementById('cd-file-preview');
+    var urlEl   = document.getElementById('cd-file-url');
+    var nameEl  = document.getElementById('cd-file-name');
+    var curEl   = document.getElementById('cd-file-current');
+    var btn     = document.getElementById('cd-upload-btn');
+    if (!input || !input.files || !input.files[0]) {
+      if (preview) preview.innerHTML = '<p style="color:#B91C1C;font-size:.82rem;margin:4px 0 0;">⚠ ファイルを選択してください</p>';
+      return;
+    }
+    if (preview) preview.innerHTML = '<p style="color:var(--text-light);font-size:.82rem;margin:4px 0 0;">⏳ アップロード中...</p>';
+    if (btn) { btn.disabled = true; btn.textContent = '送信中…'; }
+    var fd = new FormData();
+    fd.append('token', TOKEN);
+    fd.append('file',  input.files[0]);
+    fetch('api/upload_file.php', { method:'POST', body:fd })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.ok) {
+          if (urlEl)  urlEl.value        = res.url;
+          if (nameEl) nameEl.textContent = res.orig;
+          if (curEl)  curEl.style.display = 'flex';
+          renderFilePreview(res.url, res.ext, preview);
+        } else {
+          if (preview) preview.innerHTML = '<p style="color:#B91C1C;font-size:.82rem;margin:4px 0 0;">⚠ ' + escHtml(res.error || 'アップロードに失敗しました') + '</p>';
+        }
+      })
+      .catch(function() {
+        if (preview) preview.innerHTML = '<p style="color:#B91C1C;font-size:.82rem;margin:4px 0 0;">⚠ 通信エラーが発生しました</p>';
+      })
+      .finally(function() {
+        if (btn) { btn.disabled = false; btn.textContent = '⬆ アップロード'; }
+      });
+  }
+
+  function renderFilePreview(url, ext, el) {
+    if (!el) return;
+    var imgExts = ['jpg','jpeg','png','gif'];
+    if (imgExts.indexOf((ext||'').toLowerCase()) >= 0) {
+      el.innerHTML = '<img src="' + escHtml(url) + '" style="max-width:100%;max-height:280px;object-fit:contain;border-radius:8px;border:1px solid var(--border);margin-top:4px;" alt="プレビュー">';
+    } else if ((ext||'').toLowerCase() === 'pdf') {
+      el.innerHTML = '<embed src="' + escHtml(url) + '" type="application/pdf" style="width:100%;height:380px;border-radius:8px;border:1px solid var(--border);margin-top:4px;">'
+        + '<p style="font-size:.775rem;color:var(--text-light);margin:4px 0 0;text-align:right;"><a href="' + escHtml(url) + '" target="_blank" style="color:var(--primary);">🔗 別タブで開く</a></p>';
+    }
+  }
+
+  function clearContentFile() {
+    var urlEl   = document.getElementById('cd-file-url');
+    var nameEl  = document.getElementById('cd-file-name');
+    var curEl   = document.getElementById('cd-file-current');
+    var preview = document.getElementById('cd-file-preview');
+    var input   = document.getElementById('cd-file-input');
+    if (urlEl)   urlEl.value         = '';
+    if (nameEl)  nameEl.textContent  = '';
+    if (curEl)   curEl.style.display = 'none';
+    if (preview) preview.innerHTML   = '';
+    if (input)   input.value         = '';
   }
 
   /* ===== スプレッドシートプレビュー ===== */
@@ -971,6 +1084,8 @@
   window.renderContentChips = renderContentChips;
   window.switchContentType  = switchContentType;
   window.loadSheetPreview   = loadSheetPreview;
+  window.uploadContentFile  = uploadContentFile;
+  window.clearContentFile   = clearContentFile;
 
   /* ===== ユーティリティ ===== */
   function escHtml(s) {

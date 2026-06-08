@@ -34,6 +34,7 @@ foreach ($items as $item) {
         'body'       => mb_substr(trim((string)($item['body'] ?? '')), 0, 5000),
         'sheet_url'  => mb_substr(trim((string)($item['sheet_url']  ?? '')), 0, 500),
         'sheet_name' => mb_substr(trim((string)($item['sheet_name'] ?? '')), 0, 100),
+        'file_url'   => mb_substr(trim((string)($item['file_url']   ?? '')), 0, 500),
     ];
 }
 
