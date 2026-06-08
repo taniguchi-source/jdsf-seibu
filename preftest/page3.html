@@ -40,30 +40,41 @@
     .sheet-table-wrap {
       overflow-x: auto;
       border-radius: 8px;
-      border: 1px solid #e2e8f0;
+      border: 1px solid #dde4ef;
+      margin-top: 4px;
     }
     .sheet-table {
       width: 100%;
       border-collapse: collapse;
       font-size: .875rem;
     }
-    .sheet-table th {
-      background: #1B3A6B;
+    .sheet-table thead th {
+      background: #3B5EA6;
       color: #fff;
-      padding: 10px 14px;
+      padding: 11px 16px;
       text-align: left;
-      font-size: .8rem;
+      font-size: .8125rem;
       font-weight: 700;
       white-space: nowrap;
-      border-right: 1px solid rgba(255,255,255,.15);
+      border-right: 1px solid rgba(255,255,255,.18);
     }
-    .sheet-table td {
-      padding: 8px 14px;
-      border-top: 1px solid #e2e8f0;
-      border-right: 1px solid #f0f4f8;
+    .sheet-table tbody td {
+      padding: 9px 16px;
+      border-top: 1px solid #e8edf5;
+      border-right: 1px solid #edf1f7;
+      color: var(--text-medium);
     }
-    .sheet-table tr:nth-child(even) td { background: #f8fafc; }
-    .sheet-table tr:nth-child(odd)  td { background: #fff; }
+    .sheet-table .sheet-row-even td { background: #fff; }
+    .sheet-table .sheet-row-odd  td { background: #f7f9fc; }
+    .sheet-table .sheet-section-row td {
+      background: #EFF6FF;
+      color: #1e3a8a;
+      font-weight: 800;
+      font-size: .875rem;
+      padding: 9px 16px;
+      border-top: 2px solid #BFDBFE;
+      border-left: 4px solid #3B5EA6;
+    }
     .loading-text {
       color: var(--text-light);
       font-size: .875rem;
@@ -192,19 +203,38 @@
   function csvToTable(csv) {
     var rows = parseCSV(csv);
     if (!rows || rows.length === 0) return '<p style="color:var(--text-light);">データがありません</p>';
-    var html = '<div class="sheet-table-wrap"><table class="sheet-table">';
-    rows.forEach(function(row, ri) {
-      html += '<tr>';
-      row.forEach(function(cell) {
-        if (ri === 0) {
-          html += '<th>' + escHtml(cell) + '</th>';
-        } else {
-          html += '<td>' + escHtml(cell) + '</td>';
-        }
-      });
+    var startRow = 0;
+    if (rows.length > 1) {
+      var ne = rows[0].filter(function(c){ return c.trim() !== ''; });
+      if (ne.length <= 1) startRow = 1;
+    }
+    if (startRow >= rows.length) return '<p style="color:var(--text-light);">データがありません</p>';
+    var headerRow = rows[startRow];
+    var dataRows  = rows.slice(startRow + 1);
+    var hasSection = headerRow.length > 0 && headerRow[0].trim() === '';
+    var colStart   = hasSection ? 1 : 0;
+    var html = '<div class="sheet-table-wrap"><table class="sheet-table"><thead><tr>';
+    for (var hi = colStart; hi < headerRow.length; hi++) {
+      html += '<th>' + escHtml(headerRow[hi]) + '</th>';
+    }
+    html += '</tr></thead><tbody>';
+    var curSection = '', rowCount = 0;
+    dataRows.forEach(function(row) {
+      if (row.every(function(c){ return !c.trim(); })) return;
+      var secVal = hasSection ? (row[0] || '').trim() : '';
+      if (hasSection && secVal && secVal !== curSection) {
+        curSection = secVal;
+        html += '<tr class="sheet-section-row"><td colspan="' + (headerRow.length - colStart) + '">'
+          + escHtml(secVal) + '</td></tr>';
+      }
+      html += '<tr class="' + (rowCount % 2 === 0 ? 'sheet-row-even' : 'sheet-row-odd') + '">';
+      for (var di = colStart; di < headerRow.length; di++) {
+        html += '<td>' + escHtml(row[di] || '') + '</td>';
+      }
       html += '</tr>';
+      rowCount++;
     });
-    return html + '</table></div>';
+    return html + '</tbody></table></div>';
   }
 
   /* ===== スプレッドシート取得 ===== */

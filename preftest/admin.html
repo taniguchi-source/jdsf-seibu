@@ -1053,26 +1053,52 @@
   function csvToTable(csv) {
     var rows = parseCSV(csv);
     if (!rows || rows.length === 0) {
-      return '<p style="color:var(--text-light);font-size:.82rem;margin:8px 0 0;">データがありません</p>';
+      return '<p style="color:var(--text-light);font-size:.82rem;margin:6px 0 0;">データがありません</p>';
     }
-    var html = '<div style="overflow-x:auto;margin-top:10px;border-radius:8px;border:1px solid #e2e8f0;">'
-      + '<table style="width:100%;border-collapse:collapse;font-size:.8rem;">';
-    rows.forEach(function(row, ri) {
+    /* タイトル行検出（有効セルが1つ以下ならスキップ） */
+    var startRow = 0;
+    if (rows.length > 1) {
+      var ne = rows[0].filter(function(c){ return c.trim() !== ''; });
+      if (ne.length <= 1) startRow = 1;
+    }
+    if (startRow >= rows.length) return '<p style="color:var(--text-light);font-size:.82rem;">データがありません</p>';
+    var headerRow = rows[startRow];
+    var dataRows  = rows.slice(startRow + 1);
+    /* セクション列検出（ヘッダー先頭が空ならセクション列あり） */
+    var hasSection = headerRow.length > 0 && headerRow[0].trim() === '';
+    var colStart   = hasSection ? 1 : 0;
+    /* ヘッダー */
+    var thStyle = 'background:#3B5EA6;color:#fff;padding:9px 13px;text-align:left;'
+      + 'border-right:1px solid rgba(255,255,255,.18);font-size:.775rem;font-weight:700;white-space:nowrap;';
+    var html = '<div style="overflow-x:auto;margin-top:10px;border-radius:8px;border:1px solid #dde4ef;">'
+      + '<table style="width:100%;border-collapse:collapse;font-size:.8rem;">'
+      + '<thead><tr>';
+    for (var hi = colStart; hi < headerRow.length; hi++) {
+      html += '<th style="' + thStyle + '">' + escHtml(headerRow[hi]) + '</th>';
+    }
+    html += '</tr></thead><tbody>';
+    /* データ行 */
+    var curSection = '', rowCount = 0;
+    dataRows.forEach(function(row) {
+      if (row.every(function(c){ return !c.trim(); })) return;
+      var secVal = hasSection ? (row[0] || '').trim() : '';
+      if (hasSection && secVal && secVal !== curSection) {
+        curSection = secVal;
+        html += '<tr><td colspan="' + (headerRow.length - colStart) + '" '
+          + 'style="background:#EFF6FF;color:#1e3a8a;font-weight:800;font-size:.8rem;'
+          + 'padding:8px 13px;border-top:2px solid #BFDBFE;border-left:4px solid #3B5EA6;">'
+          + escHtml(secVal) + '</td></tr>';
+      }
+      var bg = rowCount % 2 === 0 ? '#fff' : '#f7f9fc';
       html += '<tr>';
-      row.forEach(function(cell) {
-        if (ri === 0) {
-          html += '<th style="background:#1B3A6B;color:#fff;padding:8px 12px;text-align:left;border-right:1px solid rgba(255,255,255,.15);font-size:.775rem;font-weight:700;white-space:nowrap;">'
-            + escHtml(cell) + '</th>';
-        } else {
-          html += '<td style="padding:6px 12px;border-top:1px solid #e2e8f0;border-right:1px solid #f0f4f8;'
-            + (ri % 2 === 0 ? 'background:#f8fafc;' : 'background:#fff;') + '">'
-            + escHtml(cell) + '</td>';
-        }
-      });
+      for (var di = colStart; di < headerRow.length; di++) {
+        html += '<td style="padding:7px 13px;border-top:1px solid #e8edf5;border-right:1px solid #edf1f7;background:' + bg + ';">'
+          + escHtml(row[di] || '') + '</td>';
+      }
       html += '</tr>';
+      rowCount++;
     });
-    html += '</table></div>';
-    return html;
+    return html + '</tbody></table></div>';
   }
 
   window.openContentModal   = openContentModal;
