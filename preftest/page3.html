@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>サイト1｜テストダンススポーツ連盟</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://jdsf-seibu.com/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="theme-vars.php">
+  <style>
+    .content-block {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    .content-block-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin: 0 0 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #BFDBFE;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .content-block-body {
+      font-size: .9375rem;
+      color: var(--text-medium);
+      line-height: 1.8;
+      white-space: pre-wrap;
+    }
+    .sheet-table-wrap {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+    .sheet-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .875rem;
+    }
+    .sheet-table th {
+      background: #1B3A6B;
+      color: #fff;
+      padding: 10px 14px;
+      text-align: left;
+      font-size: .8rem;
+      font-weight: 700;
+      white-space: nowrap;
+      border-right: 1px solid rgba(255,255,255,.15);
+    }
+    .sheet-table td {
+      padding: 8px 14px;
+      border-top: 1px solid #e2e8f0;
+      border-right: 1px solid #f0f4f8;
+    }
+    .sheet-table tr:nth-child(even) td { background: #f8fafc; }
+    .sheet-table tr:nth-child(odd)  td { background: #fff; }
+    .loading-text {
+      color: var(--text-light);
+      font-size: .875rem;
+      padding: 8px 0;
+    }
+    @media (max-width: 600px) {
+      .content-block { padding: 20px 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="header-logo">
+      <img src="https://jdsf-seibu.com/images/jdsf-mark.png" alt="JDSFマーク" class="header-logo-img">
+      <div class="header-logo-text">
+        <div class="org">公益社団法人日本ダンススポーツ連盟</div>
+        <div class="name">テストダンススポーツ連盟</div>
+      </div>
+    </a>
+    <button class="hamburger" aria-label="メニュー" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-nav" aria-label="メインナビゲーション">
+      <a href="index.html" class="nav-link">ホーム</a>
+      <span id="dynamic-nav" style="display:contents;">
+        <a href="page1.html" class="nav-link">サイト1</a>
+        <a href="page2.html" class="nav-link">サイト2</a>
+        <a href="page3.html" class="nav-link active">サイト3</a>
+      </span>
+      <a href="contact.html" class="nav-link nav-cta">お問い合わせ</a>
+      <a href="admin.html"   class="nav-link">サイト管理</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page-hero">
+  <div class="container">
+    <div class="page-hero-label">Site 3</div>
+    <h1 class="page-hero-title" id="page-title">サイト3</h1>
+    <p class="page-hero-desc" id="page-desc">テストダンススポーツ連盟</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div id="contents-wrap">
+      <p class="loading-text">⏳ 読み込み中...</p>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-top">
+    <div>
+      <div class="footer-logo">
+        <img src="https://jdsf-seibu.com/images/jdsf-sakura-mark.png" alt="JDSF" class="footer-logo-mark-img" style="height:50px;width:auto;">
+        <div class="footer-logo-name">テストダンススポーツ連盟</div>
+      </div>
+      <p class="footer-desc">
+        テストダンススポーツ連盟は、<br>
+        地域のダンススポーツ活動を<br>
+        支援・普及する連盟です。
+      </p>
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="footer-jdsf">🔗 JDSF本部サイト</a>
+    </div>
+    <div class="footer-col">
+      <h4>サイトマップ</h4>
+      <ul class="footer-links">
+        <li><a href="index.html">ホーム</a></li>
+        <li><a href="news.html">お知らせ一覧</a></li>
+        <li><a href="contact.html">お問い合わせ</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>関連リンク</h4>
+      <ul class="footer-links">
+        <li><a href="https://jdsf-seibu.com/" target="_blank" rel="noopener">JDSF西部ブロック委員会</a></li>
+        <li><a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener">JDSF本部</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© 2026 テストダンススポーツ連盟. All rights reserved.</span>
+    <div class="footer-bottom-links">
+      <a href="contact.html">お問い合わせ</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var SITE_ID = '3';
+  var TOKEN   = 'preftest2026';
+
+  /* ===== ユーティリティ ===== */
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function parseCSV(text) {
+    var rows = [];
+    var lines = text.split(/\r?\n/);
+    for (var li = 0; li < lines.length; li++) {
+      var line = lines[li];
+      if (!line.trim()) continue;
+      var row = [], inQ = false, cell = '';
+      for (var ci = 0; ci < line.length; ci++) {
+        var c = line[ci];
+        if (c === '"') {
+          if (inQ && line[ci+1] === '"') { cell += '"'; ci++; }
+          else { inQ = !inQ; }
+        } else if (c === ',' && !inQ) {
+          row.push(cell); cell = '';
+        } else { cell += c; }
+      }
+      row.push(cell);
+      rows.push(row);
+    }
+    return rows;
+  }
+
+  function csvToTable(csv) {
+    var rows = parseCSV(csv);
+    if (!rows || rows.length === 0) return '<p style="color:var(--text-light);">データがありません</p>';
+    var html = '<div class="sheet-table-wrap"><table class="sheet-table">';
+    rows.forEach(function(row, ri) {
+      html += '<tr>';
+      row.forEach(function(cell) {
+        if (ri === 0) {
+          html += '<th>' + escHtml(cell) + '</th>';
+        } else {
+          html += '<td>' + escHtml(cell) + '</td>';
+        }
+      });
+      html += '</tr>';
+    });
+    return html + '</table></div>';
+  }
+
+  /* ===== スプレッドシート取得 ===== */
+  function fetchSheet(sheetUrl, sheetName, targetEl) {
+    var fd = new FormData();
+    fd.append('token',      TOKEN);
+    fd.append('sheet_url',  sheetUrl);
+    fd.append('sheet_name', sheetName || '');
+    fetch('api/fetch_sheet.php', { method:'POST', body:fd })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.ok && res.csv) {
+          targetEl.innerHTML = csvToTable(res.csv);
+        } else {
+          targetEl.innerHTML = '<p style="color:#B91C1C;">⚠ ' + escHtml(res.error || 'データの取得に失敗しました') + '</p>';
+        }
+      })
+      .catch(function() {
+        targetEl.innerHTML = '<p style="color:#B91C1C;">⚠ 通信エラーが発生しました</p>';
+      });
+  }
+
+  /* ===== コンテンツ描画 ===== */
+  function renderContents(items) {
+    var wrap = document.getElementById('contents-wrap');
+    if (!wrap) return;
+    if (!items || items.length === 0) {
+      wrap.innerHTML = '<div style="text-align:center;padding:60px 20px;"><p style="color:var(--text-light);">現在、コンテンツはありません。</p></div>';
+      return;
+    }
+    wrap.innerHTML = '';
+    items.forEach(function(item, i) {
+      var block = document.createElement('div');
+      block.className = 'content-block';
+
+      var titleIcon = item.type === 'sheet' ? '📊 ' : '📝 ';
+      var titleEl   = document.createElement('h2');
+      titleEl.className = 'content-block-title';
+      titleEl.textContent = titleIcon + (item.title || 'コンテンツ' + (i + 1));
+      block.appendChild(titleEl);
+
+      var bodyEl = document.createElement('div');
+      if (item.type === 'sheet') {
+        bodyEl.className = 'loading-text';
+        bodyEl.textContent = '⏳ スプレッドシートを読み込み中...';
+        block.appendChild(bodyEl);
+        if (item.sheet_url) {
+          fetchSheet(item.sheet_url, item.sheet_name, bodyEl);
+        } else {
+          bodyEl.textContent = '（スプレッドシートURLが未設定です）';
+        }
+      } else {
+        bodyEl.className = 'content-block-body';
+        bodyEl.textContent = item.body || '（内容はまだ設定されていません）';
+        block.appendChild(bodyEl);
+      }
+
+      wrap.appendChild(block);
+    });
+  }
+
+  /* ===== コンテンツ読み込み ===== */
+  fetch('data/contents.json?_=' + Date.now())
+    .then(function(r) { return r.ok ? r.json() : {}; })
+    .then(function(data) {
+      var items = (data[SITE_ID] || []).filter(function(item) {
+        return item.enabled !== false;
+      });
+      renderContents(items);
+    })
+    .catch(function() {
+      var wrap = document.getElementById('contents-wrap');
+      if (wrap) wrap.innerHTML = '<p style="color:#B91C1C;">⚠ コンテンツの読み込みに失敗しました。</p>';
+    });
+
+  /* ===== ナビゲーション動的ロード ===== */
+  fetch('data/nav.json?_=' + Date.now())
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (!data || !Array.isArray(data.links)) return;
+      // ページタイトル更新
+      var me = data.links.filter(function(l) { return String(l.id) === SITE_ID; })[0];
+      if (me && me.name) {
+        var titleEl = document.getElementById('page-title');
+        if (titleEl) titleEl.textContent = me.name;
+        document.title = me.name + '｜テストダンススポーツ連盟';
+      }
+      // ナビ生成
+      var container = document.getElementById('dynamic-nav');
+      if (!container) return;
+      var html = '';
+      data.links.forEach(function(link) {
+        if (!link.enabled) return;
+        var url  = String(link.url  || '#').replace(/"/g, '%22');
+        var name = escHtml(link.name || '');
+        var cls  = String(link.id) === SITE_ID ? ' active' : '';
+        html += '<a href="' + url + '" class="nav-link' + cls + '">' + name + '</a>';
+      });
+      container.innerHTML = html;
+    })
+    .catch(function() {});
+
+  /* ===== ハンバーガーメニュー ===== */
+  var hamburger = document.querySelector('.hamburger');
+  var nav       = document.querySelector('.site-nav');
+  if (hamburger && nav) {
+    hamburger.addEventListener('click', function() {
+      var open = nav.classList.toggle('open');
+      hamburger.setAttribute('aria-expanded', open);
+    });
+  }
+}());
+</script>
+
+</body>
+</html>
