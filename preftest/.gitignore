@@ -1,0 +1,4 @@
+# ユーザーデータ（サーバー上で管理・更新されるファイル）
+data/nav.json
+data/contents.json
+data/news.json
