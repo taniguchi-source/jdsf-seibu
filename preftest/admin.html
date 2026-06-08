@@ -244,6 +244,31 @@
 </div><!-- /#content-screen -->
 
 <!-- ===== 編集モーダル ===== -->
+<!-- ===== コンテンツ詳細モーダル ===== -->
+<div id="content-detail-modal" class="modal-overlay" onclick="if(event.target===this)closeContentModal()">
+  <div class="modal-box" style="max-width:660px;">
+    <button class="modal-close" onclick="closeContentModal()">✕</button>
+    <h3 style="font-size:1rem;font-weight:700;color:var(--primary);margin:0 0 18px;padding-bottom:10px;border-bottom:2px solid #BFDBFE;">📄 コンテンツ詳細</h3>
+    <input type="hidden" id="cd-site-id">
+    <input type="hidden" id="cd-idx">
+    <div style="display:grid;gap:16px;">
+      <div>
+        <label class="form-label">タイトル <span style="color:#e53e3e;font-size:.75rem;">（必須）</span></label>
+        <input type="text" id="cd-title" class="form-input" placeholder="コンテンツのタイトルを入力">
+      </div>
+      <div>
+        <label class="form-label">内容 <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（任意）</span></label>
+        <textarea id="cd-body" rows="8" class="form-input" style="resize:vertical;line-height:1.7;" placeholder="ここにコンテンツの内容を入力してください..."></textarea>
+      </div>
+      <div id="cd-msg" style="display:none;padding:8px 14px;border-radius:6px;font-size:.875rem;"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button onclick="closeContentModal()" style="padding:10px 22px;background:none;border:1.5px solid var(--border);border-radius:8px;font-size:.875rem;cursor:pointer;color:var(--text-light);font-family:inherit;">キャンセル</button>
+        <button onclick="saveContentDetail()" style="padding:10px 28px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.875rem;font-weight:700;cursor:pointer;font-family:inherit;">保存する →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="edit-modal" class="modal-overlay" onclick="if(event.target===this)closeEditModal()">
   <div class="modal-box">
     <button class="modal-close" onclick="closeEditModal()">✕</button>
@@ -646,18 +671,20 @@
       return '<span style="font-size:.75rem;color:var(--text-light);line-height:28px;">コンテンツなし — 右の「＋追加」で作成</span>';
     }
     return items.map(function(item, idx) {
-      var safeTitle = escHtml(item.title || '');
+      var safeTitle = escHtml(item.title || 'コンテンツ' + (idx + 1));
       var enabled   = item.enabled !== false;
-      return '<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 8px;'
+      return '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;'
         + 'background:' + (enabled ? '#EFF6FF' : '#F1F5F9') + ';'
         + 'border:1px solid ' + (enabled ? '#BFDBFE' : 'var(--border)') + ';'
         + 'border-radius:6px;">'
         + '<input type="checkbox" ' + (enabled ? 'checked' : '') + ' '
         + 'onchange="(function(cb){var item=window._cd[\'' + siteId + '\'][' + idx + '];item.enabled=cb.checked;var p=cb.parentNode;p.style.background=cb.checked?\'#EFF6FF\':\'#F1F5F9\';p.style.borderColor=cb.checked?\'#BFDBFE\':\'var(--border)\';})(this)" '
         + 'style="width:13px;height:13px;cursor:pointer;accent-color:var(--primary);flex-shrink:0;">'
-        + '<input type="text" value="' + safeTitle + '" '
-        + 'onchange="window._cd[\'' + siteId + '\'][' + idx + '].title=this.value" '
-        + 'style="width:80px;border:none;background:transparent;font-size:.78rem;font-family:inherit;outline:none;color:var(--text-dark);font-weight:600;">'
+        + '<button onclick="openContentModal(\'' + siteId + '\',' + idx + ')" '
+        + 'title="クリックして編集" '
+        + 'style="background:none;border:none;cursor:pointer;font-size:.82rem;font-weight:700;color:var(--primary);padding:0;font-family:inherit;text-decoration:underline dotted;text-underline-offset:2px;">'
+        + safeTitle
+        + '</button>'
         + '<button onclick="removeContentItem(\'' + siteId + '\',' + idx + ')" '
         + 'title="削除" '
         + 'style="background:none;border:none;cursor:pointer;color:#94A3B8;font-size:.85rem;padding:0;line-height:1;flex-shrink:0;">&times;</button>'
@@ -708,6 +735,47 @@
       });
   }
 
+  function openContentModal(siteId, idx) {
+    var item = (_contentData[String(siteId)] || [])[idx];
+    if (!item) return;
+    document.getElementById('cd-site-id').value = String(siteId);
+    document.getElementById('cd-idx').value     = String(idx);
+    document.getElementById('cd-title').value   = item.title || '';
+    document.getElementById('cd-body').value    = item.body  || '';
+    var msg = document.getElementById('cd-msg');
+    if (msg) msg.style.display = 'none';
+    var ov = document.getElementById('content-detail-modal');
+    ov.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    setTimeout(function(){ var t = document.getElementById('cd-title'); if(t) t.focus(); }, 50);
+  }
+
+  function closeContentModal() {
+    document.getElementById('content-detail-modal').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  function saveContentDetail() {
+    var siteId = document.getElementById('cd-site-id').value;
+    var idx    = parseInt(document.getElementById('cd-idx').value, 10);
+    var title  = document.getElementById('cd-title').value.trim();
+    var body   = document.getElementById('cd-body').value.trim();
+    var msg    = document.getElementById('cd-msg');
+    if (!title) {
+      if (msg) { msg.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;border-radius:6px;padding:8px 14px;'; msg.textContent='⚠ タイトルを入力してください'; }
+      return;
+    }
+    var item = (_contentData[String(siteId)] || [])[idx];
+    if (item) { item.title = title; item.body = body; }
+    var chipsEl = document.getElementById('content-chips-' + siteId);
+    if (chipsEl) chipsEl.innerHTML = renderContentChips(siteId);
+    closeContentModal();
+    saveContentItems(siteId);
+  }
+
+  window.openContentModal   = openContentModal;
+  window.closeContentModal  = closeContentModal;
+  window.saveContentDetail  = saveContentDetail;
   window.addContentItem    = addContentItem;
   window.removeContentItem = removeContentItem;
   window.saveContentItems  = saveContentItems;
