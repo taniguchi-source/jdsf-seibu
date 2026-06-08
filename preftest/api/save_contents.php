@@ -25,11 +25,15 @@ if (!is_array($items)) $items = [];
 
 $clean = [];
 foreach ($items as $item) {
+    $type_raw = (string)($item['type'] ?? 'text');
     $clean[] = [
-        'id'      => preg_replace('/[^a-z0-9_]/i', '', (string)($item['id'] ?? '')),
-        'title'   => mb_substr(trim((string)($item['title'] ?? '')), 0, 60),
-        'enabled' => !empty($item['enabled']),
-        'body'    => mb_substr(trim((string)($item['body'] ?? '')), 0, 5000),
+        'id'         => preg_replace('/[^a-z0-9_]/i', '', (string)($item['id'] ?? '')),
+        'title'      => mb_substr(trim((string)($item['title'] ?? '')), 0, 60),
+        'enabled'    => !empty($item['enabled']),
+        'type'       => in_array($type_raw, ['text', 'sheet'], true) ? $type_raw : 'text',
+        'body'       => mb_substr(trim((string)($item['body'] ?? '')), 0, 5000),
+        'sheet_url'  => mb_substr(trim((string)($item['sheet_url']  ?? '')), 0, 500),
+        'sheet_name' => mb_substr(trim((string)($item['sheet_name'] ?? '')), 0, 100),
     ];
 }
 

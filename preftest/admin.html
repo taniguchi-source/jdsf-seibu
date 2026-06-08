@@ -246,21 +246,55 @@
 <!-- ===== 編集モーダル ===== -->
 <!-- ===== コンテンツ詳細モーダル ===== -->
 <div id="content-detail-modal" class="modal-overlay" onclick="if(event.target===this)closeContentModal()">
-  <div class="modal-box" style="max-width:660px;">
+  <div class="modal-box" style="max-width:700px;">
     <button class="modal-close" onclick="closeContentModal()">✕</button>
     <h3 style="font-size:1rem;font-weight:700;color:var(--primary);margin:0 0 18px;padding-bottom:10px;border-bottom:2px solid #BFDBFE;">📄 コンテンツ詳細</h3>
     <input type="hidden" id="cd-site-id">
     <input type="hidden" id="cd-idx">
     <div style="display:grid;gap:16px;">
+      <!-- タイトル -->
       <div>
         <label class="form-label">タイトル <span style="color:#e53e3e;font-size:.75rem;">（必須）</span></label>
         <input type="text" id="cd-title" class="form-input" placeholder="コンテンツのタイトルを入力">
       </div>
+      <!-- 種類 -->
       <div>
-        <label class="form-label">内容 <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（任意）</span></label>
-        <textarea id="cd-body" rows="8" class="form-input" style="resize:vertical;line-height:1.7;" placeholder="ここにコンテンツの内容を入力してください..."></textarea>
+        <label class="form-label">種類</label>
+        <div style="display:flex;gap:24px;padding:10px 14px;background:#f8fafc;border-radius:8px;border:1.5px solid var(--border);">
+          <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;">
+            <input type="radio" name="cd-type" value="text" checked onchange="switchContentType('text')" style="cursor:pointer;accent-color:var(--primary);"> 📝 テキスト
+          </label>
+          <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;">
+            <input type="radio" name="cd-type" value="sheet" onchange="switchContentType('sheet')" style="cursor:pointer;accent-color:var(--primary);"> 📊 Googleスプレッドシート
+          </label>
+        </div>
       </div>
+      <!-- テキストセクション -->
+      <div id="cd-text-section">
+        <label class="form-label">内容 <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（任意）</span></label>
+        <textarea id="cd-body" rows="6" class="form-input" style="resize:vertical;line-height:1.7;" placeholder="ここにコンテンツの内容を入力してください..."></textarea>
+      </div>
+      <!-- スプレッドシートセクション -->
+      <div id="cd-sheet-section" style="display:none;">
+        <div style="display:grid;gap:12px;">
+          <div>
+            <label class="form-label">スプレッドシートURL</label>
+            <input type="text" id="cd-sheet-url" class="form-input" placeholder="https://docs.google.com/spreadsheets/d/...">
+          </div>
+          <div>
+            <label class="form-label">シート名（タブ名） <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（省略時は最初のシートを表示）</span></label>
+            <input type="text" id="cd-sheet-name" class="form-input" placeholder="例：役員名">
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <button onclick="loadSheetPreview()" style="padding:8px 22px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">🔍 プレビュー</button>
+            <span style="font-size:.75rem;color:var(--text-light);line-height:1.4;">スプレッドシートを<strong>「リンクを知っている全員が閲覧可」</strong>に設定してください</span>
+          </div>
+          <div id="cd-sheet-preview"></div>
+        </div>
+      </div>
+      <!-- メッセージ -->
       <div id="cd-msg" style="display:none;padding:8px 14px;border-radius:6px;font-size:.875rem;"></div>
+      <!-- ボタン -->
       <div style="display:flex;gap:10px;justify-content:flex-end;">
         <button onclick="closeContentModal()" style="padding:10px 22px;background:none;border:1.5px solid var(--border);border-radius:8px;font-size:.875rem;cursor:pointer;color:var(--text-light);font-family:inherit;">キャンセル</button>
         <button onclick="saveContentDetail()" style="padding:10px 28px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.875rem;font-weight:700;cursor:pointer;font-family:inherit;">保存する →</button>
@@ -641,7 +675,7 @@
   window._cd = _contentData; // インラインハンドラ用
 
   var _CONTENT_DEFAULTS = {
-    '1':[{id:'1_1',title:'コンテンツ1',enabled:true,body:''},{id:'1_2',title:'コンテンツ2',enabled:true,body:''},{id:'1_3',title:'コンテンツ3',enabled:true,body:''}],
+    '1':[{id:'1_1',title:'コンテンツ1',enabled:true,type:'text',body:'',sheet_url:'',sheet_name:''},{id:'1_2',title:'コンテンツ2',enabled:true,type:'text',body:'',sheet_url:'',sheet_name:''},{id:'1_3',title:'コンテンツ3',enabled:true,type:'text',body:'',sheet_url:'',sheet_name:''}],
     '2':[],'3':[],'4':[],'5':[]
   };
 
@@ -673,6 +707,8 @@
     return items.map(function(item, idx) {
       var safeTitle = escHtml(item.title || 'コンテンツ' + (idx + 1));
       var enabled   = item.enabled !== false;
+      var isSheet   = item.type === 'sheet';
+      var typeIcon  = isSheet ? '📊 ' : '';
       return '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;'
         + 'background:' + (enabled ? '#EFF6FF' : '#F1F5F9') + ';'
         + 'border:1px solid ' + (enabled ? '#BFDBFE' : 'var(--border)') + ';'
@@ -683,7 +719,7 @@
         + '<button onclick="openContentModal(\'' + siteId + '\',' + idx + ')" '
         + 'title="クリックして編集" '
         + 'style="background:none;border:none;cursor:pointer;font-size:.82rem;font-weight:700;color:var(--primary);padding:0;font-family:inherit;text-decoration:underline dotted;text-underline-offset:2px;">'
-        + safeTitle
+        + typeIcon + safeTitle
         + '</button>'
         + '<button onclick="removeContentItem(\'' + siteId + '\',' + idx + ')" '
         + 'title="削除" '
@@ -696,7 +732,7 @@
     var k = String(siteId);
     if (!_contentData[k]) _contentData[k] = [];
     var num = _contentData[k].length + 1;
-    _contentData[k].push({ id: k + '_' + Date.now(), title: 'コンテンツ' + num, enabled: true, body: '' });
+    _contentData[k].push({ id: k + '_' + Date.now(), title: 'コンテンツ' + num, enabled: true, type: 'text', body: '', sheet_url: '', sheet_name: '' });
     var el = document.getElementById('content-chips-' + k);
     if (el) el.innerHTML = renderContentChips(k);
   }
@@ -742,6 +778,20 @@
     document.getElementById('cd-idx').value     = String(idx);
     document.getElementById('cd-title').value   = item.title || '';
     document.getElementById('cd-body').value    = item.body  || '';
+    // 種類ラジオボタン
+    var type   = item.type || 'text';
+    var radios = document.querySelectorAll('input[name="cd-type"]');
+    for (var ri = 0; ri < radios.length; ri++) {
+      radios[ri].checked = (radios[ri].value === type);
+    }
+    switchContentType(type);
+    // スプレッドシートフィールド
+    var sheetUrl  = document.getElementById('cd-sheet-url');
+    var sheetName = document.getElementById('cd-sheet-name');
+    var sheetPrev = document.getElementById('cd-sheet-preview');
+    if (sheetUrl)  sheetUrl.value  = item.sheet_url  || '';
+    if (sheetName) sheetName.value = item.sheet_name || '';
+    if (sheetPrev) sheetPrev.innerHTML = '';
     var msg = document.getElementById('cd-msg');
     if (msg) msg.style.display = 'none';
     var ov = document.getElementById('content-detail-modal');
@@ -759,18 +809,124 @@
     var siteId = document.getElementById('cd-site-id').value;
     var idx    = parseInt(document.getElementById('cd-idx').value, 10);
     var title  = document.getElementById('cd-title').value.trim();
-    var body   = document.getElementById('cd-body').value.trim();
+    var body   = (document.getElementById('cd-body') || {value:''}).value.trim();
     var msg    = document.getElementById('cd-msg');
+    // 種類取得
+    var type = 'text';
+    var radios = document.querySelectorAll('input[name="cd-type"]');
+    for (var ri = 0; ri < radios.length; ri++) {
+      if (radios[ri].checked) { type = radios[ri].value; break; }
+    }
+    var sheetUrl  = ((document.getElementById('cd-sheet-url')  || {value:''}).value || '').trim();
+    var sheetName = ((document.getElementById('cd-sheet-name') || {value:''}).value || '').trim();
     if (!title) {
       if (msg) { msg.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;border-radius:6px;padding:8px 14px;'; msg.textContent='⚠ タイトルを入力してください'; }
       return;
     }
     var item = (_contentData[String(siteId)] || [])[idx];
-    if (item) { item.title = title; item.body = body; }
+    if (item) {
+      item.title      = title;
+      item.body       = body;
+      item.type       = type;
+      item.sheet_url  = sheetUrl;
+      item.sheet_name = sheetName;
+    }
     var chipsEl = document.getElementById('content-chips-' + siteId);
     if (chipsEl) chipsEl.innerHTML = renderContentChips(siteId);
     closeContentModal();
     saveContentItems(siteId);
+  }
+
+  /* ===== 種類切り替え ===== */
+  function switchContentType(type) {
+    var textSec  = document.getElementById('cd-text-section');
+    var sheetSec = document.getElementById('cd-sheet-section');
+    if (textSec)  textSec.style.display  = (type === 'text')  ? '' : 'none';
+    if (sheetSec) sheetSec.style.display = (type === 'sheet') ? '' : 'none';
+  }
+
+  /* ===== スプレッドシートプレビュー ===== */
+  function loadSheetPreview() {
+    var url      = ((document.getElementById('cd-sheet-url')  || {value:''}).value || '').trim();
+    var name     = ((document.getElementById('cd-sheet-name') || {value:''}).value || '').trim();
+    var preview  = document.getElementById('cd-sheet-preview');
+    if (!preview) return;
+    if (!url) {
+      preview.innerHTML = '<p style="color:#B91C1C;font-size:.82rem;margin:6px 0 0;">⚠ スプレッドシートのURLを入力してください</p>';
+      return;
+    }
+    preview.innerHTML = '<p style="color:var(--text-light);font-size:.82rem;margin:6px 0 0;">⏳ 読み込み中...</p>';
+    var fd = new FormData();
+    fd.append('token',      TOKEN);
+    fd.append('sheet_url',  url);
+    fd.append('sheet_name', name);
+    fetch('api/fetch_sheet.php', { method:'POST', body:fd })
+      .then(function(r) {
+        if (!r.ok) return r.json().then(function(e){ throw new Error(e.error || 'HTTP ' + r.status); }).catch(function(){ throw new Error('HTTP ' + r.status); });
+        return r.json();
+      })
+      .then(function(res) {
+        if (res.ok && res.csv) {
+          preview.innerHTML = csvToTable(res.csv);
+        } else {
+          preview.innerHTML = '<p style="color:#B91C1C;font-size:.82rem;margin:6px 0 0;">⚠ ' + escHtml(res.error || 'エラーが発生しました') + '</p>';
+        }
+      })
+      .catch(function(e) {
+        preview.innerHTML = '<p style="color:#B91C1C;font-size:.82rem;margin:6px 0 0;">⚠ ' + escHtml(e && e.message ? e.message : '通信エラー') + '</p>';
+      });
+  }
+
+  /* ===== CSV → HTML テーブル ===== */
+  function parseCSV(text) {
+    var rows = [];
+    var lines = text.split(/\r?\n/);
+    for (var li = 0; li < lines.length; li++) {
+      var line = lines[li];
+      if (!line.trim()) continue;
+      var row = [];
+      var inQ  = false;
+      var cell = '';
+      for (var ci = 0; ci < line.length; ci++) {
+        var c = line[ci];
+        if (c === '"') {
+          if (inQ && line[ci + 1] === '"') { cell += '"'; ci++; }
+          else { inQ = !inQ; }
+        } else if (c === ',' && !inQ) {
+          row.push(cell); cell = '';
+        } else {
+          cell += c;
+        }
+      }
+      row.push(cell);
+      rows.push(row);
+    }
+    return rows;
+  }
+
+  function csvToTable(csv) {
+    var rows = parseCSV(csv);
+    if (!rows || rows.length === 0) {
+      return '<p style="color:var(--text-light);font-size:.82rem;margin:8px 0 0;">データがありません</p>';
+    }
+    var html = '<div style="overflow-x:auto;margin-top:10px;border-radius:8px;border:1px solid #e2e8f0;">'
+      + '<table style="width:100%;border-collapse:collapse;font-size:.8rem;">';
+    rows.forEach(function(row, ri) {
+      html += '<tr>';
+      row.forEach(function(cell) {
+        if (ri === 0) {
+          html += '<th style="background:#1B3A6B;color:#fff;padding:8px 12px;text-align:left;border-right:1px solid rgba(255,255,255,.15);font-size:.775rem;font-weight:700;white-space:nowrap;">'
+            + escHtml(cell) + '</th>';
+        } else {
+          html += '<td style="padding:6px 12px;border-top:1px solid #e2e8f0;border-right:1px solid #f0f4f8;'
+            + (ri % 2 === 0 ? 'background:#f8fafc;' : 'background:#fff;') + '">'
+            + escHtml(cell) + '</td>';
+        }
+      });
+      html += '</tr>';
+    });
+    html += '</table></div>';
+    return html;
   }
 
   window.openContentModal   = openContentModal;
@@ -780,6 +936,8 @@
   window.removeContentItem = removeContentItem;
   window.saveContentItems  = saveContentItems;
   window.renderContentChips = renderContentChips;
+  window.switchContentType  = switchContentType;
+  window.loadSheetPreview   = loadSheetPreview;
 
   /* ===== ユーティリティ ===== */
   function escHtml(s) {
