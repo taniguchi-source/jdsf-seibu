@@ -31,11 +31,11 @@ if (!isset($data['links']))   $data['links'] = [];
 
 // デフォルト5スロット保証
 $defaults = [
-    1 => ['name' => 'ダンススポーツ連盟について', 'url' => 'about.html'],
-    2 => ['name' => '競技会情報',               'url' => 'competitions.html'],
-    3 => ['name' => '指導員情報',               'url' => 'guidance.html'],
-    4 => ['name' => 'サイト4',                  'url' => 'page4.html'],
-    5 => ['name' => 'サイト5',                  'url' => 'page5.html'],
+    1 => ['name' => 'サイト1', 'url' => 'page1.html'],
+    2 => ['name' => 'サイト2', 'url' => 'page2.html'],
+    3 => ['name' => 'サイト3', 'url' => 'page3.html'],
+    4 => ['name' => 'サイト4', 'url' => 'page4.html'],
+    5 => ['name' => 'サイト5', 'url' => 'page5.html'],
 ];
 
 // links を id キーで再構築
