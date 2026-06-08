@@ -127,8 +127,16 @@
           <div class="name">テストダンススポーツ連盟</div>
         </div>
       </a>
-      <nav class="site-nav">
-        <a href="index.html"   class="nav-link">ホーム</a>
+      <button class="hamburger" aria-label="メニュー" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" aria-label="メインナビゲーション">
+        <a href="index.html" class="nav-link">ホーム</a>
+        <span id="admin-dynamic-nav" style="display:contents;">
+          <a href="page1.html" class="nav-link">サイト1</a>
+          <a href="page2.html" class="nav-link">サイト2</a>
+          <a href="page3.html" class="nav-link">サイト3</a>
+        </span>
         <a href="contact.html" class="nav-link nav-cta">お問い合わせ</a>
         <a href="admin.html"   class="nav-link active">サイト管理</a>
       </nav>
@@ -390,6 +398,16 @@
   window.doLogin  = doLogin;
   window.doLogout = doLogout;
 
+  /* ===== ハンバーガーメニュー ===== */
+  var _hamburger = document.querySelector('#content-screen .hamburger');
+  var _siteNav   = document.querySelector('#content-screen .site-nav');
+  if (_hamburger && _siteNav) {
+    _hamburger.addEventListener('click', function() {
+      var open = _siteNav.classList.toggle('open');
+      _hamburger.setAttribute('aria-expanded', open);
+    });
+  }
+
   /* ===== 公開お知らせ ===== */
   var _newsList = [];
 
@@ -556,8 +574,22 @@
         // 5スロット保証
         for (var i = _navLinks.length; i < 5; i++) _navLinks.push(_NAV_DEFAULTS[i]);
         renderNavCards();
+        renderAdminHeaderNav();
       })
-      .catch(function(){ _navLinks = _NAV_DEFAULTS.slice(); renderNavCards(); });
+      .catch(function(){ _navLinks = _NAV_DEFAULTS.slice(); renderNavCards(); renderAdminHeaderNav(); });
+  }
+
+  function renderAdminHeaderNav() {
+    var container = document.getElementById('admin-dynamic-nav');
+    if (!container) return;
+    var html = '';
+    _navLinks.forEach(function(link) {
+      if (!link.enabled) return;
+      var url  = String(link.url  || '#').replace(/"/g, '%22');
+      var name = escHtml(link.name || '');
+      html += '<a href="' + url + '" class="nav-link">' + name + '</a>';
+    });
+    container.innerHTML = html || '';
   }
 
   function renderNavCards() {
@@ -648,6 +680,7 @@
             }
           }
           renderNavCards();
+          renderAdminHeaderNav();
           setTimeout(function(){
             var el = document.getElementById('nav-msg-' + n);
             if (!el) return;
