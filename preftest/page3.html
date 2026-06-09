@@ -292,7 +292,10 @@
         if (res.ok && res.csv) {
           targetEl.innerHTML = csvToTable(res.csv);
         } else {
-          targetEl.innerHTML = '<p style="color:#B91C1C;">⚠ ' + escHtml(res.error || 'データの取得に失敗しました') + '</p>';
+          var dbgHtml = res.debug
+            ? '<br><small style="font-size:.72rem;color:#6B7280;word-break:break-all;">🔧 ' + escHtml(res.debug) + '</small>'
+            : '';
+          targetEl.innerHTML = '<p style="color:#B91C1C;">⚠ ' + escHtml(res.error || 'データの取得に失敗しました') + '</p>' + dbgHtml;
         }
       })
       .catch(function() {
