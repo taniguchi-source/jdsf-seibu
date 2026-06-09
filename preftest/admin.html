@@ -260,6 +260,14 @@
     <input type="hidden" id="cd-site-id">
     <input type="hidden" id="cd-idx">
     <div style="display:grid;gap:16px;">
+      <!-- サブコンテンツ -->
+      <div style="padding:10px 16px;background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:8px;">
+        <label style="display:inline-flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
+          <input type="checkbox" id="cd-is-sub"
+            style="width:16px;height:16px;cursor:pointer;accent-color:#D97706;flex-shrink:0;">
+          <span style="font-size:.875rem;font-weight:700;color:#92400E;">📌 サブコンテンツ</span>
+        </label>
+      </div>
       <!-- タイトル -->
       <div>
         <label class="form-label">タイトル <span style="color:#e53e3e;font-size:.75rem;">（必須）</span></label>
@@ -762,7 +770,7 @@
     var items = [];
     for (var i = 1; i <= 6; i++) {
       items.push({ id: n + '_' + i, title: 'コンテンツ' + i, enabled: true,
-        type: 'text', body: '', sheet_url: '', sheet_name: '',
+        is_sub: false, type: 'text', body: '', sheet_url: '', sheet_name: '',
         file_url: '', link_url: '', link_label: '' });
     }
     return items;
@@ -842,7 +850,7 @@
     var k = String(siteId);
     if (!_contentData[k]) _contentData[k] = [];
     var num = _contentData[k].length + 1;
-    _contentData[k].push({ id: k + '_' + Date.now(), title: 'コンテンツ' + num, enabled: true, type: 'text', body: '', sheet_url: '', sheet_name: '', file_url: '', link_url: '', link_label: '' });
+    _contentData[k].push({ id: k + '_' + Date.now(), title: 'コンテンツ' + num, enabled: true, is_sub: false, type: 'text', body: '', sheet_url: '', sheet_name: '', file_url: '', link_url: '', link_label: '' });
     var el = document.getElementById('content-chips-' + k);
     if (el) el.innerHTML = renderContentChips(k);
   }
@@ -886,6 +894,8 @@
     if (!item) return;
     document.getElementById('cd-site-id').value = String(siteId);
     document.getElementById('cd-idx').value     = String(idx);
+    var isSubEl = document.getElementById('cd-is-sub');
+    if (isSubEl) isSubEl.checked = !!item.is_sub;
     document.getElementById('cd-title').value   = item.title || '';
     document.getElementById('cd-body').value    = item.body  || '';
     // 種類ラジオボタン
@@ -951,6 +961,8 @@
   function saveContentDetail() {
     var siteId = document.getElementById('cd-site-id').value;
     var idx    = parseInt(document.getElementById('cd-idx').value, 10);
+    var isSubEl2 = document.getElementById('cd-is-sub');
+    var isSub  = isSubEl2 ? isSubEl2.checked : false;
     var title  = document.getElementById('cd-title').value.trim();
     var body   = (document.getElementById('cd-body') || {value:''}).value.trim();
     var msg    = document.getElementById('cd-msg');
@@ -971,6 +983,7 @@
     }
     var item = (_contentData[String(siteId)] || [])[idx];
     if (item) {
+      item.is_sub     = isSub;
       item.title      = title;
       item.body       = body;
       item.type       = type;
