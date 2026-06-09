@@ -95,9 +95,36 @@
     }
     .link-btn:hover { background: #0D2347; }
     .link-btn-sub { font-size: .8rem; color: var(--text-light); margin: 6px 0 0; }
+    .sub-content-list {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px dashed #BFDBFE;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .sub-content-item {
+      background: #F0F7FF;
+      border: 1px solid #BFDBFE;
+      border-left: 4px solid #3B5EA6;
+      border-radius: 8px;
+      padding: 16px 20px;
+    }
+    .sub-content-title {
+      font-size: .9375rem;
+      font-weight: 700;
+      color: #1e3a8a;
+      margin: 0 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #DBEAFE;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
     @media (max-width: 600px) {
       .content-block { padding: 20px 18px; }
       .link-btn { padding: 12px 18px; font-size: .875rem; }
+      .sub-content-item { padding: 14px 16px; }
     }
   </style>
 </head>
@@ -273,6 +300,60 @@
       });
   }
 
+  /* ===== コンテンツ描画（ボディ生成ヘルパー） ===== */
+  function buildBodyEl(item) {
+    var bodyEl = document.createElement('div');
+    if (item.type === 'sheet') {
+      bodyEl.className = 'loading-text';
+      bodyEl.textContent = '⏳ スプレッドシートを読み込み中...';
+    } else if (item.type === 'file') {
+      var fUrl = item.file_url || '';
+      if (fUrl) {
+        var fExt = fUrl.split('.').pop().toLowerCase();
+        var imgExts = ['jpg','jpeg','png','gif'];
+        if (imgExts.indexOf(fExt) >= 0) {
+          var img = document.createElement('img');
+          img.src   = fUrl;
+          img.alt   = item.title || '';
+          img.style.cssText = 'max-width:100%;height:auto;border-radius:8px;display:block;';
+          bodyEl.appendChild(img);
+        } else if (fExt === 'pdf') {
+          bodyEl.innerHTML =
+            '<embed src="' + escHtml(fUrl) + '" type="application/pdf" style="width:100%;height:640px;border-radius:8px;border:1px solid var(--border);">'
+            + '<p style="text-align:right;margin:6px 0 0;font-size:.8125rem;">'
+            + '<a href="' + escHtml(fUrl) + '" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;">🔗 PDFを別タブで開く</a></p>';
+        }
+      } else {
+        bodyEl.className = 'content-block-body';
+        bodyEl.textContent = '（ファイルは未設定です）';
+      }
+    } else if (item.type === 'link') {
+      var lUrl   = item.link_url   || '';
+      var lLabel = item.link_label || item.title || '';
+      if (lUrl) {
+        bodyEl.innerHTML =
+          '<a href="' + escHtml(lUrl) + '" target="_blank" rel="noopener" class="link-btn">'
+          + '🔗 ' + escHtml(lLabel || lUrl) + '　→'
+          + '</a>'
+          + '<p class="link-btn-sub">新しいタブで開きます</p>';
+      } else {
+        bodyEl.className = 'content-block-body';
+        bodyEl.textContent = '（リンクURLは未設定です）';
+      }
+    } else {
+      bodyEl.className = 'content-block-body';
+      bodyEl.textContent = item.body || '（内容はまだ設定されていません）';
+    }
+    return bodyEl;
+  }
+
+  function appendWithFetch(item, bodyEl, container) {
+    container.appendChild(bodyEl);
+    if (item.type === 'sheet' && item.sheet_url) {
+      fetchSheet(item.sheet_url, item.sheet_name, bodyEl);
+    }
+  }
+
   /* ===== コンテンツ描画 ===== */
   function renderContents(items) {
     var wrap = document.getElementById('contents-wrap');
@@ -282,67 +363,51 @@
       return;
     }
     wrap.innerHTML = '';
-    items.forEach(function(item, i) {
+
+    /* サブコンテンツをグループ化: is_sub=true は直前の通常コンテンツに束ねる */
+    var groups = [];
+    var cur = null;
+    items.forEach(function(item) {
+      if (!item.is_sub) {
+        cur = { main: item, subs: [] };
+        groups.push(cur);
+      } else {
+        if (cur) { cur.subs.push(item); }
+        else     { cur = { main: item, subs: [] }; groups.push(cur); }
+      }
+    });
+
+    groups.forEach(function(group) {
       var block = document.createElement('div');
       block.className = 'content-block';
 
-      var titleIcon = item.type === 'sheet' ? '📊 ' : (item.type === 'file' ? '🖼️ ' : (item.type === 'link' ? '🔗 ' : '📝 '));
-      var titleEl   = document.createElement('h2');
+      /* メインタイトル */
+      var m = group.main;
+      var titleIcon = m.type === 'sheet' ? '📊 ' : (m.type === 'file' ? '🖼️ ' : (m.type === 'link' ? '🔗 ' : '📝 '));
+      var titleEl = document.createElement('h2');
       titleEl.className = 'content-block-title';
-      titleEl.textContent = titleIcon + (item.title || 'コンテンツ' + (i + 1));
+      titleEl.textContent = titleIcon + (m.title || 'コンテンツ');
       block.appendChild(titleEl);
 
-      var bodyEl = document.createElement('div');
-      if (item.type === 'sheet') {
-        bodyEl.className = 'loading-text';
-        bodyEl.textContent = '⏳ スプレッドシートを読み込み中...';
-        block.appendChild(bodyEl);
-        if (item.sheet_url) {
-          fetchSheet(item.sheet_url, item.sheet_name, bodyEl);
-        } else {
-          bodyEl.textContent = '（スプレッドシートURLが未設定です）';
-        }
-      } else if (item.type === 'file') {
-        bodyEl.className = 'content-block-file';
-        var fUrl = item.file_url || '';
-        if (fUrl) {
-          var fExt = fUrl.split('.').pop().toLowerCase();
-          var imgExts = ['jpg','jpeg','png','gif'];
-          if (imgExts.indexOf(fExt) >= 0) {
-            var img = document.createElement('img');
-            img.src   = fUrl;
-            img.alt   = item.title || '';
-            img.style.cssText = 'max-width:100%;height:auto;border-radius:8px;display:block;';
-            bodyEl.appendChild(img);
-          } else if (fExt === 'pdf') {
-            bodyEl.innerHTML =
-              '<embed src="' + escHtml(fUrl) + '" type="application/pdf" style="width:100%;height:640px;border-radius:8px;border:1px solid var(--border);">'
-              + '<p style="text-align:right;margin:6px 0 0;font-size:.8125rem;">'
-              + '<a href="' + escHtml(fUrl) + '" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;">🔗 PDFを別タブで開く</a></p>';
-          }
-        } else {
-          bodyEl.className = 'content-block-body';
-          bodyEl.textContent = '（ファイルは未設定です）';
-        }
-        block.appendChild(bodyEl);
-      } else if (item.type === 'link') {
-        var lUrl   = item.link_url   || '';
-        var lLabel = item.link_label || item.title || '';
-        if (lUrl) {
-          bodyEl.innerHTML =
-            '<a href="' + escHtml(lUrl) + '" target="_blank" rel="noopener" class="link-btn">'
-            + '🔗 ' + escHtml(lLabel || lUrl) + '　→'
-            + '</a>'
-            + '<p class="link-btn-sub">新しいタブで開きます</p>';
-        } else {
-          bodyEl.className = 'content-block-body';
-          bodyEl.textContent = '（リンクURLは未設定です）';
-        }
-        block.appendChild(bodyEl);
-      } else {
-        bodyEl.className = 'content-block-body';
-        bodyEl.textContent = item.body || '（内容はまだ設定されていません）';
-        block.appendChild(bodyEl);
+      /* メインボディ */
+      appendWithFetch(m, buildBodyEl(m), block);
+
+      /* サブコンテンツ */
+      if (group.subs.length > 0) {
+        var subList = document.createElement('div');
+        subList.className = 'sub-content-list';
+        group.subs.forEach(function(sub) {
+          var subItem = document.createElement('div');
+          subItem.className = 'sub-content-item';
+          var subIcon = sub.type === 'sheet' ? '📊 ' : (sub.type === 'file' ? '🖼️ ' : (sub.type === 'link' ? '🔗 ' : '📝 '));
+          var subTitle = document.createElement('h3');
+          subTitle.className = 'sub-content-title';
+          subTitle.textContent = subIcon + (sub.title || 'サブコンテンツ');
+          subItem.appendChild(subTitle);
+          appendWithFetch(sub, buildBodyEl(sub), subItem);
+          subList.appendChild(subItem);
+        });
+        block.appendChild(subList);
       }
 
       wrap.appendChild(block);
