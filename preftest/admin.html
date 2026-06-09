@@ -278,12 +278,34 @@
           <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;">
             <input type="radio" name="cd-type" value="file" onchange="switchContentType('file')" style="cursor:pointer;accent-color:var(--primary);"> 🖼️ 画像・PDF
           </label>
+          <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;">
+            <input type="radio" name="cd-type" value="link" onchange="switchContentType('link')" style="cursor:pointer;accent-color:var(--primary);"> 🔗 リンク
+          </label>
         </div>
       </div>
       <!-- テキストセクション -->
       <div id="cd-text-section">
         <label class="form-label">内容 <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（任意）</span></label>
         <textarea id="cd-body" rows="6" class="form-input" style="resize:vertical;line-height:1.7;" placeholder="ここにコンテンツの内容を入力してください..."></textarea>
+      </div>
+      <!-- リンクセクション -->
+      <div id="cd-link-section" style="display:none;">
+        <div style="display:grid;gap:12px;">
+          <div>
+            <label class="form-label">リンクURL <span style="color:#e53e3e;font-size:.75rem;">（必須）</span></label>
+            <input type="url" id="cd-link-url" class="form-input" placeholder="https://example.com" oninput="updateLinkPreview()">
+          </div>
+          <div>
+            <label class="form-label">ボタンの表示テキスト <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（省略時はタイトルを使用）</span></label>
+            <input type="text" id="cd-link-label" class="form-input" placeholder="例：詳細はこちら　/　資料をダウンロード" oninput="updateLinkPreview()">
+          </div>
+          <div id="cd-link-preview-wrap" style="display:none;">
+            <div style="padding:14px 18px;background:#EFF6FF;border:1.5px solid #BFDBFE;border-left:4px solid var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:.875rem;font-weight:700;color:var(--primary);" id="cd-link-preview-text">🔗 リンクタイトル</span>
+              <span style="font-size:.8rem;color:var(--text-light);">→ 新しいタブで開く</span>
+            </div>
+          </div>
+        </div>
       </div>
       <!-- 画像・PDFセクション -->
       <div id="cd-file-section" style="display:none;">
@@ -736,7 +758,7 @@
   window._cd = _contentData; // インラインハンドラ用
 
   var _CONTENT_DEFAULTS = {
-    '1':[{id:'1_1',title:'コンテンツ1',enabled:true,type:'text',body:'',sheet_url:'',sheet_name:''},{id:'1_2',title:'コンテンツ2',enabled:true,type:'text',body:'',sheet_url:'',sheet_name:''},{id:'1_3',title:'コンテンツ3',enabled:true,type:'text',body:'',sheet_url:'',sheet_name:''}],
+    '1':[{id:'1_1',title:'コンテンツ1',enabled:true,type:'text',body:'',sheet_url:'',sheet_name:'',file_url:'',link_url:'',link_label:''},{id:'1_2',title:'コンテンツ2',enabled:true,type:'text',body:'',sheet_url:'',sheet_name:'',file_url:'',link_url:'',link_label:''},{id:'1_3',title:'コンテンツ3',enabled:true,type:'text',body:'',sheet_url:'',sheet_name:'',file_url:'',link_url:'',link_label:''}],
     '2':[],'3':[],'4':[],'5':[]
   };
 
@@ -770,7 +792,8 @@
       var enabled   = item.enabled !== false;
       var isSheet   = item.type === 'sheet';
       var isFile    = item.type === 'file';
-      var typeIcon  = isSheet ? '📊 ' : (isFile ? '🖼️ ' : '');
+      var isLink    = item.type === 'link';
+      var typeIcon  = isSheet ? '📊 ' : (isFile ? '🖼️ ' : (isLink ? '🔗 ' : '📝 '));
       return '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;'
         + 'background:' + (enabled ? '#EFF6FF' : '#F1F5F9') + ';'
         + 'border:1px solid ' + (enabled ? '#BFDBFE' : 'var(--border)') + ';'
@@ -794,7 +817,7 @@
     var k = String(siteId);
     if (!_contentData[k]) _contentData[k] = [];
     var num = _contentData[k].length + 1;
-    _contentData[k].push({ id: k + '_' + Date.now(), title: 'コンテンツ' + num, enabled: true, type: 'text', body: '', sheet_url: '', sheet_name: '', file_url: '' });
+    _contentData[k].push({ id: k + '_' + Date.now(), title: 'コンテンツ' + num, enabled: true, type: 'text', body: '', sheet_url: '', sheet_name: '', file_url: '', link_url: '', link_label: '' });
     var el = document.getElementById('content-chips-' + k);
     if (el) el.innerHTML = renderContentChips(k);
   }
@@ -873,6 +896,20 @@
         filePrev.innerHTML = '';
       }
     }
+    // リンクフィールド
+    var linkUrlEl   = document.getElementById('cd-link-url');
+    var linkLabelEl = document.getElementById('cd-link-label');
+    var linkPrevWrap= document.getElementById('cd-link-preview-wrap');
+    var linkPrevText= document.getElementById('cd-link-preview-text');
+    if (linkUrlEl)   linkUrlEl.value   = item.link_url   || '';
+    if (linkLabelEl) linkLabelEl.value = item.link_label || '';
+    if (linkPrevWrap) {
+      var lUrl = item.link_url || '';
+      linkPrevWrap.style.display = lUrl ? '' : 'none';
+      if (lUrl && linkPrevText) {
+        linkPrevText.textContent = '🔗 ' + (item.link_label || item.title || lUrl);
+      }
+    }
     var msg = document.getElementById('cd-msg');
     if (msg) msg.style.display = 'none';
     var ov = document.getElementById('content-detail-modal');
@@ -901,6 +938,8 @@
     var sheetUrl  = ((document.getElementById('cd-sheet-url')  || {value:''}).value || '').trim();
     var sheetName = ((document.getElementById('cd-sheet-name') || {value:''}).value || '').trim();
     var fileUrl   = ((document.getElementById('cd-file-url')   || {value:''}).value || '').trim();
+    var linkUrl   = ((document.getElementById('cd-link-url')   || {value:''}).value || '').trim();
+    var linkLabel = ((document.getElementById('cd-link-label') || {value:''}).value || '').trim();
     if (!title) {
       if (msg) { msg.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;border-radius:6px;padding:8px 14px;'; msg.textContent='⚠ タイトルを入力してください'; }
       return;
@@ -913,6 +952,8 @@
       item.sheet_url  = sheetUrl;
       item.sheet_name = sheetName;
       item.file_url   = fileUrl;
+      item.link_url   = linkUrl;
+      item.link_label = linkLabel;
     }
     var chipsEl = document.getElementById('content-chips-' + siteId);
     if (chipsEl) chipsEl.innerHTML = renderContentChips(siteId);
@@ -922,12 +963,30 @@
 
   /* ===== 種類切り替え ===== */
   function switchContentType(type) {
-    var textSec  = document.getElementById('cd-text-section');
-    var sheetSec = document.getElementById('cd-sheet-section');
-    var fileSec  = document.getElementById('cd-file-section');
-    if (textSec)  textSec.style.display  = (type === 'text')  ? '' : 'none';
-    if (sheetSec) sheetSec.style.display = (type === 'sheet') ? '' : 'none';
-    if (fileSec)  fileSec.style.display  = (type === 'file')  ? '' : 'none';
+    var sections = { text:'cd-text-section', sheet:'cd-sheet-section', file:'cd-file-section', link:'cd-link-section' };
+    Object.keys(sections).forEach(function(k) {
+      var el = document.getElementById(sections[k]);
+      if (el) el.style.display = (k === type) ? '' : 'none';
+    });
+  }
+
+  /* リンクプレビュー更新（URLorLabel変更時） */
+  function updateLinkPreview() {
+    var urlEl   = document.getElementById('cd-link-url');
+    var labelEl = document.getElementById('cd-link-label');
+    var titleEl = document.getElementById('cd-title');
+    var prevWrap= document.getElementById('cd-link-preview-wrap');
+    var prevText= document.getElementById('cd-link-preview-text');
+    var url     = urlEl   ? urlEl.value.trim()   : '';
+    var label   = labelEl ? labelEl.value.trim() : '';
+    var title   = titleEl ? titleEl.value.trim() : '';
+    if (!prevWrap || !prevText) return;
+    if (url) {
+      prevWrap.style.display = '';
+      prevText.textContent   = '🔗 ' + (label || title || url);
+    } else {
+      prevWrap.style.display = 'none';
+    }
   }
 
   /* ===== ファイルアップロード ===== */
@@ -1109,6 +1168,7 @@
   window.saveContentItems  = saveContentItems;
   window.renderContentChips = renderContentChips;
   window.switchContentType  = switchContentType;
+  window.updateLinkPreview  = updateLinkPreview;
   window.loadSheetPreview   = loadSheetPreview;
   window.uploadContentFile  = uploadContentFile;
   window.clearContentFile   = clearContentFile;
