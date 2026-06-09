@@ -779,6 +779,7 @@
     fetch('data/contents.json?_=' + Date.now())
       .then(function(r){ return r.ok ? r.json() : {}; })
       .then(function(data){
+        var needsSave = [];
         ['1','2','3','4','5'].forEach(function(k){
           var serverItems = Array.isArray(data[k]) ? data[k] : [];
           var defaults    = _CONTENT_DEFAULTS[k];
@@ -788,12 +789,16 @@
             padded.push(defaults[i]);
           }
           _contentData[k] = padded;
+          /* 補完が発生したサイトは自動保存リストへ */
+          if (padded.length > serverItems.length) needsSave.push(k);
         });
         /* nav cards が既にレンダー済みならコンテンツ部分だけ更新 */
         ['1','2','3','4','5'].forEach(function(k){
           var el = document.getElementById('content-chips-' + k);
           if (el) el.innerHTML = renderContentChips(k);
         });
+        /* 補完があったサイトをサーバーへ自動保存 → ページにも即反映 */
+        needsSave.forEach(function(k){ saveContentItems(k); });
       })
       .catch(function(){
         ['1','2','3','4','5'].forEach(function(k){
