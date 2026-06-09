@@ -269,24 +269,25 @@
       <div style="padding:10px 16px;background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:8px;">
         <label style="display:inline-flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
           <input type="checkbox" id="cd-is-sub"
-            style="width:16px;height:16px;cursor:pointer;accent-color:#D97706;flex-shrink:0;">
+            style="width:16px;height:16px;cursor:pointer;accent-color:#D97706;flex-shrink:0;"
+            onchange="updateTypeLayout()">
           <span style="font-size:.875rem;font-weight:700;color:#92400E;">📌 サブコンテンツ</span>
         </label>
       </div>
       <!-- 種類 -->
       <div>
         <label class="form-label">種類</label>
-        <div style="display:flex;flex-wrap:wrap;gap:16px;padding:10px 14px;background:#f8fafc;border-radius:8px;border:1.5px solid var(--border);">
-          <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;">
+        <div id="cd-type-container" style="display:flex;flex-wrap:wrap;gap:16px;padding:10px 14px;background:#f8fafc;border-radius:8px;border:1.5px solid var(--border);">
+          <label id="cd-type-label-text" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:1;">
             <input type="radio" name="cd-type" value="text" checked onchange="switchContentType('text')" style="cursor:pointer;accent-color:var(--primary);"> 📝 テキスト
           </label>
-          <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;">
+          <label id="cd-type-label-sheet" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:2;">
             <input type="radio" name="cd-type" value="sheet" onchange="switchContentType('sheet')" style="cursor:pointer;accent-color:var(--primary);"> 📊 Googleスプレッドシート
           </label>
-          <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;">
+          <label id="cd-type-label-file" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:3;">
             <input type="radio" name="cd-type" value="file" onchange="switchContentType('file')" style="cursor:pointer;accent-color:var(--primary);"> 🖼️ 画像・PDF
           </label>
-          <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;">
+          <label id="cd-type-label-link" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:4;">
             <input type="radio" name="cd-type" value="link" onchange="switchContentType('link')" style="cursor:pointer;accent-color:var(--primary);"> 🔗 リンク
           </label>
         </div>
@@ -905,6 +906,7 @@
       radios[ri].checked = (radios[ri].value === type);
     }
     switchContentType(type);
+    updateTypeLayout();
     // スプレッドシートフィールド
     var sheetUrl  = document.getElementById('cd-sheet-url');
     var sheetName = document.getElementById('cd-sheet-name');
@@ -1006,6 +1008,42 @@
       var el = document.getElementById(sections[k]);
       if (el) el.style.display = (k === type) ? '' : 'none';
     });
+  }
+
+  /* ===== サブコンテンツ時の種類ラジオ並び替え・Sheet非表示 ===== */
+  function updateTypeLayout() {
+    var isSubEl = document.getElementById('cd-is-sub');
+    var isSub   = isSubEl ? isSubEl.checked : false;
+    var lblText  = document.getElementById('cd-type-label-text');
+    var lblSheet = document.getElementById('cd-type-label-sheet');
+    var lblFile  = document.getElementById('cd-type-label-file');
+    var lblLink  = document.getElementById('cd-type-label-link');
+
+    if (isSub) {
+      /* サブコンテンツ: リンク(1) → 画像PDF(2) → テキスト(3)、スプレッドシートは非表示 */
+      if (lblLink)  { lblLink.style.order  = '1'; lblLink.style.display  = 'inline-flex'; }
+      if (lblFile)  { lblFile.style.order  = '2'; lblFile.style.display  = 'inline-flex'; }
+      if (lblText)  { lblText.style.order  = '3'; lblText.style.display  = 'inline-flex'; }
+      if (lblSheet) { lblSheet.style.display = 'none'; }
+      /* スプレッドシートが選択中の場合 → リンクに切り替え */
+      var radios = document.querySelectorAll('input[name="cd-type"]');
+      var current = 'text';
+      for (var ri = 0; ri < radios.length; ri++) {
+        if (radios[ri].checked) { current = radios[ri].value; break; }
+      }
+      if (current === 'sheet') {
+        for (var ri = 0; ri < radios.length; ri++) {
+          if (radios[ri].value === 'link') { radios[ri].checked = true; break; }
+        }
+        switchContentType('link');
+      }
+    } else {
+      /* 通常: テキスト(1) → スプレッドシート(2) → 画像PDF(3) → リンク(4) */
+      if (lblText)  { lblText.style.order  = '1'; lblText.style.display  = 'inline-flex'; }
+      if (lblSheet) { lblSheet.style.order = '2'; lblSheet.style.display = 'inline-flex'; }
+      if (lblFile)  { lblFile.style.order  = '3'; lblFile.style.display  = 'inline-flex'; }
+      if (lblLink)  { lblLink.style.order  = '4'; lblLink.style.display  = 'inline-flex'; }
+    }
   }
 
   /* リンクプレビュー更新（URLorLabel変更時） */
@@ -1206,6 +1244,7 @@
   window.saveContentItems  = saveContentItems;
   window.renderContentChips = renderContentChips;
   window.switchContentType  = switchContentType;
+  window.updateTypeLayout   = updateTypeLayout;
   window.updateLinkPreview  = updateLinkPreview;
   window.loadSheetPreview   = loadSheetPreview;
   window.uploadContentFile  = uploadContentFile;
