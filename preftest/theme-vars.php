@@ -179,7 +179,10 @@ if ($hw === 'full') {
     echo "  .carousel-content .hero-badge-dot { background: #4ade80 !important; }\n";
     // 中央：カルーセル画像（固定割合）
     echo "  .hero-carousel-wrapper { order: 2 !important; flex: 0 0 {$wpct} !important; max-width: {$wpct} !important; }\n";
-    // 右：クイックリンク（左と同じ幅 → 画像が中央に来る）
-    echo "  .hero-info-wrapper { order: 3 !important; flex: 0 0 {$spct} !important; max-width: {$spct} !important; min-width: 0 !important; width: auto !important; box-sizing: border-box !important; }\n";
+    // 右：クイックリンク（左と同じ幅 → 画像が中央に来る）。高さ制限を解除し全件表示
+    echo "  .hero-info-wrapper { order: 3 !important; flex: 0 0 {$spct} !important; max-width: {$spct} !important; min-width: 0 !important; width: auto !important; box-sizing: border-box !important; height: auto !important; overflow: visible !important; }\n";
+    // リンクを2列にして全部表示できるように
+    echo "  .hero-info-links { display: grid !important; grid-template-columns: 1fr 1fr !important; align-content: center !important; }\n";
+    echo "  .hero-info-links a { border-bottom: 1px solid rgba(255,255,255,.07) !important; }\n";
     echo "}\n";
 }
