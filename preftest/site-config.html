@@ -126,22 +126,35 @@
     </div>
   </div>
 
-  <!-- ===== ① カルーセル画像管理 ===== -->
+  <!-- ===== ① ヒーローエリア管理 ===== -->
   <section style="background:var(--bg-light,#f4f6fa);border-top:1px solid var(--border,#e2e8f0);padding:28px 0 44px;">
     <div class="container">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+      <!-- 親見出し：ヒーローエリア管理 -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:6px;">
         <div>
-          <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid var(--primary-light);padding-left:12px;margin:0 0 6px;">
-            🖼 カルーセル画像管理
+          <h2 style="font-size:1.25rem;font-weight:800;color:var(--primary);border-left:5px solid var(--primary-light);padding-left:14px;margin:0 0 6px;">
+            🎬 ヒーローエリア管理
           </h2>
-          <p style="font-size:.8125rem;color:var(--text-light);margin:0;padding-left:16px;">
-            推奨サイズ <strong>1440 × 400 px</strong>（JPG / PNG / WebP　最大 8 MB）<br>
-            画像を設定しないスライドはテーマカラーのグラデーションが表示されます。
+          <p style="font-size:.8125rem;color:var(--text-light);margin:0;padding-left:19px;">
+            トップページ最上部のメインビジュアル領域に関する設定です。
           </p>
         </div>
         <a href="index.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#fff;color:var(--primary);border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-weight:700;text-decoration:none;white-space:nowrap;">🔗 トップページを確認</a>
       </div>
-      <div id="slides-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;"></div>
+
+      <!-- 子セクション：カルーセル画像管理 -->
+      <div style="background:#fff;border:1px solid var(--border,#e2e8f0);border-radius:12px;padding:20px 22px;margin-top:18px;box-shadow:0 1px 3px rgba(0,0,0,.04);">
+        <div style="margin-bottom:16px;">
+          <h3 style="font-size:1rem;font-weight:700;color:var(--primary);margin:0 0 6px;display:flex;align-items:center;gap:8px;">
+            🖼 カルーセル画像管理
+          </h3>
+          <p style="font-size:.8125rem;color:var(--text-light);margin:0;">
+            推奨サイズ <strong>1440 × 400 px</strong>（JPG / PNG / WebP　最大 8 MB）<br>
+            画像を設定しないスライドはテーマカラーのグラデーションが表示されます。
+          </p>
+        </div>
+        <div id="slides-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;"></div>
+      </div>
     </div>
   </section>
 
