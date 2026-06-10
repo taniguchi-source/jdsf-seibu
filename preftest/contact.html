@@ -187,6 +187,8 @@
       if (!d || !d.name) return;
       var els = document.querySelectorAll('.header-logo-text .name, .footer-logo-name');
       for (var i=0;i<els.length;i++) els[i].textContent = d.name;
+      var cps = document.querySelectorAll('.footer-bottom span');
+      for (var j=0;j<cps.length;j++){ if (/All rights reserved|©/.test(cps[j].textContent)) cps[j].textContent = cps[j].textContent.replace(/テストダンススポーツ連盟/g, d.name); }
     })
     .catch(function(){});
 })();
