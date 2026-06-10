@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $height_raw = (string)($_POST['height'] ?? 'standard');
-$allowed = ['standard', 'half', 'two-thirds', 'four-fifths', 'none'];
+$allowed = ['five-fourths', 'standard', 'half', 'two-thirds', 'four-fifths', 'none'];
 $height  = in_array($height_raw, $allowed, true) ? $height_raw : 'standard';
 
 $file = dirname(__DIR__) . '/data/hero.json';
