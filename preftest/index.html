@@ -390,6 +390,18 @@
   </div>
 </section>
 
+<!-- ===== 直近競技会情報（本番 competitions_seibu.json をプロキシ経由で取得） ===== -->
+<section class="pref-section" style="background:#fff;border-bottom:1px solid #d0d9e4;">
+  <div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+      <h2 class="pref-section-title">🏆 直近競技会情報</h2>
+    </div>
+    <div id="home-comp-grid">
+      <p style="color:var(--text-light);font-size:0.9rem;padding:8px 0;">読み込み中...</p>
+    </div>
+  </div>
+</section>
+
 <!-- ===== トップページ コンテンツ（管理画面の「トップページ」で管理） ===== -->
 <section class="pref-section" style="background:#fff;border-bottom:1px solid #d0d9e4;">
   <div class="container">
@@ -620,6 +632,61 @@
       }).join('');
     })
     .catch(function () { /* フォールバック: 既定のクイックリンクを維持 */ });
+})();
+
+/* ===== 直近競技会情報（本番 competitions_seibu.json をプロキシ取得して描画） ===== */
+(function () {
+  var grid = document.getElementById('home-comp-grid');
+  if (!grid) return;
+  fetch('api/fetch_competitions.php?_=' + Date.now())
+    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function (data) {
+      var today = new Date(); today.setHours(0,0,0,0);
+      var todayISO = today.toISOString().slice(0,10);
+      var from = new Date(today); from.setDate(from.getDate() - 7);
+      var fromISO = from.toISOString().slice(0,10);
+      var comps = (data.competitions || []).filter(function (c) {
+        if (!c.date_iso || c.date_iso < fromISO) return false;
+        if (c.name && c.name.slice(0,10).indexOf('PD') !== -1) return false;
+        return true;
+      });
+      if (comps.length === 0) {
+        grid.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:32px 0;">現在、予定されている競技会はありません。</p>';
+        return;
+      }
+      var rows = comps.map(function (c) {
+        var isPast = c.date_iso && c.date_iso < todayISO;
+        var badge;
+        if (c.has_result && c.result_url) badge = '';
+        else if (c.has_result) badge = '<span class="comp-status status-closed">結果掲載済</span>';
+        else if (c.has_participants) badge = '<span class="comp-status status-open">参加者確認中</span>';
+        else if (c.entry_deadline) {
+          var dlParts = c.entry_deadline.match(/(\d{4})年(\d+)月(\d+)日/);
+          if (dlParts) {
+            var dlIso = dlParts[1] + '-' + ('0'+dlParts[2]).slice(-2) + '-' + ('0'+dlParts[3]).slice(-2);
+            var dlShort = dlParts[2] + '月' + dlParts[3] + '日';
+            badge = dlIso < todayISO
+              ? '<span class="comp-status status-closed">受付締切済</span>'
+              : '<span class="comp-status status-soon">締切: ' + dlShort + '</span>';
+          } else badge = '';
+        } else badge = '';
+        var links = [];
+        if (c.syllabus_url) links.push('<a href="' + c.syllabus_url + '" target="_blank" rel="noopener" class="table-link">シラバス</a>');
+        if (c.entry_url) links.push('<a href="' + c.entry_url + '" target="_blank" rel="noopener" class="table-link" style="background:#e07040;color:#fff;border-color:#e07040;">エントリー</a>');
+        if (c.result_url) { var lbl = c.has_result ? '結果' : '参加者'; links.push('<a href="' + c.result_url + '" target="_blank" rel="noopener" class="table-link">' + lbl + '</a>'); }
+        var venueHtml = c.venue ? '<span class="comp-row-venue">📍 ' + c.venue + '</span>' : '';
+        return '<div class="comp-row' + (isPast ? ' comp-row-past' : '') + '">'
+          + '<div class="comp-row-date">' + (c.date || '') + '</div>'
+          + '<div class="comp-row-body">'
+          + '<div class="comp-row-name">' + (c.name || '') + '</div>'
+          + '<div class="comp-row-meta">' + venueHtml + badge + links.join('') + '</div>'
+          + '</div></div>';
+      });
+      grid.innerHTML = '<div class="comp-list">' + rows.join('') + '</div>';
+    })
+    .catch(function () {
+      grid.innerHTML = '<p style="color:#B91C1C;font-size:0.9rem;padding:8px 0;">競技会情報の読み込みに失敗しました。</p>';
+    });
 })();
 
 /* ===== トップページ コンテンツ描画（管理画面「トップページ」/ contents.json[top]） ===== */
