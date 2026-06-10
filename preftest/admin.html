@@ -791,26 +791,21 @@
     fetch('data/contents.json?_=' + Date.now())
       .then(function(r){ return r.ok ? r.json() : {}; })
       .then(function(data){
-        var needsSave = [];
         ['1','2','3','4','5'].forEach(function(k){
-          var serverItems = Array.isArray(data[k]) ? data[k] : [];
-          var defaults    = _CONTENT_DEFAULTS[k];
-          /* サーバーデータが6未満の場合、不足スロットをデフォルトで補完 */
-          var padded = serverItems.slice();
-          for (var i = serverItems.length; i < defaults.length; i++) {
-            padded.push(defaults[i]);
+          var serverItems = Array.isArray(data[k]) ? data[k] : null;
+          if (serverItems !== null) {
+            /* サーバーに保存済みデータがあればそのまま使用（削除・追加を尊重） */
+            _contentData[k] = serverItems;
+          } else {
+            /* 一度も保存されていないサイトのみ、デフォルト6スロットで初期化 */
+            _contentData[k] = _CONTENT_DEFAULTS[k].slice();
           }
-          _contentData[k] = padded;
-          /* 補完が発生したサイトは自動保存リストへ */
-          if (padded.length > serverItems.length) needsSave.push(k);
         });
         /* nav cards が既にレンダー済みならコンテンツ部分だけ更新 */
         ['1','2','3','4','5'].forEach(function(k){
           var el = document.getElementById('content-chips-' + k);
           if (el) el.innerHTML = renderContentChips(k);
         });
-        /* 補完があったサイトをサーバーへ自動保存 → ページにも即反映 */
-        needsSave.forEach(function(k){ saveContentItems(k); });
       })
       .catch(function(){
         ['1','2','3','4','5'].forEach(function(k){
@@ -862,11 +857,14 @@
 
   function removeContentItem(siteId, idx) {
     var k = String(siteId);
-    if (_contentData[k]) {
-      _contentData[k].splice(idx, 1);
-      var el = document.getElementById('content-chips-' + k);
-      if (el) el.innerHTML = renderContentChips(k);
-    }
+    if (!_contentData[k] || !_contentData[k][idx]) return;
+    var title = _contentData[k][idx].title || ('コンテンツ' + (idx + 1));
+    if (!window.confirm('「' + title + '」を削除します。よろしいですか？\n（削除は即座に保存され、公開ページにも反映されます）')) return;
+    _contentData[k].splice(idx, 1);
+    var el = document.getElementById('content-chips-' + k);
+    if (el) el.innerHTML = renderContentChips(k);
+    /* 削除を即サーバー保存（再読込で復活しないように） */
+    saveContentItems(k);
   }
 
   function saveContentItems(siteId) {
