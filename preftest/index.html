@@ -587,6 +587,26 @@
     })
     .catch(function () { /* フォールバック: デフォルトリンクをそのまま表示 */ });
 })();
+
+/* ===== クイックリンク動的ロード ===== */
+(function () {
+  var wrap = document.querySelector('.hero-info-links');
+  if (!wrap) return;
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  fetch('data/quicklinks.json?_=' + Date.now())
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (data) {
+      if (!data || !Array.isArray(data.links)) return; /* 未設定なら既定リンクを維持 */
+      var items = data.links.filter(function (l) { return l.enabled !== false && (l.label || l.url); });
+      if (items.length === 0) return; /* 全て無効なら既定リンクを維持 */
+      wrap.innerHTML = items.map(function (l) {
+        var url = String(l.url || '#').replace(/"/g, '%22');
+        var tgt = l.newtab ? ' target="_blank" rel="noopener"' : '';
+        return '<a href="' + url + '"' + tgt + '>' + esc(l.label || l.url) + '</a>';
+      }).join('');
+    })
+    .catch(function () { /* フォールバック: 既定のクイックリンクを維持 */ });
+})();
 </script>
 
 </body>

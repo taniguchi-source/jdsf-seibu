@@ -155,6 +155,22 @@
         </div>
         <div id="slides-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;"></div>
       </div>
+
+      <!-- 子セクション：クイックリンク管理 -->
+      <div style="background:#fff;border:1px solid var(--border,#e2e8f0);border-radius:12px;padding:20px 22px;margin-top:18px;box-shadow:0 1px 3px rgba(0,0,0,.04);">
+        <div style="margin-bottom:16px;">
+          <h3 style="font-size:1rem;font-weight:700;color:var(--primary);margin:0 0 6px;display:flex;align-items:center;gap:8px;">
+            🔗 クイックリンク管理
+          </h3>
+          <p style="font-size:.8125rem;color:var(--text-light);margin:0;">
+            トップページ右側「📌 クイックリンク」に表示するリンクです。チェックを外すと非表示になります。<br>
+            ラベルには絵文字も使えます（例：📢 お知らせ一覧）。「別タブ」をオンにすると新しいタブで開きます。
+          </p>
+        </div>
+        <div id="quicklinks-list" style="display:grid;gap:10px;"></div>
+        <div id="quicklinks-msg" style="display:none;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:12px;"></div>
+        <button onclick="saveQuickLinks()" style="margin-top:14px;padding:9px 24px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;">💾 クイックリンクを保存</button>
+      </div>
     </div>
   </section>
 
@@ -242,6 +258,7 @@
     contentScreen.style.display = 'block';
     loadCurrentTheme();
     loadSlides();
+    loadQuickLinks();
   }
   window.doLogin  = doLogin;
   window.doLogout = doLogout;
@@ -576,6 +593,98 @@
       })
       .catch(function(){ alert('通信エラーが発生しました'); });
   }
+
+  /* ===================================================================
+     クイックリンク管理
+  =================================================================== */
+  var _quickLinks = [];
+
+  var _DEFAULT_QUICKLINKS = [
+    { id:1, enabled:true, label:'📢 お知らせ一覧',      url:'news.html',                 newtab:false },
+    { id:2, enabled:true, label:'📄 サイト1',           url:'page1.html',                newtab:false },
+    { id:3, enabled:true, label:'📄 サイト2',           url:'page2.html',                newtab:false },
+    { id:4, enabled:true, label:'📄 サイト3',           url:'page3.html',                newtab:false },
+    { id:5, enabled:true, label:'🔗 西部ブロック委員会', url:'https://jdsf-seibu.com/',   newtab:true  },
+    { id:6, enabled:true, label:'🔗 JDSF本部',          url:'https://www.jdsf.or.jp/',   newtab:true  },
+  ];
+
+  function loadQuickLinks() {
+    fetch('data/quicklinks.json?_=' + Date.now())
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(data){
+        if (data && Array.isArray(data.links) && data.links.length > 0) {
+          _quickLinks = data.links;
+        } else {
+          _quickLinks = _DEFAULT_QUICKLINKS.map(function(x){ return Object.assign({}, x); });
+        }
+        renderQuickLinks();
+      })
+      .catch(function(){
+        _quickLinks = _DEFAULT_QUICKLINKS.map(function(x){ return Object.assign({}, x); });
+        renderQuickLinks();
+      });
+  }
+
+  function renderQuickLinks() {
+    var wrap = document.getElementById('quicklinks-list');
+    if (!wrap) return;
+    wrap.innerHTML = _quickLinks.map(function(l, i){
+      var enabled = l.enabled !== false;
+      return '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;background:' + (enabled ? '#F8FAFC' : '#F1F5F9') + ';border:1px solid var(--border);border-radius:8px;">'
+        + '<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;font-size:.75rem;font-weight:700;color:var(--text-light);">'
+        +   '<input type="checkbox" id="ql-enabled-' + i + '" ' + (enabled ? 'checked' : '') + ' style="width:15px;height:15px;cursor:pointer;accent-color:var(--primary);">表示</label>'
+        + '<div style="flex:1.2;min-width:150px;">'
+        +   '<label style="font-size:.68rem;font-weight:700;color:var(--text-light);display:block;margin-bottom:2px;">ラベル</label>'
+        +   '<input type="text" id="ql-label-' + i + '" value="' + escHtml(l.label || '') + '" placeholder="例：📢 お知らせ一覧" style="width:100%;padding:6px 9px;border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-family:inherit;box-sizing:border-box;outline:none;">'
+        + '</div>'
+        + '<div style="flex:1.5;min-width:170px;">'
+        +   '<label style="font-size:.68rem;font-weight:700;color:var(--text-light);display:block;margin-bottom:2px;">リンク先URL</label>'
+        +   '<input type="text" id="ql-url-' + i + '" value="' + escHtml(l.url || '') + '" placeholder="例：page1.html / https://..." style="width:100%;padding:6px 9px;border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-family:inherit;box-sizing:border-box;outline:none;">'
+        + '</div>'
+        + '<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;font-size:.75rem;font-weight:700;color:var(--text-light);">'
+        +   '<input type="checkbox" id="ql-newtab-' + i + '" ' + (l.newtab ? 'checked' : '') + ' style="width:15px;height:15px;cursor:pointer;accent-color:var(--primary);">別タブ</label>'
+        + '</div>';
+    }).join('');
+  }
+
+  function saveQuickLinks() {
+    var links = _quickLinks.map(function(l, i){
+      var en = document.getElementById('ql-enabled-' + i);
+      var lb = document.getElementById('ql-label-' + i);
+      var ur = document.getElementById('ql-url-' + i);
+      var nt = document.getElementById('ql-newtab-' + i);
+      return {
+        id:      i + 1,
+        enabled: en ? en.checked : true,
+        label:   lb ? lb.value.trim() : '',
+        url:     ur ? ur.value.trim() : '',
+        newtab:  nt ? nt.checked : false,
+      };
+    });
+    _quickLinks = links;
+    var msgEl = document.getElementById('quicklinks-msg');
+    var fd = new FormData();
+    fd.append('token', TOKEN);
+    fd.append('links', JSON.stringify(links));
+    fetch('api/save_quicklinks.php', {method:'POST', body:fd})
+      .then(function(r){
+        if (!r.ok) return r.text().then(function(t){ throw new Error('HTTP ' + r.status + (t ? ': ' + t.substring(0,80) : '')); });
+        return r.json();
+      })
+      .then(function(res){
+        if (res.ok) {
+          renderQuickLinks();
+          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FFF4;color:#166534;border:1px solid #86EFAC;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:12px;'; msgEl.textContent='✅ クイックリンクを保存しました'; }
+          setTimeout(function(){ var e=document.getElementById('quicklinks-msg'); if(e) e.style.display='none'; }, 3000);
+        } else {
+          if (msgEl){ msgEl.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:12px;'; msgEl.textContent='⚠ ' + (res.error||'エラー'); }
+        }
+      })
+      .catch(function(e){
+        if (msgEl){ msgEl.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:12px;'; msgEl.textContent='⚠ ' + (e && e.message ? e.message : '通信エラー'); }
+      });
+  }
+  window.saveQuickLinks = saveQuickLinks;
 
 })();
 </script>
