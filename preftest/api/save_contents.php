@@ -13,9 +13,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $site_id = (string)($_POST['site_id'] ?? '');
-if (!in_array($site_id, ['1','2','3','4','5'])) {
+if (!in_array($site_id, ['top','1','2','3','4','5'])) {
     http_response_code(400);
-    echo json_encode(['error' => 'site_id は 1〜5 で指定してください'], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['error' => 'site_id は top または 1〜5 で指定してください'], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
