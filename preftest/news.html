@@ -120,7 +120,6 @@
         <a href="page2.html" class="nav-link">サイト2</a>
         <a href="page3.html" class="nav-link">サイト3</a>
       </span>
-      <a href="contact.html" class="nav-link nav-cta">お問い合わせ</a>
       <a href="admin.html"   class="nav-link">サイト管理</a>
     </nav>
   </div>
@@ -181,10 +180,9 @@
       <ul class="footer-links">
         <li><a href="index.html">ホーム</a></li>
         <li><a href="news.html">お知らせ一覧</a></li>
-        <li><a href="about.html">ダンススポーツ連盟について</a></li>
-        <li><a href="competitions.html">競技会情報</a></li>
-        <li><a href="guidance.html">指導員情報</a></li>
-        <li><a href="contact.html">お問い合わせ</a></li>
+        <li><a href="page1.html">サイト1</a></li>
+        <li><a href="page2.html">サイト2</a></li>
+        <li><a href="page3.html">サイト3</a></li>
       </ul>
     </div>
     <div class="footer-col">
@@ -197,9 +195,6 @@
   </div>
   <div class="container footer-bottom">
     <span>© 2026 テストダンススポーツ連盟. All rights reserved.</span>
-    <div class="footer-bottom-links">
-      <a href="contact.html">お問い合わせ</a>
-    </div>
   </div>
 </footer>
 
@@ -256,7 +251,7 @@
 
     wrap.innerHTML = items.map(function (n) {
       var catCls  = CAT_CLASS[n.category] || 'tag-info';
-      var hasId   = !!n.id;
+      var hasId   = false; /* news-detail.html 未実装のためリンク無効化 */
       var tag     = hasId ? 'a' : 'div';
       var attrs   = hasId ? ' href="news-detail.html?id=' + encodeURIComponent(n.id) + '"' : '';
       var noLink  = hasId ? '' : ' no-link';

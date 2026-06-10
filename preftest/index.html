@@ -261,7 +261,6 @@
         <a href="page2.html" class="nav-link">サイト2</a>
         <a href="page3.html" class="nav-link">サイト3</a>
       </span>
-      <a href="contact.html" class="nav-link nav-cta">お問い合わせ</a>
       <a href="admin.html"   class="nav-link">サイト管理</a>
     </nav>
   </div>
@@ -325,10 +324,10 @@
   <div class="hero-info-wrapper">
     <div class="hero-info-header">📌 クイックリンク</div>
     <div class="hero-info-links">
-      <a href="about.html">🏛 連盟について</a>
-      <a href="competitions.html">🏆 競技会情報</a>
-      <a href="guidance.html">📋 指導員情報</a>
-      <a href="contact.html">✉ お問い合わせ</a>
+      <a href="news.html">📢 お知らせ一覧</a>
+      <a href="page1.html">📄 サイト1</a>
+      <a href="page2.html">📄 サイト2</a>
+      <a href="page3.html">📄 サイト3</a>
       <a href="https://jdsf-seibu.com/" target="_blank" rel="noopener">🔗 西部ブロック委員会</a>
       <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener">🔗 JDSF本部</a>
     </div>
@@ -362,7 +361,6 @@
   <div class="container">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
       <h2 class="pref-section-title">🏆 直近の競技会情報</h2>
-      <a href="competitions.html" style="font-size:0.875rem;color:var(--primary);font-weight:700;text-decoration:none;">競技会一覧を見る →</a>
     </div>
     <div class="placeholder-cards">
       <div class="placeholder-card">
@@ -405,10 +403,10 @@
       <h4>サイトマップ</h4>
       <ul class="footer-links">
         <li><a href="index.html">ホーム</a></li>
-        <li><a href="about.html">ダンススポーツ連盟について</a></li>
-        <li><a href="competitions.html">競技会情報</a></li>
-        <li><a href="guidance.html">指導員情報</a></li>
-        <li><a href="contact.html">お問い合わせ</a></li>
+        <li><a href="news.html">お知らせ一覧</a></li>
+        <li><a href="page1.html">サイト1</a></li>
+        <li><a href="page2.html">サイト2</a></li>
+        <li><a href="page3.html">サイト3</a></li>
       </ul>
     </div>
     <div class="footer-col">
@@ -421,9 +419,6 @@
   </div>
   <div class="container footer-bottom">
     <span>© 2026 テストダンススポーツ連盟. All rights reserved.</span>
-    <div class="footer-bottom-links">
-      <a href="contact.html">お問い合わせ</a>
-    </div>
   </div>
 </footer>
 
@@ -558,7 +553,7 @@
       el.innerHTML = news.slice(0, 3).map(function (n) {
         var catCls = CAT_CLASS[n.category] || 'tag-info';
         var detail = (n.detail || '').length > 60 ? n.detail.substring(0, 60) + '…' : (n.detail || '');
-        var href   = n.id ? 'news-detail.html?id=' + encodeURIComponent(n.id) : 'news.html';
+        var href   = 'news.html'; /* news-detail.html 未実装のため一覧へ誘導 */
         return '<a href="' + href + '" class="placeholder-card" style="text-decoration:none;color:inherit;">'
           + '<div class="placeholder-card-date" style="display:flex;align-items:center;gap:6px;">📅 ' + escHtml(n.date)
           + ' <span class="tag ' + catCls + '" style="font-size:0.7rem;">' + escHtml(n.category || '') + '</span></div>'
