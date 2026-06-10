@@ -31,7 +31,7 @@ foreach ($items as $item) {
         'title'      => mb_substr(trim((string)($item['title'] ?? '')), 0, 60),
         'enabled'    => !empty($item['enabled']),
         'is_sub'     => !empty($item['is_sub']),
-        'type'       => in_array($type_raw, ['text', 'sheet', 'file', 'link'], true) ? $type_raw : 'text',
+        'type'       => in_array($type_raw, ['text', 'sheet', 'file', 'image', 'pdf', 'link'], true) ? $type_raw : 'text',
         'body'       => mb_substr(trim((string)($item['body'] ?? '')), 0, 5000),
         'sheet_url'  => mb_substr(trim((string)($item['sheet_url']  ?? '')), 0, 500),
         'sheet_name' => mb_substr(trim((string)($item['sheet_name'] ?? '')), 0, 100),

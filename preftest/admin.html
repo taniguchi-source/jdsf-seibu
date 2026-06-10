@@ -284,10 +284,13 @@
           <label id="cd-type-label-sheet" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:2;">
             <input type="radio" name="cd-type" value="sheet" onchange="switchContentType('sheet')" style="cursor:pointer;accent-color:var(--primary);"> 📊 Googleスプレッドシート
           </label>
-          <label id="cd-type-label-file" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:3;">
-            <input type="radio" name="cd-type" value="file" onchange="switchContentType('file')" style="cursor:pointer;accent-color:var(--primary);"> 🖼️ 画像・PDF
+          <label id="cd-type-label-image" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:3;">
+            <input type="radio" name="cd-type" value="image" onchange="switchContentType('image')" style="cursor:pointer;accent-color:var(--primary);"> 🖼️ 画像
           </label>
-          <label id="cd-type-label-link" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:4;">
+          <label id="cd-type-label-pdf" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:4;">
+            <input type="radio" name="cd-type" value="pdf" onchange="switchContentType('pdf')" style="cursor:pointer;accent-color:var(--primary);"> 📄 PDF
+          </label>
+          <label id="cd-type-label-link" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:5;">
             <input type="radio" name="cd-type" value="link" onchange="switchContentType('link')" style="cursor:pointer;accent-color:var(--primary);"> 🔗 リンク
           </label>
         </div>
@@ -327,9 +330,9 @@
           </div>
           <!-- アップロード -->
           <div>
-            <label class="form-label">ファイルを選択 <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（jpg / png / gif / pdf　最大10MB）</span></label>
+            <label class="form-label"><span id="cd-file-type-label">画像ファイルを選択</span> <span id="cd-file-type-hint" style="font-size:.75rem;font-weight:400;color:var(--text-light);">（jpg / png / gif　最大10MB）</span></label>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-              <input type="file" id="cd-file-input" accept=".jpg,.jpeg,.png,.gif,.pdf"
+              <input type="file" id="cd-file-input" accept=".jpg,.jpeg,.png,.gif"
                 style="flex:1;min-width:0;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:.875rem;font-family:inherit;background:#fff;">
               <button onclick="uploadContentFile()" id="cd-upload-btn"
                 style="padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">⬆ アップロード</button>
@@ -825,9 +828,10 @@
       var safeTitle = escHtml(item.title || 'コンテンツ' + (idx + 1));
       var enabled   = item.enabled !== false;
       var isSheet   = item.type === 'sheet';
-      var isFile    = item.type === 'file';
+      var isImage   = item.type === 'file' || item.type === 'image';
+      var isPdf     = item.type === 'pdf';
       var isLink    = item.type === 'link';
-      var typeIcon  = isSheet ? '📊 ' : (isFile ? '🖼️ ' : (isLink ? '🔗 ' : '📝 '));
+      var typeIcon  = isSheet ? '📊 ' : (isImage ? '🖼️ ' : (isPdf ? '📄 ' : (isLink ? '🔗 ' : '📝 ')));
       return '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;'
         + 'background:' + (enabled ? '#EFF6FF' : '#F1F5F9') + ';'
         + 'border:1px solid ' + (enabled ? '#BFDBFE' : 'var(--border)') + ';'
@@ -899,8 +903,9 @@
     if (isSubEl) isSubEl.checked = !!item.is_sub;
     document.getElementById('cd-title').value   = item.title || '';
     document.getElementById('cd-body').value    = item.body  || '';
-    // 種類ラジオボタン
+    // 種類ラジオボタン（旧 file タイプは image として扱う）
     var type   = item.type || 'text';
+    if (type === 'file') type = 'image';
     var radios = document.querySelectorAll('input[name="cd-type"]');
     for (var ri = 0; ri < radios.length; ri++) {
       radios[ri].checked = (radios[ri].value === type);
@@ -1003,27 +1008,49 @@
 
   /* ===== 種類切り替え ===== */
   function switchContentType(type) {
-    var sections = { text:'cd-text-section', sheet:'cd-sheet-section', file:'cd-file-section', link:'cd-link-section' };
-    Object.keys(sections).forEach(function(k) {
-      var el = document.getElementById(sections[k]);
-      if (el) el.style.display = (k === type) ? '' : 'none';
+    /* image / pdf / file(旧) はすべて cd-file-section を使用 */
+    var showMap = {
+      text: 'cd-text-section', sheet: 'cd-sheet-section',
+      file: 'cd-file-section', image: 'cd-file-section', pdf: 'cd-file-section',
+      link: 'cd-link-section'
+    };
+    var showId = showMap[type] || 'cd-text-section';
+    ['cd-text-section','cd-sheet-section','cd-file-section','cd-link-section'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.style.display = (id === showId) ? '' : 'none';
     });
+    /* ファイルセクションのラベル・accept を動的に切り替え */
+    var lbl  = document.getElementById('cd-file-type-label');
+    var hint = document.getElementById('cd-file-type-hint');
+    var inp  = document.getElementById('cd-file-input');
+    if (type === 'pdf') {
+      if (lbl)  lbl.textContent  = 'PDFファイルを選択';
+      if (hint) hint.textContent = '（pdf　最大10MB）';
+      if (inp)  inp.accept = '.pdf';
+    } else {
+      /* image / file(旧) */
+      if (lbl)  lbl.textContent  = '画像ファイルを選択';
+      if (hint) hint.textContent = '（jpg / png / gif　最大10MB）';
+      if (inp)  inp.accept = '.jpg,.jpeg,.png,.gif';
+    }
   }
 
   /* ===== サブコンテンツ時の種類ラジオ並び替え・Sheet非表示 ===== */
   function updateTypeLayout() {
-    var isSubEl = document.getElementById('cd-is-sub');
-    var isSub   = isSubEl ? isSubEl.checked : false;
+    var isSubEl  = document.getElementById('cd-is-sub');
+    var isSub    = isSubEl ? isSubEl.checked : false;
     var lblText  = document.getElementById('cd-type-label-text');
     var lblSheet = document.getElementById('cd-type-label-sheet');
-    var lblFile  = document.getElementById('cd-type-label-file');
+    var lblImage = document.getElementById('cd-type-label-image');
+    var lblPdf   = document.getElementById('cd-type-label-pdf');
     var lblLink  = document.getElementById('cd-type-label-link');
 
     if (isSub) {
-      /* サブコンテンツ: リンク(1) → 画像PDF(2) → テキスト(3)、スプレッドシートは非表示 */
+      /* サブコンテンツ: リンク(1)→画像(2)→PDF(3)→テキスト(4)、スプレッドシート非表示 */
       if (lblLink)  { lblLink.style.order  = '1'; lblLink.style.display  = 'inline-flex'; }
-      if (lblFile)  { lblFile.style.order  = '2'; lblFile.style.display  = 'inline-flex'; }
-      if (lblText)  { lblText.style.order  = '3'; lblText.style.display  = 'inline-flex'; }
+      if (lblImage) { lblImage.style.order = '2'; lblImage.style.display = 'inline-flex'; }
+      if (lblPdf)   { lblPdf.style.order   = '3'; lblPdf.style.display   = 'inline-flex'; }
+      if (lblText)  { lblText.style.order  = '4'; lblText.style.display  = 'inline-flex'; }
       if (lblSheet) { lblSheet.style.display = 'none'; }
       /* スプレッドシートが選択中の場合 → リンクに切り替え */
       var radios = document.querySelectorAll('input[name="cd-type"]');
@@ -1038,11 +1065,12 @@
         switchContentType('link');
       }
     } else {
-      /* 通常: テキスト(1) → スプレッドシート(2) → 画像PDF(3) → リンク(4) */
+      /* 通常: テキスト(1)→スプレッドシート(2)→画像(3)→PDF(4)→リンク(5) */
       if (lblText)  { lblText.style.order  = '1'; lblText.style.display  = 'inline-flex'; }
       if (lblSheet) { lblSheet.style.order = '2'; lblSheet.style.display = 'inline-flex'; }
-      if (lblFile)  { lblFile.style.order  = '3'; lblFile.style.display  = 'inline-flex'; }
-      if (lblLink)  { lblLink.style.order  = '4'; lblLink.style.display  = 'inline-flex'; }
+      if (lblImage) { lblImage.style.order = '3'; lblImage.style.display = 'inline-flex'; }
+      if (lblPdf)   { lblPdf.style.order   = '4'; lblPdf.style.display   = 'inline-flex'; }
+      if (lblLink)  { lblLink.style.order  = '5'; lblLink.style.display  = 'inline-flex'; }
     }
   }
 

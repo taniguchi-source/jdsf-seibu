@@ -339,27 +339,33 @@
     if (item.type === 'sheet') {
       bodyEl.className = 'loading-text';
       bodyEl.textContent = '⏳ スプレッドシートを読み込み中...';
-    } else if (item.type === 'file') {
+    } else if (item.type === 'image' || (item.type === 'file' && (item.file_url || '').match(/\.(jpe?g|png|gif)$/i))) {
       var fUrl = item.file_url || '';
       if (fUrl) {
-        var fExt = fUrl.split('.').pop().toLowerCase();
-        var imgExts = ['jpg','jpeg','png','gif'];
-        if (imgExts.indexOf(fExt) >= 0) {
-          var img = document.createElement('img');
-          img.src   = fUrl;
-          img.alt   = item.title || '';
-          img.style.cssText = 'max-width:100%;height:auto;border-radius:8px;display:block;';
-          bodyEl.appendChild(img);
-        } else if (fExt === 'pdf') {
-          bodyEl.innerHTML =
-            '<embed src="' + escHtml(fUrl) + '" type="application/pdf" style="width:100%;height:640px;border-radius:8px;border:1px solid var(--border);">'
-            + '<p style="text-align:right;margin:6px 0 0;font-size:.8125rem;">'
-            + '<a href="' + escHtml(fUrl) + '" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;">🔗 PDFを別タブで開く</a></p>';
-        }
+        var img = document.createElement('img');
+        img.src   = fUrl;
+        img.alt   = item.title || '';
+        img.style.cssText = 'max-width:100%;height:auto;border-radius:8px;display:block;';
+        bodyEl.appendChild(img);
       } else {
         bodyEl.className = 'content-block-body';
-        bodyEl.textContent = '（ファイルは未設定です）';
+        bodyEl.textContent = '（画像は未設定です）';
       }
+    } else if (item.type === 'pdf' || (item.type === 'file' && (item.file_url || '').match(/\.pdf$/i))) {
+      var fUrl = item.file_url || '';
+      if (fUrl) {
+        bodyEl.innerHTML =
+          '<embed src="' + escHtml(fUrl) + '" type="application/pdf" style="width:100%;height:640px;border-radius:8px;border:1px solid var(--border);">'
+          + '<p style="text-align:right;margin:6px 0 0;font-size:.8125rem;">'
+          + '<a href="' + escHtml(fUrl) + '" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;">🔗 PDFを別タブで開く</a></p>';
+      } else {
+        bodyEl.className = 'content-block-body';
+        bodyEl.textContent = '（PDFは未設定です）';
+      }
+    } else if (item.type === 'file') {
+      var fUrl = item.file_url || '';
+      bodyEl.className = 'content-block-body';
+      bodyEl.textContent = fUrl ? fUrl : '（ファイルは未設定です）';
     } else if (item.type === 'link') {
       var lUrl   = item.link_url   || '';
       var lLabel = item.link_label || item.title || '';
@@ -436,7 +442,7 @@
         lNote.textContent = '新しいタブで開きます';
         block.appendChild(lNote);
       } else {
-        var titleIcon = m.type === 'sheet' ? '📊 ' : (m.type === 'file' ? '🖼️ ' : (m.type === 'link' ? '🔗 ' : '📝 '));
+        var titleIcon = m.type === 'sheet' ? '📊 ' : ((m.type === 'file' || m.type === 'image') ? '🖼️ ' : (m.type === 'pdf' ? '📄 ' : (m.type === 'link' ? '🔗 ' : '📝 ')));
         var titleEl = document.createElement('h2');
         titleEl.className = 'content-block-title';
         titleEl.textContent = titleIcon + (m.title || 'コンテンツ');
@@ -472,7 +478,7 @@
             slNote.textContent = '新しいタブで開きます';
             subItem.appendChild(slNote);
           } else {
-            var subIcon = sub.type === 'sheet' ? '📊 ' : (sub.type === 'file' ? '🖼️ ' : (sub.type === 'link' ? '🔗 ' : '📝 '));
+            var subIcon = sub.type === 'sheet' ? '📊 ' : ((sub.type === 'file' || sub.type === 'image') ? '🖼️ ' : (sub.type === 'pdf' ? '📄 ' : (sub.type === 'link' ? '🔗 ' : '📝 ')));
             var subTitle = document.createElement('h3');
             subTitle.className = 'sub-content-title';
             subTitle.textContent = subIcon + (sub.title || 'サブコンテンツ');
