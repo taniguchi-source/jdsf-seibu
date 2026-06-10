@@ -250,13 +250,10 @@
     }
 
     wrap.innerHTML = items.map(function (n) {
-      var catCls  = CAT_CLASS[n.category] || 'tag-info';
-      var hasId   = false; /* news-detail.html 未実装のためリンク無効化 */
-      var tag     = hasId ? 'a' : 'div';
-      var attrs   = hasId ? ' href="news-detail.html?id=' + encodeURIComponent(n.id) + '"' : '';
-      var noLink  = hasId ? '' : ' no-link';
+      var catCls   = CAT_CLASS[n.category] || 'tag-info';
+      /* news-detail.html 未実装のため、各お知らせはリンクなし(div)で表示 */
       var leftDate = n.event_date || n.date;
-      return '<' + tag + ' class="news-list-item' + noLink + '"' + attrs + '>'
+      return '<div class="news-list-item no-link">'
         + '<span class="nli-date">' + escHtml(leftDate) + '</span>'
         + '<span class="nli-badge"><span class="tag ' + catCls + '">' + escHtml(n.category || '') + '</span></span>'
         + '<span class="nli-body">'
@@ -264,8 +261,7 @@
         +   (n.detail ? '<span class="nli-detail">' + escHtml(n.detail) + '</span>' : '')
         +   '<span class="nli-pub-date">公開: ' + escHtml(n.date) + '</span>'
         + '</span>'
-        + (hasId ? '<span class="nli-arrow">詳しく読む →</span>' : '')
-        + '</' + tag + '>';
+        + '</div>';
     }).join('');
   }
 
