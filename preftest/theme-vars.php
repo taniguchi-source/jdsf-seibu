@@ -117,5 +117,10 @@ $hero_map = ['four-fifths' => '224px', 'two-thirds' => '187px', 'half' => '140px
 if ($hh === 'none') {
     echo "\n/* ヒーローエリア非表示 */\n.hero-main { display: none !important; }\n";
 } elseif (isset($hero_map[$hh])) {
-    echo "\n/* ヒーローエリア高さ */\n:root { --hero-h: {$hero_map[$hh]}; }\n";
+    $hpx = $hero_map[$hh];
+    // 標準280pxより低くするため height で固定。情報パネルははみ出し分をスクロール。
+    echo "\n/* ヒーローエリア高さ（標準280px基準） */\n";
+    echo ".hero-main { min-height: 0 !important; }\n";
+    echo ".hero-carousel-wrapper { height: {$hpx} !important; min-height: {$hpx} !important; }\n";
+    echo ".hero-info-wrapper { height: {$hpx} !important; overflow-y: auto; }\n";
 }
