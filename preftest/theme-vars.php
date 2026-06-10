@@ -181,8 +181,10 @@ if ($hw === 'full') {
     echo "  .hero-carousel-wrapper { order: 2 !important; flex: 0 0 {$wpct} !important; max-width: {$wpct} !important; }\n";
     // 右：クイックリンク（左と同じ幅 → 画像が中央に来る）。高さ制限を解除し全件表示
     echo "  .hero-info-wrapper { order: 3 !important; flex: 0 0 {$spct} !important; max-width: {$spct} !important; min-width: 0 !important; width: auto !important; box-sizing: border-box !important; height: auto !important; overflow: visible !important; }\n";
-    // リンクを2列にして全部表示できるように
-    echo "  .hero-info-links { display: grid !important; grid-template-columns: 1fr 1fr !important; align-content: center !important; }\n";
-    echo "  .hero-info-links a { border-bottom: 1px solid rgba(255,255,255,.07) !important; }\n";
+    // クイックリンクの列数: 1/2・1/3 のときだけ2列、それ以外(3/4)は1列
+    if ($hw === 'half' || $hw === 'third') {
+        echo "  .hero-info-links { display: grid !important; grid-template-columns: 1fr 1fr !important; align-content: center !important; }\n";
+        echo "  .hero-info-links a { border-bottom: 1px solid rgba(255,255,255,.07) !important; }\n";
+    }
     echo "}\n";
 }
