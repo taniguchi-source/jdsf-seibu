@@ -105,3 +105,16 @@ echo ":root {
 .slide-2 { background: linear-gradient(135deg, {$s2a} 0%, {$s2b} 40%, {$s2c} 100%); }
 .slide-3 { background: linear-gradient(135deg, {$s3a} 0%, {$s3b} 60%, {$s3c} 100%); }
 ";
+
+// ── ヒーローエリア高さ（data/hero.json 連動・描画前に適用しちらつき防止） ──
+$hero_file = __DIR__ . '/data/hero.json';
+$hraw   = @file_get_contents($hero_file);
+$hsaved = $hraw ? @json_decode($hraw, true) : [];
+$hh     = $hsaved['height'] ?? 'standard';
+$hero_map = ['half' => '50vh', 'two-thirds' => '67vh', 'four-fifths' => '80vh'];
+
+if ($hh === 'none') {
+    echo "\n/* ヒーローエリア非表示 */\n.hero-main { display: none !important; }\n";
+} elseif (isset($hero_map[$hh])) {
+    echo "\n/* ヒーローエリア高さ */\n:root { --hero-h: {$hero_map[$hh]}; }\n";
+}

@@ -607,26 +607,6 @@
     })
     .catch(function () { /* フォールバック: 既定のクイックリンクを維持 */ });
 })();
-
-/* ===== ヒーローエリアの高さ動的適用 ===== */
-(function () {
-  var MAP = { 'half': '50vh', 'two-thirds': '67vh', 'four-fifths': '80vh' };
-  fetch('data/hero.json?_=' + Date.now())
-    .then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (data) {
-      var h = data && data.height ? data.height : 'standard';
-      var hero = document.querySelector('.hero-main');
-      if (h === 'none') {
-        if (hero) hero.style.display = 'none';
-        return;
-      }
-      if (MAP[h]) {
-        document.documentElement.style.setProperty('--hero-h', MAP[h]);
-      }
-      /* standard は変数を設定せず既定値（280px / モバイル200px）を使用 */
-    })
-    .catch(function () { /* フォールバック: 標準の高さを維持 */ });
-})();
 </script>
 
 </body>
