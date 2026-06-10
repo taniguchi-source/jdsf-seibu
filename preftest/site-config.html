@@ -104,8 +104,17 @@
           <div class="name">テストダンススポーツ連盟</div>
         </div>
       </a>
-      <nav class="site-nav">
-        <a href="index.html"       class="nav-link">ホーム</a>
+      <button class="hamburger" aria-label="メニュー" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" aria-label="メインナビゲーション">
+        <a href="index.html" class="nav-link">ホーム</a>
+        <span id="dynamic-nav" style="display:contents;">
+          <a href="page1.html" class="nav-link">サイト1</a>
+          <a href="page2.html" class="nav-link">サイト2</a>
+          <a href="page3.html" class="nav-link">サイト3</a>
+        </span>
+        <a href="contact.html"     class="nav-link nav-cta">お問い合わせ</a>
         <a href="admin.html"       class="nav-link">サイト管理</a>
         <a href="site-config.html" class="nav-link active">サイト構築</a>
       </nav>
@@ -287,11 +296,44 @@
     loginScreen.style.display   = 'none';
     contentScreen.style.display = 'block';
     loadCurrentTheme();
+    loadHeaderNav();
     loadHeroHeight();
     loadCarouselWidth();
     loadSlides();
     loadQuickLinks();
   }
+
+  /* ===== ヘッダーの動的サイトリンク（nav.json連動・他ページと統一） ===== */
+  function loadHeaderNav() {
+    fetch('data/nav.json?_=' + Date.now())
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(data){
+        if (!data || !Array.isArray(data.links)) return;
+        var container = document.getElementById('dynamic-nav');
+        if (!container) return;
+        var html = '';
+        data.links.forEach(function(link){
+          if (!link.enabled) return;
+          var url  = String(link.url || '#').replace(/"/g, '%22');
+          var name = escHtml(link.name || '');
+          html += '<a href="' + url + '" class="nav-link">' + name + '</a>';
+        });
+        container.innerHTML = html;
+      })
+      .catch(function(){});
+  }
+
+  /* ===== ハンバーガーメニュー ===== */
+  (function(){
+    var hamburger = document.querySelector('.hamburger');
+    var nav       = document.querySelector('.site-nav');
+    if (hamburger && nav) {
+      hamburger.addEventListener('click', function(){
+        var open = nav.classList.toggle('open');
+        hamburger.setAttribute('aria-expanded', open);
+      });
+    }
+  })();
   window.doLogin  = doLogin;
   window.doLogout = doLogout;
 
