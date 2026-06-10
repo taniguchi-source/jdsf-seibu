@@ -554,6 +554,24 @@
     })
     .catch(function(){});
 })();
+/* ===== フッター サイトマップ 動的反映（data/nav.json） ===== */
+(function(){
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  var h4s = document.querySelectorAll('.site-footer h4'), ul = null;
+  for (var i=0;i<h4s.length;i++){ if (h4s[i].textContent.indexOf('サイトマップ') >= 0) { ul = h4s[i].parentNode.querySelector('ul'); break; } }
+  if (!ul) return;
+  fetch('data/nav.json?_=' + Date.now())
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      var html = '<li><a href="index.html">ホーム</a></li><li><a href="news.html">お知らせ一覧</a></li>';
+      if (d && Array.isArray(d.links)) {
+        d.links.forEach(function(l){ if (!l.enabled) return; html += '<li><a href="' + String(l.url||'#').replace(/"/g,'%22') + '">' + esc(l.name||'') + '</a></li>'; });
+      }
+      html += '<li><a href="contact.html">お問い合わせ</a></li>';
+      ul.innerHTML = html;
+    })
+    .catch(function(){});
+})();
 </script>
 
 </body>
