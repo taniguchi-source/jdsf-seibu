@@ -135,8 +135,36 @@
     </div>
   </div>
 
-  <!-- ===== ① ヒーローエリア管理 ===== -->
-  <section style="background:var(--bg-light,#f4f6fa);border-top:1px solid var(--border,#e2e8f0);padding:28px 0 44px;">
+  <!-- ===== ① サイト名管理 ===== -->
+  <section style="background:var(--bg-light,#f4f6fa);border-top:1px solid var(--border,#e2e8f0);padding:28px 0 8px;">
+    <div class="container">
+      <div style="margin-bottom:14px;">
+        <h2 style="font-size:1.25rem;font-weight:800;color:var(--primary);border-left:5px solid var(--primary-light);padding-left:14px;margin:0 0 6px;">
+          🏷 サイト名管理
+        </h2>
+        <p style="font-size:.8125rem;color:var(--text-light);margin:0;padding-left:19px;">
+          全ページのヘッダー・フッターに表示される連盟名を変更できます。
+        </p>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border,#e2e8f0);border-radius:12px;padding:20px 22px;box-shadow:0 1px 3px rgba(0,0,0,.04);">
+        <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:220px;">
+            <label style="font-size:.72rem;font-weight:700;color:var(--text-light);display:block;margin-bottom:3px;">サイト名（連盟名）</label>
+            <input type="text" id="site-name-input" value="テストダンススポーツ連盟" placeholder="例：○○ダンススポーツ連盟"
+              style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;font-family:inherit;box-sizing:border-box;outline:none;"
+              onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
+          </div>
+          <button onclick="saveSiteName()"
+            style="padding:9px 24px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">💾 サイト名を保存</button>
+        </div>
+        <p style="font-size:.72rem;color:var(--text-light);margin:8px 0 0;">※「公益社団法人日本ダンススポーツ連盟」（上段の所属名）は変更されません。</p>
+        <div id="site-name-msg" style="display:none;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:10px;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ② ヒーローエリア管理 ===== -->
+  <section style="background:var(--bg-light,#f4f6fa);padding:8px 0 44px;">
     <div class="container">
       <!-- 親見出し：ヒーローエリア管理 -->
       <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:6px;">
@@ -297,11 +325,57 @@
     contentScreen.style.display = 'block';
     loadCurrentTheme();
     loadHeaderNav();
+    loadSiteName();
     loadHeroHeight();
     loadCarouselWidth();
     loadSlides();
     loadQuickLinks();
   }
+
+  /* ===== サイト名管理 ===== */
+  function loadSiteName() {
+    fetch('data/sitename.json?_=' + Date.now())
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(data){
+        if (data && data.name) {
+          var el = document.getElementById('site-name-input');
+          if (el) el.value = data.name;
+        }
+      })
+      .catch(function(){});
+  }
+
+  function saveSiteName() {
+    var nameEl = document.getElementById('site-name-input');
+    var name   = nameEl ? nameEl.value.trim() : '';
+    var msgEl  = document.getElementById('site-name-msg');
+    if (!name) {
+      if (msgEl){ msgEl.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:10px;'; msgEl.textContent='⚠ サイト名を入力してください'; }
+      return;
+    }
+    var fd = new FormData();
+    fd.append('token', TOKEN);
+    fd.append('name', name);
+    fetch('api/save_sitename.php', {method:'POST', body:fd})
+      .then(function(r){
+        if (!r.ok) return r.text().then(function(t){ throw new Error('HTTP ' + r.status + (t ? ': ' + t.substring(0,80) : '')); });
+        return r.json();
+      })
+      .then(function(res){
+        if (res.ok) {
+          /* 画面内のサイト名表示を即時更新 */
+          document.querySelectorAll('.header-logo-text .name, .footer-logo-name, .login-title').forEach(function(el){ el.textContent = res.name; });
+          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FFF4;color:#166534;border:1px solid #86EFAC;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:10px;'; msgEl.textContent='✅ サイト名を保存しました（全ページに反映されます）'; }
+          setTimeout(function(){ var e=document.getElementById('site-name-msg'); if(e) e.style.display='none'; }, 3500);
+        } else {
+          if (msgEl){ msgEl.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:10px;'; msgEl.textContent='⚠ ' + (res.error||'エラー'); }
+        }
+      })
+      .catch(function(e){
+        if (msgEl){ msgEl.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:10px;'; msgEl.textContent='⚠ ' + (e && e.message ? e.message : '通信エラー'); }
+      });
+  }
+  window.saveSiteName = saveSiteName;
 
   /* ===== ヘッダーの動的サイトリンク（nav.json連動・他ページと統一） ===== */
   function loadHeaderNav() {
@@ -895,6 +969,20 @@
   }
   window.saveQuickLinks = saveQuickLinks;
 
+})();
+</script>
+
+<script>
+/* ===== サイト名 動的反映（data/sitename.json） ===== */
+(function(){
+  fetch('data/sitename.json?_=' + Date.now())
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if (!d || !d.name) return;
+      var els = document.querySelectorAll('.header-logo-text .name, .footer-logo-name');
+      for (var i=0;i<els.length;i++) els[i].textContent = d.name;
+    })
+    .catch(function(){});
 })();
 </script>
 

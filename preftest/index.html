@@ -767,5 +767,19 @@
 })();
 </script>
 
+<script>
+/* ===== サイト名 動的反映（data/sitename.json） ===== */
+(function(){
+  fetch('data/sitename.json?_=' + Date.now())
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if (!d || !d.name) return;
+      var els = document.querySelectorAll('.header-logo-text .name, .footer-logo-name');
+      for (var i=0;i<els.length;i++) els[i].textContent = d.name;
+    })
+    .catch(function(){});
+})();
+</script>
+
 </body>
 </html>

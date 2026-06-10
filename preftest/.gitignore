@@ -5,6 +5,7 @@ data/news.json
 data/quicklinks.json
 data/hero.json
 data/toppage.json
+data/sitename.json
 # アップロードファイル（サーバー上で管理）
 uploads/*
 !uploads/.gitkeep
