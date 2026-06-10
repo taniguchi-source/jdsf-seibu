@@ -12,12 +12,29 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$height_raw = (string)($_POST['height'] ?? 'standard');
-$allowed = ['five-fourths', 'standard', 'half', 'two-thirds', 'four-fifths', 'none'];
-$height  = in_array($height_raw, $allowed, true) ? $height_raw : 'standard';
-
 $file = dirname(__DIR__) . '/data/hero.json';
-$data = ['height' => $height, 'updated' => date('Y-m-d') . 'T' . date('H:i:s')];
+$raw  = @file_get_contents($file);
+$data = $raw ? @json_decode($raw, true) : [];
+if (!is_array($data)) $data = [];
+
+// 高さ（指定された場合のみ更新）
+if (isset($_POST['height'])) {
+    $h = (string)$_POST['height'];
+    $allowedH = ['five-fourths', 'standard', 'half', 'two-thirds', 'four-fifths', 'none'];
+    $data['height'] = in_array($h, $allowedH, true) ? $h : 'standard';
+}
+
+// 横幅（指定された場合のみ更新）
+if (isset($_POST['width'])) {
+    $w = (string)$_POST['width'];
+    $allowedW = ['full', 'standard', 'three-quarters', 'half', 'third'];
+    $data['width'] = in_array($w, $allowedW, true) ? $w : 'standard';
+}
+
+// 既定値の保証
+if (!isset($data['height'])) $data['height'] = 'standard';
+if (!isset($data['width']))  $data['width']  = 'standard';
+$data['updated'] = date('Y-m-d') . 'T' . date('H:i:s');
 
 if (file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) === false) {
     http_response_code(500);
@@ -25,4 +42,4 @@ if (file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAP
     exit;
 }
 
-echo json_encode(['ok' => true, 'height' => $height], JSON_UNESCAPED_UNICODE);
+echo json_encode(['ok' => true, 'height' => $data['height'], 'width' => $data['width']], JSON_UNESCAPED_UNICODE);

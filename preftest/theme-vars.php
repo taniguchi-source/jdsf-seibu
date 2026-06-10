@@ -146,3 +146,23 @@ if ($hh === 'none') {
         echo ".hero-desc  { font-size: {$t['desc']} !important; line-height: {$t['dlh']} !important; }\n";
     }
 }
+
+// ── カルーセル横幅（data/hero.json width 連動・デスクトップのみ） ──
+$hw = $hsaved['width'] ?? 'standard';
+$width_map = ['three-quarters' => '75%', 'half' => '50%', 'third' => '33.333%'];
+
+if ($hw === 'full') {
+    // 全幅: カルーセルが全体を占有、クイックリンクは非表示
+    echo "\n/* カルーセル横幅: 全幅（クイックリンク非表示） */\n";
+    echo "@media (min-width: 769px) {\n";
+    echo "  .hero-carousel-wrapper { flex: 1 1 100% !important; max-width: 100% !important; }\n";
+    echo "  .hero-info-wrapper { display: none !important; }\n";
+    echo "}\n";
+} elseif (isset($width_map[$hw])) {
+    $wpct = $width_map[$hw];
+    echo "\n/* カルーセル横幅: {$wpct} */\n";
+    echo "@media (min-width: 769px) {\n";
+    echo "  .hero-carousel-wrapper { flex: 0 0 {$wpct} !important; max-width: {$wpct} !important; }\n";
+    echo "  .hero-info-wrapper { flex: 1 1 auto !important; width: auto !important; }\n";
+    echo "}\n";
+}
