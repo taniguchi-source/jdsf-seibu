@@ -95,6 +95,35 @@
     }
     .link-btn:hover { background: #0D2347; }
     .link-btn-sub { font-size: .8rem; color: var(--text-light); margin: 6px 0 0; }
+    .link-title-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 700;
+      transition: background .2s, transform .15s;
+    }
+    .link-title-btn:hover { background: #0D2347; transform: translateY(-1px); }
+    .link-sub-title-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: #3B5EA6;
+      color: #fff;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: .875rem;
+      font-weight: 700;
+      transition: background .2s;
+      margin-bottom: 6px;
+    }
+    .link-sub-title-btn:hover { background: #1e3a8a; }
     .sub-content-list {
       margin-top: 20px;
       padding-top: 16px;
@@ -388,16 +417,35 @@
       var block = document.createElement('div');
       block.className = 'content-block';
 
-      /* メインタイトル */
+      /* メインタイトル・ボディ */
       var m = group.main;
-      var titleIcon = m.type === 'sheet' ? '📊 ' : (m.type === 'file' ? '🖼️ ' : (m.type === 'link' ? '🔗 ' : '📝 '));
-      var titleEl = document.createElement('h2');
-      titleEl.className = 'content-block-title';
-      titleEl.textContent = titleIcon + (m.title || 'コンテンツ');
-      block.appendChild(titleEl);
-
-      /* メインボディ */
-      appendWithFetch(m, buildBodyEl(m), block);
+      if (m.type === 'link' && m.link_url) {
+        /* リンクタイプ: タイトルをボタンとして表示 */
+        var lBtn = document.createElement('a');
+        lBtn.href      = m.link_url;
+        lBtn.target    = '_blank';
+        lBtn.rel       = 'noopener';
+        lBtn.className = 'link-title-btn';
+        lBtn.textContent = '🔗 ' + (m.title || 'リンク') + '　→';
+        block.appendChild(lBtn);
+        if (m.link_label) {
+          var lDesc = document.createElement('p');
+          lDesc.className   = 'link-btn-sub';
+          lDesc.textContent = m.link_label;
+          block.appendChild(lDesc);
+        }
+        var lNote = document.createElement('p');
+        lNote.className   = 'link-btn-sub';
+        lNote.textContent = '新しいタブで開きます';
+        block.appendChild(lNote);
+      } else {
+        var titleIcon = m.type === 'sheet' ? '📊 ' : (m.type === 'file' ? '🖼️ ' : (m.type === 'link' ? '🔗 ' : '📝 '));
+        var titleEl = document.createElement('h2');
+        titleEl.className = 'content-block-title';
+        titleEl.textContent = titleIcon + (m.title || 'コンテンツ');
+        block.appendChild(titleEl);
+        appendWithFetch(m, buildBodyEl(m), block);
+      }
 
       /* サブコンテンツ */
       if (group.subs.length > 0) {
@@ -406,12 +454,34 @@
         group.subs.forEach(function(sub) {
           var subItem = document.createElement('div');
           subItem.className = 'sub-content-item';
-          var subIcon = sub.type === 'sheet' ? '📊 ' : (sub.type === 'file' ? '🖼️ ' : (sub.type === 'link' ? '🔗 ' : '📝 '));
-          var subTitle = document.createElement('h3');
-          subTitle.className = 'sub-content-title';
-          subTitle.textContent = subIcon + (sub.title || 'サブコンテンツ');
-          subItem.appendChild(subTitle);
-          appendWithFetch(sub, buildBodyEl(sub), subItem);
+          if (sub.type === 'link' && sub.link_url) {
+            /* サブリンクタイプ: タイトルをボタンとして表示 */
+            var slBtn = document.createElement('a');
+            slBtn.href      = sub.link_url;
+            slBtn.target    = '_blank';
+            slBtn.rel       = 'noopener';
+            slBtn.className = 'link-sub-title-btn';
+            slBtn.textContent = '🔗 ' + (sub.title || 'リンク') + '　→';
+            subItem.appendChild(slBtn);
+            if (sub.link_label) {
+              var slDesc = document.createElement('p');
+              slDesc.className   = 'link-btn-sub';
+              slDesc.style.marginTop = '6px';
+              slDesc.textContent = sub.link_label;
+              subItem.appendChild(slDesc);
+            }
+            var slNote = document.createElement('p');
+            slNote.className   = 'link-btn-sub';
+            slNote.textContent = '新しいタブで開きます';
+            subItem.appendChild(slNote);
+          } else {
+            var subIcon = sub.type === 'sheet' ? '📊 ' : (sub.type === 'file' ? '🖼️ ' : (sub.type === 'link' ? '🔗 ' : '📝 '));
+            var subTitle = document.createElement('h3');
+            subTitle.className = 'sub-content-title';
+            subTitle.textContent = subIcon + (sub.title || 'サブコンテンツ');
+            subItem.appendChild(subTitle);
+            appendWithFetch(sub, buildBodyEl(sub), subItem);
+          }
           subList.appendChild(subItem);
         });
         block.appendChild(subList);
