@@ -252,6 +252,23 @@
     .sub-content-item { background:#F0F7FF; border:1px solid #BFDBFE; border-left:4px solid #3B5EA6; border-radius:8px; padding:16px 20px; }
     .sub-content-title { font-size:.9375rem; font-weight:700; color:#1e3a8a; margin:0 0 12px; padding-bottom:8px; border-bottom:1px solid #DBEAFE; display:flex; align-items:center; gap:6px; }
 
+    /* ===== 直近競技会情報（本番と同一スタイル） ===== */
+    .comp-status { display:inline-block; margin-top:8px; font-size:0.7rem; font-weight:700; padding:2px 10px; border-radius:100px; }
+    .status-open { background:rgb(209,250,229); color:rgb(6,95,70); }
+    .status-soon { background:rgb(254,243,199); color:rgb(146,64,14); }
+    .status-closed { background:rgb(241,245,249); color:rgb(100,116,139); }
+    .table-link { display:inline-block; padding:3px 10px; font-size:0.8125rem; font-weight:600; color:var(--primary-light); border:1px solid var(--primary-light); border-radius:4px; text-decoration:none; transition:var(--transition,all .2s); margin-right:4px; }
+    .table-link:hover { background:var(--primary-light); color:#fff; }
+    .comp-list { border-top:1px solid var(--border); }
+    .comp-row { display:flex; align-items:flex-start; gap:12px; padding:11px 4px; border-bottom:1px solid var(--border); transition:background 0.15s; }
+    .comp-row:hover { background:var(--bg-blue); }
+    .comp-row-date { flex-shrink:0; width:60px; font-size:0.8rem; font-weight:700; color:var(--primary-dark); line-height:1.4; padding-top:2px; }
+    .comp-row-body { flex:1 1 0%; min-width:0; }
+    .comp-row-name { font-size:0.9rem; font-weight:600; color:var(--text-dark); line-height:1.5; margin-bottom:5px; word-break:break-all; }
+    .comp-row-venue { display:inline-flex; align-items:center; font-size:0.775rem; font-weight:600; color:var(--primary); background:var(--bg-blue); border:1px solid rgba(75,108,183,0.18); border-radius:4px; padding:2px 8px 2px 6px; white-space:nowrap; }
+    .comp-row-meta { display:flex; align-items:center; flex-wrap:wrap; gap:5px; }
+    .comp-row-past { opacity:.55; }
+
     /* スマホ対応 */
     @media (max-width: 768px) {
       .hero-main { flex-direction: column; }
