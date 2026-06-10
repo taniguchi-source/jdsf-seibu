@@ -174,7 +174,8 @@ if ($hw === 'full') {
     echo "  .carousel-content { position: static !important; right: auto !important; bottom: auto !important; order: 1 !important; flex: 0 0 {$spct} !important; max-width: {$spct} !important; min-width: 0 !important; align-self: stretch !important; box-sizing: border-box !important; display: flex !important; flex-direction: column !important; justify-content: center !important; pointer-events: auto !important; padding: 18px 24px !important; background: var(--primary, #0D2347) !important; color: #fff !important; }\n";
     echo "  .carousel-content .hero-title { color: #fff !important; text-shadow: none !important; }\n";
     echo "  .carousel-content .hero-desc { color: rgba(255,255,255,.85) !important; text-shadow: none !important; }\n";
-    echo "  .carousel-content .hero-badge { background: rgba(255,255,255,.15) !important; color: #fff !important; border-color: rgba(255,255,255,.25) !important; }\n";
+    // バッジはカルーセル画像の上（左上）に重ねる
+    echo "  .carousel-content .hero-badge { position: absolute !important; top: 16px !important; left: calc({$spct} + 16px) !important; z-index: 4 !important; margin: 0 !important; background: rgba(0,0,0,.45) !important; color: #fff !important; border-color: rgba(255,255,255,.3) !important; backdrop-filter: blur(4px); }\n";
     echo "  .carousel-content .hero-badge-dot { background: #4ade80 !important; }\n";
     // 中央：カルーセル画像（固定割合）
     echo "  .hero-carousel-wrapper { order: 2 !important; flex: 0 0 {$wpct} !important; max-width: {$wpct} !important; }\n";
