@@ -118,9 +118,16 @@ if ($hh === 'none') {
     echo "\n/* ヒーローエリア非表示 */\n.hero-main { display: none !important; }\n";
 } elseif (isset($hero_map[$hh])) {
     $hpx = $hero_map[$hh];
-    // 標準280pxより低くするため height で固定。情報パネルははみ出し分をスクロール。
+    // 標準280pxより低くするため height を !important で固定（外部CSSの height を上書き）。
+    // 情報パネルははみ出し分をスクロール。
     echo "\n/* ヒーローエリア高さ（標準280px基準） */\n";
-    echo ".hero-main { min-height: 0 !important; }\n";
-    echo ".hero-carousel-wrapper { height: {$hpx} !important; min-height: {$hpx} !important; }\n";
-    echo ".hero-info-wrapper { height: {$hpx} !important; overflow-y: auto; }\n";
+    echo "@media (min-width: 769px) {\n";
+    echo "  .hero-main { height: {$hpx} !important; min-height: 0 !important; }\n";
+    echo "  .hero-carousel-wrapper { height: {$hpx} !important; min-height: {$hpx} !important; }\n";
+    echo "  .hero-info-wrapper { height: {$hpx} !important; overflow-y: auto; }\n";
+    echo "}\n";
+    echo "@media (max-width: 768px) {\n";
+    echo "  .hero-main { height: auto !important; min-height: 0 !important; }\n";
+    echo "  .hero-carousel-wrapper { height: {$hpx} !important; min-height: {$hpx} !important; }\n";
+    echo "}\n";
 }
