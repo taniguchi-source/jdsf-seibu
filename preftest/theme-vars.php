@@ -130,4 +130,19 @@ if ($hh === 'none') {
     echo "  .hero-main { height: auto !important; min-height: 0 !important; }\n";
     echo "  .hero-carousel-wrapper { height: {$hpx} !important; min-height: {$hpx} !important; }\n";
     echo "}\n";
+
+    // ── 高さに合わせてカルーセル文字を縮小し、全体が収まるようにする ──
+    $typo = [
+        'four-fifths' => ['cpad'=>'18px 24px 22px', 'badge'=>'.72rem','bmb'=>'8px', 'title'=>'1.6rem', 'tlh'=>'1.2',  'tmb'=>'6px', 'desc'=>'.82rem','dlh'=>'1.5'],
+        'two-thirds'  => ['cpad'=>'14px 22px 16px', 'badge'=>'.68rem','bmb'=>'6px', 'title'=>'1.3rem', 'tlh'=>'1.18', 'tmb'=>'5px', 'desc'=>'.78rem','dlh'=>'1.4'],
+        'half'        => ['cpad'=>'9px 20px 11px',  'badge'=>'.64rem','bmb'=>'4px', 'title'=>'1.05rem','tlh'=>'1.15', 'tmb'=>'3px', 'desc'=>'.72rem','dlh'=>'1.3'],
+    ];
+    if (isset($typo[$hh])) {
+        $t = $typo[$hh];
+        echo "/* 文字を高さに合わせて縮小（タイトル・サブタイトルが収まるように） */\n";
+        echo ".carousel-content { padding: {$t['cpad']} !important; }\n";
+        echo ".hero-badge { font-size: {$t['badge']} !important; margin-bottom: {$t['bmb']} !important; padding: 3px 10px !important; }\n";
+        echo ".hero-title { font-size: {$t['title']} !important; line-height: {$t['tlh']} !important; margin-bottom: {$t['tmb']} !important; }\n";
+        echo ".hero-desc  { font-size: {$t['desc']} !important; line-height: {$t['dlh']} !important; }\n";
+    }
 }
