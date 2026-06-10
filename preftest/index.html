@@ -272,7 +272,8 @@
     /* スマホ対応 */
     @media (max-width: 768px) {
       .hero-main { flex-direction: column; }
-      .hero-carousel-wrapper { min-height: 200px; flex: none; }
+      /* style.cssがスマホで .hero-carousel-wrapper を display:none!important にするため打ち消す */
+      .hero-carousel-wrapper { display: block !important; min-height: 200px; flex: none; }
       .hero-info-wrapper { width: 100%; }
       .hero-title { font-size: 1.4rem; }
       /* スマホでは常にカルーセル画像へ重ねる（上部のカルーセル領域に配置） */
@@ -533,7 +534,8 @@
   var nav       = document.querySelector('.site-nav');
   if (hamburger && nav) {
     hamburger.addEventListener('click', function () {
-      var open = nav.classList.toggle('open');
+      var open = nav.classList.toggle('is-open');
+      hamburger.classList.toggle('is-open', open);
       hamburger.setAttribute('aria-expanded', open);
     });
   }

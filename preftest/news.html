@@ -286,7 +286,8 @@
   var nav       = document.querySelector('.site-nav');
   if (hamburger && nav) {
     hamburger.addEventListener('click', function () {
-      var open = nav.classList.toggle('open');
+      var open = nav.classList.toggle('is-open');
+      hamburger.classList.toggle('is-open', open);
       hamburger.setAttribute('aria-expanded', open);
     });
   }

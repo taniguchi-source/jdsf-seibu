@@ -545,7 +545,8 @@
   var _siteNav   = document.querySelector('#content-screen .site-nav');
   if (_hamburger && _siteNav) {
     _hamburger.addEventListener('click', function() {
-      var open = _siteNav.classList.toggle('open');
+      var open = _siteNav.classList.toggle('is-open');
+      _hamburger.classList.toggle('is-open', open);
       _hamburger.setAttribute('aria-expanded', open);
     });
   }
