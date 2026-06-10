@@ -129,6 +129,7 @@ if ($hh === 'none') {
     echo "@media (max-width: 768px) {\n";
     echo "  .hero-main { height: auto !important; min-height: 0 !important; }\n";
     echo "  .hero-carousel-wrapper { height: {$hpx} !important; min-height: {$hpx} !important; }\n";
+    echo "  .carousel-content { height: {$hpx} !important; }\n";
     echo "}\n";
 
     // ── 高さに合わせてカルーセル文字を縮小し、全体が収まるようにする ──
@@ -152,17 +153,28 @@ $hw = $hsaved['width'] ?? 'standard';
 $width_map = ['three-quarters' => '75%', 'half' => '50%', 'third' => '33.333%'];
 
 if ($hw === 'full') {
-    // 全幅: カルーセルが全体を占有、クイックリンクは非表示
+    // 全幅: カルーセルが全体を占有、クイックリンクは非表示、タイトルは画像に重ねる
     echo "\n/* カルーセル横幅: 全幅（クイックリンク非表示） */\n";
     echo "@media (min-width: 769px) {\n";
     echo "  .hero-carousel-wrapper { flex: 1 1 100% !important; max-width: 100% !important; }\n";
     echo "  .hero-info-wrapper { display: none !important; }\n";
+    echo "  .carousel-content { right: 0 !important; }\n";
     echo "}\n";
 } elseif (isset($width_map[$hw])) {
+    // 狭幅: 画像を中央に、タイトル/サブタイトルは左の空白へ、クイックリンクは右に固定
     $wpct = $width_map[$hw];
-    echo "\n/* カルーセル横幅: {$wpct} */\n";
+    echo "\n/* カルーセル横幅: {$wpct}（画像中央・タイトル左・QL右） */\n";
     echo "@media (min-width: 769px) {\n";
-    echo "  .hero-carousel-wrapper { flex: 0 0 {$wpct} !important; max-width: {$wpct} !important; }\n";
-    echo "  .hero-info-wrapper { flex: 1 1 auto !important; width: auto !important; }\n";
+    echo "  .hero-main { align-items: stretch !important; }\n";
+    // 左：タイトル列（画像の外＝空白に配置、文字は濃色で可読化）
+    echo "  .carousel-content { position: static !important; right: auto !important; bottom: auto !important; order: 1 !important; flex: 1 1 0 !important; min-width: 0 !important; align-self: stretch !important; display: flex !important; flex-direction: column !important; justify-content: center !important; pointer-events: auto !important; padding: 18px 22px !important; color: var(--primary, #1a2740) !important; }\n";
+    echo "  .carousel-content .hero-title { color: var(--primary) !important; text-shadow: none !important; }\n";
+    echo "  .carousel-content .hero-desc { color: var(--text-medium, #4a5568) !important; text-shadow: none !important; }\n";
+    echo "  .carousel-content .hero-badge { background: var(--bg-blue, #eef4ff) !important; color: var(--primary) !important; border-color: var(--primary-light, #cbd5e1) !important; }\n";
+    echo "  .carousel-content .hero-badge-dot { background: var(--primary) !important; }\n";
+    // 中央：カルーセル画像
+    echo "  .hero-carousel-wrapper { order: 2 !important; flex: 0 0 {$wpct} !important; max-width: {$wpct} !important; }\n";
+    // 右：クイックリンク（固定幅）
+    echo "  .hero-info-wrapper { order: 3 !important; flex: 0 0 240px !important; width: 240px !important; }\n";
     echo "}\n";
 }

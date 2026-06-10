@@ -55,10 +55,11 @@
       position: absolute;
       bottom: 0;
       left: 0;
-      right: 0;
+      right: 240px;            /* クイックリンク(240px)に重ねない */
       padding: 28px 24px 36px;
       color: #fff;
-      z-index: 2;
+      z-index: 3;
+      pointer-events: none;    /* 画像オーバーレイ時に下のドット等を妨げない */
     }
     .hero-badge {
       display: inline-flex;
@@ -234,6 +235,16 @@
       .hero-carousel-wrapper { min-height: 200px; flex: none; }
       .hero-info-wrapper { width: 100%; }
       .hero-title { font-size: 1.4rem; }
+      /* スマホでは常にカルーセル画像へ重ねる（上部のカルーセル領域に配置） */
+      .carousel-content {
+        right: 0;
+        bottom: auto;
+        top: 0;
+        height: 200px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+      }
     }
   </style>
   <!-- テーマCSS変数（最後に読み込んで上書き） -->
@@ -296,19 +307,6 @@
     <!-- グラデーションオーバーレイ -->
     <div class="carousel-overlay"></div>
 
-    <!-- テキストコンテンツ -->
-    <div class="carousel-content">
-      <div class="hero-badge">
-        <span class="hero-badge-dot"></span>
-        <span id="badge-text">テストダンススポーツ連盟 公式サイト</span>
-      </div>
-      <h1 class="hero-title" id="slide-title">ダンススポーツの普及・振興</h1>
-      <p class="hero-desc" id="slide-desc">
-        テストダンススポーツ連盟は、地域のダンススポーツ競技の発展と<br>
-        会員の技術向上を支援する連盟です。
-      </p>
-    </div>
-
     <!-- 矢印ボタン -->
     <button class="carousel-arrow carousel-prev" id="carousel-prev" aria-label="前へ">&#8249;</button>
     <button class="carousel-arrow carousel-next" id="carousel-next" aria-label="次へ">&#8250;</button>
@@ -319,6 +317,19 @@
       <button class="carousel-dot"        data-index="1" aria-label="スライド2"></button>
       <button class="carousel-dot"        data-index="2" aria-label="スライド3"></button>
     </div>
+  </div>
+
+  <!-- テキストコンテンツ（標準=画像に重ねる / 横幅を狭めた時=左の空白に表示） -->
+  <div class="carousel-content">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      <span id="badge-text">テストダンススポーツ連盟 公式サイト</span>
+    </div>
+    <h1 class="hero-title" id="slide-title">ダンススポーツの普及・振興</h1>
+    <p class="hero-desc" id="slide-desc">
+      テストダンススポーツ連盟は、地域のダンススポーツ競技の発展と<br>
+      会員の技術向上を支援する連盟です。
+    </p>
   </div>
 
   <!-- 右：インフォパネル -->
