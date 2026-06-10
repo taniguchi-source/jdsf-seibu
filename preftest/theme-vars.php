@@ -111,7 +111,8 @@ $hero_file = __DIR__ . '/data/hero.json';
 $hraw   = @file_get_contents($hero_file);
 $hsaved = $hraw ? @json_decode($hraw, true) : [];
 $hh     = $hsaved['height'] ?? 'standard';
-$hero_map = ['half' => '50vh', 'two-thirds' => '67vh', 'four-fifths' => '80vh'];
+// 標準280pxを基準にした分数（standard は上書きせず既定280pxを使用）
+$hero_map = ['four-fifths' => '224px', 'two-thirds' => '187px', 'half' => '140px'];
 
 if ($hh === 'none') {
     echo "\n/* ヒーローエリア非表示 */\n.hero-main { display: none !important; }\n";
