@@ -472,7 +472,7 @@
         lNote.textContent = '新しいタブで開きます';
         block.appendChild(lNote);
       } else {
-        var titleIcon = m.type === 'sheet' ? '📊 ' : ((m.type === 'file' || m.type === 'image') ? '🖼️ ' : (m.type === 'pdf' ? '📄 ' : (m.type === 'link' ? '🔗 ' : '📝 ')));
+        var titleIcon = m.type === 'sheet' ? '📊 ' : ((m.type === 'file' || m.type === 'image') ? '🖼️ ' : (m.type === 'gallery' ? '🏞 ' : (m.type === 'pdf' ? '📄 ' : (m.type === 'link' ? '🔗 ' : '📝 '))));
         var titleEl = document.createElement('h2');
         titleEl.className = 'content-block-title';
         titleEl.textContent = titleIcon + (m.title || 'コンテンツ');
@@ -508,7 +508,7 @@
             slNote.textContent = '新しいタブで開きます';
             subItem.appendChild(slNote);
           } else {
-            var subIcon = sub.type === 'sheet' ? '📊 ' : ((sub.type === 'file' || sub.type === 'image') ? '🖼️ ' : (sub.type === 'pdf' ? '📄 ' : (sub.type === 'link' ? '🔗 ' : '📝 ')));
+            var subIcon = sub.type === 'sheet' ? '📊 ' : ((sub.type === 'file' || sub.type === 'image') ? '🖼️ ' : (sub.type === 'gallery' ? '🏞 ' : (sub.type === 'pdf' ? '📄 ' : (sub.type === 'link' ? '🔗 ' : '📝 '))));
             var subTitle = document.createElement('h3');
             subTitle.className = 'sub-content-title';
             subTitle.textContent = subIcon + (sub.title || 'サブコンテンツ');
