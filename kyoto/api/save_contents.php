@@ -26,18 +26,29 @@ if (!is_array($items)) $items = [];
 $clean = [];
 foreach ($items as $item) {
     $type_raw = (string)($item['type'] ?? 'text');
+    // ギャラリー画像（最大10枚・各URLは500文字まで）
+    $gallery_raw = $item['gallery'] ?? [];
+    $gallery = [];
+    if (is_array($gallery_raw)) {
+        foreach ($gallery_raw as $g) {
+            $g = mb_substr(trim((string)$g), 0, 500);
+            if ($g !== '') $gallery[] = $g;
+            if (count($gallery) >= 10) break;
+        }
+    }
     $clean[] = [
         'id'         => preg_replace('/[^a-z0-9_]/i', '', (string)($item['id'] ?? '')),
         'title'      => mb_substr(trim((string)($item['title'] ?? '')), 0, 60),
         'enabled'    => !empty($item['enabled']),
         'is_sub'     => !empty($item['is_sub']),
-        'type'       => in_array($type_raw, ['text', 'sheet', 'file', 'image', 'pdf', 'link'], true) ? $type_raw : 'text',
+        'type'       => in_array($type_raw, ['text', 'sheet', 'file', 'image', 'gallery', 'pdf', 'link'], true) ? $type_raw : 'text',
         'body'       => mb_substr(trim((string)($item['body'] ?? '')), 0, 5000),
         'sheet_url'  => mb_substr(trim((string)($item['sheet_url']  ?? '')), 0, 500),
         'sheet_name' => mb_substr(trim((string)($item['sheet_name'] ?? '')), 0, 100),
         'file_url'   => mb_substr(trim((string)($item['file_url']   ?? '')), 0, 500),
         'link_url'   => mb_substr(trim((string)($item['link_url']   ?? '')), 0, 500),
         'link_label' => mb_substr(trim((string)($item['link_label'] ?? '')), 0, 100),
+        'gallery'    => $gallery,
     ];
 }
 

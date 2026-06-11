@@ -150,10 +150,28 @@
       align-items: center;
       gap: 6px;
     }
+    /* ===== ギャラリー（Lightroom風）＋ Lightbox ===== */
+    .gallery-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px; }
+    .gallery-item { position:relative; aspect-ratio:1/1; overflow:hidden; border-radius:8px; cursor:pointer; background:#0e1726; }
+    .gallery-item img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .35s ease, opacity .2s; }
+    .gallery-item:hover img { transform:scale(1.07); opacity:.9; }
+    .glb-overlay { position:fixed; inset:0; background:rgba(10,12,18,.93); z-index:99999; display:none; align-items:center; justify-content:center; }
+    .glb-overlay.open { display:flex; }
+    .glb-img { max-width:92vw; max-height:84vh; object-fit:contain; border-radius:4px; box-shadow:0 12px 48px rgba(0,0,0,.55); }
+    .glb-overlay button { background:rgba(255,255,255,.13); color:#fff; border:none; cursor:pointer; }
+    .glb-overlay button:hover { background:rgba(255,255,255,.3); }
+    .glb-close { position:absolute; top:16px; right:20px; width:44px; height:44px; border-radius:50%; font-size:1.4rem; }
+    .glb-prev,.glb-next { position:absolute; top:50%; transform:translateY(-50%); width:50px; height:50px; border-radius:50%; font-size:2rem; line-height:1; }
+    .glb-prev{ left:16px; } .glb-next{ right:16px; }
+    .glb-download { position:absolute; bottom:22px; left:50%; transform:translateX(-50%); background:var(--primary,#0D2347); color:#fff; padding:10px 24px; border-radius:8px; text-decoration:none; font-size:.875rem; font-weight:700; box-shadow:0 4px 14px rgba(0,0,0,.4); }
+    .glb-counter { position:absolute; top:22px; left:50%; transform:translateX(-50%); color:rgba(255,255,255,.85); font-size:.85rem; letter-spacing:.05em; }
     @media (max-width: 600px) {
       .content-block { padding: 20px 18px; }
       .link-btn { padding: 12px 18px; font-size: .875rem; }
       .sub-content-item { padding: 14px 16px; }
+      .gallery-grid { grid-template-columns:repeat(auto-fill,minmax(95px,1fr)); }
+      .glb-prev,.glb-next { width:42px; height:42px; font-size:1.5rem; }
+      .glb-download { padding:9px 18px; font-size:.8rem; }
     }
   </style>
 </head>
@@ -346,6 +364,23 @@
         bodyEl.className = 'content-block-body';
         bodyEl.textContent = '（画像は未設定です）';
       }
+    } else if (item.type === 'gallery') {
+      var gimgs = Array.isArray(item.gallery) ? item.gallery.filter(Boolean) : [];
+      if (gimgs.length) {
+        bodyEl.className = 'gallery-grid';
+        gimgs.forEach(function(gurl, gi){
+          var cell = document.createElement('div');
+          cell.className = 'gallery-item';
+          var gim = document.createElement('img');
+          gim.src = gurl; gim.alt = (item.title || '') + ' ' + (gi + 1); gim.loading = 'lazy';
+          cell.appendChild(gim);
+          cell.addEventListener('click', function(){ openGalleryLightbox(gimgs, gi); });
+          bodyEl.appendChild(cell);
+        });
+      } else {
+        bodyEl.className = 'content-block-body';
+        bodyEl.textContent = '（ギャラリー画像が未設定です）';
+      }
     } else if (item.type === 'pdf' || (item.type === 'file' && (item.file_url || '').match(/\.pdf$/i))) {
       var fUrl = item.file_url || '';
       if (fUrl) {
@@ -488,6 +523,46 @@
       wrap.appendChild(block);
     });
   }
+
+  /* ===== ギャラリー Lightbox（クリックで拡大・前後送り・ダウンロード） ===== */
+  var _glbImgs = [], _glbIdx = 0, _glbEl = null;
+  function buildGlb() {
+    if (_glbEl) return;
+    var o = document.createElement('div');
+    o.className = 'glb-overlay';
+    o.innerHTML =
+      '<div class="glb-counter"></div>'
+      + '<button class="glb-close" aria-label="閉じる">&times;</button>'
+      + '<button class="glb-prev" aria-label="前へ">&#8249;</button>'
+      + '<img class="glb-img" alt="">'
+      + '<button class="glb-next" aria-label="次へ">&#8250;</button>'
+      + '<a class="glb-download" download>⬇ ダウンロード</a>';
+    o.addEventListener('click', function(e){ if (e.target === o) closeGlb(); });
+    o.querySelector('.glb-close').addEventListener('click', closeGlb);
+    o.querySelector('.glb-prev').addEventListener('click', function(e){ e.stopPropagation(); glbGo(-1); });
+    o.querySelector('.glb-next').addEventListener('click', function(e){ e.stopPropagation(); glbGo(1); });
+    document.body.appendChild(o);
+    _glbEl = o;
+  }
+  function glbShow() {
+    if (!_glbEl) return;
+    var url = _glbImgs[_glbIdx];
+    _glbEl.querySelector('.glb-img').src = url;
+    _glbEl.querySelector('.glb-download').href = url;
+    _glbEl.querySelector('.glb-counter').textContent = (_glbIdx + 1) + ' / ' + _glbImgs.length;
+    var multi = _glbImgs.length > 1;
+    _glbEl.querySelector('.glb-prev').style.display = multi ? '' : 'none';
+    _glbEl.querySelector('.glb-next').style.display = multi ? '' : 'none';
+  }
+  function glbGo(d) { _glbIdx = (_glbIdx + d + _glbImgs.length) % _glbImgs.length; glbShow(); }
+  function openGalleryLightbox(imgs, idx) { _glbImgs = imgs; _glbIdx = idx || 0; buildGlb(); _glbEl.classList.add('open'); document.body.style.overflow = 'hidden'; glbShow(); }
+  function closeGlb() { if (_glbEl) { _glbEl.classList.remove('open'); document.body.style.overflow = ''; } }
+  document.addEventListener('keydown', function(e){
+    if (!_glbEl || !_glbEl.classList.contains('open')) return;
+    if (e.key === 'Escape') closeGlb();
+    else if (e.key === 'ArrowLeft') glbGo(-1);
+    else if (e.key === 'ArrowRight') glbGo(1);
+  });
 
   /* ===== コンテンツ読み込み ===== */
   fetch('data/contents.json?_=' + Date.now())

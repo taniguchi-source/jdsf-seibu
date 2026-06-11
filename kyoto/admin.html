@@ -327,10 +327,13 @@
           <label id="cd-type-label-image" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:3;">
             <input type="radio" name="cd-type" value="image" onchange="switchContentType('image')" style="cursor:pointer;accent-color:var(--primary);"> 🖼️ 画像
           </label>
-          <label id="cd-type-label-pdf" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:4;">
+          <label id="cd-type-label-gallery" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:4;">
+            <input type="radio" name="cd-type" value="gallery" onchange="switchContentType('gallery')" style="cursor:pointer;accent-color:var(--primary);"> 🏞 ギャラリー
+          </label>
+          <label id="cd-type-label-pdf" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:5;">
             <input type="radio" name="cd-type" value="pdf" onchange="switchContentType('pdf')" style="cursor:pointer;accent-color:var(--primary);"> 📄 PDF
           </label>
-          <label id="cd-type-label-link" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:5;">
+          <label id="cd-type-label-link" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:6;">
             <input type="radio" name="cd-type" value="link" onchange="switchContentType('link')" style="cursor:pointer;accent-color:var(--primary);"> 🔗 リンク
           </label>
         </div>
@@ -382,6 +385,24 @@
           <div id="cd-file-preview"></div>
           <!-- 保存URL（隠しフィールド） -->
           <input type="hidden" id="cd-file-url">
+        </div>
+      </div>
+      <!-- ギャラリーセクション（画像最大10枚・Lightroom風） -->
+      <div id="cd-gallery-section" style="display:none;">
+        <div style="display:grid;gap:12px;">
+          <div>
+            <label class="form-label">ギャラリー画像 <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（jpg / png / gif　最大10枚・各10MB）</span></label>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input type="file" id="cd-gallery-input" accept=".jpg,.jpeg,.png,.gif" multiple
+                style="flex:1;min-width:0;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:.875rem;font-family:inherit;background:#fff;">
+              <button onclick="uploadGalleryImages()" id="cd-gallery-upload-btn"
+                style="padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">⬆ 追加</button>
+            </div>
+            <p style="font-size:.72rem;color:var(--text-light);margin:6px 0 0;">複数選択できます。<span id="cd-gallery-count" style="font-weight:700;">0</span>/10 枚</p>
+          </div>
+          <div id="cd-gallery-msg" style="display:none;font-size:.8rem;padding:6px 10px;border-radius:6px;"></div>
+          <!-- サムネイル一覧 -->
+          <div id="cd-gallery-thumbs" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:8px;"></div>
         </div>
       </div>
       <!-- スプレッドシートセクション -->
@@ -856,7 +877,7 @@
     for (var i = 1; i <= 6; i++) {
       items.push({ id: n + '_' + i, title: 'コンテンツ' + i, enabled: true,
         is_sub: false, type: 'text', body: '', sheet_url: '', sheet_name: '',
-        file_url: '', link_url: '', link_label: '' });
+        file_url: '', link_url: '', link_label: '', gallery: [] });
     }
     return items;
   }
@@ -906,9 +927,10 @@
       var enabled   = item.enabled !== false;
       var isSheet   = item.type === 'sheet';
       var isImage   = item.type === 'file' || item.type === 'image';
+      var isGallery = item.type === 'gallery';
       var isPdf     = item.type === 'pdf';
       var isLink    = item.type === 'link';
-      var typeIcon  = isSheet ? '📊 ' : (isImage ? '🖼️ ' : (isPdf ? '📄 ' : (isLink ? '🔗 ' : '📝 ')));
+      var typeIcon  = isSheet ? '📊 ' : (isImage ? '🖼️ ' : (isGallery ? '🏞 ' : (isPdf ? '📄 ' : (isLink ? '🔗 ' : '📝 '))));
       return '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;'
         + 'background:' + (enabled ? '#EFF6FF' : '#F1F5F9') + ';'
         + 'border:1px solid ' + (enabled ? '#BFDBFE' : 'var(--border)') + ';'
@@ -932,7 +954,7 @@
     var k = String(siteId);
     if (!_contentData[k]) _contentData[k] = [];
     var num = _contentData[k].length + 1;
-    _contentData[k].push({ id: k + '_' + Date.now(), title: 'コンテンツ' + num, enabled: true, is_sub: false, type: 'text', body: '', sheet_url: '', sheet_name: '', file_url: '', link_url: '', link_label: '' });
+    _contentData[k].push({ id: k + '_' + Date.now(), title: 'コンテンツ' + num, enabled: true, is_sub: false, type: 'text', body: '', sheet_url: '', sheet_name: '', file_url: '', link_url: '', link_label: '', gallery: [] });
     var el = document.getElementById('content-chips-' + k);
     if (el) el.innerHTML = renderContentChips(k);
   }
@@ -1018,6 +1040,11 @@
         filePrev.innerHTML = '';
       }
     }
+    // ギャラリーフィールド
+    _galleryImages = Array.isArray(item.gallery) ? item.gallery.slice() : [];
+    renderGalleryThumbs();
+    var gInput = document.getElementById('cd-gallery-input'); if (gInput) gInput.value = '';
+    var gMsg   = document.getElementById('cd-gallery-msg');   if (gMsg)   gMsg.style.display = 'none';
     // リンクフィールド
     var linkUrlEl   = document.getElementById('cd-link-url');
     var linkLabelEl = document.getElementById('cd-link-label');
@@ -1079,6 +1106,7 @@
       item.file_url   = fileUrl;
       item.link_url   = linkUrl;
       item.link_label = linkLabel;
+      item.gallery    = (_galleryImages || []).slice();
     }
     var chipsEl = document.getElementById('content-chips-' + siteId);
     if (chipsEl) chipsEl.innerHTML = renderContentChips(siteId);
@@ -1088,14 +1116,15 @@
 
   /* ===== 種類切り替え ===== */
   function switchContentType(type) {
-    /* image / pdf / file(旧) はすべて cd-file-section を使用 */
+    /* image / pdf / file(旧) はすべて cd-file-section を使用。gallery は専用セクション */
     var showMap = {
       text: 'cd-text-section', sheet: 'cd-sheet-section',
       file: 'cd-file-section', image: 'cd-file-section', pdf: 'cd-file-section',
+      gallery: 'cd-gallery-section',
       link: 'cd-link-section'
     };
     var showId = showMap[type] || 'cd-text-section';
-    ['cd-text-section','cd-sheet-section','cd-file-section','cd-link-section'].forEach(function(id) {
+    ['cd-text-section','cd-sheet-section','cd-file-section','cd-gallery-section','cd-link-section'].forEach(function(id) {
       var el = document.getElementById(id);
       if (el) el.style.display = (id === showId) ? '' : 'none';
     });
@@ -1119,18 +1148,20 @@
   function updateTypeLayout() {
     var isSubEl  = document.getElementById('cd-is-sub');
     var isSub    = isSubEl ? isSubEl.checked : false;
-    var lblText  = document.getElementById('cd-type-label-text');
-    var lblSheet = document.getElementById('cd-type-label-sheet');
-    var lblImage = document.getElementById('cd-type-label-image');
-    var lblPdf   = document.getElementById('cd-type-label-pdf');
-    var lblLink  = document.getElementById('cd-type-label-link');
+    var lblText    = document.getElementById('cd-type-label-text');
+    var lblSheet   = document.getElementById('cd-type-label-sheet');
+    var lblImage   = document.getElementById('cd-type-label-image');
+    var lblGallery = document.getElementById('cd-type-label-gallery');
+    var lblPdf     = document.getElementById('cd-type-label-pdf');
+    var lblLink    = document.getElementById('cd-type-label-link');
 
     if (isSub) {
-      /* サブコンテンツ: リンク(1)→画像(2)→PDF(3)→テキスト(4)、スプレッドシート非表示 */
-      if (lblLink)  { lblLink.style.order  = '1'; lblLink.style.display  = 'inline-flex'; }
-      if (lblImage) { lblImage.style.order = '2'; lblImage.style.display = 'inline-flex'; }
-      if (lblPdf)   { lblPdf.style.order   = '3'; lblPdf.style.display   = 'inline-flex'; }
-      if (lblText)  { lblText.style.order  = '4'; lblText.style.display  = 'inline-flex'; }
+      /* サブコンテンツ: リンク(1)→画像(2)→ギャラリー(3)→PDF(4)→テキスト(5)、スプレッドシート非表示 */
+      if (lblLink)    { lblLink.style.order    = '1'; lblLink.style.display    = 'inline-flex'; }
+      if (lblImage)   { lblImage.style.order   = '2'; lblImage.style.display   = 'inline-flex'; }
+      if (lblGallery) { lblGallery.style.order = '3'; lblGallery.style.display = 'inline-flex'; }
+      if (lblPdf)     { lblPdf.style.order     = '4'; lblPdf.style.display     = 'inline-flex'; }
+      if (lblText)    { lblText.style.order    = '5'; lblText.style.display    = 'inline-flex'; }
       if (lblSheet) { lblSheet.style.display = 'none'; }
       /* スプレッドシートが選択中の場合 → リンクに切り替え */
       var radios = document.querySelectorAll('input[name="cd-type"]');
@@ -1145,12 +1176,13 @@
         switchContentType('link');
       }
     } else {
-      /* 通常: テキスト(1)→スプレッドシート(2)→画像(3)→PDF(4)→リンク(5) */
-      if (lblText)  { lblText.style.order  = '1'; lblText.style.display  = 'inline-flex'; }
-      if (lblSheet) { lblSheet.style.order = '2'; lblSheet.style.display = 'inline-flex'; }
-      if (lblImage) { lblImage.style.order = '3'; lblImage.style.display = 'inline-flex'; }
-      if (lblPdf)   { lblPdf.style.order   = '4'; lblPdf.style.display   = 'inline-flex'; }
-      if (lblLink)  { lblLink.style.order  = '5'; lblLink.style.display  = 'inline-flex'; }
+      /* 通常: テキスト(1)→スプレッドシート(2)→画像(3)→ギャラリー(4)→PDF(5)→リンク(6) */
+      if (lblText)    { lblText.style.order    = '1'; lblText.style.display    = 'inline-flex'; }
+      if (lblSheet)   { lblSheet.style.order   = '2'; lblSheet.style.display   = 'inline-flex'; }
+      if (lblImage)   { lblImage.style.order   = '3'; lblImage.style.display   = 'inline-flex'; }
+      if (lblGallery) { lblGallery.style.order = '4'; lblGallery.style.display = 'inline-flex'; }
+      if (lblPdf)     { lblPdf.style.order     = '5'; lblPdf.style.display     = 'inline-flex'; }
+      if (lblLink)    { lblLink.style.order    = '6'; lblLink.style.display    = 'inline-flex'; }
     }
   }
 
@@ -1233,6 +1265,72 @@
     if (preview) preview.innerHTML   = '';
     if (input)   input.value         = '';
   }
+
+  /* ===== ギャラリー（画像最大10枚・Lightroom風） ===== */
+  var _galleryImages = [];
+  var GALLERY_MAX = 10;
+
+  function renderGalleryThumbs() {
+    var wrap = document.getElementById('cd-gallery-thumbs');
+    var cnt  = document.getElementById('cd-gallery-count');
+    if (cnt) cnt.textContent = String(_galleryImages.length);
+    if (!wrap) return;
+    if (_galleryImages.length === 0) {
+      wrap.innerHTML = '<p style="grid-column:1/-1;font-size:.78rem;color:var(--text-light);margin:0;">まだ画像がありません。「⬆ 追加」で選択してください。</p>';
+      return;
+    }
+    wrap.innerHTML = _galleryImages.map(function(url, i){
+      return '<div style="position:relative;aspect-ratio:1/1;border-radius:6px;overflow:hidden;border:1px solid var(--border);background:#0e1726;">'
+        + '<img src="' + escHtml(url) + '" style="width:100%;height:100%;object-fit:cover;display:block;" alt="">'
+        + '<button onclick="removeGalleryImage(' + i + ')" title="削除" style="position:absolute;top:3px;right:3px;width:20px;height:20px;border:none;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:.75rem;line-height:1;cursor:pointer;">&times;</button>'
+        + '<span style="position:absolute;bottom:2px;left:4px;color:#fff;font-size:.65rem;text-shadow:0 1px 2px #000;">' + (i+1) + '</span>'
+        + '</div>';
+    }).join('');
+  }
+  window.renderGalleryThumbs = renderGalleryThumbs;
+
+  function removeGalleryImage(idx) {
+    _galleryImages.splice(idx, 1);
+    renderGalleryThumbs();
+  }
+  window.removeGalleryImage = removeGalleryImage;
+
+  function uploadGalleryImages() {
+    var input = document.getElementById('cd-gallery-input');
+    var msg   = document.getElementById('cd-gallery-msg');
+    var btn   = document.getElementById('cd-gallery-upload-btn');
+    function showMsg(t, ok){ if(!msg)return; msg.style.display='block'; msg.style.background=ok?'#F0FDF4':'#FFF5F5'; msg.style.color=ok?'#166534':'#B91C1C'; msg.style.border='1px solid '+(ok?'#BBF7D0':'#FECACA'); msg.textContent=t; }
+    if (!input || !input.files || input.files.length === 0) { showMsg('⚠ 画像を選択してください', false); return; }
+    var files = Array.prototype.slice.call(input.files);
+    var room  = GALLERY_MAX - _galleryImages.length;
+    if (room <= 0) { showMsg('⚠ 画像は最大' + GALLERY_MAX + '枚までです', false); return; }
+    var toUpload = files.slice(0, room);
+    var skipped  = files.length - toUpload.length;
+    if (btn) { btn.disabled = true; btn.textContent = '送信中…'; }
+    showMsg('⏳ アップロード中… (0/' + toUpload.length + ')', true);
+    var done = 0, failed = 0;
+    function next(i){
+      if (i >= toUpload.length) {
+        if (btn) { btn.disabled = false; btn.textContent = '⬆ 追加'; }
+        if (input) input.value = '';
+        renderGalleryThumbs();
+        var m = '✅ ' + done + '枚を追加しました' + (failed ? '（' + failed + '枚失敗）' : '') + (skipped ? '（' + skipped + '枚は上限超過でスキップ）' : '');
+        showMsg(m, failed === 0);
+        setTimeout(function(){ var e=document.getElementById('cd-gallery-msg'); if(e) e.style.display='none'; }, 4000);
+        return;
+      }
+      var fd = new FormData();
+      fd.append('token', TOKEN);
+      fd.append('file', toUpload[i]);
+      fetch('api/upload_file.php', {method:'POST', body:fd})
+        .then(function(r){ return r.json(); })
+        .then(function(res){ if (res.ok && res.url) { _galleryImages.push(res.url); done++; } else { failed++; } })
+        .catch(function(){ failed++; })
+        .finally(function(){ showMsg('⏳ アップロード中… (' + (done+failed) + '/' + toUpload.length + ')', true); renderGalleryThumbs(); next(i+1); });
+    }
+    next(0);
+  }
+  window.uploadGalleryImages = uploadGalleryImages;
 
   /* ===== スプレッドシートプレビュー ===== */
   function loadSheetPreview() {
