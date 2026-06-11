@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>テストダンススポーツ連盟｜JDSF 近畿中四国ブロック委員会</title>
+  <meta name="description" content="テストダンススポーツ連盟の公式ページです。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <!-- 親サイトの共通CSS -->
+  <link rel="stylesheet" href="https://jdsf-seibu.com/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* ===== カルーセル ===== */
+    .hero-main {
+      display: flex;
+      min-height: 280px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-carousel-wrapper {
+      position: relative;
+      flex: 2;
+      overflow: hidden;
+      min-height: 280px;
+    }
+    .carousel-slides {
+      position: absolute;
+      inset: 0;
+      display: flex;
+    }
+    .carousel-slide {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      transition: opacity 0.7s ease;
+    }
+    .carousel-slide.active { opacity: 1; }
+
+    /* ダミースライド用グラデーション */
+    .slide-1 { background: linear-gradient(135deg, #0D2347 0%, #1B4F72 50%, #2E86AB 100%); }
+    .slide-2 { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%); }
+    .slide-3 { background: linear-gradient(135deg, #0D2347 0%, #7B1450 60%, #C0392B 100%); }
+
+    .carousel-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 100%);
+      pointer-events: none;
+    }
+    .carousel-content {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 240px;            /* クイックリンク(240px)に重ねない */
+      padding: 28px 24px 36px;
+      color: #fff;
+      z-index: 3;
+      pointer-events: none;    /* 画像オーバーレイ時に下のドット等を妨げない */
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 100px;
+      padding: 5px 14px;
+      font-size: 0.775rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+    .hero-badge-dot {
+      width: 7px; height: 7px;
+      background: #4ade80;
+      border-radius: 50%;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .hero-title {
+      font-size: 2rem;
+      font-weight: 900;
+      line-height: 1.25;
+      margin: 0 0 8px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+    .hero-desc {
+      font-size: 0.875rem;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.7;
+      margin: 0;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    }
+
+    /* カルーセルボタン・ドット */
+    .carousel-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 5;
+      background: rgba(255,255,255,0.18);
+      border: none;
+      color: #fff;
+      font-size: 2rem;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .2s;
+    }
+    .carousel-arrow:hover { background: rgba(255,255,255,0.35); }
+    .carousel-prev { left: 12px; }
+    .carousel-next { right: 12px; }
+    .carousel-dots {
+      position: absolute;
+      bottom: 14px;
+      right: 16px;
+      display: flex;
+      gap: 6px;
+      z-index: 5;
+    }
+    .carousel-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.7);
+      background: transparent;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .carousel-dot.active { background: #fff; border-color: #fff; }
+
+    /* ===== 右サイドパネル ===== */
+    .hero-info-wrapper {
+      width: 240px;
+      flex-shrink: 0;
+      background: var(--primary, #0D2347);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .hero-info-header {
+      padding: 18px 16px 12px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 0.08em;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .hero-info-links {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .hero-info-links a {
+      display: block;
+      padding: 11px 16px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      transition: background .15s, color .15s;
+    }
+    .hero-info-links a:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
+    /* ===== セクション ===== */
+    .pref-section {
+      padding: 32px 0;
+    }
+    .pref-section-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      border-left: 4px solid var(--primary, #0D2347);
+      padding-left: 12px;
+      margin: 0 0 20px;
+      line-height: 1.3;
+    }
+
+    /* ===== ニュースティッカー ===== */
+    .news-ticker {
+      background: var(--primary, #0D2347);
+      color: #fff;
+      padding: 10px 0;
+      overflow: hidden;
+    }
+    .ticker-inner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .ticker-label {
+      background: #e53e3e;
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      letter-spacing: .05em;
+    }
+    .ticker-text {
+      font-size: 0.875rem;
+      white-space: nowrap;
+    }
+
+    /* ===== プレースホルダーカード ===== */
+    .placeholder-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .placeholder-card {
+      background: #fff;
+      border: 1px solid var(--border, #E2E8F0);
+      border-radius: 10px;
+      padding: 20px;
+    }
+    .placeholder-card-date { font-size: 0.8rem; color: var(--text-light); margin-bottom: 6px; }
+    .placeholder-card-title { font-size: 0.9375rem; font-weight: 700; color: var(--text-dark); }
+    .placeholder-card-body  { font-size: 0.8125rem; color: var(--text-medium); margin-top: 8px; line-height: 1.6; }
+
+    /* ===== トップページ コンテンツブロック（page1〜5と共通） ===== */
+    .content-block { background:#fff; border:1px solid var(--border); border-radius:12px; padding:28px 32px; margin-bottom:24px; box-shadow:var(--shadow); }
+    .content-block-title { font-size:1.1rem; font-weight:800; color:var(--primary); margin:0 0 16px; padding-bottom:10px; border-bottom:2px solid #BFDBFE; display:flex; align-items:center; gap:8px; }
+    .content-block-body { font-size:.9375rem; color:var(--text-medium); line-height:1.8; white-space:pre-wrap; }
+    .sheet-table-wrap { overflow-x:auto; border-radius:8px; border:1px solid #dde4ef; margin-top:4px; }
+    .sheet-table { width:100%; border-collapse:collapse; font-size:.875rem; }
+    .sheet-table thead th { background:#3B5EA6; color:#fff; padding:11px 16px; text-align:left; font-size:.8125rem; font-weight:700; white-space:nowrap; border-right:1px solid rgba(255,255,255,.18); }
+    .sheet-table tbody td { padding:9px 16px; border-top:1px solid #e8edf5; border-right:1px solid #edf1f7; color:var(--text-medium); }
+    .sheet-table .sheet-row-even td { background:#fff; }
+    .sheet-table .sheet-row-odd td { background:#f7f9fc; }
+    .sheet-table .sheet-section-row td { background:#EFF6FF; color:#1e3a8a; font-weight:800; font-size:.875rem; padding:9px 16px; border-top:2px solid #BFDBFE; border-left:4px solid #3B5EA6; }
+    .loading-text { color:var(--text-light); font-size:.875rem; padding:8px 0; }
+    .link-btn { display:inline-flex; align-items:center; gap:10px; padding:14px 24px; background:var(--primary); color:#fff; border-radius:8px; text-decoration:none; font-size:.9375rem; font-weight:700; transition:background .2s; }
+    .link-btn:hover { background:#0D2347; }
+    .link-btn-sub { font-size:.8rem; color:var(--text-light); margin:6px 0 0; }
+    .link-title-btn { display:inline-flex; align-items:center; gap:10px; padding:14px 28px; background:var(--primary); color:#fff; border-radius:10px; text-decoration:none; font-size:1rem; font-weight:700; transition:background .2s, transform .15s; }
+    .link-title-btn:hover { background:#0D2347; transform:translateY(-1px); }
+    .link-sub-title-btn { display:inline-flex; align-items:center; gap:8px; padding:10px 20px; background:#3B5EA6; color:#fff; border-radius:8px; text-decoration:none; font-size:.875rem; font-weight:700; transition:background .2s; margin-bottom:6px; }
+    .link-sub-title-btn:hover { background:#1e3a8a; }
+    .sub-content-list { margin-top:20px; padding-top:16px; border-top:1px dashed #BFDBFE; display:flex; flex-direction:column; gap:14px; }
+    .sub-content-item { background:#F0F7FF; border:1px solid #BFDBFE; border-left:4px solid #3B5EA6; border-radius:8px; padding:16px 20px; }
+    .sub-content-title { font-size:.9375rem; font-weight:700; color:#1e3a8a; margin:0 0 12px; padding-bottom:8px; border-bottom:1px solid #DBEAFE; display:flex; align-items:center; gap:6px; }
+
+    /* ===== 直近競技会情報（本番と同一スタイル） ===== */
+    .comp-status { display:inline-block; margin-top:8px; font-size:0.7rem; font-weight:700; padding:2px 10px; border-radius:100px; }
+    .status-open { background:rgb(209,250,229); color:rgb(6,95,70); }
+    .status-soon { background:rgb(254,243,199); color:rgb(146,64,14); }
+    .status-closed { background:rgb(241,245,249); color:rgb(100,116,139); }
+    .table-link { display:inline-block; padding:3px 10px; font-size:0.8125rem; font-weight:600; color:var(--primary-light); border:1px solid var(--primary-light); border-radius:4px; text-decoration:none; transition:var(--transition,all .2s); margin-right:4px; }
+    .table-link:hover { background:var(--primary-light); color:#fff; }
+    .comp-list { border-top:1px solid var(--border); }
+    .comp-row { display:flex; align-items:flex-start; gap:12px; padding:11px 4px; border-bottom:1px solid var(--border); transition:background 0.15s; }
+    .comp-row:hover { background:var(--bg-blue); }
+    .comp-row-date { flex-shrink:0; width:60px; font-size:0.8rem; font-weight:700; color:var(--primary-dark); line-height:1.4; padding-top:2px; }
+    .comp-row-body { flex:1 1 0%; min-width:0; }
+    .comp-row-name { font-size:0.9rem; font-weight:600; color:var(--text-dark); line-height:1.5; margin-bottom:5px; word-break:break-all; }
+    .comp-row-venue { display:inline-flex; align-items:center; font-size:0.775rem; font-weight:600; color:var(--primary); background:var(--bg-blue); border:1px solid rgba(75,108,183,0.18); border-radius:4px; padding:2px 8px 2px 6px; white-space:nowrap; }
+    .comp-row-meta { display:flex; align-items:center; flex-wrap:wrap; gap:5px; }
+    .comp-row-past { opacity:.55; }
+
+    /* スマホ対応 */
+    @media (max-width: 768px) {
+      .hero-main { flex-direction: column; }
+      /* style.cssがスマホで .hero-carousel-wrapper を display:none!important にするため打ち消す */
+      .hero-carousel-wrapper { display: block !important; min-height: 200px; flex: none; }
+      .hero-info-wrapper { width: 100%; }
+      .hero-title { font-size: 1.4rem; }
+      /* スマホでは常にカルーセル画像へ重ねる（上部のカルーセル領域に配置） */
+      .carousel-content {
+        right: 0;
+        bottom: auto;
+        top: 0;
+        height: 200px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+      }
+    }
+  </style>
+  <!-- テーマCSS変数（最後に読み込んで上書き） -->
+  <link rel="stylesheet" href="theme-vars.php">
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="header-logo">
+      <img src="https://jdsf-seibu.com/images/jdsf-mark.png" alt="JDSFマーク" class="header-logo-img">
+      <div class="header-logo-text">
+        <div class="org">公益社団法人日本ダンススポーツ連盟</div>
+        <div class="name">テストダンススポーツ連盟</div>
+      </div>
+    </a>
+    <button class="hamburger" aria-label="メニュー" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-nav" aria-label="メインナビゲーション">
+      <a href="index.html" class="nav-link active">ホーム</a>
+      <span id="dynamic-nav" style="display:contents;">
+        <a href="page1.html" class="nav-link">サイト1</a>
+        <a href="page2.html" class="nav-link">サイト2</a>
+        <a href="page3.html" class="nav-link">サイト3</a>
+      </span>
+      <a href="contact.html" class="nav-link nav-cta">お問い合わせ</a>
+      <a href="admin.html"   class="nav-link">サイト管理</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ===== HERO CAROUSEL ===== -->
+<section class="hero-main">
+
+  <!-- 左：カルーセル -->
+  <div class="hero-carousel-wrapper">
+    <div class="carousel-slides">
+      <!-- スライド1 -->
+      <div class="carousel-slide slide-1 active">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0.08;">
+          <svg width="320" height="320" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="white" stroke-width="2"/><circle cx="50" cy="50" r="28" fill="none" stroke="white" stroke-width="1.5"/><line x1="50" y1="10" x2="50" y2="90" stroke="white" stroke-width="1"/><line x1="10" y1="50" x2="90" y2="50" stroke="white" stroke-width="1"/></svg>
+        </div>
+      </div>
+      <!-- スライド2 -->
+      <div class="carousel-slide slide-2">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0.06;">
+          <svg width="400" height="400" viewBox="0 0 100 100"><polygon points="50,5 95,27.5 95,72.5 50,95 5,72.5 5,27.5" fill="none" stroke="white" stroke-width="2"/><polygon points="50,20 80,35 80,65 50,80 20,65 20,35" fill="none" stroke="white" stroke-width="1.5"/></svg>
+        </div>
+      </div>
+      <!-- スライド3 -->
+      <div class="carousel-slide slide-3">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0.06;">
+          <svg width="400" height="400" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="45" ry="25" fill="none" stroke="white" stroke-width="2"/><ellipse cx="50" cy="50" rx="25" ry="45" fill="none" stroke="white" stroke-width="2"/><circle cx="50" cy="50" r="10" fill="none" stroke="white" stroke-width="2"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- グラデーションオーバーレイ -->
+    <div class="carousel-overlay"></div>
+
+    <!-- 矢印ボタン -->
+    <button class="carousel-arrow carousel-prev" id="carousel-prev" aria-label="前へ">&#8249;</button>
+    <button class="carousel-arrow carousel-next" id="carousel-next" aria-label="次へ">&#8250;</button>
+
+    <!-- ドット -->
+    <div class="carousel-dots">
+      <button class="carousel-dot active" data-index="0" aria-label="スライド1"></button>
+      <button class="carousel-dot"        data-index="1" aria-label="スライド2"></button>
+      <button class="carousel-dot"        data-index="2" aria-label="スライド3"></button>
+    </div>
+  </div>
+
+  <!-- テキストコンテンツ（標準=画像に重ねる / 横幅を狭めた時=左の空白に表示） -->
+  <div class="carousel-content">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      <span id="badge-text">テストダンススポーツ連盟 公式サイト</span>
+    </div>
+    <h1 class="hero-title" id="slide-title">ダンススポーツの普及・振興</h1>
+    <p class="hero-desc" id="slide-desc">
+      テストダンススポーツ連盟は、地域のダンススポーツ競技の発展と<br>
+      会員の技術向上を支援する連盟です。
+    </p>
+  </div>
+
+  <!-- 右：インフォパネル -->
+  <div class="hero-info-wrapper">
+    <div class="hero-info-links">
+      <a href="news.html">📢 お知らせ一覧</a>
+      <a href="page1.html">📄 サイト1</a>
+      <a href="page2.html">📄 サイト2</a>
+      <a href="page3.html">📄 サイト3</a>
+      <a href="https://jdsf-seibu.com/" target="_blank" rel="noopener">🔗 西部ブロック委員会</a>
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener">🔗 JDSF本部</a>
+    </div>
+  </div>
+
+</section>
+
+<!-- ===== ニュースティッカー ===== -->
+<div class="news-ticker">
+  <div class="container ticker-inner">
+    <span class="ticker-label">NEW</span>
+    <span class="ticker-text">テストダンススポーツ連盟の公式サイトをリニューアルしました。各種情報をこちらよりご確認ください。</span>
+  </div>
+</div>
+
+<!-- ===== お知らせ ===== -->
+<section class="pref-section" style="background:#f0f4f8;border-bottom:1px solid #d0d9e4;">
+  <div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+      <h2 class="pref-section-title">📢 お知らせ・最新情報</h2>
+      <a href="news.html" style="font-size:0.875rem;color:var(--primary);font-weight:700;text-decoration:none;">お知らせ一覧を見る →</a>
+    </div>
+    <div id="top-news-list" class="placeholder-cards">
+      <p style="color:var(--text-light);font-size:0.9rem;padding:8px 0;">読み込み中...</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 直近競技会情報（本番 competitions_seibu.json をプロキシ経由で取得） ===== -->
+<section class="pref-section" style="background:#fff;border-bottom:1px solid #d0d9e4;">
+  <div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+      <h2 class="pref-section-title">🏆 直近競技会情報</h2>
+    </div>
+    <div id="home-comp-grid">
+      <p style="color:var(--text-light);font-size:0.9rem;padding:8px 0;">読み込み中...</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== トップページ コンテンツ（管理画面の「トップページ」で管理） ===== -->
+<section class="pref-section" style="background:#fff;border-bottom:1px solid #d0d9e4;">
+  <div class="container">
+    <div id="top-contents-wrap"></div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="site-footer">
+  <div class="container footer-top">
+    <div>
+      <div class="footer-logo">
+        <img src="https://jdsf-seibu.com/images/jdsf-sakura-mark.png" alt="JDSF" class="footer-logo-mark-img" style="height:50px;width:auto;">
+        <div class="footer-logo-name">テストダンススポーツ連盟</div>
+      </div>
+      <p class="footer-desc">
+        テストダンススポーツ連盟は、<br>
+        地域のダンススポーツ活動を<br>
+        支援・普及する連盟です。
+      </p>
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="footer-jdsf">
+        🔗 JDSF本部サイト
+      </a>
+    </div>
+    <div class="footer-col">
+      <h4>サイトマップ</h4>
+      <ul class="footer-links">
+        <li><a href="index.html">ホーム</a></li>
+        <li><a href="news.html">お知らせ一覧</a></li>
+        <li><a href="page1.html">サイト1</a></li>
+        <li><a href="page2.html">サイト2</a></li>
+        <li><a href="page3.html">サイト3</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>関連リンク</h4>
+      <ul class="footer-links">
+        <li><a href="https://jdsf-seibu.com/" target="_blank" rel="noopener">JDSF西部ブロック委員会</a></li>
+        <li><a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener">JDSF本部</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© 2026 テストダンススポーツ連盟. All rights reserved.</span>
+  </div>
+</footer>
+
+<!-- ===== カルーセル JS ===== -->
+<script>
+(function () {
+  var slides    = document.querySelectorAll('.carousel-slide');
+  var dots      = document.querySelectorAll('.carousel-dot');
+  var btnPrev   = document.getElementById('carousel-prev');
+  var btnNext   = document.getElementById('carousel-next');
+  var current   = 0;
+  var total     = slides.length;
+  var timer;
+
+  var titles = [
+    'ダンススポーツの普及・振興',
+    '競技者の育成と技術向上',
+    '地域スポーツコミュニティを支援'
+  ];
+  var descs = [
+    'テストダンススポーツ連盟は、地域のダンススポーツ競技の発展と\n会員の技術向上を支援する連盟です。',
+    '県内各地でスタンダード・ラテン種目の競技会・\n講習会を定期的に開催しています。',
+    '初心者から上級者まで、すべてのダンサーが\n活躍できる環境づくりに取り組んでいます。'
+  ];
+
+  function goTo(idx) {
+    slides[current].classList.remove('active');
+    dots[current].classList.remove('active');
+    current = (idx + total) % total;
+    slides[current].classList.add('active');
+    dots[current].classList.add('active');
+    var titleEl = document.getElementById('slide-title');
+    var descEl  = document.getElementById('slide-desc');
+    if (titleEl) titleEl.textContent = titles[current];
+    if (descEl)  descEl.innerHTML    = descs[current].replace(/\n/g, '<br>');
+  }
+
+  function startAuto() {
+    timer = setInterval(function () { goTo(current + 1); }, 5000);
+  }
+  function resetAuto() {
+    clearInterval(timer);
+    startAuto();
+  }
+
+  if (btnPrev) btnPrev.addEventListener('click', function () { goTo(current - 1); resetAuto(); });
+  if (btnNext) btnNext.addEventListener('click', function () { goTo(current + 1); resetAuto(); });
+  dots.forEach(function (dot) {
+    dot.addEventListener('click', function () { goTo(parseInt(dot.dataset.index)); resetAuto(); });
+  });
+
+  startAuto();
+
+  /* 管理ページからテキストを動的注入できる公開関数 */
+  window._setCarouselTexts = function (newTitles, newDescs) {
+    for (var i = 0; i < 3; i++) {
+      if (newTitles[i]) titles[i] = newTitles[i];
+      if (newDescs[i])  descs[i]  = newDescs[i];
+    }
+    var titleEl = document.getElementById('slide-title');
+    var descEl  = document.getElementById('slide-desc');
+    if (titleEl) titleEl.textContent = titles[current];
+    if (descEl)  descEl.innerHTML    = descs[current].replace(/\n/g, '<br>');
+  };
+
+  /* ハンバーガーメニュー */
+  var hamburger = document.querySelector('.hamburger');
+  var nav       = document.querySelector('.site-nav');
+  if (hamburger && nav) {
+    hamburger.addEventListener('click', function () {
+      var open = nav.classList.toggle('is-open');
+      hamburger.classList.toggle('is-open', open);
+      hamburger.setAttribute('aria-expanded', open);
+    });
+  }
+})();
+
+/* ===== カルーセル 画像・テキスト の動的読み込み ===== */
+(function () {
+  fetch('data/slides.json?_=' + Date.now())
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .then(function (data) {
+      var slideUrls  = data.slides || {};
+      var slideTexts = data.texts  || {};
+      var ts = Date.now();
+
+      /* 背景画像を適用 */
+      for (var i = 1; i <= 3; i++) {
+        var url = slideUrls['slide' + i];
+        if (url) {
+          var el = document.querySelector('.carousel-slide.slide-' + i);
+          if (el) el.style.background = 'url(' + url + '?v=' + ts + ') center / cover no-repeat';
+        }
+      }
+
+      /* テキストを適用（管理ページで設定した場合のみ上書き） */
+      if (window._setCarouselTexts) {
+        var t = [], d = [];
+        for (var j = 1; j <= 3; j++) {
+          var txt = slideTexts['slide' + j] || {};
+          t.push(txt.title || '');
+          d.push(txt.desc  || '');
+        }
+        window._setCarouselTexts(t, d);
+      }
+    })
+    .catch(function () { /* フォールバック: ハードコード内容をそのまま使用 */ });
+})();
+
+/* ===== トップページ お知らせ動的ロード ===== */
+(function () {
+  var CAT_CLASS = {
+    '競技会':       'tag-comp',
+    '指導員':       'tag-instructor',
+    'イベント':     'tag-event',
+    '本部お知らせ': 'tag-hq',
+    'ランキング':   'tag-notice',
+    'その他':       'tag-notice'
+  };
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  var el = document.getElementById('top-news-list');
+  if (!el) return;
+  fetch('data/news.json?_=' + Date.now())
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .then(function (data) {
+      var news = (data.news || []).filter(function (n) { return n.published !== false; });
+      if (news.length === 0) {
+        el.innerHTML = '<p style="color:var(--text-light);font-size:0.9rem;padding:8px 0;">現在、お知らせはありません。</p>';
+        return;
+      }
+      el.innerHTML = news.slice(0, 3).map(function (n) {
+        var catCls = CAT_CLASS[n.category] || 'tag-info';
+        var detail = (n.detail || '').length > 60 ? n.detail.substring(0, 60) + '…' : (n.detail || '');
+        var href   = 'news.html'; /* news-detail.html 未実装のため一覧へ誘導 */
+        return '<a href="' + href + '" class="placeholder-card" style="text-decoration:none;color:inherit;">'
+          + '<div class="placeholder-card-date" style="display:flex;align-items:center;gap:6px;">📅 ' + escHtml(n.date)
+          + ' <span class="tag ' + catCls + '" style="font-size:0.7rem;">' + escHtml(n.category || '') + '</span></div>'
+          + '<div class="placeholder-card-title">' + escHtml(n.title) + '</div>'
+          + (detail ? '<div class="placeholder-card-body">' + escHtml(detail) + '</div>' : '')
+          + '</a>';
+      }).join('');
+    })
+    .catch(function () {
+      el.innerHTML = '<p style="color:var(--text-light);font-size:0.9rem;padding:8px 0;">お知らせの読み込みに失敗しました。</p>';
+    });
+})();
+
+/* ===== ナビゲーション動的ロード ===== */
+(function () {
+  var container = document.getElementById('dynamic-nav');
+  if (!container) return;
+  fetch('data/nav.json?_=' + Date.now())
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (data) {
+      if (!data || !Array.isArray(data.links)) return;
+      var html = '';
+      data.links.forEach(function (link) {
+        if (!link.enabled) return;
+        var url  = String(link.url  || '#').replace(/"/g, '%22');
+        var name = String(link.name || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        html += '<a href="' + url + '" class="nav-link">' + name + '</a>';
+      });
+      container.innerHTML = html;
+    })
+    .catch(function () { /* フォールバック: デフォルトリンクをそのまま表示 */ });
+})();
+
+/* ===== クイックリンク動的ロード ===== */
+(function () {
+  var wrap = document.querySelector('.hero-info-links');
+  if (!wrap) return;
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  fetch('data/quicklinks.json?_=' + Date.now())
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (data) {
+      if (!data || !Array.isArray(data.links)) return; /* 未設定なら既定リンクを維持 */
+      var items = data.links.filter(function (l) { return l.enabled !== false && (l.label || l.url); });
+      if (items.length === 0) return; /* 全て無効なら既定リンクを維持 */
+      wrap.innerHTML = items.map(function (l) {
+        var url = String(l.url || '#').replace(/"/g, '%22');
+        var tgt = l.newtab ? ' target="_blank" rel="noopener"' : '';
+        return '<a href="' + url + '"' + tgt + '>' + esc(l.label || l.url) + '</a>';
+      }).join('');
+    })
+    .catch(function () { /* フォールバック: 既定のクイックリンクを維持 */ });
+})();
+
+/* ===== 直近競技会情報（本番 competitions_seibu.json をプロキシ取得して描画） ===== */
+(function () {
+  var grid = document.getElementById('home-comp-grid');
+  if (!grid) return;
+  fetch('api/fetch_competitions.php?_=' + Date.now())
+    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function (data) {
+      var today = new Date(); today.setHours(0,0,0,0);
+      var todayISO = today.toISOString().slice(0,10);
+      var from = new Date(today); from.setDate(from.getDate() - 7);
+      var fromISO = from.toISOString().slice(0,10);
+      var comps = (data.competitions || []).filter(function (c) {
+        if (!c.date_iso || c.date_iso < fromISO) return false;
+        if (c.name && c.name.slice(0,10).indexOf('PD') !== -1) return false;
+        return true;
+      });
+      if (comps.length === 0) {
+        grid.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:32px 0;">現在、予定されている競技会はありません。</p>';
+        return;
+      }
+      var rows = comps.map(function (c) {
+        var isPast = c.date_iso && c.date_iso < todayISO;
+        var badge;
+        if (c.has_result && c.result_url) badge = '';
+        else if (c.has_result) badge = '<span class="comp-status status-closed">結果掲載済</span>';
+        else if (c.has_participants) badge = '<span class="comp-status status-open">参加者確認中</span>';
+        else if (c.entry_deadline) {
+          var dlParts = c.entry_deadline.match(/(\d{4})年(\d+)月(\d+)日/);
+          if (dlParts) {
+            var dlIso = dlParts[1] + '-' + ('0'+dlParts[2]).slice(-2) + '-' + ('0'+dlParts[3]).slice(-2);
+            var dlShort = dlParts[2] + '月' + dlParts[3] + '日';
+            badge = dlIso < todayISO
+              ? '<span class="comp-status status-closed">受付締切済</span>'
+              : '<span class="comp-status status-soon">締切: ' + dlShort + '</span>';
+          } else badge = '';
+        } else badge = '';
+        var links = [];
+        if (c.syllabus_url) links.push('<a href="' + c.syllabus_url + '" target="_blank" rel="noopener" class="table-link">シラバス</a>');
+        if (c.entry_url) links.push('<a href="' + c.entry_url + '" target="_blank" rel="noopener" class="table-link" style="background:#e07040;color:#fff;border-color:#e07040;">エントリー</a>');
+        if (c.result_url) { var lbl = c.has_result ? '結果' : '参加者'; links.push('<a href="' + c.result_url + '" target="_blank" rel="noopener" class="table-link">' + lbl + '</a>'); }
+        var venueHtml = c.venue ? '<span class="comp-row-venue">📍 ' + c.venue + '</span>' : '';
+        return '<div class="comp-row' + (isPast ? ' comp-row-past' : '') + '">'
+          + '<div class="comp-row-date">' + (c.date || '') + '</div>'
+          + '<div class="comp-row-body">'
+          + '<div class="comp-row-name">' + (c.name || '') + '</div>'
+          + '<div class="comp-row-meta">' + venueHtml + badge + links.join('') + '</div>'
+          + '</div></div>';
+      });
+      grid.innerHTML = '<div class="comp-list">' + rows.join('') + '</div>';
+    })
+    .catch(function () {
+      grid.innerHTML = '<p style="color:#B91C1C;font-size:0.9rem;padding:8px 0;">競技会情報の読み込みに失敗しました。</p>';
+    });
+})();
+
+/* ===== トップページ コンテンツ描画（管理画面「トップページ」/ contents.json[top]） ===== */
+(function () {
+  'use strict';
+  var TOKEN = 'preftest2026';
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function parseCSV(text) {
+    var rows = [], lines = text.split(/\r?\n/);
+    for (var li = 0; li < lines.length; li++) {
+      var line = lines[li]; if (!line.trim()) continue;
+      var row = [], inQ = false, cell = '';
+      for (var ci = 0; ci < line.length; ci++) {
+        var c = line[ci];
+        if (c === '"') { if (inQ && line[ci+1] === '"') { cell += '"'; ci++; } else { inQ = !inQ; } }
+        else if (c === ',' && !inQ) { row.push(cell); cell = ''; }
+        else { cell += c; }
+      }
+      row.push(cell); rows.push(row);
+    }
+    return rows;
+  }
+  function csvToTable(csv) {
+    var rows = parseCSV(csv);
+    if (!rows || rows.length === 0) return '<p style="color:var(--text-light);">データがありません</p>';
+    var startRow = 0;
+    if (rows.length > 1) { var ne = rows[0].filter(function(c){ return c.trim() !== ''; }); if (ne.length <= 1) startRow = 1; }
+    if (startRow >= rows.length) return '<p style="color:var(--text-light);">データがありません</p>';
+    var headerRow = rows[startRow], dataRows = rows.slice(startRow + 1);
+    var hasSection = headerRow.length > 0 && headerRow[0].trim() === '';
+    var colStart = hasSection ? 1 : 0;
+    var html = '<div class="sheet-table-wrap"><table class="sheet-table"><thead><tr>';
+    for (var hi = colStart; hi < headerRow.length; hi++) html += '<th>' + escHtml(headerRow[hi]) + '</th>';
+    html += '</tr></thead><tbody>';
+    var curSection = '', rowCount = 0;
+    dataRows.forEach(function(row) {
+      if (row.every(function(c){ return !c.trim(); })) return;
+      var secVal = hasSection ? (row[0] || '').trim() : '';
+      if (hasSection && secVal && secVal !== curSection) {
+        curSection = secVal;
+        html += '<tr class="sheet-section-row"><td colspan="' + (headerRow.length - colStart) + '">' + escHtml(secVal) + '</td></tr>';
+      }
+      html += '<tr class="' + (rowCount % 2 === 0 ? 'sheet-row-even' : 'sheet-row-odd') + '">';
+      for (var di = colStart; di < headerRow.length; di++) html += '<td>' + escHtml(row[di] || '') + '</td>';
+      html += '</tr>'; rowCount++;
+    });
+    return html + '</tbody></table></div>';
+  }
+  function fetchSheet(sheetUrl, sheetName, targetEl) {
+    var fd = new FormData();
+    fd.append('token', TOKEN); fd.append('sheet_url', sheetUrl); fd.append('sheet_name', sheetName || '');
+    fetch('api/fetch_sheet.php', { method:'POST', body:fd })
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if (res.ok && res.csv) { targetEl.innerHTML = csvToTable(res.csv); }
+        else {
+          var dbg = res.debug ? '<br><small style="font-size:.72rem;color:#6B7280;word-break:break-all;">🔧 ' + escHtml(res.debug) + '</small>' : '';
+          targetEl.innerHTML = '<p style="color:#B91C1C;">⚠ ' + escHtml(res.error || 'データの取得に失敗しました') + '</p>' + dbg;
+        }
+      })
+      .catch(function(){ targetEl.innerHTML = '<p style="color:#B91C1C;">⚠ 通信エラーが発生しました</p>'; });
+  }
+  function buildBodyEl(item) {
+    var bodyEl = document.createElement('div');
+    if (item.type === 'sheet') {
+      bodyEl.className = 'loading-text'; bodyEl.textContent = '⏳ スプレッドシートを読み込み中...';
+    } else if (item.type === 'image' || (item.type === 'file' && (item.file_url || '').match(/\.(jpe?g|png|gif)$/i))) {
+      var fUrl = item.file_url || '';
+      if (fUrl) { var img = document.createElement('img'); img.src = fUrl; img.alt = item.title || ''; img.style.cssText = 'max-width:100%;height:auto;border-radius:8px;display:block;'; bodyEl.appendChild(img); }
+      else { bodyEl.className = 'content-block-body'; bodyEl.textContent = '（画像は未設定です）'; }
+    } else if (item.type === 'pdf' || (item.type === 'file' && (item.file_url || '').match(/\.pdf$/i))) {
+      var fUrl2 = item.file_url || '';
+      if (fUrl2) { bodyEl.innerHTML = '<embed src="' + escHtml(fUrl2) + '" type="application/pdf" style="width:100%;height:640px;border-radius:8px;border:1px solid var(--border);"><p style="text-align:right;margin:6px 0 0;font-size:.8125rem;"><a href="' + escHtml(fUrl2) + '" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;">🔗 PDFを別タブで開く</a></p>'; }
+      else { bodyEl.className = 'content-block-body'; bodyEl.textContent = '（PDFは未設定です）'; }
+    } else if (item.type === 'file') {
+      var fUrl3 = item.file_url || ''; bodyEl.className = 'content-block-body'; bodyEl.textContent = fUrl3 ? fUrl3 : '（ファイルは未設定です）';
+    } else if (item.type === 'link') {
+      var lUrl = item.link_url || '', lLabel = item.link_label || item.title || '';
+      if (lUrl) { bodyEl.innerHTML = '<a href="' + escHtml(lUrl) + '" target="_blank" rel="noopener" class="link-btn">🔗 ' + escHtml(lLabel || lUrl) + '　→</a><p class="link-btn-sub">新しいタブで開きます</p>'; }
+      else { bodyEl.className = 'content-block-body'; bodyEl.textContent = '（リンクURLは未設定です）'; }
+    } else {
+      bodyEl.className = 'content-block-body'; bodyEl.textContent = item.body || '（内容はまだ設定されていません）';
+    }
+    return bodyEl;
+  }
+  function appendWithFetch(item, bodyEl, container) {
+    container.appendChild(bodyEl);
+    if (item.type === 'sheet' && item.sheet_url) fetchSheet(item.sheet_url, item.sheet_name, bodyEl);
+  }
+  function renderContents(items) {
+    var wrap = document.getElementById('top-contents-wrap');
+    if (!wrap) return;
+    if (!items || items.length === 0) { wrap.parentNode.parentNode.style.display = 'none'; return; }
+    wrap.innerHTML = '';
+    var groups = [], cur = null;
+    items.forEach(function(item) {
+      if (!item.is_sub) { cur = { main: item, subs: [] }; groups.push(cur); }
+      else { if (cur) { cur.subs.push(item); } else { cur = { main: item, subs: [] }; groups.push(cur); } }
+    });
+    groups.forEach(function(group) {
+      var block = document.createElement('div'); block.className = 'content-block';
+      var m = group.main;
+      if (m.type === 'link' && m.link_url) {
+        var lBtn = document.createElement('a'); lBtn.href = m.link_url; lBtn.target = '_blank'; lBtn.rel = 'noopener'; lBtn.className = 'link-title-btn'; lBtn.textContent = '🔗 ' + (m.title || 'リンク') + '　→'; block.appendChild(lBtn);
+        if (m.link_label) { var lDesc = document.createElement('p'); lDesc.className = 'link-btn-sub'; lDesc.textContent = m.link_label; block.appendChild(lDesc); }
+        var lNote = document.createElement('p'); lNote.className = 'link-btn-sub'; lNote.textContent = '新しいタブで開きます'; block.appendChild(lNote);
+      } else {
+        var titleIcon = m.type === 'sheet' ? '📊 ' : ((m.type === 'file' || m.type === 'image') ? '🖼️ ' : (m.type === 'pdf' ? '📄 ' : (m.type === 'link' ? '🔗 ' : '📝 ')));
+        var titleEl = document.createElement('h2'); titleEl.className = 'content-block-title'; titleEl.textContent = titleIcon + (m.title || 'コンテンツ'); block.appendChild(titleEl);
+        appendWithFetch(m, buildBodyEl(m), block);
+      }
+      if (group.subs.length > 0) {
+        var subList = document.createElement('div'); subList.className = 'sub-content-list';
+        group.subs.forEach(function(sub) {
+          var subItem = document.createElement('div'); subItem.className = 'sub-content-item';
+          if (sub.type === 'link' && sub.link_url) {
+            var slBtn = document.createElement('a'); slBtn.href = sub.link_url; slBtn.target = '_blank'; slBtn.rel = 'noopener'; slBtn.className = 'link-sub-title-btn'; slBtn.textContent = '🔗 ' + (sub.title || 'リンク') + '　→'; subItem.appendChild(slBtn);
+            if (sub.link_label) { var slDesc = document.createElement('p'); slDesc.className = 'link-btn-sub'; slDesc.style.marginTop = '6px'; slDesc.textContent = sub.link_label; subItem.appendChild(slDesc); }
+            var slNote = document.createElement('p'); slNote.className = 'link-btn-sub'; slNote.textContent = '新しいタブで開きます'; subItem.appendChild(slNote);
+          } else {
+            var subIcon = sub.type === 'sheet' ? '📊 ' : ((sub.type === 'file' || sub.type === 'image') ? '🖼️ ' : (sub.type === 'pdf' ? '📄 ' : (sub.type === 'link' ? '🔗 ' : '📝 ')));
+            var subTitle = document.createElement('h3'); subTitle.className = 'sub-content-title'; subTitle.textContent = subIcon + (sub.title || 'サブコンテンツ'); subItem.appendChild(subTitle);
+            appendWithFetch(sub, buildBodyEl(sub), subItem);
+          }
+          subList.appendChild(subItem);
+        });
+        block.appendChild(subList);
+      }
+      wrap.appendChild(block);
+    });
+  }
+  fetch('data/contents.json?_=' + Date.now())
+    .then(function(r){ return r.ok ? r.json() : {}; })
+    .then(function(data){
+      var items = (data['top'] || []).filter(function(item){ return item.enabled !== false; });
+      renderContents(items);
+    })
+    .catch(function(){
+      var wrap = document.getElementById('top-contents-wrap');
+      if (wrap) wrap.parentNode.parentNode.style.display = 'none';
+    });
+})();
+</script>
+
+<script>
+/* ===== サイト名 動的反映（data/sitename.json） ===== */
+(function(){
+  fetch('data/sitename.json?_=' + Date.now())
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if (!d || !d.name) return;
+      var els = document.querySelectorAll('.header-logo-text .name, .footer-logo-name');
+      for (var i=0;i<els.length;i++) els[i].textContent = d.name;
+      var cps = document.querySelectorAll('.footer-bottom span');
+      for (var j=0;j<cps.length;j++){ if (/All rights reserved|©/.test(cps[j].textContent)) cps[j].textContent = cps[j].textContent.replace(/テストダンススポーツ連盟/g, d.name); }
+    })
+    .catch(function(){});
+})();
+/* ===== フッター サイトマップ 動的反映（data/nav.json） ===== */
+(function(){
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  var h4s = document.querySelectorAll('.site-footer h4'), ul = null;
+  for (var i=0;i<h4s.length;i++){ if (h4s[i].textContent.indexOf('サイトマップ') >= 0) { ul = h4s[i].parentNode.querySelector('ul'); break; } }
+  if (!ul) return;
+  fetch('data/nav.json?_=' + Date.now())
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      var html = '<li><a href="index.html">ホーム</a></li><li><a href="news.html">お知らせ一覧</a></li>';
+      if (d && Array.isArray(d.links)) {
+        d.links.forEach(function(l){ if (!l.enabled) return; html += '<li><a href="' + String(l.url||'#').replace(/"/g,'%22') + '">' + esc(l.name||'') + '</a></li>'; });
+      }
+      html += '<li><a href="contact.html">お問い合わせ</a></li>';
+      ul.innerHTML = html;
+    })
+    .catch(function(){});
+})();
+</script>
+
+</body>
+</html>
