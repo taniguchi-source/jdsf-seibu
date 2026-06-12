@@ -43,6 +43,7 @@ jobs:
           - wakayama
           - ehime
           - kyoto
+          - lesson
     steps:
       - name: Checkout
         uses: actions/checkout@v4
