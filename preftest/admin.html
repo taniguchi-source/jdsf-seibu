@@ -470,15 +470,22 @@
   'use strict';
 
   /* ===== 認証 ===== */
-  /* 府県サイトごとのパスワード: サブドメイン名 + '2026'（例 osaka.jdsf-seibu.com → osaka2026）。
-     ドメイン直下/localhost等、サブドメインが無い場合は従来の 'admin2026' にフォールバック。 */
-  var PASSWORD = (function(){
-    var h   = (location.hostname || '').toLowerCase();
-    var sub = h.split('.')[0];
-    if (h.indexOf('.') === -1 || !sub ||
-        sub === 'jdsf-seibu' || sub === 'www' || sub === 'localhost') return 'admin2026';
-    return sub + '2026';
+  /* 管理画面パスワードはスプレッドシート「HP用資料」M列で管理（府県別・自由に変更可）。
+     ログイン時にGAS経由で、このサイト(サブドメイン)に対応する行のM列値を取得して照合する。
+     GAS不通時のみ サブドメイン名+'2026'（例 osaka2026）にフォールバック。 */
+  var GAS_AUTH_URL = 'https://script.google.com/macros/s/AKfycbxS07Mxs6TZHdq0aGTay547EfIrN5igaJ527EaWl-O-RgHv7VHMllszJyMkI30qRU3A/exec';
+  var _sub = (function(){
+    var h = (location.hostname || '').toLowerCase(), s = h.split('.')[0];
+    return (h.indexOf('.') === -1 || !s || s === 'jdsf-seibu' || s === 'www' || s === 'localhost') ? '' : s;
   })();
+  var FALLBACK_PW = _sub ? _sub + '2026' : 'admin2026';
+  function fetchPassword(cb){
+    if (!_sub) { cb(FALLBACK_PW); return; }
+    fetch(GAS_AUTH_URL + '?action=auth&site=' + encodeURIComponent(_sub) + '&_=' + Date.now())
+      .then(function(r){ return r.json(); })
+      .then(function(d){ cb(d && d.password ? String(d.password) : FALLBACK_PW); })
+      .catch(function(){ cb(FALLBACK_PW); });
+  }
   var SESSION_KEY = 'preftest_admin_auth';
   var EXPIRE_DAYS = 3;
   var TOKEN       = 'preftest2026'; // PHP API 共通トークン
@@ -504,13 +511,15 @@
 
   function doLogin() {
     var val = pwInput ? pwInput.value : '';
-    if (val === PASSWORD) {
-      localStorage.setItem(SESSION_KEY, JSON.stringify({ ts: Date.now() }));
-      showContent();
-    } else {
-      loginError.style.display = 'block';
-      if (pwInput) { pwInput.classList.add('error'); pwInput.value=''; pwInput.focus(); }
-    }
+    fetchPassword(function(pw){
+      if (val === pw) {
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ ts: Date.now() }));
+        showContent();
+      } else {
+        loginError.style.display = 'block';
+        if (pwInput) { pwInput.classList.add('error'); pwInput.value=''; pwInput.focus(); }
+      }
+    });
   }
   function doLogout() {
     localStorage.removeItem(SESSION_KEY);
