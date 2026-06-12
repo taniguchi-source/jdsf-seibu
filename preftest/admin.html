@@ -302,7 +302,7 @@
     <div style="display:grid;gap:16px;">
       <!-- タイトル -->
       <div>
-        <label class="form-label">タイトル <span style="color:#e53e3e;font-size:.75rem;">（必須）</span></label>
+        <label class="form-label">タイトル <span id="cd-title-req" style="color:#e53e3e;font-size:.75rem;">（必須）</span></label>
         <input type="text" id="cd-title" class="form-input" placeholder="コンテンツのタイトルを入力">
       </div>
       <!-- サブコンテンツ -->
@@ -1108,7 +1108,7 @@
     var fileUrl   = ((document.getElementById('cd-file-url')   || {value:''}).value || '').trim();
     var linkUrl   = ((document.getElementById('cd-link-url')   || {value:''}).value || '').trim();
     var linkLabel = ((document.getElementById('cd-link-label') || {value:''}).value || '').trim();
-    if (!title) {
+    if (!title && !isSub) {
       if (msg) { msg.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;border-radius:6px;padding:8px 14px;'; msg.textContent='⚠ タイトルを入力してください'; }
       return;
     }
@@ -1165,6 +1165,12 @@
   function updateTypeLayout() {
     var isSubEl  = document.getElementById('cd-is-sub');
     var isSub    = isSubEl ? isSubEl.checked : false;
+    /* サブコンテンツ時はタイトルを任意に（ラベル表記も切り替え） */
+    var titleReq = document.getElementById('cd-title-req');
+    if (titleReq) {
+      titleReq.textContent = isSub ? '（任意）' : '（必須）';
+      titleReq.style.color = isSub ? '#718096' : '#e53e3e';
+    }
     var lblText    = document.getElementById('cd-type-label-text');
     var lblSheet   = document.getElementById('cd-type-label-sheet');
     var lblImage   = document.getElementById('cd-type-label-image');
