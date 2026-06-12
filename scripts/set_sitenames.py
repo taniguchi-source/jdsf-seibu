@@ -22,6 +22,7 @@ NAMES = {
     "wakayama":  "和歌山県ダンススポーツ連盟",
     "ehime":     "愛媛県ダンススポーツ連盟",
     "kyoto":     "京都府ダンススポーツ連盟",
+    "lesson":    "サイト作成練習サイト",
 }
 
 # preftest は元の名前へ復旧（誤って空にしたため）
@@ -61,6 +62,10 @@ def main():
     targets = dict(NAMES)
     if "--restore-preftest" in sys.argv:
         targets = dict(RESTORE)
+    # 位置引数があればそのサブドメインだけに絞る（例: python set_sitenames.py lesson）
+    only = [a for a in sys.argv[1:] if not a.startswith("-")]
+    if only:
+        targets = {s: targets[s] for s in only if s in targets}
     for sub, name in targets.items():
         status, resp = post(sub, name)
         print("%-10s %-28s -> [%s] %s" % (sub, name, status, resp.strip()[:120]))
