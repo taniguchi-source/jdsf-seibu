@@ -470,7 +470,15 @@
   'use strict';
 
   /* ===== 認証 ===== */
-  var PASSWORD    = 'admin2026';   // ← 変更可
+  /* 府県サイトごとのパスワード: サブドメイン名 + '2026'（例 osaka.jdsf-seibu.com → osaka2026）。
+     ドメイン直下/localhost等、サブドメインが無い場合は従来の 'admin2026' にフォールバック。 */
+  var PASSWORD = (function(){
+    var h   = (location.hostname || '').toLowerCase();
+    var sub = h.split('.')[0];
+    if (h.indexOf('.') === -1 || !sub ||
+        sub === 'jdsf-seibu' || sub === 'www' || sub === 'localhost') return 'admin2026';
+    return sub + '2026';
+  })();
   var SESSION_KEY = 'preftest_admin_auth';
   var EXPIRE_DAYS = 3;
   var TOKEN       = 'preftest2026'; // PHP API 共通トークン
