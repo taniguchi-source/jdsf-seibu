@@ -1,0 +1,91 @@
+# 府県連盟サイト 一括デプロイ（共通コード方式）
+#
+# preftest/ の管理システム一式を、各府県サブドメインへそのまま配信する。
+# 全府県が同一コードを共有し、府県ごとの違い（連盟名・テーマ色・コンテンツ・
+# カルーセル画像）はサーバー側 data/・uploads/（管理画面で編集）で持つ。
+#
+# ■ 府県を追加するには:  下の matrix.sub に <サブドメイン名> を1行足すだけ。
+# ■ 実行は手動のみ（テスト中の変更が本番府県へ自動波及しないようにするため）:
+#     全府県      : Actions →「Deploy prefectures to XServer」→ Run workflow
+#     特定府県のみ: 同上の only に "osaka,shiga" のようにカンマ区切りで指定
+#
+# 前提: 各サブドメインが XServer で作成済み（DNS反映済み）であること。
+#       未作成/未反映の府県はそのジョブだけ失敗する（他府県には影響しない）。
+
+name: Deploy prefectures to XServer
+
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: 'デプロイ対象をカンマ区切りで指定（空＝全府県）例: osaka,shiga'
+        required: false
+        default: ''
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy ${{ matrix.sub }}
+    strategy:
+      fail-fast: false
+      matrix:
+        sub:
+          - hiroshima
+          - hyogo
+          - kagawa
+          - kochi
+          - okayama
+          - osaka
+          - shiga
+          - shimane
+          - tokushima
+          - tottori
+          - wakayama
+          - kyoto
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Gate (only フィルタ判定)
+        id: gate
+        run: |
+          ONLY=$(echo "${{ github.event.inputs.only }}" | tr -d ' ')
+          SUB="${{ matrix.sub }}"
+          if [ -z "$ONLY" ] || echo ",$ONLY," | grep -q ",$SUB,"; then
+            echo "go=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=false" >> "$GITHUB_OUTPUT"
+            echo "⏭  $SUB は only='$ONLY' に含まれないためスキップ"
+          fi
+
+      - name: Install lftp
+        if: steps.gate.outputs.go == 'true'
+        run: sudo apt-get install -y lftp
+
+      - name: Deploy preftest/ to ${{ matrix.sub }}.jdsf-seibu.com
+        if: steps.gate.outputs.go == 'true'
+        env:
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          lftp -u "jdsfseibu,$FTP_PASS" ftp://sv16504.xserver.jp \
+            -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; \
+                set net:timeout 30; set net:max-retries 3; \
+                mirror -R --delete \
+                  --exclude '^data/' \
+                  --exclude '^uploads/' \
+                  preftest/ \
+                  /jdsf-seibu.com/public_html/${{ matrix.sub }}.jdsf-seibu.com/; \
+                quit"
+
+      - name: Ensure data/ and uploads/ directories exist (PHP write targets)
+        if: steps.gate.outputs.go == 'true'
+        env:
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          lftp -u "jdsfseibu,$FTP_PASS" ftp://sv16504.xserver.jp \
+            -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; \
+                set net:timeout 30; set cmd:fail-exit no; \
+                mkdir -p /jdsf-seibu.com/public_html/${{ matrix.sub }}.jdsf-seibu.com/data; \
+                mkdir -p /jdsf-seibu.com/public_html/${{ matrix.sub }}.jdsf-seibu.com/uploads; \
+                mkdir -p /jdsf-seibu.com/public_html/${{ matrix.sub }}.jdsf-seibu.com/uploads/slides; \
+                quit" || true

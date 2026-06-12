@@ -38,6 +38,15 @@ jobs:
             --exclude='nara1.jdsf-seibu.com/' \
             --exclude='hyogo.jdsf-seibu.com/' \
             --exclude='hiroshima.jdsf-seibu.com/' \
+            --exclude='kagawa.jdsf-seibu.com/' \
+            --exclude='kochi.jdsf-seibu.com/' \
+            --exclude='okayama.jdsf-seibu.com/' \
+            --exclude='osaka.jdsf-seibu.com/' \
+            --exclude='shiga.jdsf-seibu.com/' \
+            --exclude='shimane.jdsf-seibu.com/' \
+            --exclude='tokushima.jdsf-seibu.com/' \
+            --exclude='tottori.jdsf-seibu.com/' \
+            --exclude='wakayama.jdsf-seibu.com/' \
             --exclude='docs/meetings/' \
             --exclude='data/news.json' \
             --exclude='data/competitions_seibu.json' \
