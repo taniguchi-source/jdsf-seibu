@@ -626,10 +626,15 @@
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){
       if (!d || !d.name) return;
-      var els = document.querySelectorAll('.header-logo-text .name, .footer-logo-name');
-      for (var i=0;i<els.length;i++) els[i].textContent = d.name;
-      var cps = document.querySelectorAll('.footer-bottom span');
-      for (var j=0;j<cps.length;j++){ if (/All rights reserved|©/.test(cps[j].textContent)) cps[j].textContent = cps[j].textContent.replace(/テストダンススポーツ連盟/g, d.name); }
+      var name = d.name, OLD = 'テストダンススポーツ連盟';
+      window._fedName = name;
+      if (document.title) document.title = document.title.split(OLD).join(name);
+      var md = document.querySelector('meta[name="description"]');
+      if (md && md.content) md.content = md.content.split(OLD).join(name);
+      var logos = document.querySelectorAll('.header-logo-text .name, .footer-logo-name');
+      for (var i=0;i<logos.length;i++) logos[i].textContent = name;
+      var txts = document.querySelectorAll('#badge-text, .hero-desc, #slide-desc, .ticker-text, .footer-desc, .footer-bottom span');
+      for (var j=0;j<txts.length;j++){ if (txts[j].innerHTML.indexOf(OLD) !== -1) txts[j].innerHTML = txts[j].innerHTML.split(OLD).join(name); }
     })
     .catch(function(){});
 })();
