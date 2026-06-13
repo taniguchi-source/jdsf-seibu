@@ -159,27 +159,27 @@
     <div class="container carousel-content">
       <div class="hero-badge" style="display:inline-flex;">
         <span class="hero-badge-dot"></span>
-        JDSF 近畿中四国ブロック委員会 公式サイト
+        <span id="hero-badge-text">JDSF 近畿中四国ブロック委員会 公式サイト</span>
       </div>
-      <p class="hero-desc">
+      <p class="hero-desc" id="hero-desc">
         JDSF近畿中四国ブロック委員会は、近畿・中国・四国地方を管轄し、<br>
         14の府県連盟が協力して競技ダンスの普及・振興に取り組んでいます。
       </p>
       <div style="display:flex;gap:10px;margin-top:16px;align-items:center;">
         <span style="font-size:0.8rem;color:rgba(255,255,255,0.75);">公式SNS：</span>
-        <a href="https://www.facebook.com/profile.php?id=61573910649655" target="_blank" rel="noopener" title="Facebook"
+        <a id="sns-facebook" href="https://www.facebook.com/profile.php?id=61573910649655" target="_blank" rel="noopener" title="Facebook"
            style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:#1877F2;color:#fff;border-radius:50%;font-size:1rem;text-decoration:none;">
           <i class="fa-brands fa-facebook-f"></i>
         </a>
-        <a href="https://www.instagram.com/jdsf_seibu/" target="_blank" rel="noopener" title="Instagram"
+        <a id="sns-instagram" href="https://www.instagram.com/jdsf_seibu/" target="_blank" rel="noopener" title="Instagram"
            style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);color:#fff;border-radius:50%;font-size:1rem;text-decoration:none;">
           <i class="fa-brands fa-instagram"></i>
         </a>
-        <a href="https://lin.ee/PHZJcSf" target="_blank" rel="noopener" title="LINE公式"
+        <a id="sns-line" href="https://lin.ee/PHZJcSf" target="_blank" rel="noopener" title="LINE公式"
            style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:#06C755;color:#fff;border-radius:50%;font-size:1rem;text-decoration:none;">
           <i class="fa-brands fa-line"></i>
         </a>
-      <a href="https://www.youtube.com/@dancesport3598" target="_blank" rel="noopener" title="YouTube"
+      <a id="sns-youtube" href="https://www.youtube.com/@dancesport3598" target="_blank" rel="noopener" title="YouTube"
            style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:#FF0000;color:#fff;border-radius:50%;font-size:1rem;text-decoration:none;">
           <i class="fa-brands fa-youtube"></i>
         </a>
@@ -491,6 +491,54 @@
       if (grid) grid.innerHTML = '';
     });
 }());
+</script>
+
+<!-- ===== トップ要素の動的反映（サイト構築ページで編集／data/home_*.json。未設定時は上の静的HTMLのまま） ===== -->
+<script>
+(function(){
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  /* 都道府県リンク（クイックリンク） */
+  fetch('data/home_quicklinks.json?_=' + Date.now())
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if (!d || !Array.isArray(d.links) || !d.links.length) return;
+      var box = document.querySelector('.hero-pref-links');
+      if (!box) return;
+      var html = d.links.filter(function(l){ return l.enabled !== false && (l.label || l.url); }).map(function(l){
+        var label = esc(l.label || l.url || '');
+        if (!l.url) return '<span class="hero-pref-link-disabled">' + label + '</span>';
+        var tgt = l.newtab ? ' target="_blank" rel="noopener"' : '';
+        return '<a href="' + esc(l.url) + '"' + tgt + '>' + label + '</a>';
+      }).join('');
+      if (html) box.innerHTML = html;
+    })
+    .catch(function(){});
+
+  /* ヒーロー（カルーセル画像・キャッチコピー・説明文・SNS） */
+  fetch('data/home_hero.json?_=' + Date.now())
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if (!d) return;
+      if (d.badge) { var b = document.getElementById('hero-badge-text'); if (b) b.textContent = d.badge; }
+      if (d.desc)  { var p = document.getElementById('hero-desc'); if (p) p.innerHTML = esc(d.desc).replace(/\n/g, '<br>'); }
+      if (d.sns) {
+        ['facebook','instagram','line','youtube'].forEach(function(k){
+          var a = document.getElementById('sns-' + k);
+          if (a && d.sns[k]) a.href = d.sns[k];
+        });
+      }
+      if (d.slides) {
+        var slides = document.querySelectorAll('.carousel-slides .carousel-slide');
+        for (var n = 1; n <= 3; n++) {
+          if (d.slides['slide' + n] && slides[n-1]) {
+            slides[n-1].style.backgroundImage = "url('" + d.slides['slide' + n] + "')";
+          }
+        }
+      }
+    })
+    .catch(function(){});
+})();
 </script>
 </body>
 </html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>サイト構築｜JDSF 近畿中四国ブロック委員会</title>
+<style>
+  :root{ --primary:#1B3A6B; --primary-dark:#0D2347; --border:#e2e8f0; --text-dark:#1a202c; --text-light:#718096; --bg:#f1f5f9; }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif;background:var(--bg);color:var(--text-dark);line-height:1.6;}
+  .hidden{display:none !important;}
+  .wrap{max-width:880px;margin:0 auto;padding:24px 16px 80px;}
+  /* ログイン */
+  #login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .login-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:36px 28px;max-width:380px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.08);text-align:center;}
+  .login-card h1{font-size:1.15rem;margin:0 0 4px;color:var(--primary-dark);}
+  .login-card p{font-size:.8rem;color:var(--text-light);margin:0 0 20px;}
+  input[type=text],input[type=password],input[type=url],textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.9rem;font-family:inherit;}
+  input:focus,textarea:focus{outline:none;border-color:var(--primary);}
+  .btn{display:inline-flex;align-items:center;gap:6px;justify-content:center;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:.875rem;font-weight:700;cursor:pointer;font-family:inherit;}
+  .btn:hover{background:var(--primary-dark);}
+  .btn-sec{background:#fff;color:var(--primary);border:1.5px solid var(--primary);}
+  .btn-sm{padding:5px 10px;font-size:.78rem;}
+  .btn-del{background:#fff;color:#b91c1c;border:1px solid #fecaca;}
+  /* ヘッダ */
+  .topbar{background:var(--primary-dark);color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .topbar h1{font-size:1rem;margin:0;}
+  .topbar a{color:#cbd5e1;font-size:.8rem;text-decoration:none;}
+  /* セクション */
+  .card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:20px;}
+  .card h2{font-size:1.02rem;margin:0 0 4px;border-left:4px solid var(--primary);padding-left:10px;color:var(--primary-dark);}
+  .card .hint{font-size:.78rem;color:var(--text-light);margin:0 0 16px 14px;}
+  label.fl{display:block;font-size:.78rem;font-weight:700;color:var(--text-dark);margin:12px 0 4px;}
+  .row{display:flex;gap:8px;align-items:center;background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:8px;}
+  .row .h{cursor:grab;color:#94a3b8;font-size:.9rem;user-select:none;}
+  .row .grow{flex:1;min-width:0;}
+  .row input[type=text]{margin-bottom:4px;}
+  .ck{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;color:var(--text-light);white-space:nowrap;}
+  .msg{display:none;margin-top:10px;font-size:.8rem;padding:8px 12px;border-radius:6px;}
+  .msg.ok{display:block;background:#F0FFF4;color:#166534;border:1px solid #86EFAC;}
+  .msg.ng{display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;}
+  .slidegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  .slidebox{border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;}
+  .slidebox img{width:100%;height:80px;object-fit:cover;border-radius:6px;background:#e2e8f0;}
+  .slidebox .ttl{font-size:.78rem;font-weight:700;margin-bottom:6px;}
+  .sns-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .sns-row span{font-size:.8rem;width:90px;flex-shrink:0;font-weight:700;}
+</style>
+</head>
+<body>
+
+<!-- ===== ログイン ===== -->
+<div id="login-screen">
+  <div class="login-card">
+    <h1>⚙️ サイト構築</h1>
+    <p>JDSF 近畿中四国ブロック委員会（主サイト）</p>
+    <input type="password" id="pw-input" placeholder="パスワードを入力">
+    <div id="login-error" class="msg ng" style="margin-bottom:8px;">⚠ パスワードが違います</div>
+    <button class="btn" style="width:100%;margin-top:12px;" onclick="doLogin()">ログイン</button>
+    <p style="margin-top:16px;"><a href="index.html" style="color:var(--text-light);font-size:.8rem;">← サイトに戻る</a></p>
+  </div>
+</div>
+
+<!-- ===== 本体 ===== -->
+<div id="content-screen" class="hidden">
+  <div class="topbar">
+    <h1>⚙️ サイト構築（主サイト）</h1>
+    <div>
+      <a href="index.html" target="_blank">サイトを開く ↗</a>
+      &nbsp;|&nbsp;
+      <a href="#" onclick="doLogout();return false;">ログアウト</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- ① 都道府県リンク -->
+    <div class="card">
+      <h2>🔗 都道府県リンク（クイックリンク）</h2>
+      <p class="hint">トップ右側のリンク一覧。「↑↓」で並べ替え、チェックで表示/非表示、URLを空にすると「リンクなしの見出し」（高知県のような表示）になります。</p>
+      <div id="ql-list"></div>
+      <div style="display:flex;gap:8px;margin-top:6px;">
+        <button class="btn btn-sec btn-sm" onclick="qlAdd()">＋ 行を追加</button>
+        <button class="btn btn-sm" onclick="qlSave()">💾 クイックリンクを保存</button>
+      </div>
+      <div id="ql-msg" class="msg"></div>
+    </div>
+
+    <!-- ② カルーセル画像 -->
+    <div class="card">
+      <h2>🖼️ カルーセル画像</h2>
+      <p class="hint">トップ大画像（3枚）。推奨 1440×400px・8MB以内（JPG/PNG/WebP/GIF）。アップロードすると即反映されます。</p>
+      <div class="slidegrid">
+        <div class="slidebox"><div class="ttl">スライド1</div><img id="sl-img-1" alt=""><input type="file" id="sl-file-1" accept="image/*" style="font-size:.7rem;margin-top:6px;"><button class="btn btn-sm" style="margin-top:6px;width:100%;" onclick="slUpload(1)">アップロード</button></div>
+        <div class="slidebox"><div class="ttl">スライド2</div><img id="sl-img-2" alt=""><input type="file" id="sl-file-2" accept="image/*" style="font-size:.7rem;margin-top:6px;"><button class="btn btn-sm" style="margin-top:6px;width:100%;" onclick="slUpload(2)">アップロード</button></div>
+        <div class="slidebox"><div class="ttl">スライド3</div><img id="sl-img-3" alt=""><input type="file" id="sl-file-3" accept="image/*" style="font-size:.7rem;margin-top:6px;"><button class="btn btn-sm" style="margin-top:6px;width:100%;" onclick="slUpload(3)">アップロード</button></div>
+      </div>
+      <div id="sl-msg" class="msg"></div>
+    </div>
+
+    <!-- ③④ ヒーローテキスト・SNS -->
+    <div class="card">
+      <h2>✏️ ヒーローのテキスト・SNS</h2>
+      <p class="hint">キャッチコピー・説明文・公式SNSのリンクを編集します。</p>
+      <label class="fl">キャッチコピー（バッジ文）</label>
+      <input type="text" id="h-badge" placeholder="JDSF 近畿中四国ブロック委員会 公式サイト">
+      <label class="fl">説明文（改行可）</label>
+      <textarea id="h-desc" rows="3" placeholder="ブロックの紹介文"></textarea>
+      <label class="fl">SNSリンク</label>
+      <div class="sns-row"><span>Facebook</span><input type="url" id="h-facebook" placeholder="https://..."></div>
+      <div class="sns-row"><span>Instagram</span><input type="url" id="h-instagram" placeholder="https://..."></div>
+      <div class="sns-row"><span>LINE</span><input type="url" id="h-line" placeholder="https://..."></div>
+      <div class="sns-row"><span>YouTube</span><input type="url" id="h-youtube" placeholder="https://..."></div>
+      <button class="btn btn-sm" style="margin-top:12px;" onclick="heroSave()">💾 テキスト・SNSを保存</button>
+      <div id="h-msg" class="msg"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ===== 設定 ===== */
+var PASS_HASH   = 'f54a123d6931b920260699a542ca349b486af7dfee4088b8cf13a48a8b2cf543'; // jdsf-seibu2026
+var TOKEN       = 'jdsfseibu2026';     // PHP API 共通トークン
+var SESSION_KEY = 'jdsfseibu_siteconfig_auth';
+var EXPIRE_DAYS = 3;
+
+/* ===== 既定値（JSON未設定時に現状のトップ内容を初期表示） ===== */
+var DEFAULT_QUICKLINKS = [
+  {label:'滋賀県ダンススポーツ連盟', url:'https://www.zb.ztv.ne.jp/rfgktswe/', enabled:true, newtab:true},
+  {label:'京都府ダンススポーツ連盟', url:'https://kyoto-jdsf.com/', enabled:true, newtab:true},
+  {label:'大阪府ダンススポーツ連盟', url:'http://www.jdsf-osaka.org/', enabled:true, newtab:true},
+  {label:'兵庫県ダンススポーツ連盟', url:'https://www.jdsf-hyogo.com/', enabled:true, newtab:true},
+  {label:'奈良県ダンススポーツ連盟', url:'https://nara.jdsf-seibu.com/', enabled:true, newtab:true},
+  {label:'和歌山県ダンススポーツ連盟', url:'https://sites.google.com/view/jdsf-wakayama', enabled:true, newtab:true},
+  {label:'鳥取県ダンススポーツ連盟', url:'https://jdsf-tottori.com/', enabled:true, newtab:true},
+  {label:'島根県ダンススポーツ連盟', url:'http://www.ginzan-tv.ne.jp/dance.info/', enabled:true, newtab:true},
+  {label:'岡山県ダンススポーツ連盟', url:'http://okayama.jdsf.or.jp/', enabled:true, newtab:true},
+  {label:'広島県ダンススポーツ連盟', url:'https://www.hiroshima.jp.net/jdsfhiroshima/index.html', enabled:true, newtab:true},
+  {label:'徳島県ダンススポーツ連盟', url:'http://tokushima-dsf.com/', enabled:true, newtab:true},
+  {label:'香川県ダンススポーツ連盟', url:'https://dsf-kagawa.jimdofree.com/', enabled:true, newtab:true},
+  {label:'愛媛県ダンススポーツ連盟', url:'https://k-hok.com/', enabled:true, newtab:true},
+  {label:'高知県ダンススポーツ連盟', url:'', enabled:true, newtab:false},
+  {label:'JDSF-PD西部ブロック', url:'http://www.jdsf-pd-west.jp/', enabled:true, newtab:true},
+  {label:'JDSF広報誌(D・D・D)', url:'https://www.jdsf.or.jp/about/jdsf-overview/jdsf-ddd/', enabled:true, newtab:true}
+];
+var DEFAULT_HERO = {
+  badge:'JDSF 近畿中四国ブロック委員会 公式サイト',
+  desc:'JDSF近畿中四国ブロック委員会は、近畿・中国・四国地方を管轄し、\n14の府県連盟が協力して競技ダンスの普及・振興に取り組んでいます。',
+  sns:{
+    facebook:'https://www.facebook.com/profile.php?id=61573910649655',
+    instagram:'https://www.instagram.com/jdsf_seibu/',
+    line:'https://lin.ee/PHZJcSf',
+    youtube:'https://www.youtube.com/@dancesport3598'
+  },
+  slides:{}
+};
+
+/* ===== 認証 ===== */
+async function sha256hex(str){
+  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+}
+function isAuthed(){
+  try{ var d=JSON.parse(localStorage.getItem(SESSION_KEY)); if(d && Date.now()-d.ts < EXPIRE_DAYS*864e5) return true; }catch(e){}
+  localStorage.removeItem(SESSION_KEY); return false;
+}
+async function doLogin(){
+  var pw=document.getElementById('pw-input').value;
+  var hash=await sha256hex(pw);
+  if(hash!==PASS_HASH){ document.getElementById('login-error').classList.add('ng'); document.getElementById('login-error').style.display='block'; return; }
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ts:Date.now()}));
+  showApp();
+}
+function doLogout(){ localStorage.removeItem(SESSION_KEY); location.reload(); }
+function showApp(){
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('content-screen').classList.remove('hidden');
+  loadAll();
+}
+document.getElementById('pw-input').addEventListener('keydown',function(e){ if(e.key==='Enter') doLogin(); });
+if(isAuthed()) showApp();
+
+function setMsg(id, text, ok){ var el=document.getElementById(id); el.className='msg '+(ok?'ok':'ng'); el.textContent=text; el.style.display='block'; if(ok) setTimeout(function(){el.style.display='none';},3500); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ===== データ読み込み ===== */
+function loadAll(){
+  fetch('data/home_quicklinks.json?_='+Date.now()).then(function(r){return r.ok?r.json():null;})
+    .then(function(d){ _ql = (d && Array.isArray(d.links) && d.links.length) ? d.links : DEFAULT_QUICKLINKS.slice(); qlRender(); })
+    .catch(function(){ _ql = DEFAULT_QUICKLINKS.slice(); qlRender(); });
+  fetch('data/home_hero.json?_='+Date.now()).then(function(r){return r.ok?r.json():null;})
+    .then(function(d){ fillHero(d||DEFAULT_HERO, d); })
+    .catch(function(){ fillHero(DEFAULT_HERO, null); });
+}
+
+/* ===== ① クイックリンク ===== */
+var _ql = [];
+function qlRender(){
+  var box=document.getElementById('ql-list');
+  box.innerHTML = _ql.map(function(it,i){
+    return '<div class="row">'
+      + '<span class="h">≡</span>'
+      + '<div class="grow">'
+        + '<input type="text" value="'+esc(it.label||'')+'" placeholder="表示名" oninput="_ql['+i+'].label=this.value">'
+        + '<input type="text" value="'+esc(it.url||'')+'" placeholder="URL（空=リンクなしの見出し）" oninput="_ql['+i+'].url=this.value">'
+      + '</div>'
+      + '<div style="display:flex;flex-direction:column;gap:4px;">'
+        + '<label class="ck"><input type="checkbox" '+(it.enabled!==false?'checked':'')+' onchange="_ql['+i+'].enabled=this.checked"> 表示</label>'
+        + '<label class="ck"><input type="checkbox" '+(it.newtab?'checked':'')+' onchange="_ql['+i+'].newtab=this.checked"> 別タブ</label>'
+      + '</div>'
+      + '<div style="display:flex;flex-direction:column;gap:4px;">'
+        + '<button class="btn btn-sm btn-sec" onclick="qlMove('+i+',-1)">↑</button>'
+        + '<button class="btn btn-sm btn-sec" onclick="qlMove('+i+',1)">↓</button>'
+      + '</div>'
+      + '<button class="btn btn-sm btn-del" onclick="qlDel('+i+')">×</button>'
+    + '</div>';
+  }).join('');
+}
+function qlAdd(){ if(_ql.length>=20){alert('上限20件です');return;} _ql.push({label:'',url:'',enabled:true,newtab:true}); qlRender(); }
+function qlDel(i){ _ql.splice(i,1); qlRender(); }
+function qlMove(i,d){ var j=i+d; if(j<0||j>=_ql.length) return; var t=_ql[i]; _ql[i]=_ql[j]; _ql[j]=t; qlRender(); }
+function qlSave(){
+  var fd=new FormData(); fd.append('token',TOKEN); fd.append('links',JSON.stringify(_ql));
+  fetch('api/save_home_quicklinks.php',{method:'POST',body:fd})
+    .then(function(r){return r.json();})
+    .then(function(res){ setMsg('ql-msg', res.ok?'✅ 保存しました（トップに反映されます）':('⚠ '+(res.error||'失敗')), !!res.ok); })
+    .catch(function(){ setMsg('ql-msg','⚠ 通信エラー',false); });
+}
+
+/* ===== ②③④ ヒーロー ===== */
+function fillHero(h, raw){
+  h = h || {};
+  document.getElementById('h-badge').value = h.badge != null ? h.badge : DEFAULT_HERO.badge;
+  document.getElementById('h-desc').value  = h.desc  != null ? h.desc  : DEFAULT_HERO.desc;
+  var sns = h.sns || DEFAULT_HERO.sns;
+  ['facebook','instagram','line','youtube'].forEach(function(k){
+    document.getElementById('h-'+k).value = (sns && sns[k]!=null) ? sns[k] : (DEFAULT_HERO.sns[k]||'');
+  });
+  var slides = (raw && raw.slides) ? raw.slides : {};
+  for(var n=1;n<=3;n++){
+    var img=document.getElementById('sl-img-'+n);
+    img.src = slides['slide'+n] ? (slides['slide'+n]+'?_='+Date.now()) : 'images/hero-'+(4-n)+( n===1?'.jpg':'.png');
+  }
+}
+function heroSave(){
+  var fd=new FormData(); fd.append('token',TOKEN);
+  fd.append('badge',document.getElementById('h-badge').value);
+  fd.append('desc',document.getElementById('h-desc').value);
+  fd.append('facebook',document.getElementById('h-facebook').value);
+  fd.append('instagram',document.getElementById('h-instagram').value);
+  fd.append('line',document.getElementById('h-line').value);
+  fd.append('youtube',document.getElementById('h-youtube').value);
+  fetch('api/save_home_hero.php',{method:'POST',body:fd})
+    .then(function(r){return r.json();})
+    .then(function(res){ setMsg('h-msg', res.ok?'✅ 保存しました（トップに反映されます）':('⚠ '+(res.error||'失敗')), !!res.ok); })
+    .catch(function(){ setMsg('h-msg','⚠ 通信エラー',false); });
+}
+function slUpload(n){
+  var f=document.getElementById('sl-file-'+n).files[0];
+  if(!f){ setMsg('sl-msg','⚠ 画像を選択してください',false); return; }
+  var fd=new FormData(); fd.append('token',TOKEN); fd.append('slide_num',n); fd.append('image',f);
+  setMsg('sl-msg','⏳ アップロード中...',true);
+  fetch('api/upload_home_slide.php',{method:'POST',body:fd})
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(res.ok){ document.getElementById('sl-img-'+n).src = res.url+'?_='+Date.now(); setMsg('sl-msg','✅ スライド'+n+'を更新しました',true); }
+      else setMsg('sl-msg','⚠ '+(res.error||'失敗'),false);
+    })
+    .catch(function(){ setMsg('sl-msg','⚠ 通信エラー',false); });
+}
+</script>
+</body>
+</html>

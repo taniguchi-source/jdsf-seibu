@@ -56,6 +56,8 @@ jobs:
             --exclude='data/officers_news.json' \
             --exclude='data/officers_notices.json' \
             --exclude='data/references.json' \
+            --exclude='data/home_quicklinks.json' \
+            --exclude='data/home_hero.json' \
             --exclude='uploads/' \
             ./ jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/
 
