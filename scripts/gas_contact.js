@@ -109,7 +109,7 @@ function handleContact(data) {
     if (OFFICE_BCC && OFFICE_BCC !== to) opt.bcc = OFFICE_BCC;
     GmailApp.sendEmail(to, subject, body, opt);
 
-    sendAutoReply(data, '各府県連盟の担当者');
+    sendAutoReply(data, { prefName: pref, person: person, email: to });
     return json({ status: 'ok' });
   } catch (err) {
     Logger.log('handleContact error: ' + err);
@@ -149,7 +149,7 @@ function handlePrefContact(data) {
     if (cc) opt.cc = cc;
     GmailApp.sendEmail(row.email, subject, body, opt);
 
-    sendAutoReply(data, (row.prefName || '') + 'の担当者');
+    sendAutoReply(data, { prefName: row.prefName, person: row.person, email: row.email });
     return json({ status: 'ok' });
   } catch (err) {
     Logger.log('handlePrefContact error: ' + err);
@@ -235,20 +235,32 @@ function getAuthPassword(site) {
 
 // ============================ 自動返信（送信者控え） ============================
 
-function sendAutoReply(data, whoWillReply) {
+// 府県名 → 署名用の連盟名（例: 大阪府 → 大阪府ダンススポーツ連盟）。
+// 既に「連盟/事務局/委員会」を含む場合・空の場合はそのまま扱う。
+function orgNameOf(prefName) {
+  var p = String(prefName || '').trim();
+  if (!p) return 'JDSF近畿中四国ブロック委員会';
+  if (/連盟|事務局|委員会/.test(p)) return p;
+  return p + 'ダンススポーツ連盟';
+}
+
+function sendAutoReply(data, sig) {
   if (!data.email) return;
-  var body = [
+  sig = sig || {};
+  var org = orgNameOf(sig.prefName);
+  var lines = [
     (data.name || '') + ' 様', '',
     'このたびはお問い合わせいただきありがとうございます。',
-    '以下の内容で受け付けました。' + whoWillReply + 'よりご連絡いたします。', '',
+    '以下の内容で受け付けました。担当者より追ってご連絡いたします。', '',
     '■ 件名 : ' + (data.subject || ''),
     '■ 内容 : ' + (data.message || ''), '',
     '──────────────────────────',
-    'JDSF近畿中四国ブロック委員会（西部ブロック）',
-    'https://jdsf-seibu.com/',
-    '──────────────────────────',
-    '※本メールは自動送信です。本メールへの返信ではお問い合わせを受け付けられません。'
-  ].join('\n');
-  GmailApp.sendEmail(data.email, '【受付確認】' + (data.subject || 'お問い合わせ'), body,
-                     { name: 'JDSF近畿中四国ブロック委員会' });
+    org
+  ];
+  if (sig.person) lines.push('担当：' + sig.person + '氏');
+  if (sig.email)  lines.push('メール：' + sig.email);
+  lines.push('──────────────────────────');
+  lines.push('※本メールは自動送信です。ご返信の際は上記のメールアドレス宛にお願いいたします。');
+  GmailApp.sendEmail(data.email, '【受付確認】' + (data.subject || 'お問い合わせ'), lines.join('\n'),
+                     { name: org });
 }
