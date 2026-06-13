@@ -938,47 +938,77 @@
       });
   }
 
+  /* 1チップ分のHTML（idx指定）。サブは琥珀色＋「↳ サブ」バッジ。 */
+  function _chipHtml(siteId, item, idx) {
+    var safeTitle = escHtml(item.title || 'コンテンツ' + (idx + 1));
+    var enabled   = item.enabled !== false;
+    var isSheet   = item.type === 'sheet';
+    var isImage   = item.type === 'file' || item.type === 'image';
+    var isGallery = item.type === 'gallery';
+    var isPdf     = item.type === 'pdf';
+    var isLink    = item.type === 'link';
+    var typeIcon  = isSheet ? '📊 ' : (isImage ? '🖼️ ' : (isGallery ? '🏞 ' : (isPdf ? '📄 ' : (isLink ? '🔗 ' : '📝 '))));
+    var isSub  = item.is_sub === true;
+    var bgOn = isSub ? '#FFFBEB' : '#EFF6FF', bgOff = '#F1F5F9';
+    var bdOn = isSub ? '#F59E0B' : '#BFDBFE', bdOff = 'var(--border)';
+    var bg = enabled ? bgOn : bgOff, bd = enabled ? bdOn : bdOff;
+    return '<span class="cchip" data-site="' + siteId + '" data-idx="' + idx + '" data-' + (isSub ? 'sub' : 'main') + '="1" '
+      + 'style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;cursor:grab;'
+      + 'background:' + bg + ';border:1px solid ' + bd + ';border-radius:6px;">'
+      + '<span class="cchip-grip" title="ドラッグして並べ替え" '
+      + 'style="cursor:grab;touch-action:none;user-select:none;color:#94A3B8;font-size:.9rem;line-height:1;flex-shrink:0;">⠿</span>'
+      + '<input type="checkbox" ' + (enabled ? 'checked' : '') + ' '
+      + 'onchange="(function(cb){var item=window._cd[\'' + siteId + '\'][' + idx + '];item.enabled=cb.checked;var p=cb.parentNode;p.style.background=cb.checked?\'' + bgOn + '\':\'' + bgOff + '\';p.style.borderColor=cb.checked?\'' + bdOn + '\':\'' + bdOff + '\';})(this)" '
+      + 'style="width:13px;height:13px;cursor:pointer;accent-color:var(--primary);flex-shrink:0;">'
+      + (isSub ? '<span title="サブコンテンツ（上のコンテンツに付属）" style="font-size:.62rem;font-weight:800;color:#92400E;background:#FDE68A;border:1px solid #F59E0B;border-radius:3px;padding:1px 5px;flex-shrink:0;letter-spacing:.03em;white-space:nowrap;">↳ サブ</span>' : '')
+      + '<button onclick="openContentModal(\'' + siteId + '\',' + idx + ')" '
+      + 'title="クリックして編集" '
+      + 'style="background:none;border:none;cursor:pointer;font-size:.82rem;font-weight:700;color:' + (isSub ? '#92400E' : 'var(--primary)') + ';padding:0;font-family:inherit;text-decoration:underline dotted;text-underline-offset:2px;">'
+      + typeIcon + safeTitle
+      + '</button>'
+      + '<button onclick="removeContentItem(\'' + siteId + '\',' + idx + ')" '
+      + 'title="削除" '
+      + 'style="background:none;border:none;cursor:pointer;color:#94A3B8;font-size:.85rem;padding:0;line-height:1;flex-shrink:0;">&times;</button>'
+      + '</span>';
+  }
+
+  /* 親＋サブを「ツリー状の接続線」で結んで描画。サブを持つ親は枠で囲み、各サブを縦線＋「└」で繋ぐ。 */
   function renderContentChips(siteId) {
     var items = _contentData[String(siteId)] || [];
     if (items.length === 0) {
       return '<span style="font-size:.75rem;color:var(--text-light);line-height:28px;">コンテンツなし — 右の「＋追加」で作成</span>';
     }
-    return items.map(function(item, idx) {
-      var safeTitle = escHtml(item.title || 'コンテンツ' + (idx + 1));
-      var enabled   = item.enabled !== false;
-      var isSheet   = item.type === 'sheet';
-      var isImage   = item.type === 'file' || item.type === 'image';
-      var isGallery = item.type === 'gallery';
-      var isPdf     = item.type === 'pdf';
-      var isLink    = item.type === 'link';
-      var typeIcon  = isSheet ? '📊 ' : (isImage ? '🖼️ ' : (isGallery ? '🏞 ' : (isPdf ? '📄 ' : (isLink ? '🔗 ' : '📝 '))));
-      var isSub  = item.is_sub === true;
-      var bgOn = isSub ? '#FFFBEB' : '#EFF6FF', bgOff = '#F1F5F9';
-      var bdOn = isSub ? '#F59E0B' : '#BFDBFE', bdOff = 'var(--border)';
-      var bg = enabled ? bgOn : bgOff, bd = enabled ? bdOn : bdOff;
-      return '<span class="cchip" data-site="' + siteId + '" data-idx="' + idx + '" '
-        + 'style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;cursor:grab;'
-        + (isSub ? 'margin-left:18px;' : '')
-        + 'background:' + bg + ';'
-        + 'border:1px solid ' + bd + ';'
-        + (isSub ? 'border-left:4px solid #F59E0B;' : '')
-        + 'border-radius:6px;">'
-        + '<span class="cchip-grip" title="ドラッグして並べ替え" '
-        + 'style="cursor:grab;touch-action:none;user-select:none;color:#94A3B8;font-size:.9rem;line-height:1;flex-shrink:0;">⠿</span>'
-        + '<input type="checkbox" ' + (enabled ? 'checked' : '') + ' '
-        + 'onchange="(function(cb){var item=window._cd[\'' + siteId + '\'][' + idx + '];item.enabled=cb.checked;var p=cb.parentNode;p.style.background=cb.checked?\'' + bgOn + '\':\'' + bgOff + '\';p.style.borderColor=cb.checked?\'' + bdOn + '\':\'' + bdOff + '\';})(this)" '
-        + 'style="width:13px;height:13px;cursor:pointer;accent-color:var(--primary);flex-shrink:0;">'
-        + (isSub ? '<span title="サブコンテンツ（上のコンテンツに付属）" style="font-size:.62rem;font-weight:800;color:#92400E;background:#FDE68A;border:1px solid #F59E0B;border-radius:3px;padding:1px 5px;flex-shrink:0;letter-spacing:.03em;white-space:nowrap;">↳ サブ</span>' : '')
-        + '<button onclick="openContentModal(\'' + siteId + '\',' + idx + ')" '
-        + 'title="クリックして編集" '
-        + 'style="background:none;border:none;cursor:pointer;font-size:.82rem;font-weight:700;color:' + (isSub ? '#92400E' : 'var(--primary)') + ';padding:0;font-family:inherit;text-decoration:underline dotted;text-underline-offset:2px;">'
-        + typeIcon + safeTitle
-        + '</button>'
-        + '<button onclick="removeContentItem(\'' + siteId + '\',' + idx + ')" '
-        + 'title="削除" '
-        + 'style="background:none;border:none;cursor:pointer;color:#94A3B8;font-size:.85rem;padding:0;line-height:1;flex-shrink:0;">&times;</button>'
-        + '</span>';
-    }).join('');
+    var html = '', i = 0;
+    while (i < items.length) {
+      var startIdx = i;
+      var parent = items[i];
+      var subIdxs = [];
+      if (parent.is_sub !== true) {
+        var j = i + 1;
+        while (j < items.length && items[j].is_sub === true) { subIdxs.push(j); j++; }
+      }
+      if (subIdxs.length > 0) {
+        // サブを持つ親 → ツリー枠（左に縦の接続線）
+        html += '<div class="cgroup" data-site="' + siteId + '" data-start="' + startIdx + '" '
+          + 'style="flex-basis:100%;width:100%;box-sizing:border-box;'
+          + 'border:1px solid #DBEAFE;border-left:3px solid var(--primary-light,#3b82f6);background:#F8FAFF;'
+          + 'border-radius:8px;padding:8px 10px;margin:2px 0;">'
+          + '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;">' + _chipHtml(siteId, parent, startIdx) + '</div>';
+        subIdxs.forEach(function(si) {
+          html += '<div style="display:flex;align-items:center;gap:4px;margin-top:6px;padding-left:6px;">'
+            + '<span style="color:var(--primary-light,#3b82f6);font-size:1.05rem;line-height:1;flex-shrink:0;user-select:none;font-weight:700;">└</span>'
+            + _chipHtml(siteId, items[si], si)
+            + '</div>';
+        });
+        html += '</div>';
+        i = j;
+      } else {
+        // 単独（サブなしの親 / 冒頭の孤立サブ）
+        html += _chipHtml(siteId, parent, startIdx);
+        i = startIdx + 1;
+      }
+    }
+    return html;
   }
 
   function addContentItem(siteId) {
@@ -1028,25 +1058,42 @@
   }
 
   /* ===== コンテンツの並べ替え（ドラッグ＆ドロップ：マウス・タッチ両対応） ===== */
-  function moveContentItem(siteId, from, to) {
+  /* idx が属するグループ（親＋連続サブ）の範囲を返す */
+  function _groupOf(arr, idx) {
+    var start = idx;
+    while (start > 0 && arr[start] && arr[start].is_sub === true) start--;
+    var count = 1, j = start + 1;
+    while (j < arr.length && arr[j] && arr[j].is_sub === true) { count++; j++; }
+    return { start: start, count: count };
+  }
+  /* start から count 件をまとめて toIndex へ移動（親グループ・単体共通） */
+  function moveContentBlock(siteId, start, count, toIndex) {
     var k = String(siteId);
     var arr = _contentData[k];
-    if (!arr || from === to || from < 0 || to < 0 || from >= arr.length || to >= arr.length) return;
-    var item = arr.splice(from, 1)[0];
-    arr.splice(to, 0, item);
+    if (!arr || count < 1 || start < 0 || start + count > arr.length) return;
+    var block = arr.splice(start, count);
+    if (toIndex > start) toIndex -= count;     // 抜いた分だけ挿入位置を補正
+    if (toIndex < 0) toIndex = 0;
+    if (toIndex > arr.length) toIndex = arr.length;
+    for (var m = 0; m < block.length; m++) arr.splice(toIndex + m, 0, block[m]);
     var el = document.getElementById('content-chips-' + k);
     if (el) el.innerHTML = renderContentChips(k);
     saveContentItems(k); /* 並べ替えを即保存 */
   }
+  /* 単体移動（後方互換） */
+  function moveContentItem(siteId, from, to) { moveContentBlock(siteId, from, 1, to); }
 
   (function initContentSortable() {
     var drag = null;
-    function clearMarks(container) {
-      if (!container) return;
-      [].forEach.call(container.querySelectorAll('.cchip'), function (c) { c.style.outline = ''; c.style.outlineOffset = ''; });
+    function arrOf(site) { return _contentData[String(site)] || []; }
+    function chipsIn(site) { var c = document.getElementById('content-chips-' + site); return c ? c.querySelectorAll('.cchip, .cgroup') : []; }
+    function clearMarks(site) { [].forEach.call(chipsIn(site), function (c) { c.style.outline = ''; c.style.outlineOffset = ''; }); }
+    function visualFor(chip, isMain) {
+      if (isMain) { var g = chip.closest('.cgroup'); if (g) return g; } // 親はグループ枠全体を掴む
+      return chip;
     }
     function cleanup() {
-      if (drag) { try { drag.chip.style.opacity = ''; drag.chip.style.cursor = ''; } catch (_) {} clearMarks(drag.container); }
+      if (drag) { try { drag.visual.style.opacity = ''; drag.chip.style.cursor = ''; } catch (_) {} clearMarks(drag.site); }
       document.body.style.userSelect = '';
       drag = null;
     }
@@ -1058,22 +1105,27 @@
       if (!t || !t.closest) return;
       if (t.closest('input, button, a, select, textarea')) return; // 操作系はドラッグしない
       var chip = t.closest('.cchip');
-      if (!chip || !chip.parentNode) return;
+      if (!chip) return;
+      var site = chip.getAttribute('data-site');
+      if (!site) return;
+      var isMain = chip.getAttribute('data-main') === '1';
       e.preventDefault();
-      drag = { chip: chip, container: chip.parentNode, site: chip.getAttribute('data-site') };
-      chip.style.opacity = '0.45';
+      var visual = visualFor(chip, isMain);
+      drag = { chip: chip, site: site, isMain: isMain, visual: visual };
+      visual.style.opacity = '0.45';
       chip.style.cursor = 'grabbing';
       document.body.style.userSelect = 'none';
       try { chip.setPointerCapture(e.pointerId); } catch (_) {}
     });
     document.addEventListener('pointermove', function (e) {
       if (!drag) return;
-      clearMarks(drag.container);
+      clearMarks(drag.site);
       var el = document.elementFromPoint(e.clientX, e.clientY);
       var target = el && el.closest ? el.closest('.cchip') : null;
-      if (target && target !== drag.chip && target.parentNode === drag.container) {
-        target.style.outline = '2px dashed var(--primary)';
-        target.style.outlineOffset = '1px';
+      if (target && target.getAttribute('data-site') === drag.site && target !== drag.chip) {
+        var mark = drag.isMain ? (target.closest('.cgroup') || target) : target;
+        mark.style.outline = '2px dashed var(--primary)';
+        mark.style.outlineOffset = '1px';
       }
     });
     document.addEventListener('pointerup', function (e) {
@@ -1081,10 +1133,24 @@
       var d = drag;
       var el = document.elementFromPoint(e.clientX, e.clientY);
       var target = el && el.closest ? el.closest('.cchip') : null;
-      if (target && target !== d.chip && target.parentNode === d.container) {
-        var from = parseInt(d.chip.getAttribute('data-idx'), 10);
-        var to   = parseInt(target.getAttribute('data-idx'), 10);
-        if (!isNaN(from) && !isNaN(to) && from !== to) moveContentItem(d.site, from, to);
+      if (target && target.getAttribute('data-site') === d.site && target !== d.chip) {
+        var arr = arrOf(d.site);
+        var fromIdx = parseInt(d.chip.getAttribute('data-idx'), 10);
+        var toIdx   = parseInt(target.getAttribute('data-idx'), 10);
+        if (!isNaN(fromIdx) && !isNaN(toIdx)) {
+          if (d.isMain) {
+            // 親 → グループ塊ごと、移動先グループの境界へ
+            var blk = _groupOf(arr, fromIdx);
+            var tg  = _groupOf(arr, toIdx);
+            if (tg.start !== blk.start) {
+              var dest = (tg.start > blk.start) ? (tg.start + tg.count) : tg.start;
+              moveContentBlock(d.site, blk.start, blk.count, dest);
+            }
+          } else {
+            // サブ単体 → 自由移動（落とした位置へ）
+            if (toIdx !== fromIdx) moveContentBlock(d.site, fromIdx, 1, toIdx);
+          }
+        }
       }
       cleanup();
     });
