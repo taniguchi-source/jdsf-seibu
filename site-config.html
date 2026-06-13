@@ -122,10 +122,14 @@
 <script>
 'use strict';
 /* ===== 設定 ===== */
-var PASS_HASH   = 'f54a123d6931b920260699a542ca349b486af7dfee4088b8cf13a48a8b2cf543'; // jdsf-seibu2026
 var TOKEN       = 'jdsfseibu2026';     // PHP API 共通トークン
 var SESSION_KEY = 'jdsfseibu_siteconfig_auth';
 var EXPIRE_DAYS = 3;
+// サイト構築のパスワードはスプレッドシート「HP用資料」N列（jdsf-seibu.com の行）で管理。
+// ログイン時にGAS経由で取得して照合。N列が空 / GAS不通時のみ 'jdsf-seibu2026' にフォールバック。
+var GAS_AUTH_URL = 'https://script.google.com/macros/s/AKfycbxS07Mxs6TZHdq0aGTay547EfIrN5igaJ527EaWl-O-RgHv7VHMllszJyMkI30qRU3A/exec';
+var _sub        = ((location.hostname || '').toLowerCase().split('.')[0]) || 'jdsf-seibu';
+var FALLBACK_PW = 'jdsf-seibu2026';
 
 /* ===== 既定値（JSON未設定時に現状のトップ内容を初期表示） ===== */
 var DEFAULT_QUICKLINKS = [
@@ -159,20 +163,23 @@ var DEFAULT_HERO = {
 };
 
 /* ===== 認証 ===== */
-async function sha256hex(str){
-  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+function fetchPassword(cb){
+  fetch(GAS_AUTH_URL + '?action=auth&site=' + encodeURIComponent(_sub) + '&_=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(d){ cb(d && d.build ? String(d.build) : FALLBACK_PW); })
+    .catch(function(){ cb(FALLBACK_PW); });
 }
 function isAuthed(){
   try{ var d=JSON.parse(localStorage.getItem(SESSION_KEY)); if(d && Date.now()-d.ts < EXPIRE_DAYS*864e5) return true; }catch(e){}
   localStorage.removeItem(SESSION_KEY); return false;
 }
-async function doLogin(){
-  var pw=document.getElementById('pw-input').value;
-  var hash=await sha256hex(pw);
-  if(hash!==PASS_HASH){ document.getElementById('login-error').classList.add('ng'); document.getElementById('login-error').style.display='block'; return; }
-  localStorage.setItem(SESSION_KEY, JSON.stringify({ts:Date.now()}));
-  showApp();
+function doLogin(){
+  var val = document.getElementById('pw-input').value;
+  fetchPassword(function(pw){
+    if(val !== pw){ document.getElementById('login-error').classList.add('ng'); document.getElementById('login-error').style.display='block'; return; }
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ts:Date.now()}));
+    showApp();
+  });
 }
 function doLogout(){ localStorage.removeItem(SESSION_KEY); location.reload(); }
 function showApp(){

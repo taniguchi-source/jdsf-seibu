@@ -278,10 +278,10 @@
 (function () {
   'use strict';
 
-  /* ===== 認証（admin.htmlと同じセッション共有） ===== */
-  /* 管理画面パスワードはスプレッドシート「HP用資料」M列で管理（府県別・自由に変更可）。
-     ログイン時にGAS経由で、このサイト(サブドメイン)に対応する行のM列値を取得して照合する。
-     GAS不通時のみ サブドメイン名+'2026'（例 osaka2026）にフォールバック。 */
+  /* ===== 認証（サイト構築＝独立ログイン。サイト管理(admin.html)とは別パスワード/別セッション） ===== */
+  /* サイト構築のパスワードはスプレッドシート「HP用資料」N列で管理（府県別・自由に変更可）。
+     ログイン時にGAS経由で、このサイト(サブドメイン)に対応する行のN列値を取得して照合する。
+     N列が空 / GAS不通時のみ サブドメイン名+'2026'（例 osaka2026）にフォールバック。 */
   var GAS_AUTH_URL = 'https://script.google.com/macros/s/AKfycbxS07Mxs6TZHdq0aGTay547EfIrN5igaJ527EaWl-O-RgHv7VHMllszJyMkI30qRU3A/exec';
   var _sub = (function(){
     var h = (location.hostname || '').toLowerCase(), s = h.split('.')[0];
@@ -292,10 +292,10 @@
     if (!_sub) { cb(FALLBACK_PW); return; }
     fetch(GAS_AUTH_URL + '?action=auth&site=' + encodeURIComponent(_sub) + '&_=' + Date.now())
       .then(function(r){ return r.json(); })
-      .then(function(d){ cb(d && d.password ? String(d.password) : FALLBACK_PW); })
+      .then(function(d){ cb(d && d.build ? String(d.build) : FALLBACK_PW); })
       .catch(function(){ cb(FALLBACK_PW); });
   }
-  var SESSION_KEY = 'preftest_admin_auth';
+  var SESSION_KEY = 'preftest_siteconfig_auth';
   var EXPIRE_DAYS = 3;
   var TOKEN       = 'preftest2026';
 

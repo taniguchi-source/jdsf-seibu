@@ -820,8 +820,18 @@
 (function () {
   'use strict';
 
-  // ===== パスワード設定（変更する場合はここを書き換えてください） =====
-  var PASSWORD    = 'seibu2026';
+  // ===== パスワード設定 =====
+  // 役員ページのパスワードはスプレッドシート「HP用資料」M列（jdsf-seibu.com の行）で管理。
+  // ログイン時にGAS経由で取得して照合する。GAS不通時のみ 'seibu2026' にフォールバック。
+  var GAS_AUTH_URL = 'https://script.google.com/macros/s/AKfycbxS07Mxs6TZHdq0aGTay547EfIrN5igaJ527EaWl-O-RgHv7VHMllszJyMkI30qRU3A/exec';
+  var _sub = ((location.hostname || '').toLowerCase().split('.')[0]) || 'jdsf-seibu';
+  var FALLBACK_PW = 'seibu2026';
+  function fetchPassword(cb){
+    fetch(GAS_AUTH_URL + '?action=auth&site=' + encodeURIComponent(_sub) + '&_=' + Date.now())
+      .then(function(r){ return r.json(); })
+      .then(function(d){ cb(d && d.password ? String(d.password) : FALLBACK_PW); })
+      .catch(function(){ cb(FALLBACK_PW); });
+  }
   var SESSION_KEY = 'jdsf_seibu_officers_auth';
   var EXPIRE_DAYS = 3; // ログイン状態を保持する日数（変更可）
   // ================================================================
@@ -858,17 +868,19 @@
 
   function doLogin() {
     var val = pwInput ? pwInput.value : '';
-    if (val === PASSWORD) {
-      localStorage.setItem(SESSION_KEY, JSON.stringify({ ts: Date.now() }));
-      showContent();
-    } else {
-      loginError.style.display = 'block';
-      if (pwInput) {
-        pwInput.classList.add('error');
-        pwInput.value = '';
-        pwInput.focus();
+    fetchPassword(function (pw) {
+      if (val === pw) {
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ ts: Date.now() }));
+        showContent();
+      } else {
+        loginError.style.display = 'block';
+        if (pwInput) {
+          pwInput.classList.add('error');
+          pwInput.value = '';
+          pwInput.focus();
+        }
       }
-    }
+    });
   }
 
   function doLogout() {
