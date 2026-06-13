@@ -149,7 +149,7 @@ function handlePrefContact(data) {
     if (cc) opt.cc = cc;
     GmailApp.sendEmail(row.email, subject, body, opt);
 
-    sendAutoReply(data, { prefName: row.prefName, person: row.person, email: row.email });
+    sendAutoReply(data, { prefName: row.prefName, person: row.person, email: row.email, org: row.org, replyBody: row.replyBody });
     return json({ status: 'ok' });
   } catch (err) {
     Logger.log('handlePrefContact error: ' + err);
@@ -164,18 +164,20 @@ function findContactRowByUrl(url) {
   var sh = sheet();
   var last = sh.getLastRow();
   if (last < 3) return null;
-  var rows = sh.getRange(3, 17, last - 2, 6).getValues(); // Q(17)〜V(22)
+  var rows = sh.getRange(3, 17, last - 2, 8).getValues(); // Q(17)〜X(24)
   for (var i = 0; i < rows.length; i++) {
     var v = hostOf(rows[i][5]); // V: サイトURL
     if (v && v === host) {
       return {
         rowIndex: i + 3,
-        prefName: String(rows[i][0]).trim(), // Q
-        email:    String(rows[i][1]).trim(), // R
-        person:   String(rows[i][2]).trim(), // S
-        cc1:      String(rows[i][3]).trim(), // T
-        cc2:      String(rows[i][4]).trim(), // U
-        url:      String(rows[i][5]).trim()  // V
+        prefName:  String(rows[i][0]).trim(), // Q 府県名
+        email:     String(rows[i][1]).trim(), // R 送信先メール
+        person:    String(rows[i][2]).trim(), // S 担当者名
+        cc1:       String(rows[i][3]).trim(), // T CC①
+        cc2:       String(rows[i][4]).trim(), // U CC②
+        url:       String(rows[i][5]).trim(), // V サイトURL
+        org:       String(rows[i][6]).trim(), // W 社名（署名に表示・任意）
+        replyBody: String(rows[i][7])         // X 自動返信メール文（任意・改行可）
       };
     }
   }
@@ -189,7 +191,8 @@ function getContactConfig(url, token) {
   if (token !== CONTACT_TOKEN) return json({ ok: false, message: 'forbidden' });
   var row = findContactRowByUrl(url);
   if (!row) return json({ ok: false, message: 'この URL の行が見つかりません（V列にサイトURLが必要です）。' });
-  return json({ ok: true, prefName: row.prefName, email: row.email, person: row.person, cc1: row.cc1, cc2: row.cc2 });
+  return json({ ok: true, prefName: row.prefName, email: row.email, person: row.person,
+                cc1: row.cc1, cc2: row.cc2, org: row.org, replyBody: row.replyBody });
 }
 
 // 保存（R=メール, S=担当者, T=CC①, U=CC② を更新）。token が必要。
@@ -203,6 +206,8 @@ function saveContact(data) {
     sh.getRange(row.rowIndex, 19).setValue(String(data.person || '').trim()); // S
     sh.getRange(row.rowIndex, 20).setValue(String(data.cc1    || '').trim()); // T
     sh.getRange(row.rowIndex, 21).setValue(String(data.cc2    || '').trim()); // U
+    sh.getRange(row.rowIndex, 23).setValue(String(data.org   || '').trim()); // W 社名
+    sh.getRange(row.rowIndex, 24).setValue(String(data.reply || ''));        // X 自動返信メール文
     return json({ status: 'ok' });
   } catch (err) {
     Logger.log('saveContact error: ' + err);
@@ -247,11 +252,15 @@ function orgNameOf(prefName) {
 function sendAutoReply(data, sig) {
   if (!data.email) return;
   sig = sig || {};
-  var org = orgNameOf(sig.prefName);
+  // 社名（W列）が入っていればそれを優先、無ければ府県名から自動生成
+  var org = (sig.org && String(sig.org).trim()) ? String(sig.org).trim() : orgNameOf(sig.prefName);
+  // 自動返信メール文（X列）が入っていればそれを本文に、無ければ既定文
+  var intro = (sig.replyBody && String(sig.replyBody).trim())
+    ? String(sig.replyBody)
+    : 'このたびはお問い合わせいただきありがとうございます。\n以下の内容で受け付けました。担当者より追ってご連絡いたします。';
   var lines = [
     (data.name || '') + ' 様', '',
-    'このたびはお問い合わせいただきありがとうございます。',
-    '以下の内容で受け付けました。担当者より追ってご連絡いたします。', '',
+    intro, '',
     '■ 件名 : ' + (data.subject || ''),
     '■ 内容 : ' + (data.message || ''), '',
     '──────────────────────────',

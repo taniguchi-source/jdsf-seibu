@@ -312,6 +312,16 @@
                 style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;font-family:inherit;box-sizing:border-box;outline:none;">
             </div>
           </div>
+          <div>
+            <label style="font-size:.78rem;font-weight:700;color:var(--text-light);display:block;margin-bottom:4px;">社名（自動返信の署名に表示） <span style="font-size:.72rem;font-weight:400;">（任意・空欄なら「○○県ダンススポーツ連盟」を自動表示）</span></label>
+            <input type="text" id="contact-org" placeholder="例：大阪府ダンススポーツ連盟"
+              style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;font-family:inherit;box-sizing:border-box;outline:none;">
+          </div>
+          <div>
+            <label style="font-size:.78rem;font-weight:700;color:var(--text-light);display:block;margin-bottom:4px;">自動返信メール文 <span style="font-size:.72rem;font-weight:400;">（任意・空欄なら既定の文面／お問い合わせ者に届く控えメールの本文）</span></label>
+            <textarea id="contact-reply" rows="4" maxlength="1000" placeholder="例：このたびはお問い合わせいただきありがとうございます。内容を確認のうえ、担当者より3日以内にご連絡いたします。"
+              style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;font-family:inherit;box-sizing:border-box;outline:none;resize:vertical;line-height:1.6;"></textarea>
+          </div>
         </div>
         <div id="contact-config-msg" style="display:none;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:12px;"></div>
         <button onclick="saveContactDest()" style="margin-top:14px;padding:9px 24px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;">💾 お問い合わせ先を保存</button>
@@ -446,6 +456,7 @@
         var set = function(id,v){ var e=document.getElementById(id); if(e) e.value = v || ''; };
         set('contact-email', d.email); set('contact-person', d.person);
         set('contact-cc1', d.cc1);     set('contact-cc2', d.cc2);
+        set('contact-org', d.org);     set('contact-reply', d.replyBody);
       })
       .catch(function(){ /* 通信エラー時は無言（保存は可能） */ });
   }
@@ -461,6 +472,8 @@
       + '&person=' + q('contact-person')
       + '&cc1='   + q('contact-cc1')
       + '&cc2='   + q('contact-cc2')
+      + '&org='   + q('contact-org')
+      + '&reply=' + q('contact-reply')
       + '&_=' + Date.now();
     contactMsg('保存中...', true);
     fetch(url).then(function(r){ return r.json(); })
