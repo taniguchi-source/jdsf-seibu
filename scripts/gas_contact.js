@@ -266,7 +266,7 @@ function sendAutoReply(data, sig) {
     '──────────────────────────',
     org
   ];
-  if (sig.person) lines.push('担当：' + sig.person + '氏');
+  if (sig.person) lines.push('担当：' + sig.person);
   if (sig.email)  lines.push('メール：' + sig.email);
   lines.push('──────────────────────────');
   lines.push('※本メールは自動送信です。ご返信の際は上記のメールアドレス宛にお願いいたします。');
