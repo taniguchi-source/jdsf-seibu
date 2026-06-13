@@ -141,6 +141,7 @@
       <li><a href="#hero">ヒーローの高さ・幅・矢印</a></li>
       <li><a href="#ticker">ニュースティッカー</a></li>
       <li><a href="#theme">配色テーマ</a></li>
+      <li><a href="#contact-setup">お問い合わせ先の設定</a></li>
       <li><a href="#faq">困ったときは（Q&amp;A）</a></li>
     </ol>
   </nav>
@@ -557,9 +558,89 @@
     <div class="tip">迷ったら標準（紺＝JDSFカラー）のままで問題ありません。</div>
   </section>
 
-  <!-- ===== 14. FAQ ===== -->
+  <!-- ===== 14. お問い合わせ先の設定 ===== -->
+  <section class="doc" id="contact-setup">
+    <h2><span class="chip">14</span> お問い合わせ先の設定</h2>
+    <p class="desc"><span class="pill">📨 お問い合わせ先設定</span>：ホームページの「お問い合わせ」フォームから届いたメールを、<b>どこ（誰）に届けるか</b>を設定します。サイト構築画面の中にあります。</p>
+
+    <div class="tip" style="margin-top:0;">まず<b>送信先メールアドレスを設定するだけ</b>で、お問い合わせフォームが使えるようになります（未設定の府県は「準備中」と表示されます）。</div>
+
+    <figure class="fig">
+      <svg viewBox="0 0 640 372" role="img" aria-label="お問い合わせ先設定の入力欄">
+        <rect class="mk-frame" x="14" y="14" width="612" height="344" rx="12"/>
+        <text class="mk-tb" x="34" y="42" font-size="14">📨 お問い合わせ先設定</text>
+        <!-- 送信先メール -->
+        <text class="mk-tm" x="52" y="66">送信先メールアドレス（必須・届け先）</text>
+        <rect class="mk-field" x="52" y="72" width="556" height="28" rx="6"/>
+        <text class="mk-t" x="64" y="91">renmei@example.com</text>
+        <circle class="mk-num" cx="40" cy="86" r="12"/><text class="mk-numt" x="40" y="91" text-anchor="middle">1</text>
+        <!-- 担当者名 -->
+        <text class="mk-tm" x="52" y="120">担当者名（フォームに「担当：◯◯」と表示）</text>
+        <rect class="mk-field" x="52" y="126" width="556" height="28" rx="6"/>
+        <text class="mk-t" x="64" y="145">山田</text>
+        <circle class="mk-num" cx="40" cy="140" r="12"/><text class="mk-numt" x="40" y="145" text-anchor="middle">2</text>
+        <!-- CC -->
+        <text class="mk-tm" x="52" y="174">CCメール①／②（任意・控えの同報先）</text>
+        <rect class="mk-field" x="52" y="180" width="272" height="28" rx="6"/>
+        <rect class="mk-field" x="336" y="180" width="272" height="28" rx="6"/>
+        <circle class="mk-num" cx="40" cy="194" r="12"/><text class="mk-numt" x="40" y="199" text-anchor="middle">3</text>
+        <!-- 署名 -->
+        <text class="mk-tm" x="52" y="228">署名（自動返信メールの末尾に表示）</text>
+        <rect class="mk-field" x="52" y="234" width="556" height="28" rx="6"/>
+        <text class="mk-t" x="64" y="253">◯◯県ダンススポーツ連盟　※初期値入り</text>
+        <circle class="mk-num" cx="40" cy="248" r="12"/><text class="mk-numt" x="40" y="253" text-anchor="middle">4</text>
+        <!-- 自動返信メール文 -->
+        <text class="mk-tm" x="52" y="282">自動返信メール文（送信者に届く控え）</text>
+        <rect class="mk-field" x="52" y="288" width="556" height="40" rx="6"/>
+        <text class="mk-t" x="64" y="307">このたびはお問い合わせ…　※初期値入り</text>
+        <circle class="mk-num" cx="40" cy="308" r="12"/><text class="mk-numt" x="40" y="313" text-anchor="middle">5</text>
+        <!-- 保存 -->
+        <rect class="mk-btn" x="476" y="334" width="132" height="0" rx="6"/>
+        <rect class="mk-btn" x="476" y="336" width="132" height="0" rx="6"/>
+        <rect class="mk-btn" x="476" y="334" width="132" height="2" rx="6"/>
+        <rect class="mk-btn" x="476" y="336" width="132" height="14" rx="6"/>
+        <text class="mk-tw" x="542" y="347" text-anchor="middle" font-size="11">💾 保存</text>
+        <circle class="mk-num" cx="476" cy="343" r="11"/><text class="mk-numt" x="476" y="347" text-anchor="middle" font-size="11">6</text>
+      </svg>
+      <figcaption>サイト構築 →「📨 お問い合わせ先設定」</figcaption>
+    </figure>
+
+    <ol class="steps">
+      <li><b>送信先メールアドレス</b>（必須）…お問い合わせが届くメール。ここを入れるとフォームが有効になります。</li>
+      <li><b>担当者名</b>…フォームに「担当：◯◯」と表示されます（メールアドレスは公開されません）。</li>
+      <li><b>CCメール①／②</b>（任意）…控えを同時に送りたい別アドレスがあれば入力します。</li>
+      <li><b>署名</b>…自動返信メールの末尾に出る連盟名。<b>初期値が入っています</b>。そのままでOK、変えたい時だけ修正。</li>
+      <li><b>自動返信メール文</b>…お問い合わせした人に届く「受付しました」メールの本文。<b>初期値が入っています</b>。「3日以内にご連絡します」等に変えられます。</li>
+      <li><b>「💾 お問い合わせ先を保存」</b>を押して確定します。</li>
+    </ol>
+
+    <h3 class="step-h">送信したらどう届く？</h3>
+    <figure class="fig">
+      <svg viewBox="0 0 640 150" role="img" aria-label="お問い合わせの流れ">
+        <rect class="mk-card" x="14" y="40" width="150" height="70" rx="10"/>
+        <text x="89" y="72" text-anchor="middle" font-size="22">🧑‍💻</text>
+        <text class="mk-tm" x="89" y="98" text-anchor="middle" font-size="11">利用者がフォーム送信</text>
+        <text x="184" y="82" text-anchor="middle" font-size="20">➡</text>
+        <rect class="mk-card" x="206" y="40" width="150" height="70" rx="10"/>
+        <text x="281" y="72" text-anchor="middle" font-size="22">📨</text>
+        <text class="mk-tm" x="281" y="98" text-anchor="middle" font-size="11">担当者へ届く（＋CC）</text>
+        <text x="376" y="82" text-anchor="middle" font-size="20">➕</text>
+        <rect class="mk-card" x="398" y="40" width="210" height="70" rx="10"/>
+        <text x="503" y="68" text-anchor="middle" font-size="22">✅</text>
+        <text class="mk-tm" x="503" y="94" text-anchor="middle" font-size="11">送信者へ自動返信</text>
+        <text class="mk-tm" x="503" y="108" text-anchor="middle" font-size="10">（署名・本文入り）</text>
+      </svg>
+      <figcaption>フォーム送信 → 担当者へ届く＋送信者へ自動で受付メール</figcaption>
+    </figure>
+
+    <div class="tip"><b>メールアドレスは公開されません。</b>フォームには担当者名だけが表示され、宛先メールは内部でのみ使われます。</div>
+    <div class="warn"><b>届いたメールに返信するには</b>、そのメールの「返信」を押せばOK（送信者のアドレスが自動で入ります）。</div>
+    <div class="note">担当者やメールが変わったら、この画面で書き換えて保存するだけ。すぐ反映されます。</div>
+  </section>
+
+  <!-- ===== 15. FAQ ===== -->
   <section class="doc" id="faq">
-    <h2><span class="chip">14</span> 困ったときは（Q&amp;A）</h2>
+    <h2><span class="chip">15</span> 困ったときは（Q&amp;A）</h2>
     <h3 class="step-h">変更が反映されない</h3>
     <p>保存ボタンを押したか確認してください。それでも変わらない場合は、ブラウザを<b>強制リロード</b>します：パソコンは <span class="kbd">Ctrl + Shift + R</span>、スマホはページを下に引っぱって更新。</p>
     <h3 class="step-h">画像がアップロードできない</h3>
@@ -570,6 +651,10 @@
     <p>ブロック事務局へご連絡ください。事務局の管理表で変更でき、次回ログインから反映されます。</p>
     <h3 class="step-h">スマホでも編集できる？</h3>
     <p>できます。同じURLをスマホのブラウザで開けば、同じように操作できます。</p>
+    <h3 class="step-h">お問い合わせフォームが「準備中」のまま</h3>
+    <p>サイト構築の「📨 お問い合わせ先設定」で<b>送信先メールアドレスを入力して保存</b>すると、フォームが表示されます（→ <a href="#contact-setup">14. お問い合わせ先の設定</a>）。</p>
+    <h3 class="step-h">お問い合わせメールが届かない</h3>
+    <p>まず受信側の<b>迷惑メールフォルダ</b>を確認してください。プロバイダによっては自動送信メールが迷惑メール扱いされることがあります。送信元 <b>jdsf.seibu@gmail.com</b> を「受信許可（連絡先に追加）」しておくと確実です。</p>
     <div class="warn"><b>共用のパソコンで作業したとき</b>は、終わったら必ず「🔓 ログアウト」を押してください。</div>
     <div class="tip">操作で分からないことがあれば、ブロック事務局までお問い合わせください。</div>
   </section>
