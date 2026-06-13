@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>サイト操作マニュアル｜各府県連盟 担当者向け</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0D2347; --blue:#2563EB; --blue-l:#3b82f6;
+    --ink:#1f2937; --sub:#5b6678; --line:#e2e8f0; --bg:#f5f7fb;
+    --card:#ffffff; --accent:#e11d48; --ok:#16a34a; --warn:#d97706;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; font-family:"Noto Sans JP",system-ui,sans-serif; color:var(--ink);
+    background:var(--bg); line-height:1.8; font-size:15px; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--blue);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* ===== ヘッダー ===== */
+  .top{
+    position:sticky; top:0; z-index:50;
+    background:linear-gradient(135deg,var(--navy) 0%,#1B3A6B 60%,var(--blue) 100%);
+    color:#fff; padding:14px 20px; box-shadow:0 2px 14px rgba(13,35,71,.25);
+  }
+  .top .inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .top .badge{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);border-radius:100px;font-size:.72rem;font-weight:700;padding:4px 12px;white-space:nowrap}
+  .top h1{font-size:1.05rem;font-weight:800;margin:0;letter-spacing:.02em}
+  .top .sub{font-size:.74rem;opacity:.85;margin-left:auto}
+
+  /* ===== レイアウト ===== */
+  .wrap{max-width:1120px;margin:0 auto;padding:24px 20px 80px;display:grid;grid-template-columns:248px 1fr;gap:32px}
+  @media (max-width:880px){ .wrap{grid-template-columns:1fr;gap:16px} }
+
+  /* 目次 */
+  nav.toc{position:sticky;top:78px;align-self:start;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 14px;max-height:calc(100vh - 100px);overflow:auto}
+  @media (max-width:880px){ nav.toc{position:static;max-height:none} }
+  nav.toc .t{font-size:.72rem;font-weight:800;color:var(--sub);letter-spacing:.08em;margin:0 6px 8px;text-transform:uppercase}
+  nav.toc ol{list-style:none;margin:0;padding:0;counter-reset:toc}
+  nav.toc li{counter-increment:toc;margin:0}
+  nav.toc a{display:flex;gap:8px;align-items:baseline;padding:7px 8px;border-radius:8px;color:var(--ink);font-size:.84rem;font-weight:600}
+  nav.toc a:hover{background:#eef3fb;text-decoration:none}
+  nav.toc a::before{content:counter(toc);flex:none;width:1.5em;height:1.5em;display:inline-flex;align-items:center;justify-content:center;background:var(--navy);color:#fff;border-radius:50%;font-size:.68rem;font-weight:800}
+
+  /* 本文 */
+  main{min-width:0}
+  .lead{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin-bottom:26px}
+  .lead h2{margin:0 0 8px;font-size:1.2rem;color:var(--navy)}
+  .lead p{margin:6px 0;color:var(--sub);font-size:.92rem}
+
+  section.doc{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 26px;margin-bottom:22px;scroll-margin-top:78px}
+  section.doc > h2{
+    margin:0 0 4px;font-size:1.18rem;color:var(--navy);display:flex;align-items:center;gap:10px;
+  }
+  section.doc > h2 .chip{flex:none;width:1.7em;height:1.7em;display:inline-flex;align-items:center;justify-content:center;background:var(--navy);color:#fff;border-radius:9px;font-size:.85rem;font-weight:800}
+  section.doc > .desc{color:var(--sub);font-size:.9rem;margin:0 0 16px;padding-left:calc(1.7em + 10px)}
+  h3.step-h{font-size:1rem;color:var(--navy);margin:22px 0 10px;border-left:4px solid var(--blue-l);padding-left:10px}
+
+  /* 図 */
+  figure.fig{margin:14px 0 18px;background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:16px}
+  figure.fig svg{display:block;width:100%;height:auto}
+  figure.fig figcaption{font-size:.78rem;color:var(--sub);margin-top:10px;text-align:center}
+
+  /* 手順リスト */
+  ol.steps{counter-reset:st;list-style:none;margin:6px 0 4px;padding:0}
+  ol.steps>li{counter-increment:st;position:relative;padding:6px 0 6px 40px;font-size:.92rem}
+  ol.steps>li::before{content:counter(st);position:absolute;left:0;top:5px;width:26px;height:26px;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;box-shadow:0 1px 3px rgba(225,29,72,.4)}
+  ol.steps b{color:var(--navy)}
+
+  ul.plain{margin:8px 0;padding-left:1.2em}
+  ul.plain li{margin:4px 0;font-size:.9rem}
+
+  .note,.tip,.warn{border-radius:10px;padding:12px 16px;margin:14px 0;font-size:.86rem;line-height:1.7}
+  .tip{background:#eff6ff;border:1px solid #bfdbfe}
+  .tip b{color:var(--blue)}
+  .warn{background:#fff7ed;border:1px solid #fed7aa}
+  .warn b{color:var(--warn)}
+  .note{background:#f0fdf4;border:1px solid #bbf7d0}
+  .note b{color:var(--ok)}
+
+  .kbd{display:inline-block;background:#1f2937;color:#fff;border-radius:5px;padding:1px 8px;font-size:.78rem;font-weight:700;white-space:nowrap}
+  .pill{display:inline-block;background:var(--navy);color:#fff;border-radius:6px;padding:2px 9px;font-size:.78rem;font-weight:700}
+  code.path{background:#eef2f7;border:1px solid #dbe3ee;border-radius:6px;padding:1px 7px;font-size:.84em;color:#0f3a8a;word-break:break-all}
+
+  table.tbl{width:100%;border-collapse:collapse;margin:12px 0;font-size:.86rem}
+  table.tbl th,table.tbl td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+  table.tbl th{background:#f1f5f9;color:var(--navy);font-weight:800;white-space:nowrap}
+
+  .foot{max-width:1120px;margin:0 auto;padding:0 20px 60px;color:var(--sub);font-size:.8rem;text-align:center}
+
+  /* SVGモックアップ共通クラス */
+  .mk-frame{fill:#fff;stroke:#d7dee8;stroke-width:1.5}
+  .mk-bar{fill:var(--navy)}
+  .mk-card{fill:#fff;stroke:#e2e8f0;stroke-width:1.5}
+  .mk-soft{fill:#f4f6fa;stroke:#e2e8f0;stroke-width:1}
+  .mk-field{fill:#fff;stroke:#cbd5e1;stroke-width:1.5}
+  .mk-btn{fill:var(--blue)}
+  .mk-btn2{fill:#0d2347}
+  .mk-ghost{fill:#fff;stroke:var(--blue);stroke-width:1.5}
+  .mk- red{fill:#fff5f5;stroke:#feb2b2}
+  .mk-t{fill:#334155;font-size:13px}
+  .mk-tb{fill:#0D2347;font-size:13px;font-weight:700}
+  .mk-tw{fill:#fff;font-size:13px;font-weight:700}
+  .mk-tm{fill:#64748b;font-size:12px}
+  .mk-num{fill:var(--accent)}
+  .mk-numt{fill:#fff;font-size:13px;font-weight:800}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <span class="badge">📖 操作マニュアル</span>
+    <h1>各府県連盟サイト 担当者向けガイド</h1>
+    <span class="sub">公益社団法人日本ダンススポーツ連盟 近畿中四国ブロック</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ===== 目次 ===== -->
+  <nav class="toc">
+    <div class="t">もくじ</div>
+    <ol>
+      <li><a href="#intro">はじめに（2つの管理画面）</a></li>
+      <li><a href="#login">ログインする</a></li>
+      <li><a href="#news">お知らせを投稿する</a></li>
+      <li><a href="#news-edit">お知らせの編集・削除・表示切替</a></li>
+      <li><a href="#nav">メニュー（ページ）を整える</a></li>
+      <li><a href="#contents">ページの中身をつくる</a></li>
+      <li><a href="#build">サイト構築画面を開く</a></li>
+      <li><a href="#sitename">サイト名を変える</a></li>
+      <li><a href="#carousel">カルーセル画像・キャッチコピー</a></li>
+      <li><a href="#quicklinks">クイックリンク</a></li>
+      <li><a href="#hero">ヒーローの高さ・幅・矢印</a></li>
+      <li><a href="#ticker">ニュースティッカー</a></li>
+      <li><a href="#theme">配色テーマ</a></li>
+      <li><a href="#faq">困ったときは（Q&amp;A）</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+  <!-- リード -->
+  <div class="lead">
+    <h2>このマニュアルについて</h2>
+    <p>各府県連盟のホームページは、<b>担当者ご自身がブラウザから内容を入力・更新</b>できます。専門知識やソフトは不要で、スマートフォンからでも編集できます。</p>
+    <p>このガイドでは、お知らせの投稿からデザインの調整まで、画面の図とあわせて手順を説明します。上の「もくじ」から知りたい項目へ飛べます。</p>
+    <div class="tip"><b>ログインのパスワード</b>は、ブロック事務局より各府県担当者へ個別にお伝えします。本マニュアルには記載していません。</div>
+  </div>
+
+  <!-- ===== 1. はじめに ===== -->
+  <section class="doc" id="intro">
+    <h2><span class="chip">1</span> はじめに ― 2つの管理画面</h2>
+    <p class="desc">サイトの編集は、目的別に2つの画面に分かれています。役割を覚えると操作に迷いません。</p>
+
+    <figure class="fig">
+      <svg viewBox="0 0 640 250" role="img" aria-label="2つの管理画面の概要図">
+        <!-- サイト管理 -->
+        <rect class="mk-card" x="20" y="30" width="280" height="190" rx="12"/>
+        <rect class="mk-bar" x="20" y="30" width="280" height="40" rx="12"/>
+        <rect class="mk-bar" x="20" y="50" width="280" height="20"/>
+        <text class="mk-tw" x="40" y="56">⚙️ サイト管理（admin）</text>
+        <text class="mk-tb" x="40" y="100">日々の更新を行う画面</text>
+        <text class="mk-t" x="40" y="128">・📢 お知らせの投稿・編集</text>
+        <text class="mk-t" x="40" y="152">・🔗 メニュー（ページ）の管理</text>
+        <text class="mk-t" x="40" y="176">・📄 各ページの中身（文章・画像など）</text>
+        <text class="mk-tm" x="40" y="204">URL：　…/admin.html</text>
+        <!-- サイト構築 -->
+        <rect class="mk-card" x="340" y="30" width="280" height="190" rx="12"/>
+        <rect class="mk-btn2" x="340" y="30" width="280" height="40" rx="12"/>
+        <rect class="mk-btn2" x="340" y="50" width="280" height="20"/>
+        <text class="mk-tw" x="360" y="56">🔧 サイト構築（site-config）</text>
+        <text class="mk-tb" x="360" y="100">見た目・デザインを整える画面</text>
+        <text class="mk-t" x="360" y="128">・🏷 サイト名　・🎨 配色テーマ</text>
+        <text class="mk-t" x="360" y="152">・🖼 カルーセル画像　・🔗 クイックリンク</text>
+        <text class="mk-t" x="360" y="176">・📢 ニュースティッカー　・📐 高さ/幅</text>
+        <text class="mk-tm" x="360" y="204">URL：　…/site-config.html</text>
+      </svg>
+      <figcaption>左：日々の更新は「サイト管理」／右：デザイン調整は「サイト構築」</figcaption>
+    </figure>
+
+    <div class="tip">2つの画面は<b>それぞれ別のパスワード</b>です（サイト管理＝普段使う方／サイト構築＝デザイン用）。サイト管理から「🔧 サイト構築ページへ →」のボタンで移動できます。</div>
+    <p style="font-size:.88rem;color:var(--sub)">※ ヘッダー上段の「公益社団法人日本ダンススポーツ連盟」という所属表記は固定で、変更されません。</p>
+  </section>
+
+  <!-- ===== 2. ログイン ===== -->
+  <section class="doc" id="login">
+    <h2><span class="chip">2</span> ログインする</h2>
+    <p class="desc">ブラウザのアドレス欄に管理画面のURLを入力し、パスワードでログインします。</p>
+
+    <figure class="fig">
+      <svg viewBox="0 0 640 240" role="img" aria-label="ログイン画面">
+        <rect x="0" y="0" width="640" height="240" rx="14" fill="#16315c"/>
+        <rect class="mk-card" x="200" y="34" width="240" height="172" rx="14"/>
+        <circle cx="320" cy="74" r="20" fill="#2563EB"/>
+        <text x="320" y="80" text-anchor="middle" font-size="18">⚙️</text>
+        <text x="320" y="112" text-anchor="middle" class="mk-tb" font-size="15">サイト管理</text>
+        <text x="320" y="132" text-anchor="middle" class="mk-tm">○○ダンススポーツ連盟</text>
+        <rect class="mk-field" x="226" y="146" width="188" height="34" rx="8"/>
+        <text class="mk-tm" x="240" y="168">パスワードを入力</text>
+        <rect class="mk-btn" x="226" y="186" width="188" height="0" rx="8"/>
+        <!-- ボタン -->
+        <rect class="mk-btn" x="226" y="186" width="188" height="2" rx="8"/>
+        <!-- callouts -->
+        <circle class="mk-num" cx="226" cy="163" r="13"/><text class="mk-numt" x="226" y="168" text-anchor="middle">1</text>
+        <circle class="mk-num" cx="320" cy="206" r="13"/><text class="mk-numt" x="320" y="211" text-anchor="middle">2</text>
+        <rect class="mk-btn" x="240" y="194" width="160" height="26" rx="8"/>
+        <text class="mk-tw" x="320" y="211" text-anchor="middle" style="display:none">ログイン</text>
+        <text x="320" y="211" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">ログイン</text>
+      </svg>
+      <figcaption>ログイン画面（サイト管理・サイト構築とも同じ形です）</figcaption>
+    </figure>
+
+    <ol class="steps">
+      <li>担当する府県のURLを開きます。例：<code class="path">https://○○.jdsf-seibu.com/admin.html</code>（○○は府県名。例：osaka, kyoto など）</li>
+      <li><b>パスワード欄</b>に、事務局から伝えられたパスワードを入力します。</li>
+      <li><b>「ログイン」</b>を押すと管理画面が開きます。</li>
+    </ol>
+
+    <div class="note"><b>ログインは約3日間保持されます。</b>一度ログインすれば、しばらくは再入力なしで編集できます。共用パソコンでは作業後に「🔓 ログアウト」を押してください。</div>
+    <div class="warn"><b>パスワードを忘れた／変えたいとき</b>は、ブロック事務局へご連絡ください（パスワードは事務局の管理表で変更でき、次回ログインから反映されます）。</div>
+  </section>
+
+  <!-- ===== 3. お知らせ投稿 ===== -->
+  <section class="doc" id="news">
+    <h2><span class="chip">3</span> お知らせを投稿する</h2>
+    <p class="desc">トップページに表示される「お知らせ」を追加します。サイト管理画面の上部 <span class="pill">📢 公開お知らせ管理</span> で行います。</p>
+
+    <figure class="fig">
+      <svg viewBox="0 0 640 320" role="img" aria-label="お知らせ投稿フォーム">
+        <rect class="mk-frame" x="14" y="14" width="612" height="292" rx="12"/>
+        <text class="mk-tb" x="34" y="44" font-size="14">📢 公開お知らせ管理</text>
+        <rect class="mk-btn" x="470" y="28" width="140" height="26" rx="6"/>
+        <text class="mk-tw" x="540" y="45" text-anchor="middle">＋ お知らせを投稿</text>
+        <circle class="mk-num" cx="470" cy="30" r="12"/><text class="mk-numt" x="470" y="35" text-anchor="middle">1</text>
+
+        <rect class="mk-soft" x="34" y="66" width="576" height="222" rx="10"/>
+        <!-- カテゴリ / 実施日 -->
+        <text class="mk-tm" x="50" y="92">カテゴリ（必須）</text>
+        <rect class="mk-field" x="50" y="98" width="260" height="30" rx="6"/>
+        <text class="mk-t" x="64" y="118">イベント ▾</text>
+        <circle class="mk-num" cx="50" cy="113" r="12"/><text class="mk-numt" x="50" y="118" text-anchor="middle">2</text>
+        <text class="mk-tm" x="330" y="92">実施日（任意）</text>
+        <rect class="mk-field" x="330" y="98" width="260" height="30" rx="6"/>
+        <text class="mk-t" x="344" y="118">2026 / 08 / 09</text>
+        <!-- タイトル -->
+        <text class="mk-tm" x="50" y="152">タイトル（必須）</text>
+        <rect class="mk-field" x="50" y="158" width="540" height="30" rx="6"/>
+        <text class="mk-t" x="64" y="178">例：ダンスパーティー開催のお知らせ</text>
+        <circle class="mk-num" cx="50" cy="173" r="12"/><text class="mk-numt" x="50" y="178" text-anchor="middle">3</text>
+        <!-- 詳細 -->
+        <text class="mk-tm" x="50" y="210">詳細内容（必須）</text>
+        <rect class="mk-field" x="50" y="216" width="540" height="40" rx="6"/>
+        <text class="mk-t" x="64" y="236">日時・会場などの補足説明…</text>
+        <circle class="mk-num" cx="50" cy="231" r="12"/><text class="mk-numt" x="50" y="236" text-anchor="middle">4</text>
+        <!-- 投稿ボタン -->
+        <rect class="mk-btn" x="486" y="262" width="104" height="26" rx="6"/>
+        <text class="mk-tw" x="538" y="279" text-anchor="middle">投稿する →</text>
+        <circle class="mk-num" cx="486" cy="264" r="12"/><text class="mk-numt" x="486" y="269" text-anchor="middle">5</text>
+      </svg>
+      <figcaption>お知らせ投稿フォーム</figcaption>
+    </figure>
+
+    <ol class="steps">
+      <li><b>「＋ お知らせを投稿」</b>を押すと入力フォームが開きます。</li>
+      <li><b>カテゴリ</b>を選びます（競技会／指導員／イベント／ランキング／本部お知らせ／その他）。</li>
+      <li><b>タイトル</b>を入力します（一覧に大きく表示される見出し）。</li>
+      <li><b>詳細内容</b>に日時・会場などの説明を入力します。<br>必要なら「実施日」「関連URL」も入力できます。</li>
+      <li><b>「投稿する →」</b>を押せば公開され、トップページに表示されます。</li>
+    </ol>
+
+    <div class="tip"><b>「常に表示する（期限なし）」</b>にチェックすると、実施日を過ぎても消えずに表示し続けます。通常のイベント告知はチェック不要です。</div>
+  </section>
+
+  <!-- ===== 4. お知らせ編集 ===== -->
+  <section class="doc" id="news-edit">
+    <h2><span class="chip">4</span> お知らせの編集・削除・表示切替</h2>
+    <p class="desc">投稿したお知らせは、一覧の各行にあるボタンから操作します。</p>
+
+    <figure class="fig">
+      <svg viewBox="0 0 640 120" role="img" aria-label="お知らせ一覧の1行">
+        <rect class="mk-card" x="14" y="34" width="612" height="52" rx="8"/>
+        <text class="mk-tm" x="34" y="65">2026.08.09</text>
+        <rect x="120" y="50" width="64" height="20" rx="4" fill="#FFFFF0" stroke="#f0e6c0"/>
+        <text x="152" y="64" text-anchor="middle" font-size="11" fill="#744210" font-weight="700">イベント</text>
+        <text class="mk-tb" x="200" y="65">ダンスパーティー開催のお知らせ</text>
+        <!-- buttons -->
+        <rect class="mk-ghost" x="430" y="48" width="50" height="24" rx="5"/>
+        <text x="455" y="64" text-anchor="middle" font-size="12" fill="#2563EB" font-weight="700">編集</text>
+        <circle class="mk-num" cx="430" cy="50" r="11"/><text class="mk-numt" x="430" y="54" text-anchor="middle" font-size="11">1</text>
+        <rect x="488" y="48" width="60" height="24" rx="5" fill="#fff" stroke="#cbd5e1"/>
+        <text x="518" y="64" text-anchor="middle" font-size="12" fill="#475569" font-weight="700">表示中</text>
+        <circle class="mk-num" cx="488" cy="50" r="11"/><text class="mk-numt" x="488" y="54" text-anchor="middle" font-size="11">2</text>
+        <rect x="556" y="48" width="50" height="24" rx="5" fill="#FFF5F5" stroke="#feb2b2"/>
+        <text x="581" y="64" text-anchor="middle" font-size="12" fill="#C53030" font-weight="700">削除</text>
+        <circle class="mk-num" cx="556" cy="50" r="11"/><text class="mk-numt" x="556" y="54" text-anchor="middle" font-size="11">3</text>
+      </svg>
+      <figcaption>お知らせ一覧の各行（日付・カテゴリ・タイトル・操作ボタン）</figcaption>
+    </figure>
+
+    <ol class="steps">
+      <li><b>編集</b>：内容を直して保存し直せます。</li>
+      <li><b>表示／非表示の切替</b>：「表示中」を押すと一時的に隠せます（消さずに下書きのように保留できます）。</li>
+      <li><b>削除</b>：完全に消します。確認のうえ実行してください（元に戻せません）。</li>
+    </ol>
+    <div class="tip">画面右上の <b>「📋 一覧」</b>から、公開ページ（お知らせ一覧）の見え方をいつでも確認できます。</div>
+  </section>
+
+  <!-- ===== 5. ナビゲーション ===== -->
+  <section class="doc" id="nav">
+    <h2><span class="chip">5</span> メニュー（ページ）を整える</h2>
+    <p class="desc">サイト管理画面の <span class="pill">🔗 ナビゲーション管理</span> で、上部メニューに並ぶページ（最大5ページ）の<b>名前・表示/非表示</b>を決めます。</p>
+
+    <figure class="fig">
+      <svg viewBox="0 0 640 230" role="img" aria-label="ナビゲーション管理">
+        <rect class="mk-frame" x="14" y="14" width="612" height="202" rx="12"/>
+        <text class="mk-tb" x="34" y="42" font-size="14">🔗 ナビゲーション管理</text>
+        <!-- ページカード -->
+        <rect class="mk-card" x="34" y="58" width="576" height="56" rx="8"/>
+        <rect x="50" y="74" width="44" height="24" rx="100" fill="#DCFCE7"/>
+        <text x="72" y="90" text-anchor="middle" font-size="11" fill="#166534" font-weight="700">表示</text>
+        <circle class="mk-num" cx="50" cy="76" r="11"/><text class="mk-numt" x="50" y="80" text-anchor="middle" font-size="11">2</text>
+        <text class="mk-tm" x="112" y="78">ページ名称</text>
+        <rect class="mk-field" x="112" y="84" width="220" height="26" rx="6"/>
+        <text class="mk-t" x="124" y="101">大会案内</text>
+        <circle class="mk-num" cx="112" cy="86" r="11"/><text class="mk-numt" x="112" y="90" text-anchor="middle" font-size="11">1</text>
+        <rect class="mk-ghost" x="430" y="76" width="90" height="26" rx="6"/>
+        <text x="475" y="93" text-anchor="middle" font-size="12" fill="#2563EB" font-weight="700">📄 中身を編集</text>
+        <circle class="mk-num" cx="430" cy="78" r="11"/><text class="mk-numt" x="430" y="82" text-anchor="middle" font-size="11">3</text>
+        <rect class="mk-btn" x="530" y="76" width="64" height="26" rx="6"/>
+        <text class="mk-tw" x="562" y="93" text-anchor="middle" font-size="12">💾 保存</text>
+
+        <!-- 2枚目（薄い） -->
+        <rect class="mk-card" x="34" y="124" width="576" height="34" rx="8" opacity=".6"/>
+        <text class="mk-tm" x="124" y="145">サイト2　…</text>
+        <rect class="mk-ghost" x="34" y="172" width="150" height="28" rx="6"/>
+        <text x="109" y="190" text-anchor="middle" font-size="12" fill="#2563EB" font-weight="700">＋ ページを追加</text>
+        <circle class="mk-num" cx="34" cy="174" r="11"/><text class="mk-numt" x="34" y="178" text-anchor="middle" font-size="11">4</text>
+      </svg>
+      <figcaption>ナビゲーション管理（各ページの名前・表示・中身を設定）</figcaption>
+    </figure>
+
+    <ol class="steps">
+      <li><b>ページ名称</b>を分かりやすい名前に変えます（例：「サイト1」→「大会案内」）。</li>
+      <li><b>表示/非表示</b>の切替で、メニューに出すページを選びます。使わないページは非表示に。</li>
+      <li><b>「📄 中身を編集」</b>でそのページの内容を作ります（次の章へ）。</li>
+      <li>ページが足りないときは<b>「＋ ページを追加」</b>（最大5ページまで）。</li>
+    </ol>
+    <div class="note"><b>「ホーム」「お問い合わせ」「サイト管理」は常に固定表示</b>されます。トップページ（ホーム）にも中身を入れられます。</div>
+    <div class="warn">名前やページ構成を変えたら、各行の<b>「💾 保存」</b>を押すのを忘れずに。</div>
+  </section>
+
+  <!-- ===== 6. コンテンツ ===== -->
+  <section class="doc" id="contents">
+    <h2><span class="chip">6</span> ページの中身をつくる</h2>
+    <p class="desc">「📄 中身を編集」→「＋ 追加」で、ページに置く部品（コンテンツ）を作ります。部品には<b>6種類</b>あり、目的に合わせて選びます。</p>
+
+    <figure class="fig">
+      <svg viewBox="0 0 640 250" role="img" aria-label="コンテンツの種類選択">
+        <rect class="mk-frame" x="14" y="14" width="612" height="222" rx="12"/>
+        <text class="mk-tb" x="34" y="42" font-size="14">📄 コンテンツ詳細</text>
+        <text class="mk-tm" x="34" y="68">タイトル</text>
+        <rect class="mk-field" x="34" y="74" width="576" height="28" rx="6"/>
+        <text class="mk-t" x="46" y="92">例：2026年度 役員名簿</text>
+        <text class="mk-tm" x="34" y="124">種類を選ぶ</text>
+        <!-- 6 types -->
+        <g font-size="12.5" font-weight="700" fill="#0D2347">
+          <rect class="mk-soft" x="34"  y="132" width="120" height="30" rx="6"/><text x="48" y="151">📝 テキスト</text>
+          <rect class="mk-soft" x="162" y="132" width="190" height="30" rx="6"/><text x="176" y="151">📊 スプレッドシート</text>
+          <rect class="mk-soft" x="360" y="132" width="100" height="30" rx="6"/><text x="374" y="151">🖼 画像</text>
+          <rect class="mk-soft" x="468" y="132" width="120" height="30" rx="6"/><text x="482" y="151">🏞 ギャラリー</text>
+          <rect class="mk-soft" x="34"  y="170" width="100" height="30" rx="6"/><text x="48" y="189">📄 PDF</text>
+          <rect class="mk-soft" x="142" y="170" width="110" height="30" rx="6"/><text x="156" y="189">🔗 リンク</text>
+        </g>
+        <rect class="mk-btn" x="500" y="200" width="110" height="28" rx="6"/>
+        <text class="mk-tw" x="555" y="219" text-anchor="middle">保存する →</text>
+      </svg>
+      <figcaption>コンテンツ詳細：タイトルを入れ、6種類から「種類」を選んで作成</figcaption>
+    </figure>
+
+    <table class="tbl">
+      <tr><th>種類</th><th>使う場面</th><th>入力するもの</th></tr>
+      <tr><td>📝 テキスト</td><td>あいさつ文・説明・案内</td><td>文章を入力</td></tr>
+      <tr><td>📊 スプレッドシート</td><td>役員名簿・大会結果などの表</td><td>GoogleスプレッドシートのURL（＋シート名）</td></tr>
+      <tr><td>🖼 画像</td><td>写真・チラシ1枚</td><td>画像ファイル（jpg/png/gif・最大10MB）</td></tr>
+      <tr><td>🏞 ギャラリー</td><td>写真を複数まとめて</td><td>画像を最大10枚アップロード</td></tr>
+      <tr><td>📄 PDF</td><td>要項・申込書などの配布資料</td><td>PDFファイル</td></tr>
+      <tr><td>🔗 リンク</td><td>外部サイト・申込フォームへ誘導</td><td>URL（＋ボタンの表示名）</td></tr>
+    </table>
+
+    <ol class="steps">
+      <li><b>タイトル</b>を入力します（見出しになります）。</li>
+      <li><b>種類</b>を選びます（上の表を参考に）。</li>
+      <li>種類に応じて、文章・URL・ファイルなどを入力／アップロードします。</li>
+      <li><b>「保存する →」</b>で確定。最後にページ側の<b>「💾 コンテンツを保存」</b>も押します。</li>
+    </ol>
+
+    <div class="tip"><b>📊 スプレッドシートを使うとき</b>は、対象のシートを <b>「リンクを知っている全員が閲覧可」</b> に設定してください。表を直接サイトに表示でき、スプレッドシートを直すだけでサイトも更新されます。</div>
+    <div class="tip"><b>📌 サブコンテンツ</b>にチェックすると、ひとつ上のコンテンツに付属する「補足」として小さく表示されます。</div>
+  </section>
+
+  <!-- ===== 7. サイト構築を開く ===== -->
+  <section class="doc" id="build">
+    <h2><span class="chip">7</span> サイト構築画面を開く</h2>
+    <p class="desc">デザイン（見た目）の調整は「サイト構築」画面で行います。</p>
+    <ol class="steps">
+      <li>サイト管理画面の下のほうにある <b>「🔧 サイト構築ページへ →」</b> を押します。<br>（または直接 <code class="path">https://○○.jdsf-seibu.com/site-config.html</code> を開きます）</li>
+      <li><b>サイト構築用のパスワード</b>を入力してログインします（サイト管理とは別のパスワードです）。</li>
+    </ol>
+    <div class="note">サイト構築画面では、<b>サイト名／カルーセル画像／クイックリンク／ヒーローの高さ・幅・矢印／ニュースティッカー／配色テーマ</b>を設定できます（次章以降）。</div>
+  </section>
+
+  <!-- ===== 8. サイト名 ===== -->
+  <section class="doc" id="sitename">
+    <h2><span class="chip">8</span> サイト名を変える</h2>
+    <p class="desc"><span class="pill">🏷 サイト名管理</span>：全ページのヘッダー・フッターに出る連盟名を変更します。</p>
+    <figure class="fig">
+      <svg viewBox="0 0 640 110" role="img" aria-label="サイト名管理">
+        <rect class="mk-card" x="14" y="14" width="612" height="82" rx="10"/>
+        <text class="mk-tb" x="34" y="40" font-size="13">🏷 サイト名（連盟名）</text>
+        <rect class="mk-field" x="34" y="52" width="430" height="32" rx="6"/>
+        <text class="mk-t" x="48" y="73">京都府ダンススポーツ連盟</text>
+        <circle class="mk-num" cx="34" cy="54" r="11"/><text class="mk-numt" x="34" y="58" text-anchor="middle" font-size="11">1</text>
+        <rect class="mk-btn" x="480" y="52" width="130" height="32" rx="6"/>
+        <text class="mk-tw" x="545" y="73" text-anchor="middle">💾 サイト名を保存</text>
+        <circle class="mk-num" cx="480" cy="54" r="11"/><text class="mk-numt" x="480" y="58" text-anchor="middle" font-size="11">2</text>
+      </svg>
+      <figcaption>サイト名管理</figcaption>
+    </figure>
+    <ol class="steps">
+      <li><b>サイト名</b>を入力します（例：○○県ダンススポーツ連盟）。</li>
+      <li><b>「💾 サイト名を保存」</b>を押すと、全ページのヘッダー・フッター・タイトルに反映されます。</li>
+    </ol>
+    <div class="note">上段の「公益社団法人日本ダンススポーツ連盟」は固定で変わりません。</div>
+  </section>
+
+  <!-- ===== 9. カルーセル ===== -->
+  <section class="doc" id="carousel">
+    <h2><span class="chip">9</span> カルーセル画像・キャッチコピー</h2>
+    <p class="desc"><span class="pill">🖼 カルーセル画像管理</span>：トップ最上部で切り替わるメイン画像と、その上に重ねる文字（キャッチコピー）を設定します。</p>
+    <figure class="fig">
+      <svg viewBox="0 0 640 200" role="img" aria-label="カルーセル画像管理">
+        <rect class="mk-frame" x="14" y="14" width="612" height="172" rx="12"/>
+        <text class="mk-tb" x="34" y="40" font-size="14">🖼 カルーセル画像管理</text>
+        <!-- preview -->
+        <rect x="34" y="54" width="240" height="118" rx="8" fill="#cbd6e6"/>
+        <text x="154" y="116" text-anchor="middle" fill="#5b6678" font-size="13" font-weight="700">画像プレビュー</text>
+        <!-- controls -->
+        <text class="mk-tm" x="300" y="74">画像ファイルを選ぶ</text>
+        <rect class="mk-field" x="300" y="80" width="200" height="28" rx="6"/>
+        <text class="mk-t" x="312" y="99">写真を選択…</text>
+        <circle class="mk-num" cx="300" cy="82" r="11"/><text class="mk-numt" x="300" y="86" text-anchor="middle" font-size="11">1</text>
+        <text class="mk-tm" x="300" y="128">キャッチコピー（任意）</text>
+        <rect class="mk-field" x="300" y="134" width="200" height="28" rx="6"/>
+        <text class="mk-t" x="312" y="153">ようこそ○○連盟へ</text>
+        <circle class="mk-num" cx="300" cy="136" r="11"/><text class="mk-numt" x="300" y="140" text-anchor="middle" font-size="11">2</text>
+        <rect class="mk-btn" x="516" y="80" width="92" height="28" rx="6"/>
+        <text class="mk-tw" x="562" y="99" text-anchor="middle">⬆ 保存</text>
+        <circle class="mk-num" cx="516" cy="82" r="11"/><text class="mk-numt" x="516" y="86" text-anchor="middle" font-size="11">3</text>
+      </svg>
+      <figcaption>カルーセル画像とキャッチコピーの設定</figcaption>
+    </figure>
+    <ol class="steps">
+      <li><b>画像ファイル</b>を選びます（横長の写真がきれいに表示されます）。</li>
+      <li>必要なら<b>キャッチコピー</b>（画像に重ねる文字）を入力します。</li>
+      <li><b>保存</b>するとトップページのメイン画像に反映されます。複数枚登録すると自動で切り替わります。</li>
+    </ol>
+    <div class="tip"><b>◀▶ 矢印の表示</b>：「矢印（手動でカルーセル画像を切り替え）」のチェックを外すと、左右の矢印が消え、画像は自動切替だけになります。</div>
+  </section>
+
+  <!-- ===== 10. クイックリンク ===== -->
+  <section class="doc" id="quicklinks">
+    <h2><span class="chip">10</span> クイックリンク</h2>
+    <p class="desc"><span class="pill">🔗 クイックリンク管理</span>：トップページ右側「📌 クイックリンク」に並ぶボタンを設定します。</p>
+    <ol class="steps">
+      <li>各リンクの<b>表示名</b>とリンク先（ページ名やURL）を設定します。</li>
+      <li><b>チェックを外す</b>とそのリンクは非表示になります。</li>
+      <li><b>「💾 クイックリンクを保存」</b>で反映します。</li>
+    </ol>
+    <div class="tip">「別タブで開く」をオンにすると、外部サイトへのリンクを新しいタブで開けます。</div>
+  </section>
+
+  <!-- ===== 11. ヒーロー ===== -->
+  <section class="doc" id="hero">
+    <h2><span class="chip">11</span> ヒーローの高さ・幅・矢印</h2>
+    <p class="desc"><span class="pill">📐 ヒーローエリアの高さ</span> と <span class="pill">↔ カルーセルの横幅</span> で、トップ最上部の見せ方を調整します。</p>
+    <ul class="plain">
+      <li><b>高さ</b>：標準／大きめ／低め などから選べます。「使わない」を選ぶとメイン画像エリア全体が非表示になります。</li>
+      <li><b>横幅</b>：「全幅」を選ぶと画像が横いっぱいになり、右のクイックリンクは非表示になります。「標準」だと右にクイックリンクが並びます。</li>
+    </ul>
+    <div class="warn">設定を変えたら各項目の<b>「💾 保存」</b>を押してください。トップページを開いて見え方を確認しましょう。</div>
+  </section>
+
+  <!-- ===== 12. ティッカー ===== -->
+  <section class="doc" id="ticker">
+    <h2><span class="chip">12</span> ニュースティッカー</h2>
+    <p class="desc"><span class="pill">📢 ニュースティッカー管理</span>：トップ上部で横に流れる赤い「NEW」付きの一行ニュースです。表示ON/OFFと文章を設定します。</p>
+    <figure class="fig">
+      <svg viewBox="0 0 640 160" role="img" aria-label="ニュースティッカー">
+        <!-- 実物イメージ -->
+        <rect x="14" y="14" width="612" height="34" rx="6" fill="#fef2f2" stroke="#fecaca"/>
+        <rect x="14" y="14" width="64" height="34" rx="6" fill="#dc2626"/>
+        <text x="46" y="36" text-anchor="middle" fill="#fff" font-size="12" font-weight="800">NEW</text>
+        <text x="92" y="36" fill="#7f1d1d" font-size="13" font-weight="600">▶ ○○大会の申込受付を開始しました　／　…</text>
+        <text class="mk-tm" x="16" y="66" font-size="11">↑ 実際の表示イメージ</text>
+        <!-- 設定 -->
+        <rect class="mk-card" x="14" y="78" width="612" height="74" rx="10"/>
+        <rect x="34" y="92" width="18" height="18" rx="4" fill="#2563EB"/>
+        <text x="37.5" y="106" fill="#fff" font-size="13" font-weight="800">✓</text>
+        <text class="mk-tb" x="62" y="106" font-size="13">ニュースティッカーを表示する</text>
+        <circle class="mk-num" cx="34" cy="92" r="11"/><text class="mk-numt" x="34" y="96" text-anchor="middle" font-size="11">1</text>
+        <rect class="mk-field" x="34" y="118" width="430" height="26" rx="6"/>
+        <text class="mk-t" x="46" y="135">流したい文章を入力（最大200文字）</text>
+        <circle class="mk-num" cx="34" cy="120" r="11"/><text class="mk-numt" x="34" y="124" text-anchor="middle" font-size="11">2</text>
+        <rect class="mk-btn" x="478" y="118" width="132" height="26" rx="6"/>
+        <text class="mk-tw" x="544" y="135" text-anchor="middle">💾 保存</text>
+        <circle class="mk-num" cx="478" cy="120" r="11"/><text class="mk-numt" x="478" y="124" text-anchor="middle" font-size="11">3</text>
+      </svg>
+      <figcaption>上：実際の表示／下：サイト構築での設定欄</figcaption>
+    </figure>
+    <ol class="steps">
+      <li><b>「ニュースティッカーを表示する」</b>のチェックで、バー全体の表示/非表示を切り替えます。</li>
+      <li><b>本文</b>に流したい文章を入力します（空欄なら標準の文が表示されます）。</li>
+      <li><b>「💾 ニュースティッカーを保存」</b>で反映します。</li>
+    </ol>
+  </section>
+
+  <!-- ===== 13. 配色 ===== -->
+  <section class="doc" id="theme">
+    <h2><span class="chip">13</span> 配色テーマ</h2>
+    <p class="desc"><span class="pill">🎨 配色テーマ変更</span>：サイト全体の色合いを、用意されたテーマから選んで切り替えます。</p>
+    <figure class="fig">
+      <svg viewBox="0 0 640 120" role="img" aria-label="配色テーマ">
+        <rect class="mk-frame" x="14" y="14" width="612" height="92" rx="12"/>
+        <text class="mk-tb" x="34" y="40" font-size="14">🎨 配色テーマ変更</text>
+        <g>
+          <rect x="34"  y="54" width="100" height="40" rx="8" fill="#0D2347" stroke="#2563EB" stroke-width="3"/>
+          <rect x="148" y="54" width="100" height="40" rx="8" fill="#1e6f5c"/>
+          <rect x="262" y="54" width="100" height="40" rx="8" fill="#7c2d3a"/>
+          <rect x="376" y="54" width="100" height="40" rx="8" fill="#3b3a6b"/>
+          <rect x="490" y="54" width="100" height="40" rx="8" fill="#5b4636"/>
+        </g>
+        <circle class="mk-num" cx="34" cy="56" r="11"/><text class="mk-numt" x="34" y="60" text-anchor="middle" font-size="11">1</text>
+      </svg>
+      <figcaption>テーマを選ぶと即座にサイト全体の色が変わります</figcaption>
+    </figure>
+    <ol class="steps">
+      <li>好きな<b>テーマ（色）</b>を選びます。選ぶと自動で保存・反映されます。</li>
+    </ol>
+    <div class="tip">迷ったら標準（紺＝JDSFカラー）のままで問題ありません。</div>
+  </section>
+
+  <!-- ===== 14. FAQ ===== -->
+  <section class="doc" id="faq">
+    <h2><span class="chip">14</span> 困ったときは（Q&amp;A）</h2>
+    <h3 class="step-h">変更が反映されない</h3>
+    <p>保存ボタンを押したか確認してください。それでも変わらない場合は、ブラウザを<b>強制リロード</b>します：パソコンは <span class="kbd">Ctrl + Shift + R</span>、スマホはページを下に引っぱって更新。</p>
+    <h3 class="step-h">画像がアップロードできない</h3>
+    <p>形式は <b>jpg / png / gif</b>、サイズは <b>1枚10MBまで</b>です。大きすぎる写真は縮小してからお試しください。</p>
+    <h3 class="step-h">スプレッドシートの表が出ない</h3>
+    <p>スプレッドシートの共有設定を <b>「リンクを知っている全員が閲覧可」</b> にしてください。シート名（タブ名）が合っているかも確認を。</p>
+    <h3 class="step-h">パスワードを忘れた／変えたい</h3>
+    <p>ブロック事務局へご連絡ください。事務局の管理表で変更でき、次回ログインから反映されます。</p>
+    <h3 class="step-h">スマホでも編集できる？</h3>
+    <p>できます。同じURLをスマホのブラウザで開けば、同じように操作できます。</p>
+    <div class="warn"><b>共用のパソコンで作業したとき</b>は、終わったら必ず「🔓 ログアウト」を押してください。</div>
+    <div class="tip">操作で分からないことがあれば、ブロック事務局までお問い合わせください。</div>
+  </section>
+
+  </main>
+</div>
+
+<div class="foot">
+  © 2026 公益社団法人日本ダンススポーツ連盟 近畿中四国ブロック ｜ 各府県連盟サイト 操作マニュアル
+</div>
+
+</body>
+</html>
