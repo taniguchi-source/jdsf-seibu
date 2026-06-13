@@ -36,10 +36,19 @@ if (isset($_POST['arrows'])) {
     $data['arrows'] = ($_POST['arrows'] === '1' || $_POST['arrows'] === 'true' || $_POST['arrows'] === 1 || $_POST['arrows'] === true);
 }
 
+// ニュースティッカー 表示ON/OFF・本文（指定された場合のみ更新）
+if (isset($_POST['ticker_enabled'])) {
+    $data['ticker_enabled'] = ($_POST['ticker_enabled'] === '1' || $_POST['ticker_enabled'] === 'true' || $_POST['ticker_enabled'] === 1 || $_POST['ticker_enabled'] === true);
+}
+if (isset($_POST['ticker_text'])) {
+    $data['ticker_text'] = mb_substr(trim((string)$_POST['ticker_text']), 0, 200);
+}
+
 // 既定値の保証
 if (!isset($data['height'])) $data['height'] = 'standard';
 if (!isset($data['width']))  $data['width']  = 'standard';
 if (!isset($data['arrows'])) $data['arrows'] = true; // 既定は表示
+if (!isset($data['ticker_enabled'])) $data['ticker_enabled'] = true; // 既定は表示
 $data['updated'] = date('Y-m-d') . 'T' . date('H:i:s');
 
 if (file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) === false) {

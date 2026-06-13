@@ -931,6 +931,20 @@
 </script>
 
 <script>
+/* ===== ニュースティッカー本文 動的反映（data/hero.json ticker_text。非表示はtheme-vars.phpが担当） ===== */
+(function(){
+  fetch('data/hero.json?_=' + Date.now())
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if (!d) return;
+      if (d.ticker_text != null && String(d.ticker_text) !== '') {
+        var t = document.querySelector('.ticker-text');
+        if (t) t.textContent = String(d.ticker_text);
+      }
+    })
+    .catch(function(){});
+})();
+
 /* ===== サイト名 動的反映（data/sitename.json） ===== */
 (function(){
   fetch('data/sitename.json?_=' + Date.now())
