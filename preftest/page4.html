@@ -511,10 +511,12 @@
             subItem.appendChild(slNote);
           } else {
             var subIcon = sub.type === 'sheet' ? '📊 ' : ((sub.type === 'file' || sub.type === 'image') ? '🖼️ ' : (sub.type === 'gallery' ? '🏞 ' : (sub.type === 'pdf' ? '📄 ' : (sub.type === 'link' ? '🔗 ' : '📝 '))));
-            var subTitle = document.createElement('h3');
-            subTitle.className = 'sub-content-title';
-            subTitle.textContent = subIcon + (sub.title || 'サブコンテンツ');
-            subItem.appendChild(subTitle);
+            if (sub.title) {
+              var subTitle = document.createElement('h3');
+              subTitle.className = 'sub-content-title';
+              subTitle.textContent = subIcon + sub.title;
+              subItem.appendChild(subTitle);
+            }
             appendWithFetch(sub, buildBodyEl(sub), subItem);
           }
           subList.appendChild(subItem);
