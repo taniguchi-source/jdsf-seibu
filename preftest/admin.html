@@ -271,7 +271,7 @@
         <!-- コンテンツ管理エリア（サイトと同じ） -->
         <div style="border-top:1px dashed #e2e8f0;margin-top:12px;padding-top:10px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <span style="font-size:.72rem;font-weight:700;color:var(--text-light);">📄 コンテンツ管理</span>
+            <span style="font-size:.72rem;font-weight:700;color:var(--text-light);">📄 コンテンツ管理 <span style="font-weight:400;">（⠿ を掴んで並べ替え）</span></span>
             <div style="display:flex;gap:6px;">
               <button onclick="saveContentItems('top')"
                 style="padding:3px 12px;background:#fff;border:1px solid var(--primary);color:var(--primary);border-radius:5px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;">💾 コンテンツを保存</button>
@@ -823,7 +823,7 @@
         /* コンテンツ管理エリア */
         + '<div style="border-top:1px dashed #e2e8f0;margin-top:12px;padding-top:10px;">'
         +   '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
-        +     '<span style="font-size:.72rem;font-weight:700;color:var(--text-light);">📄 コンテンツ管理</span>'
+        +     '<span style="font-size:.72rem;font-weight:700;color:var(--text-light);">📄 コンテンツ管理 <span style="font-weight:400;">（⠿ を掴んで並べ替え）</span></span>'
         +     '<div style="display:flex;gap:6px;">'
         +       '<button onclick="saveContentItems(\'' + n + '\')" '
         +         'style="padding:3px 12px;background:#fff;border:1px solid var(--primary);color:var(--primary);border-radius:5px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;">💾 コンテンツを保存</button>'
@@ -952,10 +952,13 @@
       var isPdf     = item.type === 'pdf';
       var isLink    = item.type === 'link';
       var typeIcon  = isSheet ? '📊 ' : (isImage ? '🖼️ ' : (isGallery ? '🏞 ' : (isPdf ? '📄 ' : (isLink ? '🔗 ' : '📝 '))));
-      return '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;'
+      return '<span class="cchip" data-site="' + siteId + '" data-idx="' + idx + '" '
+        + 'style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;'
         + 'background:' + (enabled ? '#EFF6FF' : '#F1F5F9') + ';'
         + 'border:1px solid ' + (enabled ? '#BFDBFE' : 'var(--border)') + ';'
         + 'border-radius:6px;">'
+        + '<span class="cchip-grip" title="ドラッグして並べ替え" '
+        + 'style="cursor:grab;touch-action:none;user-select:none;color:#94A3B8;font-size:.9rem;line-height:1;flex-shrink:0;">⠿</span>'
         + '<input type="checkbox" ' + (enabled ? 'checked' : '') + ' '
         + 'onchange="(function(cb){var item=window._cd[\'' + siteId + '\'][' + idx + '];item.enabled=cb.checked;var p=cb.parentNode;p.style.background=cb.checked?\'#EFF6FF\':\'#F1F5F9\';p.style.borderColor=cb.checked?\'#BFDBFE\':\'var(--border)\';})(this)" '
         + 'style="width:13px;height:13px;cursor:pointer;accent-color:var(--primary);flex-shrink:0;">'
@@ -1016,6 +1019,62 @@
         if (msgEl){ msgEl.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;border-radius:5px;padding:4px 10px;font-size:.775rem;margin-top:6px;'; msgEl.textContent='⚠ ' + (e && e.message ? e.message : '通信エラー'); }
       });
   }
+
+  /* ===== コンテンツの並べ替え（ドラッグ＆ドロップ：マウス・タッチ両対応） ===== */
+  function moveContentItem(siteId, from, to) {
+    var k = String(siteId);
+    var arr = _contentData[k];
+    if (!arr || from === to || from < 0 || to < 0 || from >= arr.length || to >= arr.length) return;
+    var item = arr.splice(from, 1)[0];
+    arr.splice(to, 0, item);
+    var el = document.getElementById('content-chips-' + k);
+    if (el) el.innerHTML = renderContentChips(k);
+    saveContentItems(k); /* 並べ替えを即保存 */
+  }
+
+  (function initContentSortable() {
+    var drag = null;
+    function clearMarks(container) {
+      if (!container) return;
+      [].forEach.call(container.querySelectorAll('.cchip'), function (c) { c.style.outline = ''; c.style.outlineOffset = ''; });
+    }
+    document.addEventListener('pointerdown', function (e) {
+      var grip = e.target && e.target.closest ? e.target.closest('.cchip-grip') : null;
+      if (!grip) return;
+      var chip = grip.closest('.cchip');
+      if (!chip || !chip.parentNode) return;
+      e.preventDefault();
+      drag = { chip: chip, container: chip.parentNode, site: chip.getAttribute('data-site') };
+      chip.style.opacity = '0.45';
+      grip.style.cursor = 'grabbing';
+      try { grip.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    document.addEventListener('pointermove', function (e) {
+      if (!drag) return;
+      clearMarks(drag.container);
+      var el = document.elementFromPoint(e.clientX, e.clientY);
+      var target = el && el.closest ? el.closest('.cchip') : null;
+      if (target && target !== drag.chip && target.parentNode === drag.container) {
+        target.style.outline = '2px dashed var(--primary)';
+        target.style.outlineOffset = '1px';
+      }
+    });
+    function endDrag(e) {
+      if (!drag) return;
+      var d = drag; drag = null;
+      d.chip.style.opacity = '';
+      clearMarks(d.container);
+      var el = document.elementFromPoint(e.clientX, e.clientY);
+      var target = el && el.closest ? el.closest('.cchip') : null;
+      if (target && target !== d.chip && target.parentNode === d.container) {
+        var from = parseInt(d.chip.getAttribute('data-idx'), 10);
+        var to   = parseInt(target.getAttribute('data-idx'), 10);
+        if (!isNaN(from) && !isNaN(to)) moveContentItem(d.site, from, to);
+      }
+    }
+    document.addEventListener('pointerup', endDrag);
+    document.addEventListener('pointercancel', function () { if (drag) { drag.chip.style.opacity = ''; clearMarks(drag.container); drag = null; } });
+  })();
 
   function openContentModal(siteId, idx) {
     var item = (_contentData[String(siteId)] || [])[idx];
