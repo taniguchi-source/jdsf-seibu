@@ -220,6 +220,22 @@
           <button onclick="saveCarouselWidth()" style="margin-top:12px;padding:8px 22px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;">💾 横幅を保存</button>
         </div>
 
+        <!-- カルーセル矢印（手動切替）の表示 -->
+        <div style="background:#F8FAFC;border:1px solid var(--border,#e2e8f0);border-radius:8px;padding:14px 16px;margin-bottom:18px;">
+          <div style="margin-bottom:10px;">
+            <div style="font-size:.875rem;font-weight:700;color:var(--text-dark);margin-bottom:4px;">◀▶ 矢印（手動でカルーセル画像を切り替え）</div>
+            <p style="font-size:.78rem;color:var(--text-light);margin:0;">
+              カルーセル画像の左右に表示される「‹ ›」の矢印です。チェックを外すと矢印が消え、画像は自動切替のみになります。
+            </p>
+          </div>
+          <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:.85rem;font-weight:700;color:var(--text-dark);">
+            <input type="checkbox" id="carousel-arrows-toggle" checked style="width:16px;height:16px;cursor:pointer;accent-color:var(--primary);">
+            矢印を表示する
+          </label>
+          <div id="carousel-arrows-msg" style="display:none;font-size:.78rem;padding:6px 12px;border-radius:6px;margin-top:10px;"></div>
+          <div><button onclick="saveCarouselArrows()" style="margin-top:12px;padding:8px 22px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;">💾 矢印設定を保存</button></div>
+        </div>
+
         <div id="slides-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;"></div>
       </div>
 
@@ -847,6 +863,8 @@
       .then(function(data){
         _carouselWidth = (data && data.width) ? data.width : 'standard';
         renderWidthOptions();
+        var ar = document.getElementById('carousel-arrows-toggle');
+        if (ar) ar.checked = !(data && data.arrows === false); // 既定（未設定）は表示ON
       })
       .catch(function(){ _carouselWidth = 'standard'; renderWidthOptions(); });
   }
@@ -894,6 +912,31 @@
       });
   }
   window.saveCarouselWidth = saveCarouselWidth;
+
+  function saveCarouselArrows() {
+    var msgEl = document.getElementById('carousel-arrows-msg');
+    var on = document.getElementById('carousel-arrows-toggle').checked;
+    var fd = new FormData();
+    fd.append('token', TOKEN);
+    fd.append('arrows', on ? '1' : '0');
+    fetch('api/save_hero.php', {method:'POST', body:fd})
+      .then(function(r){
+        if (!r.ok) return r.text().then(function(t){ throw new Error('HTTP ' + r.status + (t ? ': ' + t.substring(0,80) : '')); });
+        return r.json();
+      })
+      .then(function(res){
+        if (res.ok) {
+          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FFF4;color:#166534;border:1px solid #86EFAC;font-size:.78rem;padding:6px 12px;border-radius:6px;margin-top:10px;'; msgEl.textContent= on ? '✅ 矢印を表示にしました' : '✅ 矢印を非表示にしました'; }
+          setTimeout(function(){ var e=document.getElementById('carousel-arrows-msg'); if(e) e.style.display='none'; }, 3000);
+        } else {
+          if (msgEl){ msgEl.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;font-size:.78rem;padding:6px 12px;border-radius:6px;margin-top:10px;'; msgEl.textContent='⚠ ' + (res.error||'エラー'); }
+        }
+      })
+      .catch(function(e){
+        if (msgEl){ msgEl.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;font-size:.78rem;padding:6px 12px;border-radius:6px;margin-top:10px;'; msgEl.textContent='⚠ ' + (e && e.message ? e.message : '通信エラー'); }
+      });
+  }
+  window.saveCarouselArrows = saveCarouselArrows;
 
   /* ===================================================================
      クイックリンク管理

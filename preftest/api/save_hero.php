@@ -31,9 +31,15 @@ if (isset($_POST['width'])) {
     $data['width'] = in_array($w, $allowedW, true) ? $w : 'standard';
 }
 
+// カルーセル矢印（手動切替）の表示ON/OFF（指定された場合のみ更新）
+if (isset($_POST['arrows'])) {
+    $data['arrows'] = ($_POST['arrows'] === '1' || $_POST['arrows'] === 'true' || $_POST['arrows'] === 1 || $_POST['arrows'] === true);
+}
+
 // 既定値の保証
 if (!isset($data['height'])) $data['height'] = 'standard';
 if (!isset($data['width']))  $data['width']  = 'standard';
+if (!isset($data['arrows'])) $data['arrows'] = true; // 既定は表示
 $data['updated'] = date('Y-m-d') . 'T' . date('H:i:s');
 
 if (file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) === false) {
@@ -42,4 +48,4 @@ if (file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAP
     exit;
 }
 
-echo json_encode(['ok' => true, 'height' => $data['height'], 'width' => $data['width']], JSON_UNESCAPED_UNICODE);
+echo json_encode(['ok' => true, 'height' => $data['height'], 'width' => $data['width'], 'arrows' => $data['arrows']], JSON_UNESCAPED_UNICODE);

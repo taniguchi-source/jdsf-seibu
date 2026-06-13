@@ -148,6 +148,12 @@ if ($hh === 'none') {
     }
 }
 
+// ── カルーセル矢印（手動切替）の表示ON/OFF（data/hero.json arrows 連動） ──
+// 既定（キー無し）は表示。arrows===false のときだけ矢印を隠す。
+if (array_key_exists('arrows', $hsaved) && $hsaved['arrows'] === false) {
+    echo "\n/* カルーセル矢印を非表示（手動切替オフ） */\n.carousel-arrow { display: none !important; }\n";
+}
+
 // ── カルーセル横幅（data/hero.json width 連動・デスクトップのみ） ──
 $hw = $hsaved['width'] ?? 'standard';
 $width_map = ['three-quarters' => 75, 'half' => 50, 'third' => 33.333];
