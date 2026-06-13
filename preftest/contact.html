@@ -54,6 +54,19 @@
     @media (max-width: 600px) {
       .contact-placeholder { padding: 36px 18px; }
     }
+    /* ===== お問い合わせフォーム ===== */
+    .cf-field { margin-bottom: 16px; }
+    .cf-field > label { display:block; font-size:.85rem; font-weight:700; color:var(--text-dark,#1f2937); margin-bottom:6px; }
+    .cf-field input[type="text"], .cf-field input[type="email"], .cf-field input[type="tel"], .cf-field textarea {
+      width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:8px;
+      font-size:.95rem; font-family:inherit; box-sizing:border-box; outline:none; background:#fff; transition:border-color .2s;
+    }
+    .cf-field input:focus, .cf-field textarea:focus { border-color:var(--primary-light,#3b82f6); }
+    .cf-field textarea { resize:vertical; line-height:1.7; }
+    .cf-req { color:#e53e3e; font-size:.75rem; }
+    .cf-opt { color:var(--text-light,#64748b); font-size:.75rem; font-weight:400; }
+    #cf-submit:hover { background:#0D2347; }
+    #cf-submit:disabled { opacity:.6; cursor:default; }
   </style>
 </head>
 <body>
@@ -92,14 +105,75 @@
 </div>
 
 <section class="section">
-  <div class="container">
-    <div class="contact-placeholder">
+  <div class="container" style="max-width:720px;">
+
+    <!-- 準備中（宛先未設定の府県で表示） -->
+    <div class="contact-placeholder" id="contactPending" style="display:none;">
       <div class="cp-icon">✉️</div>
       <h2>準備中です</h2>
       <p>お問い合わせ受付フォームは現在準備中です。</p>
       <p>準備が整い次第、こちらでご案内いたします。今しばらくお待ちください。</p>
       <a href="index.html" class="cp-back">← ホームに戻る</a>
     </div>
+
+    <!-- 送信完了 -->
+    <div class="contact-placeholder" id="contactSuccess" style="display:none;">
+      <div class="cp-icon">✅</div>
+      <h2>送信しました</h2>
+      <p>お問い合わせありがとうございます。受付確認メールをお送りしました。</p>
+      <p>担当者より追ってご連絡いたします。今しばらくお待ちください。</p>
+      <a href="index.html" class="cp-back">← ホームに戻る</a>
+    </div>
+
+    <!-- フォーム本体 -->
+    <form id="contactForm" class="contact-form" style="display:none;background:#fff;border:1px solid var(--border);border-radius:12px;padding:28px 26px;box-shadow:var(--shadow);">
+      <div id="contactDest" style="display:none;background:#EFF6FF;border:1px solid #BFDBFE;border-left:4px solid var(--primary);border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:.9rem;color:var(--primary);">
+        📨 <span id="contactDestName"></span> <span id="contactDestPerson" style="font-weight:700;"></span> へ送信されます
+      </div>
+
+      <div id="formError" style="display:none;background:#FFF5F5;border:1px solid #FEB2B2;color:#C53030;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:.875rem;"></div>
+
+      <div class="cf-field">
+        <label>お名前 <span class="cf-req">*</span></label>
+        <input type="text" id="cf-name" placeholder="山田 太郎" autocomplete="name">
+      </div>
+      <div class="cf-field">
+        <label>所属団体・サークル名 <span class="cf-opt">（任意）</span></label>
+        <input type="text" id="cf-org" placeholder="○○ダンスサークル" autocomplete="organization">
+      </div>
+      <div class="cf-field">
+        <label>メールアドレス <span class="cf-req">*</span></label>
+        <input type="email" id="cf-email" placeholder="example@email.com" autocomplete="email">
+      </div>
+      <div class="cf-field">
+        <label>電話番号 <span class="cf-opt">（任意）</span></label>
+        <input type="tel" id="cf-tel" placeholder="090-0000-0000" autocomplete="tel">
+      </div>
+      <div class="cf-field">
+        <label>件名 <span class="cf-req">*</span></label>
+        <input type="text" id="cf-subject" placeholder="お問い合わせの件名">
+      </div>
+      <div class="cf-field">
+        <label>お問い合わせ内容 <span class="cf-req">*</span></label>
+        <textarea id="cf-message" rows="6" placeholder="お問い合わせ内容をご記入ください"></textarea>
+      </div>
+      <!-- ハニーポット（人間には見えない・bot対策） -->
+      <div style="position:absolute;left:-9999px;top:-9999px;" aria-hidden="true">
+        <label>このフィールドは入力しないでください<input type="text" id="cf-hp" tabindex="-1" autocomplete="off"></label>
+      </div>
+      <div class="cf-field" style="margin-top:4px;">
+        <label style="display:inline-flex;align-items:flex-start;gap:8px;font-weight:400;cursor:pointer;">
+          <input type="checkbox" id="cf-agree" style="width:auto;margin-top:4px;">
+          <span style="font-size:.85rem;color:var(--text-medium);">入力いただいた個人情報は、お問い合わせへの対応のみに使用します。上記に同意します。<span class="cf-req">*</span></span>
+        </label>
+      </div>
+
+      <button type="submit" id="cf-submit"
+        style="width:100%;margin-top:18px;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:700;font-family:inherit;cursor:pointer;">
+        送信する
+      </button>
+    </form>
+
   </div>
 </section>
 
@@ -215,6 +289,79 @@
       ul.innerHTML = html;
     })
     .catch(function(){});
+})();
+</script>
+
+<script>
+/* ===== お問い合わせフォーム（GAS連携） ===== */
+(function(){
+  'use strict';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxS07Mxs6TZHdq0aGTay547EfIrN5igaJ527EaWl-O-RgHv7VHMllszJyMkI30qRU3A/exec';
+  var SITE_URL = location.origin + '/';   // 例: https://osaka.jdsf-seibu.com/
+
+  var elForm    = document.getElementById('contactForm');
+  var elPending = document.getElementById('contactPending');
+  var elSuccess = document.getElementById('contactSuccess');
+  var elDest    = document.getElementById('contactDest');
+  var elErr     = document.getElementById('formError');
+
+  function showError(msg){ elErr.textContent = msg; elErr.style.display='block'; elErr.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+
+  // 宛先設定の確認 → フォーム or 準備中
+  fetch(APPS_SCRIPT_URL + '?action=contactInfo&url=' + encodeURIComponent(SITE_URL))
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d && d.ok && d.hasEmail) {
+        elForm.style.display = 'block';
+        if (d.prefName || d.person) {
+          document.getElementById('contactDestName').textContent   = d.prefName || '';
+          document.getElementById('contactDestPerson').textContent = d.person ? ('担当：' + d.person + '氏') : '';
+          elDest.style.display = 'block';
+        }
+      } else {
+        elPending.style.display = 'block';
+      }
+    })
+    .catch(function(){ elPending.style.display = 'block'; });
+
+  // 送信
+  elForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    elErr.style.display = 'none';
+    var name    = document.getElementById('cf-name').value.trim();
+    var email   = document.getElementById('cf-email').value.trim();
+    var subject = document.getElementById('cf-subject').value.trim();
+    var message = document.getElementById('cf-message').value.trim();
+    var agree   = document.getElementById('cf-agree').checked;
+
+    if (!name)    { return showError('お名前を入力してください。'); }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { return showError('正しいメールアドレスを入力してください。'); }
+    if (!subject) { return showError('件名を入力してください。'); }
+    if (!message) { return showError('お問い合わせ内容を入力してください。'); }
+    if (!agree)   { return showError('個人情報の取り扱いへの同意が必要です。'); }
+
+    var btn = document.getElementById('cf-submit');
+    btn.disabled = true; btn.textContent = '送信中...';
+
+    var payload = {
+      url:     SITE_URL,
+      name:    name,
+      org:     document.getElementById('cf-org').value.trim(),
+      email:   email,
+      tel:     document.getElementById('cf-tel').value.trim(),
+      subject: subject,
+      message: message,
+      hp:      document.getElementById('cf-hp').value
+    };
+
+    fetch(APPS_SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    })
+    .then(function(){ elForm.style.display='none'; elSuccess.style.display='block'; window.scrollTo({top:0,behavior:'smooth'}); })
+    .catch(function(){ btn.disabled=false; btn.textContent='送信する'; showError('送信に失敗しました。時間をおいて再度お試しください。'); });
+  });
 })();
 </script>
 

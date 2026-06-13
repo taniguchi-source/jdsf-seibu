@@ -1,111 +1,254 @@
 /**
- * JDSF 近畿中四国ブロック委員会 お問い合わせルーティングスクリプト
+ * JDSF 近畿中四国ブロック委員会  お問い合わせ／認証 GAS（完成版）
+ * プロジェクト名: 「お問い合わせ フォーム処理」
  *
- * 【デプロイ手順】
- * 1. https://script.google.com/ を開き、新しいプロジェクトを作成
- * 2. このコードを貼り付け、★の行に実際のメールアドレスを入力
- * 3. 右上「デプロイ」→「新しいデプロイ」をクリック
- * 4. 種類「ウェブアプリ」、実行ユーザー「自分」、アクセス「全員」で保存
- * 5. 表示されたURLを contact.html の APPS_SCRIPT_URL に設定
+ * 【このコードでできること】
+ *  1) 主サイト(jdsf-seibu.com)のお問い合わせフォーム … 府県プルダウンで選んだ府県へ送信（G/H/I列）
+ *  2) 府県サブドメインのお問い合わせフォーム        … サイトURLで宛先を自動判定して送信（Q〜V列）
+ *  3) サイト構築(site-config)からの宛先編集         … Q〜V列(R/S/T/U)を保存
+ *  4) ログイン認証                                   … J列URLで判定し M列(管理PW)/N列(構築PW)を返す
+ *
+ * 【スプレッドシート「HP用資料」の列対応】
+ *   G=府県名  H=メール   I=担当者            … 主サイトの府県プルダウン用（従来どおり）
+ *   J=サイトURL  K=slug  L=年度  M=管理PW  N=構築PW … 認証用（従来どおり）
+ *   Q=府県名  R=送信先メール(To)  S=担当者名  T=CC①  U=CC②  V=サイトURL … 府県サブドメイン用（新）
+ *
+ * 【再デプロイの注意】URLを変えないため、必ず
+ *   「デプロイ」→「デプロイを管理」→ 既存を選び ✏️ →「新バージョン」→「デプロイ」
+ *   で更新してください（新規デプロイにするとURLが変わります）。
  */
 
-// ================================================================
-//  ★ 各府県連盟の担当者メールアドレスをここに入力してください ★
-// ================================================================
-const PREFECTURE_CONTACTS = {
-  '滋賀県':        { name: '滋賀県ダンススポーツ連盟',       email: 'y-mine.omi@zeus.eonet.ne.jp' },
-  '京都府':        { name: '京都府ダンススポーツ連盟',       email: 'ichigo.ichie414@icloud.com' },
-  '大阪府':        { name: '大阪府ダンススポーツ連盟',       email: 'tendo@leto.eonet.ne.jp' },
-  '兵庫県':        { name: '兵庫県ダンススポーツ連盟',       email: 'fujimoto.s@theia.ocn.ne.jp' },
-  '奈良県':        { name: '奈良県ダンススポーツ連盟',       email: 'raydance@iris.eonet.ne.jp' },
-  '和歌山県':      { name: '和歌山県ダンススポーツ連盟',     email: 'tf583325@qc5.so-net.ne.jp' },
-  '鳥取県':        { name: '鳥取県ダンススポーツ連盟',       email: 'hiroshi1dannsu@sea.chukai.ne.jp' },
-  '島根県':        { name: '島根県ダンススポーツ連盟',       email: 'eda38@nifty.com' },
-  '岡山県':        { name: '岡山県ダンススポーツ連盟',       email: 'kazu34123@yahoo.co.jp' },
-  '広島県':        { name: '広島県ダンススポーツ連盟',       email: 'shoandshow@gmail.com' },
-  '香川県':        { name: '香川県ダンススポーツ連盟',       email: 'stngygw6241@md.pikara.ne.jp' },
-  '徳島県':        { name: '徳島県ダンススポーツ連盟',       email: 'kenkouro@siren.ocn.ne.jp' },
-  '愛媛県':        { name: '愛媛県ダンススポーツ連盟',       email: 'matiko-takeda2@outlook.jp' },
-  '高知県':        { name: '高知県ダンススポーツ連盟',       email: 'kouichi771sasaki@gmail.com' },
-  'ブロック事務局': { name: 'JDSF近畿中四国ブロック委員会',  email: 'info@jdsf-seibu.com' }
-};
+var SHEET_ID   = '1fpEa8jiIk9hUKyDOp4yWvBKaoPek-LsF2SPhDRTFX0g';
+var SHEET_NAME = 'HP用資料';
 
-// ブロック事務局アドレス（すべての問い合わせに BCC で通知）
-const BCC_EMAIL = 'info@jdsf-seibu.com'; // ★ 必要に応じて変更
+// 主サイトの全問い合わせに控えを送る事務局アドレス（不要なら '' に）
+var OFFICE_BCC = 'info@jdsf-seibu.com';
 
-// ================================================================
+// site-config からの宛先保存・読込に必要な合言葉（site-config.html と一致させる）
+var CONTACT_TOKEN = 'seibu-contact2026';
+
+// ============================ ルーティング ============================
+
+function doGet(e) {
+  var p = e.parameter || {};
+  if (p.action === 'data')           { return getContactData(); }                 // 主: 府県→担当者名
+  if (p.action === 'auth')           { return getAuthPassword(p.site || ''); }     // 認証
+  if (p.action === 'contactInfo')    { return getContactInfo(p.url || ''); }       // 府県: 担当者名（メール非公開）
+  if (p.action === 'getContactConfig'){ return getContactConfig(p.url || '', p.token || ''); } // site-config 読込
+  if (p.action === 'saveContact')    { return saveContact(p); }                    // site-config 保存（CORS可なGETで結果確認）
+  return json({ ok: true, msg: 'JDSF Seibu API is running.' });
+}
 
 function doPost(e) {
+  var data = {};
+  try { data = JSON.parse(e.postData.contents); } catch (err) { data = (e && e.parameter) || {}; }
+
+  // ハニーポット（bot対策）: 隠し項目 hp が埋まっていたら送らず正常終了を装う
+  if (data.hp) { return json({ status: 'ok' }); }
+
+  if (data.action === 'saveContact') { return saveContact(data); }  // site-config 保存
+  if (data.url)                      { return handlePrefContact(data); } // 府県サブドメイン
+  return handleContact(data);                                        // 主サイト（府県プルダウン）
+}
+
+// ============================ 共通ユーティリティ ============================
+
+function json(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+                       .setMimeType(ContentService.MimeType.JSON);
+}
+function sheet() {
+  return SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
+}
+// URLからホスト名だけを取り出して小文字化（"https://osaka.jdsf-seibu.com/" → "osaka.jdsf-seibu.com"）
+function hostOf(u) {
+  return String(u || '').toLowerCase().replace(/^https?:\/\//, '').split('/')[0].trim();
+}
+
+// ============================ 1) 主サイト: 府県→担当者名 ============================
+
+function getContactData() {
+  var data = sheet().getRange('G3:I17').getValues();
+  var result = {};
+  for (var i = 0; i < data.length; i++) {
+    var pref  = String(data[i][0]).trim();
+    var name  = String(data[i][2]).trim();
+    if (pref) result[pref] = { name: name };
+  }
+  return json(result);
+}
+
+// 主サイト: 府県プルダウンで選んだ府県へ送信（G/H/I列）
+function handleContact(data) {
   try {
-    const data = JSON.parse(e.postData ? e.postData.contents : '{}');
-
-    const pref    = data.prefecture || 'ブロック事務局';
-    const contact = PREFECTURE_CONTACTS[pref] || PREFECTURE_CONTACTS['ブロック事務局'];
-
-    const subject = `【西部ブロックHP】${data.subject || 'お問い合わせ'}`;
-
-    const body = [
-      'JDSF西部ブロック公式サイトよりお問い合わせが届きました。',
-      '',
-      `■ 対象府県  : ${pref}`,
-      `■ お名前    : ${data.name  || ''}`,
-      `■ 所属      : ${data.org   || '未記入'}`,
-      `■ メール    : ${data.email || ''}`,
-      `■ 種別      : ${data.category || ''}`,
-      `■ 件名      : ${data.subject  || ''}`,
-      '',
-      '■ お問い合わせ内容:',
-      data.message || '',
-    ].join('\n');
-
-    const options = {
-      replyTo: data.email,
-      name: `${data.name || ''}（西部ブロックHP経由）`,
-    };
-    if (BCC_EMAIL && BCC_EMAIL !== contact.email) {
-      options.bcc = BCC_EMAIL;
+    var rows = sheet().getRange('G3:I17').getValues();
+    var pref = String(data.prefecture || '').trim();
+    var to = '', person = '';
+    for (var i = 0; i < rows.length; i++) {
+      if (String(rows[i][0]).trim() === pref) {
+        to     = String(rows[i][1]).trim();   // H: メール
+        person = String(rows[i][2]).trim();   // I: 担当者
+        break;
+      }
     }
+    if (!to) { return json({ status: 'error', message: '宛先が見つかりません: ' + pref }); }
 
-    // 担当者へ送信
-    GmailApp.sendEmail(contact.email, subject, body, options);
-
-    // 送信者への自動返信
-    const autoBody = [
-      `${data.name || ''} 様`,
-      '',
-      'このたびはお問い合わせいただきありがとうございます。',
-      '以下の内容で受け付けました。',
-      `${contact.name}の担当者よりご連絡いたします。`,
-      '',
-      `■ 件名 : ${data.subject  || ''}`,
-      `■ 内容 : ${data.message  || ''}`,
-      '',
-      '─────────────────────────────────────',
-      'JDSF近畿中四国ブロック委員会（西部ブロック）',
-      'https://jdsf-seibu.com/',
-      '─────────────────────────────────────',
+    var subject = '【西部ブロックHP】' + (data.subject || 'お問い合わせ');
+    var body = [
+      'JDSF西部ブロック公式サイトよりお問い合わせが届きました。', '',
+      '■ 対象府県 : ' + pref,
+      '■ お名前   : ' + (data.name  || ''),
+      '■ 所属     : ' + (data.org   || '未記入'),
+      '■ メール   : ' + (data.email || ''),
+      '■ 電話     : ' + (data.tel   || ''),
+      '■ 件名     : ' + (data.subject || ''), '',
+      '■ お問い合わせ内容:', (data.message || '')
     ].join('\n');
 
-    GmailApp.sendEmail(
-      data.email,
-      `【受付確認】${data.subject || 'お問い合わせ'}`,
-      autoBody,
-      { name: 'JDSF近畿中四国ブロック委員会' }
-    );
+    var opt = { replyTo: data.email, name: (data.name || '') + '（西部ブロックHP経由）' };
+    if (OFFICE_BCC && OFFICE_BCC !== to) opt.bcc = OFFICE_BCC;
+    GmailApp.sendEmail(to, subject, body, opt);
 
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'ok' }))
-      .setMimeType(ContentService.MimeType.JSON);
-
+    sendAutoReply(data, '各府県連盟の担当者');
+    return json({ status: 'ok' });
   } catch (err) {
-    Logger.log('Contact error: ' + err.toString());
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'error', message: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
+    Logger.log('handleContact error: ' + err);
+    return json({ status: 'error', message: String(err) });
   }
 }
 
-/** 動作確認用 */
-function doGet() {
-  return ContentService.createTextOutput('JDSF Seibu Contact API is running.');
+// ============================ 2) 府県サブドメイン: Q〜V列 ============================
+
+// 府県サブドメイン: その府県の担当者名だけ返す（メールは非公開）
+function getContactInfo(url) {
+  var row = findContactRowByUrl(url);
+  if (!row) return json({ ok: false });
+  return json({ ok: true, prefName: row.prefName, person: row.person, hasEmail: !!row.email });
+}
+
+// 府県サブドメイン: フォーム送信（V列URLで行特定 → R列へ送信、T/U列をCC）
+function handlePrefContact(data) {
+  try {
+    var row = findContactRowByUrl(data.url);
+    if (!row || !row.email) {
+      return json({ status: 'error', message: 'この府県の送信先が未設定です（サイト構築で設定してください）。' });
+    }
+    var subject = '【' + (row.prefName || '府県連盟HP') + '】' + (data.subject || 'お問い合わせ');
+    var body = [
+      (row.prefName || '') + 'のホームページよりお問い合わせが届きました。', '',
+      '■ お名前 : ' + (data.name  || ''),
+      '■ 所属   : ' + (data.org   || '未記入'),
+      '■ メール : ' + (data.email || ''),
+      '■ 電話   : ' + (data.tel   || ''),
+      '■ 件名   : ' + (data.subject || ''), '',
+      '■ お問い合わせ内容:', (data.message || '')
+    ].join('\n');
+
+    var opt = { replyTo: data.email, name: (data.name || '') + '（' + (row.prefName || 'HP') + '経由）' };
+    var cc = [row.cc1, row.cc2].filter(function (x) { return x; }).join(',');
+    if (cc) opt.cc = cc;
+    GmailApp.sendEmail(row.email, subject, body, opt);
+
+    sendAutoReply(data, (row.prefName || '') + 'の担当者');
+    return json({ status: 'ok' });
+  } catch (err) {
+    Logger.log('handlePrefContact error: ' + err);
+    return json({ status: 'error', message: String(err) });
+  }
+}
+
+// Q〜V列を読み、V列URLのホストが一致する行を返す
+function findContactRowByUrl(url) {
+  var host = hostOf(url);
+  if (!host) return null;
+  var sh = sheet();
+  var last = sh.getLastRow();
+  if (last < 3) return null;
+  var rows = sh.getRange(3, 17, last - 2, 6).getValues(); // Q(17)〜V(22)
+  for (var i = 0; i < rows.length; i++) {
+    var v = hostOf(rows[i][5]); // V: サイトURL
+    if (v && v === host) {
+      return {
+        rowIndex: i + 3,
+        prefName: String(rows[i][0]).trim(), // Q
+        email:    String(rows[i][1]).trim(), // R
+        person:   String(rows[i][2]).trim(), // S
+        cc1:      String(rows[i][3]).trim(), // T
+        cc2:      String(rows[i][4]).trim(), // U
+        url:      String(rows[i][5]).trim()  // V
+      };
+    }
+  }
+  return null;
+}
+
+// ============================ 3) site-config からの宛先編集 ============================
+
+// 読込（現在値をフォームに表示するため）。token が必要。
+function getContactConfig(url, token) {
+  if (token !== CONTACT_TOKEN) return json({ ok: false, message: 'forbidden' });
+  var row = findContactRowByUrl(url);
+  if (!row) return json({ ok: false, message: 'この URL の行が見つかりません（V列にサイトURLが必要です）。' });
+  return json({ ok: true, prefName: row.prefName, email: row.email, person: row.person, cc1: row.cc1, cc2: row.cc2 });
+}
+
+// 保存（R=メール, S=担当者, T=CC①, U=CC② を更新）。token が必要。
+function saveContact(data) {
+  try {
+    if (data.token !== CONTACT_TOKEN) return json({ status: 'error', message: 'forbidden' });
+    var row = findContactRowByUrl(data.url);
+    if (!row) return json({ status: 'error', message: 'この URL の行が見つかりません（V列にサイトURLを入力してください）。' });
+    var sh = sheet();
+    sh.getRange(row.rowIndex, 18).setValue(String(data.email  || '').trim()); // R
+    sh.getRange(row.rowIndex, 19).setValue(String(data.person || '').trim()); // S
+    sh.getRange(row.rowIndex, 20).setValue(String(data.cc1    || '').trim()); // T
+    sh.getRange(row.rowIndex, 21).setValue(String(data.cc2    || '').trim()); // U
+    return json({ status: 'ok' });
+  } catch (err) {
+    Logger.log('saveContact error: ' + err);
+    return json({ status: 'error', message: String(err) });
+  }
+}
+
+// ============================ 4) 認証（M列/N列） ============================
+
+function getAuthPassword(site) {
+  site = String(site || '').toLowerCase().trim();
+  var pw = null, build = null;
+  if (site) {
+    var sh = sheet();
+    var last = sh.getLastRow();
+    if (last >= 3) {
+      var rows = sh.getRange(3, 10, last - 2, 5).getValues(); // J(10)〜N(14)
+      for (var i = 0; i < rows.length; i++) {
+        var sub = hostOf(rows[i][0]).split('.')[0]; // J列URLのサブドメイン
+        if (sub && sub === site) {
+          pw    = String(rows[i][3]).trim(); // M
+          build = String(rows[i][4]).trim(); // N
+          break;
+        }
+      }
+    }
+  }
+  return json({ password: pw, build: build });
+}
+
+// ============================ 自動返信（送信者控え） ============================
+
+function sendAutoReply(data, whoWillReply) {
+  if (!data.email) return;
+  var body = [
+    (data.name || '') + ' 様', '',
+    'このたびはお問い合わせいただきありがとうございます。',
+    '以下の内容で受け付けました。' + whoWillReply + 'よりご連絡いたします。', '',
+    '■ 件名 : ' + (data.subject || ''),
+    '■ 内容 : ' + (data.message || ''), '',
+    '──────────────────────────',
+    'JDSF近畿中四国ブロック委員会（西部ブロック）',
+    'https://jdsf-seibu.com/',
+    '──────────────────────────',
+    '※本メールは自動送信です。本メールへの返信ではお問い合わせを受け付けられません。'
+  ].join('\n');
+  GmailApp.sendEmail(data.email, '【受付確認】' + (data.subject || 'お問い合わせ'), body,
+                     { name: 'JDSF近畿中四国ブロック委員会' });
 }

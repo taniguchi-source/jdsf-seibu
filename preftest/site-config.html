@@ -278,6 +278,47 @@
     </div>
   </section>
 
+  <!-- ===== ④ お問い合わせ先設定 ===== -->
+  <section style="background:var(--bg-light,#f4f6fa);border-top:1px solid var(--border,#e2e8f0);padding:28px 0 44px;">
+    <div class="container">
+      <div style="margin-bottom:16px;">
+        <h2 style="font-size:1.05rem;font-weight:800;color:var(--primary);margin:0 0 4px;">📨 お問い合わせ先設定</h2>
+        <p style="font-size:.8rem;color:var(--text-light);margin:0;">
+          お問い合わせフォーム（contact.html）から届くメールの<strong>宛先</strong>を設定します。
+          送信先メールは公開されず、フォームには担当者名のみ表示されます。
+        </p>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border,#e2e8f0);border-radius:10px;padding:18px 20px;">
+        <div id="contact-config-box" style="display:grid;gap:14px;max-width:520px;">
+          <div>
+            <label style="font-size:.78rem;font-weight:700;color:var(--text-light);display:block;margin-bottom:4px;">送信先メールアドレス <span style="color:#e53e3e;font-size:.72rem;">（必須・届け先）</span></label>
+            <input type="email" id="contact-email" placeholder="renmei@example.com"
+              style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;font-family:inherit;box-sizing:border-box;outline:none;">
+          </div>
+          <div>
+            <label style="font-size:.78rem;font-weight:700;color:var(--text-light);display:block;margin-bottom:4px;">担当者名 <span style="font-size:.72rem;font-weight:400;">（フォームに「担当：◯◯氏」と表示）</span></label>
+            <input type="text" id="contact-person" placeholder="例：山田"
+              style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;font-family:inherit;box-sizing:border-box;outline:none;">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label style="font-size:.78rem;font-weight:700;color:var(--text-light);display:block;margin-bottom:4px;">CCメール① <span style="font-size:.72rem;font-weight:400;">（任意・控え同報）</span></label>
+              <input type="email" id="contact-cc1" placeholder="（任意）"
+                style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;font-family:inherit;box-sizing:border-box;outline:none;">
+            </div>
+            <div>
+              <label style="font-size:.78rem;font-weight:700;color:var(--text-light);display:block;margin-bottom:4px;">CCメール② <span style="font-size:.72rem;font-weight:400;">（任意・控え同報）</span></label>
+              <input type="email" id="contact-cc2" placeholder="（任意）"
+                style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;font-family:inherit;box-sizing:border-box;outline:none;">
+            </div>
+          </div>
+        </div>
+        <div id="contact-config-msg" style="display:none;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:12px;"></div>
+        <button onclick="saveContactDest()" style="margin-top:14px;padding:9px 24px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;">💾 お問い合わせ先を保存</button>
+      </div>
+    </div>
+  </section>
+
   <!-- ===== ② 配色テーマ変更 ===== -->
   <section style="background:linear-gradient(160deg,#0f1c35 0%,#1a3060 60%,#0f3060 100%);padding:36px 0 52px;">
     <div class="container">
@@ -384,7 +425,56 @@
     loadCarouselWidth();
     loadSlides();
     loadQuickLinks();
+    loadContactConfig();
   }
+
+  /* ===== お問い合わせ先設定（スプレッドシート Q〜V列・GAS経由） ===== */
+  var CONTACT_TOKEN = 'seibu-contact2026';
+  var CONTACT_SITE_URL = location.origin + '/';
+  function contactMsg(text, ok){
+    var el = document.getElementById('contact-config-msg'); if (!el) return;
+    el.style.cssText = 'display:block;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:12px;' +
+      (ok ? 'background:#F0FFF4;color:#166534;border:1px solid #86EFAC;' : 'background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;');
+    el.textContent = text;
+  }
+  function loadContactConfig(){
+    if (!_sub) return; // ローカル/主ドメインでは対象外
+    fetch(GAS_AUTH_URL + '?action=getContactConfig&url=' + encodeURIComponent(CONTACT_SITE_URL) + '&token=' + encodeURIComponent(CONTACT_TOKEN) + '&_=' + Date.now())
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d || !d.ok) { contactMsg('⚠ このサイトの行が見つかりません（スプレッドシートのV列にサイトURLを入力してください）。', false); return; }
+        var set = function(id,v){ var e=document.getElementById(id); if(e) e.value = v || ''; };
+        set('contact-email', d.email); set('contact-person', d.person);
+        set('contact-cc1', d.cc1);     set('contact-cc2', d.cc2);
+      })
+      .catch(function(){ /* 通信エラー時は無言（保存は可能） */ });
+  }
+  function saveContactDest(){
+    var email = (document.getElementById('contact-email')||{}).value || '';
+    email = email.trim();
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { contactMsg('⚠ 送信先メールの形式が正しくありません。', false); return; }
+    var q = function(id){ return encodeURIComponent(((document.getElementById(id)||{}).value || '').trim()); };
+    var url = GAS_AUTH_URL + '?action=saveContact'
+      + '&token=' + encodeURIComponent(CONTACT_TOKEN)
+      + '&url='   + encodeURIComponent(CONTACT_SITE_URL)
+      + '&email=' + q('contact-email')
+      + '&person=' + q('contact-person')
+      + '&cc1='   + q('contact-cc1')
+      + '&cc2='   + q('contact-cc2')
+      + '&_=' + Date.now();
+    contactMsg('保存中...', true);
+    fetch(url).then(function(r){ return r.json(); })
+      .then(function(res){
+        if (res && res.status === 'ok') {
+          contactMsg('✅ お問い合わせ先を保存しました。', true);
+          setTimeout(function(){ var e=document.getElementById('contact-config-msg'); if(e) e.style.display='none'; }, 3500);
+        } else {
+          contactMsg('⚠ ' + ((res && res.message) || '保存に失敗しました。'), false);
+        }
+      })
+      .catch(function(){ contactMsg('⚠ 通信エラーが発生しました。', false); });
+  }
+  window.saveContactDest = saveContactDest;
 
   /* ===== サイト名管理 ===== */
   function loadSiteName() {
