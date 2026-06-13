@@ -376,6 +376,10 @@
     return (h.indexOf('.') === -1 || !s || s === 'jdsf-seibu' || s === 'www' || s === 'localhost') ? '' : s;
   })();
   var FALLBACK_PW = _sub ? _sub + '2026' : 'admin2026';
+  // お問い合わせ先設定で使う定数（※ showContent() より前に定義する必要あり：
+  //   ログイン済みで即 showContent → loadContactConfig が走るため）
+  var CONTACT_TOKEN = 'seibu-contact2026';
+  var CONTACT_SITE_URL = location.origin + '/';
   function fetchPassword(cb){
     if (!_sub) { cb(FALLBACK_PW); return; }
     fetch(GAS_AUTH_URL + '?action=auth&site=' + encodeURIComponent(_sub) + '&_=' + Date.now())
@@ -439,8 +443,7 @@
   }
 
   /* ===== お問い合わせ先設定（スプレッドシート Q〜V列・GAS経由） ===== */
-  var CONTACT_TOKEN = 'seibu-contact2026';
-  var CONTACT_SITE_URL = location.origin + '/';
+  /* CONTACT_TOKEN / CONTACT_SITE_URL は上部（showContentより前）で定義済み */
   function contactMsg(text, ok){
     var el = document.getElementById('contact-config-msg'); if (!el) return;
     el.style.cssText = 'display:block;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:12px;' +
