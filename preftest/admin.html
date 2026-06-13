@@ -952,19 +952,26 @@
       var isPdf     = item.type === 'pdf';
       var isLink    = item.type === 'link';
       var typeIcon  = isSheet ? '📊 ' : (isImage ? '🖼️ ' : (isGallery ? '🏞 ' : (isPdf ? '📄 ' : (isLink ? '🔗 ' : '📝 '))));
+      var isSub  = item.is_sub === true;
+      var bgOn = isSub ? '#FFFBEB' : '#EFF6FF', bgOff = '#F1F5F9';
+      var bdOn = isSub ? '#F59E0B' : '#BFDBFE', bdOff = 'var(--border)';
+      var bg = enabled ? bgOn : bgOff, bd = enabled ? bdOn : bdOff;
       return '<span class="cchip" data-site="' + siteId + '" data-idx="' + idx + '" '
-        + 'style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;'
-        + 'background:' + (enabled ? '#EFF6FF' : '#F1F5F9') + ';'
-        + 'border:1px solid ' + (enabled ? '#BFDBFE' : 'var(--border)') + ';'
+        + 'style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;cursor:grab;'
+        + (isSub ? 'margin-left:18px;' : '')
+        + 'background:' + bg + ';'
+        + 'border:1px solid ' + bd + ';'
+        + (isSub ? 'border-left:4px solid #F59E0B;' : '')
         + 'border-radius:6px;">'
         + '<span class="cchip-grip" title="ドラッグして並べ替え" '
         + 'style="cursor:grab;touch-action:none;user-select:none;color:#94A3B8;font-size:.9rem;line-height:1;flex-shrink:0;">⠿</span>'
         + '<input type="checkbox" ' + (enabled ? 'checked' : '') + ' '
-        + 'onchange="(function(cb){var item=window._cd[\'' + siteId + '\'][' + idx + '];item.enabled=cb.checked;var p=cb.parentNode;p.style.background=cb.checked?\'#EFF6FF\':\'#F1F5F9\';p.style.borderColor=cb.checked?\'#BFDBFE\':\'var(--border)\';})(this)" '
+        + 'onchange="(function(cb){var item=window._cd[\'' + siteId + '\'][' + idx + '];item.enabled=cb.checked;var p=cb.parentNode;p.style.background=cb.checked?\'' + bgOn + '\':\'' + bgOff + '\';p.style.borderColor=cb.checked?\'' + bdOn + '\':\'' + bdOff + '\';})(this)" '
         + 'style="width:13px;height:13px;cursor:pointer;accent-color:var(--primary);flex-shrink:0;">'
+        + (isSub ? '<span title="サブコンテンツ（上のコンテンツに付属）" style="font-size:.62rem;font-weight:800;color:#92400E;background:#FDE68A;border:1px solid #F59E0B;border-radius:3px;padding:1px 5px;flex-shrink:0;letter-spacing:.03em;white-space:nowrap;">↳ サブ</span>' : '')
         + '<button onclick="openContentModal(\'' + siteId + '\',' + idx + ')" '
         + 'title="クリックして編集" '
-        + 'style="background:none;border:none;cursor:pointer;font-size:.82rem;font-weight:700;color:var(--primary);padding:0;font-family:inherit;text-decoration:underline dotted;text-underline-offset:2px;">'
+        + 'style="background:none;border:none;cursor:pointer;font-size:.82rem;font-weight:700;color:' + (isSub ? '#92400E' : 'var(--primary)') + ';padding:0;font-family:inherit;text-decoration:underline dotted;text-underline-offset:2px;">'
         + typeIcon + safeTitle
         + '</button>'
         + '<button onclick="removeContentItem(\'' + siteId + '\',' + idx + ')" '
@@ -1038,16 +1045,26 @@
       if (!container) return;
       [].forEach.call(container.querySelectorAll('.cchip'), function (c) { c.style.outline = ''; c.style.outlineOffset = ''; });
     }
+    function cleanup() {
+      if (drag) { try { drag.chip.style.opacity = ''; drag.chip.style.cursor = ''; } catch (_) {} clearMarks(drag.container); }
+      document.body.style.userSelect = '';
+      drag = null;
+    }
+    // チップ本体のどこを掴んでもOK（チェック/編集/削除ボタンの上を除く）
     document.addEventListener('pointerdown', function (e) {
-      var grip = e.target && e.target.closest ? e.target.closest('.cchip-grip') : null;
-      if (!grip) return;
-      var chip = grip.closest('.cchip');
+      if (e.button && e.button !== 0) return;             // 右クリック等は無視
+      var t = e.target;
+      if (t && t.nodeType === 3) t = t.parentNode;         // テキストノード対策
+      if (!t || !t.closest) return;
+      if (t.closest('input, button, a, select, textarea')) return; // 操作系はドラッグしない
+      var chip = t.closest('.cchip');
       if (!chip || !chip.parentNode) return;
       e.preventDefault();
       drag = { chip: chip, container: chip.parentNode, site: chip.getAttribute('data-site') };
       chip.style.opacity = '0.45';
-      grip.style.cursor = 'grabbing';
-      try { grip.setPointerCapture(e.pointerId); } catch (_) {}
+      chip.style.cursor = 'grabbing';
+      document.body.style.userSelect = 'none';
+      try { chip.setPointerCapture(e.pointerId); } catch (_) {}
     });
     document.addEventListener('pointermove', function (e) {
       if (!drag) return;
@@ -1059,21 +1076,19 @@
         target.style.outlineOffset = '1px';
       }
     });
-    function endDrag(e) {
+    document.addEventListener('pointerup', function (e) {
       if (!drag) return;
-      var d = drag; drag = null;
-      d.chip.style.opacity = '';
-      clearMarks(d.container);
+      var d = drag;
       var el = document.elementFromPoint(e.clientX, e.clientY);
       var target = el && el.closest ? el.closest('.cchip') : null;
       if (target && target !== d.chip && target.parentNode === d.container) {
         var from = parseInt(d.chip.getAttribute('data-idx'), 10);
         var to   = parseInt(target.getAttribute('data-idx'), 10);
-        if (!isNaN(from) && !isNaN(to)) moveContentItem(d.site, from, to);
+        if (!isNaN(from) && !isNaN(to) && from !== to) moveContentItem(d.site, from, to);
       }
-    }
-    document.addEventListener('pointerup', endDrag);
-    document.addEventListener('pointercancel', function () { if (drag) { drag.chip.style.opacity = ''; clearMarks(drag.container); drag = null; } });
+      cleanup();
+    });
+    document.addEventListener('pointercancel', cleanup);
   })();
 
   function openContentModal(siteId, idx) {
