@@ -1,0 +1,88 @@
+# 府県/レッスンサイト間 データ移送（data/・uploads/ のコピー）
+#
+# あるサブドメインの管理画面で入力したデータ（data/*.json と uploads/）を、
+# 別のサブドメインへ FTP でサーバー間コピーする。コードは別途 deploy-prefectures
+# で配信される前提で、ここでは「中身（サーバー側 data/・uploads/）」だけを移す。
+#
+# 使い方: Actions →「Copy prefecture data」→ Run workflow
+#   from        : コピー元サブドメイン（既定: kyoto）
+#   to          : コピー先サブドメイン（既定: lesson）
+#   keep_sitename: true なら sitename.json はコピーせず、コピー先の名前を維持（既定: true）
+#
+# 動作: コピー先の data/・uploads/ を --delete で完全置換（コピー元に無いファイルは削除）。
+#       ただし keep_sitename=true のときは sitename.json を除外し、コピー先の名前を保護する。
+
+name: Copy prefecture data
+
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: 'コピー元サブドメイン'
+        required: true
+        default: 'kyoto'
+      to:
+        description: 'コピー先サブドメイン'
+        required: true
+        default: 'lesson'
+      keep_sitename:
+        description: 'コピー先のサイト名を維持（sitename.jsonをコピーしない）'
+        type: boolean
+        required: true
+        default: true
+
+jobs:
+  copy:
+    runs-on: ubuntu-latest
+    name: Copy ${{ github.event.inputs.from }} -> ${{ github.event.inputs.to }}
+    steps:
+      - name: Guard (from != to)
+        run: |
+          if [ "${{ github.event.inputs.from }}" = "${{ github.event.inputs.to }}" ]; then
+            echo "::error::from と to が同じです（${{ github.event.inputs.from }}）。中止します。"
+            exit 1
+          fi
+
+      - name: Install lftp
+        run: sudo apt-get install -y lftp
+
+      - name: Download source (${{ github.event.inputs.from }}) data/ & uploads/
+        env:
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          mkdir -p ./src_data ./src_uploads
+          lftp -u "jdsfseibu,$FTP_PASS" ftp://sv16504.xserver.jp \
+            -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; \
+                set net:timeout 30; set net:max-retries 3; set cmd:fail-exit no; \
+                mirror /jdsf-seibu.com/public_html/${{ github.event.inputs.from }}.jdsf-seibu.com/data/ ./src_data/; \
+                mirror /jdsf-seibu.com/public_html/${{ github.event.inputs.from }}.jdsf-seibu.com/uploads/ ./src_uploads/; \
+                quit"
+          echo "=== downloaded data/ ==="
+          ls -la ./src_data || true
+          echo "=== downloaded uploads/ (recursive) ==="
+          find ./src_uploads || true
+
+      - name: Drop sitename.json when keeping target name
+        if: github.event.inputs.keep_sitename == 'true'
+        run: |
+          rm -f ./src_data/sitename.json
+          echo "sitename.json をコピー対象から除外しました（コピー先の名前を維持）。"
+
+      - name: Upload to target (${{ github.event.inputs.to }}) data/ & uploads/
+        env:
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          if [ "${{ github.event.inputs.keep_sitename }}" = "true" ]; then
+            EXCLUDE_DATA="--exclude ^sitename\.json$"
+          else
+            EXCLUDE_DATA=""
+          fi
+          lftp -u "jdsfseibu,$FTP_PASS" ftp://sv16504.xserver.jp \
+            -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; \
+                set net:timeout 30; set net:max-retries 3; \
+                mkdir -p /jdsf-seibu.com/public_html/${{ github.event.inputs.to }}.jdsf-seibu.com/data; \
+                mkdir -p /jdsf-seibu.com/public_html/${{ github.event.inputs.to }}.jdsf-seibu.com/uploads; \
+                mirror -R --delete $EXCLUDE_DATA ./src_data/ /jdsf-seibu.com/public_html/${{ github.event.inputs.to }}.jdsf-seibu.com/data/; \
+                mirror -R --delete ./src_uploads/ /jdsf-seibu.com/public_html/${{ github.event.inputs.to }}.jdsf-seibu.com/uploads/; \
+                quit"
+          echo "移送完了: ${{ github.event.inputs.from }} -> ${{ github.event.inputs.to }}"
