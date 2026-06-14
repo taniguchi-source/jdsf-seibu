@@ -9,7 +9,7 @@ jobs:
     name: Copy jdsf-seibu.com → old.jdsf-seibu.com
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install lftp
         run: sudo apt-get install -y lftp

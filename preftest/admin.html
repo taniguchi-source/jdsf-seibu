@@ -34,7 +34,7 @@
       width:100%;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:8px;
       font-size:1rem;font-weight:700;font-family:inherit;cursor:pointer;transition:background .2s;
     }
-    .login-btn:hover { background:#0D2347; }
+    .login-btn:hover { background:var(--primary-dark, #0D2347); }
     .login-back { display:block;margin-top:20px;font-size:.8125rem;color:var(--text-light);text-decoration:none; }
     .login-back:hover { color:var(--primary); }
 
@@ -572,7 +572,7 @@
       })
       .then(function(res){
         if (res.ok) {
-          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FDF4;color:#166534;border:1px solid #BBF7D0;border-radius:5px;padding:4px 10px;font-size:.775rem;margin-top:8px;'; msgEl.textContent='✅ ページ設定を保存しました'; }
+          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FDF4;color:#166534;border:1px solid #BBF7D0;border-radius:5px;padding:4px 10px;font-size:.775rem;margin-top:8px;'; msgEl.textContent='✅ ページ設定を保存しました'; } toast('✅ ページ設定を保存しました');
           setTimeout(function(){ var e=document.getElementById('top-page-msg'); if(e) e.style.display='none'; }, 3000);
         } else {
           if (msgEl){ msgEl.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;border-radius:5px;padding:4px 10px;font-size:.775rem;margin-top:8px;'; msgEl.textContent='⚠ ' + (res.error||'エラー'); }
@@ -875,7 +875,7 @@
             if (!el) return;
             el.style.display='block'; el.style.background='#F0FFF4';
             el.style.color='#166534'; el.style.border='1px solid #86EFAC';
-            el.textContent='✅ 保存しました';
+            el.textContent='✅ 保存しました'; toast('✅ 保存しました');
             setTimeout(function(){ var e2=document.getElementById('nav-msg-'+n); if(e2)e2.style.display='none'; },3000);
           },0);
         } else {
@@ -1051,7 +1051,7 @@
       })
       .then(function(res){
         if (res.ok) {
-          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FDF4;color:#166534;border:1px solid #BBF7D0;border-radius:5px;padding:4px 10px;font-size:.775rem;margin-top:6px;'; msgEl.textContent='✅ 保存しました'; }
+          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FDF4;color:#166534;border:1px solid #BBF7D0;border-radius:5px;padding:4px 10px;font-size:.775rem;margin-top:6px;'; msgEl.textContent='✅ 保存しました'; } toast('✅ 保存しました');
           setTimeout(function(){ var e=document.getElementById('content-msg-'+k); if(e) e.style.display='none'; }, 3000);
         } else {
           if (msgEl){ msgEl.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;border-radius:5px;padding:4px 10px;font-size:.775rem;margin-top:6px;'; msgEl.textContent='⚠ ' + (res.error||'エラー'); }
@@ -1492,7 +1492,7 @@
         if (input) input.value = '';
         renderGalleryThumbs();
         var m = '✅ ' + done + '枚を追加しました' + (failed ? '（' + failed + '枚失敗）' : '') + (skipped ? '（' + skipped + '枚は上限超過でスキップ）' : '');
-        showMsg(m, failed === 0);
+        showMsg(m, failed === 0); toast(m);
         setTimeout(function(){ var e=document.getElementById('cd-gallery-msg'); if(e) e.style.display='none'; }, 4000);
         return;
       }
@@ -1659,5 +1659,15 @@
 })();
 </script>
 
+<script>
+/* 軽量トースト通知（保存成功などの確認用） */
+function toast(msg){
+  var t=document.getElementById('_toast');
+  if(!t){t=document.createElement('div');t.id='_toast';t.setAttribute('role','status');t.setAttribute('aria-live','polite');t.style.cssText='position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--primary,#166534);color:#fff;padding:12px 22px;border-radius:10px;font-size:.9rem;font-weight:700;box-shadow:0 6px 24px rgba(0,0,0,.25);z-index:99999;opacity:0;transition:opacity .25s,transform .25s;max-width:90vw;text-align:center;pointer-events:none;';document.body.appendChild(t);}
+  t.textContent=msg;
+  requestAnimationFrame(function(){t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';});
+  clearTimeout(t._h);t._h=setTimeout(function(){t.style.opacity='0';t.style.transform='translateX(-50%) translateY(20px)';},2600);
+}
+</script>
 </body>
 </html>

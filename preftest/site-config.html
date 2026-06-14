@@ -34,7 +34,7 @@
       width:100%;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:8px;
       font-size:1rem;font-weight:700;font-family:inherit;cursor:pointer;transition:background .2s;
     }
-    .login-btn:hover { background:#0D2347; }
+    .login-btn:hover { background:var(--primary-dark, #0D2347); }
     .login-back { display:block;margin-top:20px;font-size:.8125rem;color:var(--text-light);text-decoration:none; }
     .login-back:hover { color:var(--primary); }
 
@@ -486,7 +486,7 @@
     fetch(url).then(function(r){ return r.json(); })
       .then(function(res){
         if (res && res.status === 'ok') {
-          contactMsg('✅ お問い合わせ先を保存しました。', true);
+          contactMsg('✅ お問い合わせ先を保存しました。', true); toast('✅ お問い合わせ先を保存しました');
           setTimeout(function(){ var e=document.getElementById('contact-config-msg'); if(e) e.style.display='none'; }, 3500);
         } else {
           contactMsg('⚠ ' + ((res && res.message) || '保存に失敗しました。'), false);
@@ -529,7 +529,7 @@
         if (res.ok) {
           /* 画面内のサイト名表示を即時更新 */
           document.querySelectorAll('.header-logo-text .name, .footer-logo-name, .login-title').forEach(function(el){ el.textContent = res.name; });
-          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FFF4;color:#166534;border:1px solid #86EFAC;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:10px;'; msgEl.textContent='✅ サイト名を保存しました（全ページに反映されます）'; }
+          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FFF4;color:#166534;border:1px solid #86EFAC;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:10px;'; msgEl.textContent='✅ サイト名を保存しました（全ページに反映されます）'; } toast('✅ サイト名を保存しました');
           setTimeout(function(){ var e=document.getElementById('site-name-msg'); if(e) e.style.display='none'; }, 3500);
         } else {
           if (msgEl){ msgEl.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:10px;'; msgEl.textContent='⚠ ' + (res.error||'エラー'); }
@@ -694,7 +694,7 @@
             msg.style.background='#ECFDF5';
             msg.style.color='#065F46';
             msg.style.border='1px solid #6EE7B7';
-            msg.textContent='✅ テーマを保存しました。ホームページにも即座に反映されています。';
+            msg.textContent='✅ テーマを保存しました。ホームページにも即座に反映されています。'; toast('✅ テーマを保存しました');
           }
           renderThemeGrid();
         } else {
@@ -845,7 +845,7 @@
             if (!el) return;
             el.style.display='block'; el.style.background='#F0FFF4';
             el.style.color='#166534'; el.style.border='1px solid #86EFAC';
-            el.textContent='✅ テキストを保存しました';
+            el.textContent='✅ テキストを保存しました'; toast('✅ テキストを保存しました');
             setTimeout(function(){ var e2=document.getElementById('slide-text-msg-'+n); if(e2)e2.style.display='none'; },3000);
           },0);
         } else {
@@ -963,7 +963,7 @@
       })
       .then(function(res){
         if (res.ok) {
-          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FFF4;color:#166534;border:1px solid #86EFAC;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:12px;'; msgEl.textContent='✅ ヒーローエリアの高さを保存しました'; }
+          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FFF4;color:#166534;border:1px solid #86EFAC;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:12px;'; msgEl.textContent='✅ ヒーローエリアの高さを保存しました'; } toast('✅ ヒーローエリアの高さを保存しました');
           setTimeout(function(){ var e=document.getElementById('hero-height-msg'); if(e) e.style.display='none'; }, 3000);
         } else {
           if (msgEl){ msgEl.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:12px;'; msgEl.textContent='⚠ ' + (res.error||'エラー'); }
@@ -1036,7 +1036,7 @@
       })
       .then(function(res){
         if (res.ok) {
-          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FFF4;color:#166534;border:1px solid #86EFAC;font-size:.78rem;padding:6px 12px;border-radius:6px;margin-top:10px;'; msgEl.textContent='✅ カルーセルの横幅を保存しました'; }
+          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FFF4;color:#166534;border:1px solid #86EFAC;font-size:.78rem;padding:6px 12px;border-radius:6px;margin-top:10px;'; msgEl.textContent='✅ カルーセルの横幅を保存しました'; } toast('✅ カルーセルの横幅を保存しました');
           setTimeout(function(){ var e=document.getElementById('carousel-width-msg'); if(e) e.style.display='none'; }, 3000);
         } else {
           if (msgEl){ msgEl.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;font-size:.78rem;padding:6px 12px;border-radius:6px;margin-top:10px;'; msgEl.textContent='⚠ ' + (res.error||'エラー'); }
@@ -1061,7 +1061,7 @@
       })
       .then(function(res){
         if (res.ok) {
-          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FFF4;color:#166534;border:1px solid #86EFAC;font-size:.78rem;padding:6px 12px;border-radius:6px;margin-top:10px;'; msgEl.textContent= on ? '✅ 矢印を表示にしました' : '✅ 矢印を非表示にしました'; }
+          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FFF4;color:#166534;border:1px solid #86EFAC;font-size:.78rem;padding:6px 12px;border-radius:6px;margin-top:10px;'; msgEl.textContent= on ? '✅ 矢印を表示にしました' : '✅ 矢印を非表示にしました'; } toast(on ? '✅ 矢印を表示にしました' : '✅ 矢印を非表示にしました');
           setTimeout(function(){ var e=document.getElementById('carousel-arrows-msg'); if(e) e.style.display='none'; }, 3000);
         } else {
           if (msgEl){ msgEl.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;font-size:.78rem;padding:6px 12px;border-radius:6px;margin-top:10px;'; msgEl.textContent='⚠ ' + (res.error||'エラー'); }
@@ -1091,7 +1091,7 @@
       })
       .then(function(res){
         if (res.ok) {
-          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FFF4;color:#166534;border:1px solid #86EFAC;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:10px;'; msgEl.textContent='✅ ニュースティッカーを保存しました'; }
+          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FFF4;color:#166534;border:1px solid #86EFAC;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:10px;'; msgEl.textContent='✅ ニュースティッカーを保存しました'; } toast('✅ ニュースティッカーを保存しました');
           setTimeout(function(){ var e=document.getElementById('ticker-msg'); if(e) e.style.display='none'; }, 3000);
         } else {
           if (msgEl){ msgEl.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:10px;'; msgEl.textContent='⚠ ' + (res.error||'エラー'); }
@@ -1183,7 +1183,7 @@
       .then(function(res){
         if (res.ok) {
           renderQuickLinks();
-          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FFF4;color:#166534;border:1px solid #86EFAC;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:12px;'; msgEl.textContent='✅ クイックリンクを保存しました'; }
+          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FFF4;color:#166534;border:1px solid #86EFAC;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:12px;'; msgEl.textContent='✅ クイックリンクを保存しました'; } toast('✅ クイックリンクを保存しました');
           setTimeout(function(){ var e=document.getElementById('quicklinks-msg'); if(e) e.style.display='none'; }, 3000);
         } else {
           if (msgEl){ msgEl.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:12px;'; msgEl.textContent='⚠ ' + (res.error||'エラー'); }
@@ -1214,5 +1214,15 @@
 })();
 </script>
 
+<script>
+/* 軽量トースト通知（保存成功などの確認用） */
+function toast(msg){
+  var t=document.getElementById('_toast');
+  if(!t){t=document.createElement('div');t.id='_toast';t.setAttribute('role','status');t.setAttribute('aria-live','polite');t.style.cssText='position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--primary,#166534);color:#fff;padding:12px 22px;border-radius:10px;font-size:.9rem;font-weight:700;box-shadow:0 6px 24px rgba(0,0,0,.25);z-index:99999;opacity:0;transition:opacity .25s,transform .25s;max-width:90vw;text-align:center;pointer-events:none;';document.body.appendChild(t);}
+  t.textContent=msg;
+  requestAnimationFrame(function(){t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';});
+  clearTimeout(t._h);t._h=setTimeout(function(){t.style.opacity='0';t.style.transform='translateX(-50%) translateY(20px)';},2600);
+}
+</script>
 </body>
 </html>
