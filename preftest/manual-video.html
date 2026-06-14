@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>動画ガイド｜各府県連盟サイト 操作マニュアル</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0D2347; --blue:#2563EB; --blue-l:#3b82f6;
+    --ink:#1f2937; --sub:#5b6678; --line:#e2e8f0; --bg:#0b1626;
+    --card:#ffffff; --accent:#e11d48; --ok:#16a34a; --warn:#d97706;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Noto Sans JP",system-ui,sans-serif;color:#fff;background:var(--bg);-webkit-font-smoothing:antialiased}
+
+  .top{background:linear-gradient(135deg,var(--navy) 0%,#1B3A6B 60%,var(--blue) 100%);padding:13px 18px;box-shadow:0 2px 14px rgba(0,0,0,.4)}
+  .top .inner{max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .top .badge{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);border-radius:100px;font-size:.72rem;font-weight:700;padding:4px 12px}
+  .top h1{font-size:1rem;font-weight:800;margin:0}
+  .top a.back{margin-left:auto;color:#cfe0ff;font-size:.78rem;font-weight:700;text-decoration:none;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:5px 11px}
+  .top a.back:hover{background:rgba(255,255,255,.12)}
+
+  .wrap{max-width:1000px;margin:0 auto;padding:18px 16px 60px}
+
+  /* プレーヤー */
+  .player{background:#0e1d33;border:1px solid #1d3354;border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.45)}
+  .stage{position:relative;background:radial-gradient(circle at 50% 30%,#16315c,#0b1a30);padding:22px 22px 16px;min-height:300px}
+  .scene{animation:fade .5s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .scene .chlabel{font-size:.7rem;font-weight:800;letter-spacing:.08em;color:#7fb0ff}
+  .scene h2{margin:3px 0 12px;font-size:1.18rem;font-weight:800;color:#fff}
+  .figbox{background:#f8fafc;border-radius:12px;padding:14px;border:1px solid #cbd6e6}
+  .figbox svg{display:block;width:100%;height:auto}
+
+  /* 図のコールアウト番号をアニメ */
+  .figbox svg .mk-num{animation:pulse 1.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  /* 字幕 */
+  .caption{min-height:58px;margin:14px 2px 2px;background:rgba(0,0,0,.34);border-radius:10px;padding:11px 15px;font-size:.96rem;line-height:1.7;color:#f1f5ff}
+  @media (max-width:560px){ .caption{font-size:.9rem} .scene h2{font-size:1.05rem} }
+
+  /* 進捗バー（章セグメント） */
+  .seg{display:flex;gap:3px;padding:10px 14px 0}
+  .seg i{flex:1;height:5px;border-radius:3px;background:#24416b;overflow:hidden;position:relative}
+  .seg i.done{background:#3b82f6}
+  .seg i.cur{background:#24416b}
+  .seg i.cur::after{content:"";position:absolute;inset:0;background:#60a5fa;transform-origin:left;animation:none}
+
+  /* コントロール */
+  .ctrl{display:flex;align-items:center;gap:8px;padding:12px 14px 14px;flex-wrap:wrap}
+  .btn{background:#1d3354;color:#fff;border:1px solid #2a456e;border-radius:10px;padding:9px 13px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{background:#27466f}
+  .btn.play{background:var(--blue)}
+  .btn.play:hover{background:#1d4ed8}
+  .ctrl .spacer{flex:1}
+  .ctr-info{font-size:.78rem;color:#9fb6d6}
+  .toggle{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:#cfe0ff;font-weight:700;cursor:pointer;user-select:none;border:1px solid #2a456e;border-radius:10px;padding:8px 11px}
+  .toggle input{accent-color:var(--blue)}
+
+  /* ポスター（再生前） */
+  .poster{position:absolute;inset:0;background:rgba(7,16,30,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:5;cursor:pointer;backdrop-filter:blur(2px)}
+  .poster .big{width:78px;height:78px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:2rem;box-shadow:0 8px 30px rgba(37,99,235,.6);transition:transform .15s}
+  .poster:hover .big{transform:scale(1.06)}
+  .poster .pt{font-size:1.05rem;font-weight:800}
+  .poster .ps{font-size:.8rem;color:#aebfdc;max-width:420px;text-align:center;line-height:1.7;padding:0 16px}
+
+  /* 章メニュー */
+  .chapters{margin-top:18px;background:#0e1d33;border:1px solid #1d3354;border-radius:14px;padding:12px 12px 6px}
+  .chapters .ct{font-size:.72rem;font-weight:800;letter-spacing:.06em;color:#7fb0ff;margin:2px 6px 8px}
+  .chapters ol{list-style:none;margin:0;padding:0;counter-reset:c}
+  .chapters li{counter-increment:c}
+  .chapters button.jump{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:none;color:#dce7f7;font-size:.86rem;font-weight:600;padding:8px 8px;border-radius:8px;cursor:pointer;font-family:inherit}
+  .chapters button.jump:hover{background:#16294a}
+  .chapters button.jump.active{background:#1d3a66;color:#fff}
+  .chapters button.jump::before{content:counter(c);flex:none;width:1.6em;height:1.6em;display:inline-flex;align-items:center;justify-content:center;background:#24416b;color:#fff;border-radius:50%;font-size:.7rem;font-weight:800}
+  .chapters button.jump.active::before{background:var(--blue)}
+  .chapters .gh{font-size:.68rem;font-weight:800;color:#5f86bf;letter-spacing:.05em;margin:10px 6px 2px}
+
+  .note{margin:16px 2px 0;font-size:.8rem;color:#9fb6d6;line-height:1.7}
+
+  /* SVGモックアップ共通 */
+  .mk-frame{fill:#fff;stroke:#d7dee8;stroke-width:1.5}
+  .mk-bar{fill:#0D2347}
+  .mk-card{fill:#fff;stroke:#e2e8f0;stroke-width:1.5}
+  .mk-soft{fill:#f4f6fa;stroke:#e2e8f0;stroke-width:1}
+  .mk-field{fill:#fff;stroke:#cbd5e1;stroke-width:1.5}
+  .mk-btn{fill:#2563EB}
+  .mk-btn2{fill:#0d2347}
+  .mk-ghost{fill:#fff;stroke:#2563EB;stroke-width:1.5}
+  .mk-t{fill:#334155;font-size:13px}
+  .mk-tb{fill:#0D2347;font-size:13px;font-weight:700}
+  .mk-tw{fill:#fff;font-size:13px;font-weight:700}
+  .mk-tm{fill:#64748b;font-size:12px}
+  .mk-num{fill:#e11d48}
+  .mk-numt{fill:#fff;font-size:13px;font-weight:800}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <span class="badge">🎬 動画ガイド</span>
+    <h1>各府県連盟サイト 操作ガイド（自動再生）</h1>
+    <a class="back" href="manual.html">📖 文章のマニュアルへ</a>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="player">
+    <div class="seg" id="seg"></div>
+
+    <div class="stage">
+      <div class="scene" id="scene"></div>
+      <div class="poster" id="poster">
+        <div class="big">▶</div>
+        <div class="pt">再生して操作ガイドを見る</div>
+        <div class="ps">図解が自動で進み、字幕で説明します。お使いの端末が対応していれば音声でも読み上げます（音声は右下のスイッチでON/OFFできます）。</div>
+      </div>
+    </div>
+
+    <div class="caption" id="caption">▶ を押すとガイドが始まります。</div>
+
+    <div class="ctrl">
+      <button class="btn" id="prev" title="前へ">⏮ 前へ</button>
+      <button class="btn play" id="playpause" title="再生／一時停止">▶ 再生</button>
+      <button class="btn" id="next" title="次へ">次へ ⏭</button>
+      <span class="ctr-info" id="counter">— / —</span>
+      <span class="spacer"></span>
+      <label class="toggle"><input type="checkbox" id="voice" checked> 🔊 音声で読み上げ</label>
+    </div>
+  </div>
+
+  <!-- 章メニュー -->
+  <div class="chapters">
+    <div class="ct">章を選んで再生</div>
+    <ol id="chlist"></ol>
+  </div>
+
+  <p class="note">
+    ※ この動画ガイドはブラウザ上で再生する「自動スライド」です。音声読み上げは端末・ブラウザの読み上げ機能を利用するため、環境により声や有無が異なります（字幕は常に表示されます）。
+    文章で詳しく読みたいときは <a href="manual.html" style="color:#9fc2ff;font-weight:700;">📖 文章マニュアル</a> をご覧ください。
+  </p>
+
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ===== 場面データ（章・タイトル・字幕＝ナレーション・図） ===== */
+  var S = [
+    {
+      g:'まずはここから', t:'はじめに',
+      c:'各府県連盟のホームページは、担当者ご自身がブラウザから内容を更新できます。このガイドでは、お知らせの投稿から見た目の設定まで、画面の図とあわせて順番にご案内します。',
+      svg:
+        '<svg viewBox="0 0 640 250" role="img">'
+        +'<rect x="60" y="40" width="520" height="170" rx="16" fill="#fff"/>'
+        +'<text x="320" y="110" text-anchor="middle" fill="#0D2347" font-size="26" font-weight="800">各府県連盟サイト</text>'
+        +'<text x="320" y="148" text-anchor="middle" fill="#2563EB" font-size="18" font-weight="800">操作ガイド</text>'
+        +'<text x="320" y="184" text-anchor="middle" fill="#64748b" font-size="13">担当者ご自身で、かんたんに更新できます</text>'
+        +'</svg>'
+    },
+    {
+      g:'まずはここから', t:'1. 2つの管理画面',
+      c:'編集する画面は2つあります。日々の更新を行う「サイト管理」と、見た目を整える「サイト構築」です。それぞれ別のパスワードでログインします。',
+      svg:
+        '<svg viewBox="0 0 640 250" role="img">'
+        +'<rect class="mk-card" x="20" y="30" width="280" height="190" rx="12"/>'
+        +'<rect class="mk-bar" x="20" y="30" width="280" height="40" rx="12"/><rect class="mk-bar" x="20" y="50" width="280" height="20"/>'
+        +'<text class="mk-tw" x="40" y="56">⚙️ サイト管理（admin）</text>'
+        +'<text class="mk-tb" x="40" y="100">日々の更新を行う画面</text>'
+        +'<text class="mk-t" x="40" y="128">・📢 お知らせの投稿・編集</text>'
+        +'<text class="mk-t" x="40" y="152">・🔗 メニュー（ページ）の管理</text>'
+        +'<text class="mk-t" x="40" y="176">・📄 各ページの中身</text>'
+        +'<rect class="mk-card" x="340" y="30" width="280" height="190" rx="12"/>'
+        +'<rect class="mk-btn2" x="340" y="30" width="280" height="40" rx="12"/><rect class="mk-btn2" x="340" y="50" width="280" height="20"/>'
+        +'<text class="mk-tw" x="360" y="56">🔧 サイト構築（site-config）</text>'
+        +'<text class="mk-tb" x="360" y="100">見た目を整える画面</text>'
+        +'<text class="mk-t" x="360" y="128">・🏷 サイト名　・🎨 配色テーマ</text>'
+        +'<text class="mk-t" x="360" y="152">・🖼 カルーセル　・📨 お問い合わせ先</text>'
+        +'<text class="mk-t" x="360" y="176">・📐 高さ/幅　・📢 ティッカー</text>'
+        +'</svg>'
+    },
+    {
+      g:'まずはここから', t:'2. ログインする',
+      c:'担当する府県のURLを開き、パスワード欄に事務局から伝えられたパスワードを入力して、ログインボタンを押します。一度ログインすると約3日間は保持されます。',
+      svg:
+        '<svg viewBox="0 0 640 240" role="img">'
+        +'<rect x="0" y="0" width="640" height="240" rx="14" fill="#16315c"/>'
+        +'<rect class="mk-card" x="200" y="34" width="240" height="172" rx="14"/>'
+        +'<circle cx="320" cy="74" r="20" fill="#2563EB"/><text x="320" y="80" text-anchor="middle" font-size="18">⚙️</text>'
+        +'<text x="320" y="112" text-anchor="middle" class="mk-tb" font-size="15">サイト管理</text>'
+        +'<text x="320" y="132" text-anchor="middle" class="mk-tm">○○ダンススポーツ連盟</text>'
+        +'<rect class="mk-field" x="226" y="146" width="188" height="34" rx="8"/><text class="mk-tm" x="240" y="168">パスワードを入力</text>'
+        +'<circle class="mk-num" cx="226" cy="163" r="13"/><text class="mk-numt" x="226" y="168" text-anchor="middle">1</text>'
+        +'<rect class="mk-btn" x="240" y="190" width="160" height="28" rx="8"/><text x="320" y="209" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">ログイン</text>'
+        +'<circle class="mk-num" cx="320" cy="204" r="13"/><text class="mk-numt" x="320" y="209" text-anchor="middle">2</text>'
+        +'</svg>'
+    },
+    {
+      g:'毎日の更新（サイト管理）', t:'3. お知らせを投稿する',
+      c:'「公開お知らせ管理」で、プラス お知らせを投稿を押します。カテゴリ、タイトル、詳細内容を入力し、投稿するを押すと、トップページに表示されます。',
+      svg:
+        '<svg viewBox="0 0 640 320" role="img">'
+        +'<rect class="mk-frame" x="14" y="14" width="612" height="292" rx="12"/>'
+        +'<text class="mk-tb" x="34" y="44" font-size="14">📢 公開お知らせ管理</text>'
+        +'<rect class="mk-btn" x="470" y="28" width="140" height="26" rx="6"/><text class="mk-tw" x="540" y="45" text-anchor="middle">＋ お知らせを投稿</text>'
+        +'<circle class="mk-num" cx="470" cy="30" r="12"/><text class="mk-numt" x="470" y="35" text-anchor="middle">1</text>'
+        +'<rect class="mk-soft" x="34" y="66" width="576" height="222" rx="10"/>'
+        +'<text class="mk-tm" x="50" y="92">カテゴリ（必須）</text><rect class="mk-field" x="50" y="98" width="260" height="30" rx="6"/><text class="mk-t" x="64" y="118">イベント ▾</text>'
+        +'<circle class="mk-num" cx="50" cy="113" r="12"/><text class="mk-numt" x="50" y="118" text-anchor="middle">2</text>'
+        +'<text class="mk-tm" x="330" y="92">実施日（任意）</text><rect class="mk-field" x="330" y="98" width="260" height="30" rx="6"/><text class="mk-t" x="344" y="118">2026 / 08 / 09</text>'
+        +'<text class="mk-tm" x="50" y="152">タイトル（必須）</text><rect class="mk-field" x="50" y="158" width="540" height="30" rx="6"/><text class="mk-t" x="64" y="178">例：ダンスパーティー開催のお知らせ</text>'
+        +'<circle class="mk-num" cx="50" cy="173" r="12"/><text class="mk-numt" x="50" y="178" text-anchor="middle">3</text>'
+        +'<text class="mk-tm" x="50" y="210">詳細内容（必須）</text><rect class="mk-field" x="50" y="216" width="540" height="40" rx="6"/><text class="mk-t" x="64" y="236">日時・会場などの補足説明…</text>'
+        +'<circle class="mk-num" cx="50" cy="231" r="12"/><text class="mk-numt" x="50" y="236" text-anchor="middle">4</text>'
+        +'<rect class="mk-btn" x="486" y="262" width="104" height="26" rx="6"/><text class="mk-tw" x="538" y="279" text-anchor="middle">投稿する →</text>'
+        +'<circle class="mk-num" cx="486" cy="264" r="12"/><text class="mk-numt" x="486" y="269" text-anchor="middle">5</text>'
+        +'</svg>'
+    },
+    {
+      g:'毎日の更新（サイト管理）', t:'4. お知らせの編集・削除・表示切替',
+      c:'投稿したお知らせは、一覧の各行のボタンで操作します。編集で直し、表示中を押すと一時的に隠せます。削除は完全に消えるので、確認のうえ実行してください。',
+      svg:
+        '<svg viewBox="0 0 640 120" role="img">'
+        +'<rect class="mk-card" x="14" y="34" width="612" height="52" rx="8"/>'
+        +'<text class="mk-tm" x="34" y="65">2026.08.09</text>'
+        +'<rect x="120" y="50" width="64" height="20" rx="4" fill="#FFFFF0" stroke="#f0e6c0"/><text x="152" y="64" text-anchor="middle" font-size="11" fill="#744210" font-weight="700">イベント</text>'
+        +'<text class="mk-tb" x="200" y="65">ダンスパーティー開催のお知らせ</text>'
+        +'<rect class="mk-ghost" x="430" y="48" width="50" height="24" rx="5"/><text x="455" y="64" text-anchor="middle" font-size="12" fill="#2563EB" font-weight="700">編集</text>'
+        +'<circle class="mk-num" cx="430" cy="50" r="11"/><text class="mk-numt" x="430" y="54" text-anchor="middle" font-size="11">1</text>'
+        +'<rect x="488" y="48" width="60" height="24" rx="5" fill="#fff" stroke="#cbd5e1"/><text x="518" y="64" text-anchor="middle" font-size="12" fill="#475569" font-weight="700">表示中</text>'
+        +'<circle class="mk-num" cx="488" cy="50" r="11"/><text class="mk-numt" x="488" y="54" text-anchor="middle" font-size="11">2</text>'
+        +'<rect x="556" y="48" width="50" height="24" rx="5" fill="#FFF5F5" stroke="#feb2b2"/><text x="581" y="64" text-anchor="middle" font-size="12" fill="#C53030" font-weight="700">削除</text>'
+        +'<circle class="mk-num" cx="556" cy="50" r="11"/><text class="mk-numt" x="556" y="54" text-anchor="middle" font-size="11">3</text>'
+        +'</svg>'
+    },
+    {
+      g:'毎日の更新（サイト管理）', t:'5. メニュー（ページ）を整える',
+      c:'ナビゲーション管理で、上部メニューに並ぶページの名前や表示・非表示を決めます。ページ名を分かりやすく変え、保存を押します。中身を編集で、そのページの内容を作ります。',
+      svg:
+        '<svg viewBox="0 0 640 230" role="img">'
+        +'<rect class="mk-frame" x="14" y="14" width="612" height="202" rx="12"/>'
+        +'<text class="mk-tb" x="34" y="42" font-size="14">🔗 ナビゲーション管理</text>'
+        +'<rect class="mk-card" x="34" y="58" width="576" height="56" rx="8"/>'
+        +'<rect x="50" y="74" width="44" height="24" rx="100" fill="#DCFCE7"/><text x="72" y="90" text-anchor="middle" font-size="11" fill="#166534" font-weight="700">表示</text>'
+        +'<circle class="mk-num" cx="50" cy="76" r="11"/><text class="mk-numt" x="50" y="80" text-anchor="middle" font-size="11">2</text>'
+        +'<text class="mk-tm" x="112" y="78">ページ名称</text><rect class="mk-field" x="112" y="84" width="220" height="26" rx="6"/><text class="mk-t" x="124" y="101">大会案内</text>'
+        +'<circle class="mk-num" cx="112" cy="86" r="11"/><text class="mk-numt" x="112" y="90" text-anchor="middle" font-size="11">1</text>'
+        +'<rect class="mk-ghost" x="430" y="76" width="90" height="26" rx="6"/><text x="475" y="93" text-anchor="middle" font-size="12" fill="#2563EB" font-weight="700">📄 中身を編集</text>'
+        +'<circle class="mk-num" cx="430" cy="78" r="11"/><text class="mk-numt" x="430" y="82" text-anchor="middle" font-size="11">3</text>'
+        +'<rect class="mk-btn" x="530" y="76" width="64" height="26" rx="6"/><text class="mk-tw" x="562" y="93" text-anchor="middle" font-size="12">💾 保存</text>'
+        +'<rect class="mk-ghost" x="34" y="172" width="150" height="28" rx="6"/><text x="109" y="190" text-anchor="middle" font-size="12" fill="#2563EB" font-weight="700">＋ ページを追加</text>'
+        +'</svg>'
+    },
+    {
+      g:'毎日の更新（サイト管理）', t:'6. ページの中身をつくる',
+      c:'中身を編集の、プラス追加で部品を作ります。部品は6種類。テキスト、スプレッドシートの表、画像、ギャラリー、PDF、リンクから選びます。左の点のマークをつかむと並べ替えができます。',
+      svg:
+        '<svg viewBox="0 0 640 250" role="img">'
+        +'<rect class="mk-frame" x="14" y="14" width="612" height="222" rx="12"/>'
+        +'<text class="mk-tb" x="34" y="42" font-size="14">📄 コンテンツ詳細</text>'
+        +'<text class="mk-tm" x="34" y="68">タイトル</text><rect class="mk-field" x="34" y="74" width="576" height="28" rx="6"/><text class="mk-t" x="46" y="92">例：2026年度 役員名簿</text>'
+        +'<text class="mk-tm" x="34" y="124">種類を選ぶ</text>'
+        +'<g font-size="12.5" font-weight="700" fill="#0D2347">'
+        +'<rect class="mk-soft" x="34" y="132" width="120" height="30" rx="6"/><text x="48" y="151">📝 テキスト</text>'
+        +'<rect class="mk-soft" x="162" y="132" width="190" height="30" rx="6"/><text x="176" y="151">📊 スプレッドシート</text>'
+        +'<rect class="mk-soft" x="360" y="132" width="100" height="30" rx="6"/><text x="374" y="151">🖼 画像</text>'
+        +'<rect class="mk-soft" x="468" y="132" width="120" height="30" rx="6"/><text x="482" y="151">🏞 ギャラリー</text>'
+        +'<rect class="mk-soft" x="34" y="170" width="100" height="30" rx="6"/><text x="48" y="189">📄 PDF</text>'
+        +'<rect class="mk-soft" x="142" y="170" width="110" height="30" rx="6"/><text x="156" y="189">🔗 リンク</text>'
+        +'</g>'
+        +'<rect class="mk-btn" x="500" y="200" width="110" height="28" rx="6"/><text class="mk-tw" x="555" y="219" text-anchor="middle">保存する →</text>'
+        +'</svg>'
+    },
+    {
+      g:'見た目・初期設定（サイト構築）', t:'7. サイト構築画面を開く',
+      c:'ここからは見た目の設定です。サイト管理の下にある、サイト構築ページへを押し、サイト構築用のパスワードでログインします。サイト管理とは別のパスワードです。',
+      svg:
+        '<svg viewBox="0 0 640 180" role="img">'
+        +'<rect class="mk-frame" x="14" y="20" width="612" height="140" rx="12"/>'
+        +'<text class="mk-tb" x="34" y="54" font-size="14">⚙️ サイト管理</text>'
+        +'<text class="mk-tm" x="34" y="84">…（お知らせ・メニュー・コンテンツ）…</text>'
+        +'<rect class="mk-btn2" x="180" y="104" width="280" height="40" rx="10"/>'
+        +'<text class="mk-tw" x="320" y="129" text-anchor="middle" font-size="14">🔧 サイト構築ページへ →</text>'
+        +'<circle class="mk-num" cx="180" cy="106" r="12"/><text class="mk-numt" x="180" y="111" text-anchor="middle">1</text>'
+        +'</svg>'
+    },
+    {
+      g:'見た目・初期設定（サイト構築）', t:'8. サイト名を変える',
+      c:'サイト名管理で、連盟名を入力し、サイト名を保存を押します。全ページのヘッダーやフッターに反映されます。上段の公益社団法人の表記は固定で変わりません。',
+      svg:
+        '<svg viewBox="0 0 640 120" role="img">'
+        +'<rect class="mk-card" x="14" y="14" width="612" height="82" rx="10"/>'
+        +'<text class="mk-tb" x="34" y="40" font-size="13">🏷 サイト名（連盟名）</text>'
+        +'<rect class="mk-field" x="34" y="52" width="430" height="32" rx="6"/><text class="mk-t" x="48" y="73">京都府ダンススポーツ連盟</text>'
+        +'<circle class="mk-num" cx="34" cy="54" r="11"/><text class="mk-numt" x="34" y="58" text-anchor="middle" font-size="11">1</text>'
+        +'<rect class="mk-btn" x="480" y="52" width="130" height="32" rx="6"/><text class="mk-tw" x="545" y="73" text-anchor="middle">💾 サイト名を保存</text>'
+        +'<circle class="mk-num" cx="480" cy="54" r="11"/><text class="mk-numt" x="480" y="58" text-anchor="middle" font-size="11">2</text>'
+        +'</svg>'
+    },
+    {
+      g:'見た目・初期設定（サイト構築）', t:'9. カルーセル画像・キャッチコピー',
+      c:'カルーセル画像管理で、トップ最上部のメイン画像を設定します。横長の写真を選び、必要ならキャッチコピーを入れて保存します。複数枚登録すると自動で切り替わります。',
+      svg:
+        '<svg viewBox="0 0 640 200" role="img">'
+        +'<rect class="mk-frame" x="14" y="14" width="612" height="172" rx="12"/>'
+        +'<text class="mk-tb" x="34" y="40" font-size="14">🖼 カルーセル画像管理</text>'
+        +'<rect x="34" y="54" width="240" height="118" rx="8" fill="#cbd6e6"/><text x="154" y="116" text-anchor="middle" fill="#5b6678" font-size="13" font-weight="700">画像プレビュー</text>'
+        +'<text class="mk-tm" x="300" y="74">画像ファイルを選ぶ</text><rect class="mk-field" x="300" y="80" width="200" height="28" rx="6"/><text class="mk-t" x="312" y="99">写真を選択…</text>'
+        +'<circle class="mk-num" cx="300" cy="82" r="11"/><text class="mk-numt" x="300" y="86" text-anchor="middle" font-size="11">1</text>'
+        +'<text class="mk-tm" x="300" y="128">キャッチコピー（任意）</text><rect class="mk-field" x="300" y="134" width="200" height="28" rx="6"/><text class="mk-t" x="312" y="153">ようこそ○○連盟へ</text>'
+        +'<circle class="mk-num" cx="300" cy="136" r="11"/><text class="mk-numt" x="300" y="140" text-anchor="middle" font-size="11">2</text>'
+        +'<rect class="mk-btn" x="516" y="80" width="92" height="28" rx="6"/><text class="mk-tw" x="562" y="99" text-anchor="middle">⬆ 保存</text>'
+        +'<circle class="mk-num" cx="516" cy="82" r="11"/><text class="mk-numt" x="516" y="86" text-anchor="middle" font-size="11">3</text>'
+        +'</svg>'
+    },
+    {
+      g:'見た目・初期設定（サイト構築）', t:'10. 配色テーマ',
+      c:'配色テーマ変更で、サイト全体の色合いを10種類から選べます。選ぶと即座に保存され、反映されます。迷ったら標準の紺、JDSFカラーのままで問題ありません。',
+      svg:
+        '<svg viewBox="0 0 640 120" role="img">'
+        +'<rect class="mk-frame" x="14" y="14" width="612" height="92" rx="12"/>'
+        +'<text class="mk-tb" x="34" y="40" font-size="14">🎨 配色テーマ変更</text>'
+        +'<rect x="34" y="54" width="100" height="40" rx="8" fill="#0D2347" stroke="#2563EB" stroke-width="3"/>'
+        +'<rect x="148" y="54" width="100" height="40" rx="8" fill="#1e6f5c"/>'
+        +'<rect x="262" y="54" width="100" height="40" rx="8" fill="#7c2d3a"/>'
+        +'<rect x="376" y="54" width="100" height="40" rx="8" fill="#3b3a6b"/>'
+        +'<rect x="490" y="54" width="100" height="40" rx="8" fill="#5b4636"/>'
+        +'<circle class="mk-num" cx="34" cy="56" r="11"/><text class="mk-numt" x="34" y="60" text-anchor="middle" font-size="11">1</text>'
+        +'</svg>'
+    },
+    {
+      g:'見た目・初期設定（サイト構築）', t:'11. お問い合わせ先の設定',
+      c:'お問い合わせ先設定で、フォームから届いたメールの届け先を決めます。送信先メールアドレスを入れるとフォームが使えるようになります。担当者名やCC、自動返信の文面も設定でき、最後に保存します。メールアドレスは公開されません。',
+      svg:
+        '<svg viewBox="0 0 640 220" role="img">'
+        +'<rect class="mk-frame" x="14" y="14" width="612" height="192" rx="12"/>'
+        +'<text class="mk-tb" x="34" y="42" font-size="14">📨 お問い合わせ先設定</text>'
+        +'<text class="mk-tm" x="52" y="66">送信先メールアドレス（必須・届け先）</text><rect class="mk-field" x="52" y="72" width="556" height="28" rx="6"/><text class="mk-t" x="64" y="91">renmei@example.com</text>'
+        +'<circle class="mk-num" cx="40" cy="86" r="12"/><text class="mk-numt" x="40" y="91" text-anchor="middle">1</text>'
+        +'<text class="mk-tm" x="52" y="120">担当者名（フォームに「担当：◯◯」と表示）</text><rect class="mk-field" x="52" y="126" width="556" height="28" rx="6"/><text class="mk-t" x="64" y="145">山田</text>'
+        +'<circle class="mk-num" cx="40" cy="140" r="12"/><text class="mk-numt" x="40" y="145" text-anchor="middle">2</text>'
+        +'<rect class="mk-btn" x="476" y="166" width="132" height="28" rx="6"/><text class="mk-tw" x="542" y="185" text-anchor="middle">💾 保存</text>'
+        +'<circle class="mk-num" cx="476" cy="168" r="12"/><text class="mk-numt" x="476" y="173" text-anchor="middle">3</text>'
+        +'</svg>'
+    },
+    {
+      g:'仕上げ', t:'12. これで準備完了です',
+      c:'お疲れさまでした。基本の流れは、ログイン、お知らせや中身を更新、見た目を整える、の3つです。困ったときは文章マニュアルのよくある質問もご覧ください。ブロック事務局がサポートします。',
+      svg:
+        '<svg viewBox="0 0 640 220" role="img">'
+        +'<rect x="60" y="30" width="520" height="160" rx="16" fill="#fff"/>'
+        +'<text x="320" y="92" text-anchor="middle" font-size="40">🎉</text>'
+        +'<text x="320" y="132" text-anchor="middle" fill="#0D2347" font-size="20" font-weight="800">準備完了です！</text>'
+        +'<text x="320" y="162" text-anchor="middle" fill="#64748b" font-size="13">ログイン → 更新 → 見た目を整える</text>'
+        +'</svg>'
+    }
+  ];
+
+  /* ===== 要素 ===== */
+  var elScene = document.getElementById('scene');
+  var elCap   = document.getElementById('caption');
+  var elSeg   = document.getElementById('seg');
+  var elList  = document.getElementById('chlist');
+  var elCount = document.getElementById('counter');
+  var elPP    = document.getElementById('playpause');
+  var elPrev  = document.getElementById('prev');
+  var elNext  = document.getElementById('next');
+  var elVoice = document.getElementById('voice');
+  var elPoster= document.getElementById('poster');
+
+  var cur = 0, playing = false, timer = null, started = false;
+  var jaVoice = null;
+
+  /* 日本語音声を取得（非同期で読み込まれる場合あり） */
+  function pickVoice(){
+    if (!('speechSynthesis' in window)) return;
+    var vs = window.speechSynthesis.getVoices() || [];
+    for (var i=0;i<vs.length;i++){ if ((vs[i].lang||'').toLowerCase().indexOf('ja') === 0){ jaVoice = vs[i]; break; } }
+  }
+  if ('speechSynthesis' in window){
+    pickVoice();
+    window.speechSynthesis.onvoiceschanged = pickVoice;
+  }
+
+  /* セグメント＆章メニュー生成 */
+  (function build(){
+    var segHtml = '', listHtml = '', lastG = '';
+    for (var i=0;i<S.length;i++){
+      segHtml += '<i data-i="'+i+'"></i>';
+      if (S[i].g !== lastG){ listHtml += '<li class="gh-li"><div class="gh">'+S[i].g+'</div></li>'; lastG = S[i].g; }
+      listHtml += '<li><button class="jump" data-i="'+i+'">'+S[i].t+'</button></li>';
+    }
+    elSeg.innerHTML = segHtml;
+    elList.innerHTML = listHtml;
+  })();
+
+  function clearTimer(){ if (timer){ clearTimeout(timer); timer = null; } }
+  function stopVoice(){ if ('speechSynthesis' in window) window.speechSynthesis.cancel(); }
+
+  function render(i){
+    var sc = S[i];
+    elScene.innerHTML = '<div class="chlabel">'+sc.g+'</div><h2>'+sc.t+'</h2><div class="figbox">'+sc.svg+'</div>';
+    elCap.textContent = sc.c;
+    elCount.textContent = (i+1) + ' / ' + S.length;
+    var segs = elSeg.children;
+    for (var k=0;k<segs.length;k++){ segs[k].className = (k < i ? 'done' : (k === i ? 'cur' : '')); }
+    var jumps = elList.querySelectorAll('button.jump');
+    for (var j=0;j<jumps.length;j++){ jumps[j].classList.toggle('active', Number(jumps[j].getAttribute('data-i')) === i); }
+  }
+
+  function estimate(text){ return Math.max(4500, text.length * 95 + 1800); }
+
+  function run(){
+    clearTimer(); stopVoice();
+    var sc = S[cur];
+    var advanced = false;
+    function adv(){ if (advanced) return; advanced = true; clearTimer(); if (playing) goNext(true); }
+
+    if (elVoice.checked && 'speechSynthesis' in window){
+      var u = new SpeechSynthesisUtterance(sc.c);
+      u.lang = 'ja-JP'; u.rate = 1.0; u.pitch = 1.0;
+      if (jaVoice) u.voice = jaVoice;
+      u.onend = adv;
+      try { window.speechSynthesis.speak(u); } catch(e){}
+      timer = setTimeout(adv, estimate(sc.c) + 7000); /* 読み上げ非対応/失敗時の保険 */
+    } else {
+      timer = setTimeout(adv, estimate(sc.c));
+    }
+  }
+
+  function goNext(auto){
+    if (cur >= S.length - 1){ /* 最後 → 停止 */
+      setPlaying(false);
+      return;
+    }
+    cur++; render(cur); if (playing) run();
+  }
+  function goPrev(){
+    clearTimer(); stopVoice();
+    cur = Math.max(0, cur - 1); render(cur); if (playing) run();
+  }
+  function jumpTo(i){
+    clearTimer(); stopVoice();
+    cur = i; render(cur); if (playing) run();
+  }
+
+  function setPlaying(p){
+    playing = p;
+    elPP.innerHTML = p ? '⏸ 一時停止' : '▶ 再生';
+    if (p){ run(); } else { clearTimer(); stopVoice(); }
+  }
+
+  function startFirst(){
+    started = true;
+    elPoster.style.display = 'none';
+    cur = 0; render(0);
+    setPlaying(true);
+  }
+
+  /* イベント */
+  elPoster.addEventListener('click', startFirst);
+  elPP.addEventListener('click', function(){
+    if (!started){ startFirst(); return; }
+    setPlaying(!playing);
+  });
+  elNext.addEventListener('click', function(){ if (!started){ startFirst(); return; } clearTimer(); stopVoice(); if (cur < S.length-1){ cur++; render(cur); if (playing) run(); } });
+  elPrev.addEventListener('click', function(){ if (!started){ startFirst(); return; } goPrev(); });
+  elVoice.addEventListener('change', function(){ if (playing){ run(); } else { stopVoice(); } });
+  elList.addEventListener('click', function(e){
+    var b = e.target.closest ? e.target.closest('button.jump') : null;
+    if (!b) return;
+    if (!started){ started = true; elPoster.style.display='none'; playing = true; elPP.innerHTML='⏸ 一時停止'; }
+    jumpTo(Number(b.getAttribute('data-i')));
+  });
+
+  /* キーボード操作 */
+  document.addEventListener('keydown', function(e){
+    if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+    if (e.code === 'Space'){ e.preventDefault(); if (!started){ startFirst(); } else { setPlaying(!playing); } }
+    else if (e.code === 'ArrowRight'){ if (started){ clearTimer(); stopVoice(); if (cur<S.length-1){ cur++; render(cur); if(playing) run(); } } }
+    else if (e.code === 'ArrowLeft'){ if (started){ goPrev(); } }
+  });
+
+  /* 再生前の最初の表示（ポスターの下に1枚目を見せておく） */
+  render(0);
+
+  /* 読み上げはタブを離れると止まることがあるため、戻ったら復帰 */
+  document.addEventListener('visibilitychange', function(){
+    if (document.hidden){ stopVoice(); }
+  });
+})();
+</script>
+
+</body>
+</html>
