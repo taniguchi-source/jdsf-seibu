@@ -47,14 +47,35 @@
   nav.toc a{display:flex;gap:8px;align-items:baseline;padding:7px 8px;border-radius:8px;color:var(--ink);font-size:.84rem;font-weight:600}
   nav.toc a:hover{background:#eef3fb;text-decoration:none}
   nav.toc a::before{content:counter(toc);flex:none;width:1.5em;height:1.5em;display:inline-flex;align-items:center;justify-content:center;background:var(--navy);color:#fff;border-radius:50%;font-size:.68rem;font-weight:800}
+  /* 目次グループ見出し */
+  nav.toc li.g{counter-increment:none;margin:16px 4px 4px;font-size:.7rem;font-weight:800;letter-spacing:.05em;color:var(--blue);display:flex;align-items:center;gap:6px}
+  nav.toc li.g:first-of-type{margin-top:2px}
+  nav.toc li.g::before{display:none}
 
   /* 本文 */
   main{min-width:0}
-  .lead{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin-bottom:26px}
+  .lead{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin-bottom:22px}
   .lead h2{margin:0 0 8px;font-size:1.2rem;color:var(--navy)}
   .lead p{margin:6px 0;color:var(--sub);font-size:.92rem}
 
-  section.doc{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 26px;margin-bottom:22px;scroll-margin-top:78px}
+  /* 全体の流れマップ */
+  .flowmap{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0 4px}
+  @media (max-width:620px){ .flowmap{grid-template-columns:1fr} }
+  .flowmap .fc{border:1px solid var(--line);border-radius:12px;padding:14px 14px 12px;background:#f8fafc;position:relative}
+  .flowmap .fc .s{font-size:.66rem;font-weight:800;letter-spacing:.06em;color:var(--blue)}
+  .flowmap .fc h4{margin:4px 0 6px;font-size:.95rem;color:var(--navy)}
+  .flowmap .fc p{margin:0;font-size:.8rem;color:var(--sub);line-height:1.6}
+
+  /* グループ帯（章の区切り） */
+  .group-band{display:flex;align-items:center;gap:14px;margin:30px 0 14px;padding:14px 18px;border-radius:14px;
+    background:linear-gradient(135deg,var(--navy),#1f4173);color:#fff;box-shadow:0 3px 14px rgba(13,35,71,.18)}
+  .group-band .gb-num{flex:none;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:10px;
+    font-size:.72rem;font-weight:800;padding:6px 12px;white-space:nowrap;letter-spacing:.04em}
+  .group-band h3{margin:0;font-size:1.05rem;font-weight:800}
+  .group-band p{margin:2px 0 0;font-size:.8rem;opacity:.88}
+  .group-band:first-of-type{margin-top:10px}
+
+  section.doc{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 26px;margin-bottom:18px;scroll-margin-top:78px}
   section.doc > h2{
     margin:0 0 4px;font-size:1.18rem;color:var(--navy);display:flex;align-items:center;gap:10px;
   }
@@ -124,16 +145,21 @@
 
 <div class="wrap">
 
-  <!-- ===== 目次 ===== -->
+  <!-- ===== 目次（グループ表示） ===== -->
   <nav class="toc">
     <div class="t">もくじ</div>
     <ol>
-      <li><a href="#intro">はじめに（2つの管理画面）</a></li>
+      <li class="g">▎まずはここから</li>
+      <li><a href="#intro">2つの管理画面</a></li>
       <li><a href="#login">ログインする</a></li>
+
+      <li class="g">▎毎日の更新（サイト管理）</li>
       <li><a href="#news">お知らせを投稿する</a></li>
       <li><a href="#news-edit">お知らせの編集・削除・表示切替</a></li>
       <li><a href="#nav">メニュー（ページ）を整える</a></li>
       <li><a href="#contents">ページの中身をつくる</a></li>
+
+      <li class="g">▎見た目・初期設定（サイト構築）</li>
       <li><a href="#build">サイト構築画面を開く</a></li>
       <li><a href="#sitename">サイト名を変える</a></li>
       <li><a href="#carousel">カルーセル画像・キャッチコピー</a></li>
@@ -142,7 +168,9 @@
       <li><a href="#ticker">ニュースティッカー</a></li>
       <li><a href="#theme">配色テーマ</a></li>
       <li><a href="#contact-setup">お問い合わせ先の設定</a></li>
-      <li><a href="#faq">困ったときは（Q&amp;A）</a></li>
+
+      <li class="g">▎困ったとき</li>
+      <li><a href="#faq">よくある質問（Q&amp;A）</a></li>
     </ol>
   </nav>
 
@@ -152,13 +180,44 @@
   <div class="lead">
     <h2>このマニュアルについて</h2>
     <p>各府県連盟のホームページは、<b>担当者ご自身がブラウザから内容を入力・更新</b>できます。専門知識やソフトは不要で、スマートフォンからでも編集できます。</p>
-    <p>このガイドでは、お知らせの投稿からデザインの調整まで、画面の図とあわせて手順を説明します。上の「もくじ」から知りたい項目へ飛べます。</p>
+    <p>このガイドは <b>4つのブロック</b> に分かれています。まず「まずはここから」を読み、あとは必要なときに該当ブロックを開けば大丈夫です。</p>
+
+    <div class="flowmap">
+      <div class="fc">
+        <div class="s">まずはここから</div>
+        <h4>① 仕組みを知る・ログイン</h4>
+        <p>2つの画面の役割を理解し、パスワードでログインします。</p>
+      </div>
+      <div class="fc">
+        <div class="s">毎日の更新</div>
+        <h4>② サイト管理</h4>
+        <p>お知らせ・メニュー・各ページの中身を、いつでも更新します。</p>
+      </div>
+      <div class="fc">
+        <div class="s">見た目・初期設定</div>
+        <h4>③ サイト構築</h4>
+        <p>サイト名・画像・配色・お問い合わせ先などを設定します。</p>
+      </div>
+    </div>
+
     <div class="tip"><b>ログインのパスワード</b>は、ブロック事務局より各府県担当者へ個別にお伝えします。本マニュアルには記載していません。</div>
+  </div>
+
+
+  <!-- ============================================================ -->
+  <!-- グループ A：まずはここから                                    -->
+  <!-- ============================================================ -->
+  <div class="group-band">
+    <span class="gb-num">STEP 0</span>
+    <div>
+      <h3>まずはここから</h3>
+      <p>サイトの仕組み（2つの画面）を知り、ログインします。</p>
+    </div>
   </div>
 
   <!-- ===== 1. はじめに ===== -->
   <section class="doc" id="intro">
-    <h2><span class="chip">1</span> はじめに ― 2つの管理画面</h2>
+    <h2><span class="chip">1</span> 2つの管理画面</h2>
     <p class="desc">サイトの編集は、目的別に2つの画面に分かれています。役割を覚えると操作に迷いません。</p>
 
     <figure class="fig">
@@ -186,6 +245,12 @@
       </svg>
       <figcaption>左：日々の更新は「サイト管理」／右：デザイン調整は「サイト構築」</figcaption>
     </figure>
+
+    <table class="tbl">
+      <tr><th>画面</th><th>使う頻度</th><th>できること</th></tr>
+      <tr><td>⚙️ サイト管理<br>（admin）</td><td>よく使う</td><td>お知らせ投稿・メニュー・各ページの中身</td></tr>
+      <tr><td>🔧 サイト構築<br>（site-config）</td><td>最初＋ときどき</td><td>サイト名・画像・配色・お問い合わせ先など</td></tr>
+    </table>
 
     <div class="tip">2つの画面は<b>それぞれ別のパスワード</b>です（サイト管理＝普段使う方／サイト構築＝デザイン用）。サイト管理から「🔧 サイト構築ページへ →」のボタンで移動できます。</div>
     <p style="font-size:.88rem;color:var(--sub)">※ ヘッダー上段の「公益社団法人日本ダンススポーツ連盟」という所属表記は固定で、変更されません。</p>
@@ -228,6 +293,18 @@
     <div class="note"><b>ログインは約3日間保持されます。</b>一度ログインすれば、しばらくは再入力なしで編集できます。共用パソコンでは作業後に「🔓 ログアウト」を押してください。</div>
     <div class="warn"><b>パスワードを忘れた／変えたいとき</b>は、ブロック事務局へご連絡ください（パスワードは事務局の管理表で変更でき、次回ログインから反映されます）。</div>
   </section>
+
+
+  <!-- ============================================================ -->
+  <!-- グループ B：毎日の更新（サイト管理）                          -->
+  <!-- ============================================================ -->
+  <div class="group-band">
+    <span class="gb-num">STEP 1</span>
+    <div>
+      <h3>毎日の更新 ―「サイト管理」でやること</h3>
+      <p>お知らせ・メニュー・各ページの中身を、必要なときに更新します。</p>
+    </div>
+  </div>
 
   <!-- ===== 3. お知らせ投稿 ===== -->
   <section class="doc" id="news">
@@ -397,15 +474,32 @@
     </table>
 
     <ol class="steps">
-      <li><b>タイトル</b>を入力します（見出しになります）。</li>
+      <li><b>タイトル</b>を入力します（見出しになります）。「このタイトルをサイトに表示する」のチェックを外すと、見出しを隠して中身だけ表示できます。</li>
       <li><b>種類</b>を選びます（上の表を参考に）。</li>
       <li>種類に応じて、文章・URL・ファイルなどを入力／アップロードします。</li>
       <li><b>「保存する →」</b>で確定。最後にページ側の<b>「💾 コンテンツを保存」</b>も押します。</li>
     </ol>
 
+    <h3 class="step-h">並べ替え・サブコンテンツ</h3>
+    <ul class="plain">
+      <li><b>並べ替え</b>：各コンテンツの左にある <b>⠿</b>（点のマーク）をつかんでドラッグすると、表示順を入れ替えられます（スマホは長押しで移動）。</li>
+      <li><b>サブコンテンツ</b>：「サブコンテンツ」にチェックすると、ひとつ上のコンテンツに付属する「補足」として一段下げて表示されます（管理画面では <span class="pill">↳ サブ</span> の印が付きます）。親コンテンツをドラッグすると、サブも一緒に移動します。</li>
+    </ul>
+
     <div class="tip"><b>📊 スプレッドシートを使うとき</b>は、対象のシートを <b>「リンクを知っている全員が閲覧可」</b> に設定してください。表を直接サイトに表示でき、スプレッドシートを直すだけでサイトも更新されます。</div>
-    <div class="tip"><b>📌 サブコンテンツ</b>にチェックすると、ひとつ上のコンテンツに付属する「補足」として小さく表示されます。</div>
   </section>
+
+
+  <!-- ============================================================ -->
+  <!-- グループ C：見た目・初期設定（サイト構築）                    -->
+  <!-- ============================================================ -->
+  <div class="group-band">
+    <span class="gb-num">STEP 2</span>
+    <div>
+      <h3>見た目・初期設定 ―「サイト構築」でやること</h3>
+      <p>サイト名・画像・配色・お問い合わせ先など、サイトの土台を整えます（最初に一度＋必要なときに）。</p>
+    </div>
+  </div>
 
   <!-- ===== 7. サイト構築を開く ===== -->
   <section class="doc" id="build">
@@ -415,7 +509,7 @@
       <li>サイト管理画面の下のほうにある <b>「🔧 サイト構築ページへ →」</b> を押します。<br>（または直接 <code class="path">https://○○.jdsf-seibu.com/site-config.html</code> を開きます）</li>
       <li><b>サイト構築用のパスワード</b>を入力してログインします（サイト管理とは別のパスワードです）。</li>
     </ol>
-    <div class="note">サイト構築画面では、<b>サイト名／カルーセル画像／クイックリンク／ヒーローの高さ・幅・矢印／ニュースティッカー／配色テーマ</b>を設定できます（次章以降）。</div>
+    <div class="note">サイト構築画面では、<b>サイト名／カルーセル画像／クイックリンク／ヒーローの高さ・幅・矢印／ニュースティッカー／配色テーマ／お問い合わせ先</b>を設定できます（次章以降）。保存すると画面下に <b>「✅ ◯◯を保存しました」</b> と表示されます。</div>
   </section>
 
   <!-- ===== 8. サイト名 ===== -->
@@ -536,7 +630,7 @@
   <!-- ===== 13. 配色 ===== -->
   <section class="doc" id="theme">
     <h2><span class="chip">13</span> 配色テーマ</h2>
-    <p class="desc"><span class="pill">🎨 配色テーマ変更</span>：サイト全体の色合いを、用意されたテーマから選んで切り替えます。</p>
+    <p class="desc"><span class="pill">🎨 配色テーマ変更</span>：サイト全体の色合いを、用意された10種類のテーマから選んで切り替えます。</p>
     <figure class="fig">
       <svg viewBox="0 0 640 120" role="img" aria-label="配色テーマ">
         <rect class="mk-frame" x="14" y="14" width="612" height="92" rx="12"/>
@@ -555,7 +649,7 @@
     <ol class="steps">
       <li>好きな<b>テーマ（色）</b>を選びます。選ぶと自動で保存・反映されます。</li>
     </ol>
-    <div class="tip">迷ったら標準（紺＝JDSFカラー）のままで問題ありません。</div>
+    <div class="tip">迷ったら標準（紺＝JDSFカラー）のままで問題ありません。ボタンの色などもテーマに合わせて自動で変わります。</div>
   </section>
 
   <!-- ===== 14. お問い合わせ先の設定 ===== -->
@@ -638,9 +732,21 @@
     <div class="note">担当者やメールが変わったら、この画面で書き換えて保存するだけ。すぐ反映されます。</div>
   </section>
 
+
+  <!-- ============================================================ -->
+  <!-- グループ D：困ったとき                                        -->
+  <!-- ============================================================ -->
+  <div class="group-band">
+    <span class="gb-num">困ったとき</span>
+    <div>
+      <h3>うまくいかないとき</h3>
+      <p>よくある質問と対処法をまとめました。</p>
+    </div>
+  </div>
+
   <!-- ===== 15. FAQ ===== -->
   <section class="doc" id="faq">
-    <h2><span class="chip">15</span> 困ったときは（Q&amp;A）</h2>
+    <h2><span class="chip">15</span> よくある質問（Q&amp;A）</h2>
     <h3 class="step-h">変更が反映されない</h3>
     <p>保存ボタンを押したか確認してください。それでも変わらない場合は、ブラウザを<b>強制リロード</b>します：パソコンは <span class="kbd">Ctrl + Shift + R</span>、スマホはページを下に引っぱって更新。</p>
     <h3 class="step-h">画像がアップロードできない</h3>
@@ -650,11 +756,11 @@
     <h3 class="step-h">パスワードを忘れた／変えたい</h3>
     <p>ブロック事務局へご連絡ください。事務局の管理表で変更でき、次回ログインから反映されます。</p>
     <h3 class="step-h">スマホでも編集できる？</h3>
-    <p>できます。同じURLをスマホのブラウザで開けば、同じように操作できます。</p>
+    <p>できます。同じURLをスマホのブラウザで開けば、同じように操作できます。コンテンツの並べ替えは<b>長押し</b>してから動かします。</p>
     <h3 class="step-h">お問い合わせフォームが「準備中」のまま</h3>
     <p>サイト構築の「📨 お問い合わせ先設定」で<b>送信先メールアドレスを入力して保存</b>すると、フォームが表示されます（→ <a href="#contact-setup">14. お問い合わせ先の設定</a>）。</p>
     <h3 class="step-h">お問い合わせメールが届かない</h3>
-    <p>まず受信側の<b>迷惑メールフォルダ</b>を確認してください。プロバイダによっては自動送信メールが迷惑メール扱いされることがあります。送信元 <b>jdsf.seibu@gmail.com</b> を「受信許可（連絡先に追加）」しておくと確実です。</p>
+    <p>まず受信側の<b>迷惑メールフォルダ</b>を確認してください。プロバイダによっては自動送信メールが迷惑メール扱いされることがあります。届いた自動返信メールの<b>送信元アドレスを「連絡先に追加（受信許可）」</b>しておくと確実です。</p>
     <div class="warn"><b>共用のパソコンで作業したとき</b>は、終わったら必ず「🔓 ログアウト」を押してください。</div>
     <div class="tip">操作で分からないことがあれば、ブロック事務局までお問い合わせください。</div>
   </section>
