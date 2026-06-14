@@ -474,10 +474,12 @@
         block.appendChild(lNote);
       } else {
         var titleIcon = m.type === 'sheet' ? '📊 ' : ((m.type === 'file' || m.type === 'image') ? '🖼️ ' : (m.type === 'gallery' ? '🏞 ' : (m.type === 'pdf' ? '📄 ' : (m.type === 'link' ? '🔗 ' : '📝 '))));
-        var titleEl = document.createElement('h2');
-        titleEl.className = 'content-block-title';
-        titleEl.textContent = titleIcon + (m.title || 'コンテンツ');
-        block.appendChild(titleEl);
+        if (m.title) {
+          var titleEl = document.createElement('h2');
+          titleEl.className = 'content-block-title';
+          titleEl.textContent = titleIcon + m.title;
+          block.appendChild(titleEl);
+        }
         appendWithFetch(m, buildBodyEl(m), block);
       }
 
