@@ -32,10 +32,8 @@ jobs:
         continue-on-error: true
         run: python scripts/fetch_events.py
 
-      - name: Fetch news data（お知らせ）
-        id: fetch_news
-        continue-on-error: true
-        run: python scripts/fetch_news.py
+      # ※「お知らせ」は役員ページの「公開お知らせ管理」から手動投稿で運用（自動取得は停止）。
+      #   data/news.json は手動投稿(save_news.php)が管理するため、ここでは触れない。
 
       - name: Setup SSH key
         run: |
@@ -58,14 +56,6 @@ jobs:
           rsync -avz \
             -e "ssh -i ~/.ssh/deploy_key -p 10022 -o StrictHostKeyChecking=no" \
             data/events_seibu.json \
-            jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/data/
-
-      - name: Deploy news.json（成功時のみ）
-        if: steps.fetch_news.outcome == 'success'
-        run: |
-          rsync -avz \
-            -e "ssh -i ~/.ssh/deploy_key -p 10022 -o StrictHostKeyChecking=no" \
-            data/news.json \
             jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/data/
 
       - name: Cleanup
