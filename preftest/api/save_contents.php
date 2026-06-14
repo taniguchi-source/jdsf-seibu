@@ -41,6 +41,7 @@ foreach ($items as $item) {
         'title'      => mb_substr(trim((string)($item['title'] ?? '')), 0, 60),
         'enabled'    => !empty($item['enabled']),
         'is_sub'     => !empty($item['is_sub']),
+        'show_title' => array_key_exists('show_title', $item) ? !empty($item['show_title']) : true,
         'type'       => in_array($type_raw, ['text', 'sheet', 'file', 'image', 'gallery', 'pdf', 'link'], true) ? $type_raw : 'text',
         'body'       => mb_substr(trim((string)($item['body'] ?? '')), 0, 5000),
         'sheet_url'  => mb_substr(trim((string)($item['sheet_url']  ?? '')), 0, 500),

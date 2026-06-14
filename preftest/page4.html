@@ -475,7 +475,7 @@
         block.appendChild(lNote);
       } else {
         var titleIcon = m.type === 'sheet' ? '📊 ' : ((m.type === 'file' || m.type === 'image') ? '🖼️ ' : (m.type === 'gallery' ? '🏞 ' : (m.type === 'pdf' ? '📄 ' : (m.type === 'link' ? '🔗 ' : '📝 '))));
-        if (m.title) {
+        if (m.title && m.show_title !== false) {
           var titleEl = document.createElement('h2');
           titleEl.className = 'content-block-title';
           titleEl.textContent = titleIcon + m.title;
@@ -513,7 +513,7 @@
             subItem.appendChild(slNote);
           } else {
             var subIcon = sub.type === 'sheet' ? '📊 ' : ((sub.type === 'file' || sub.type === 'image') ? '🖼️ ' : (sub.type === 'gallery' ? '🏞 ' : (sub.type === 'pdf' ? '📄 ' : (sub.type === 'link' ? '🔗 ' : '📝 '))));
-            if (sub.title) {
+            if (sub.title && sub.show_title !== false) {
               var subTitle = document.createElement('h3');
               subTitle.className = 'sub-content-title';
               subTitle.textContent = subIcon + sub.title;

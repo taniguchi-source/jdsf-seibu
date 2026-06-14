@@ -306,8 +306,12 @@
     <div style="display:grid;gap:16px;">
       <!-- タイトル -->
       <div>
-        <label class="form-label">タイトル <span id="cd-title-req" style="color:#718096;font-size:.75rem;">（任意）</span></label>
+        <label class="form-label">タイトル <span id="cd-title-req" style="color:#e53e3e;font-size:.75rem;">（必須）</span></label>
         <input type="text" id="cd-title" class="form-input" placeholder="コンテンツのタイトルを入力">
+        <label style="display:inline-flex;align-items:center;gap:7px;margin-top:8px;cursor:pointer;user-select:none;font-size:.8rem;color:var(--text-medium,#4A5568);">
+          <input type="checkbox" id="cd-show-title" checked style="width:15px;height:15px;cursor:pointer;accent-color:var(--primary);flex-shrink:0;">
+          このタイトルをサイトに表示する
+        </label>
       </div>
       <!-- サブコンテンツ -->
       <div style="padding:10px 16px;background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:8px;">
@@ -966,6 +970,7 @@
       + 'style="background:none;border:none;cursor:pointer;font-size:.82rem;font-weight:700;color:' + (isSub ? '#92400E' : 'var(--primary)') + ';padding:0;font-family:inherit;text-decoration:underline dotted;text-underline-offset:2px;">'
       + typeIcon + safeTitle
       + '</button>'
+      + (item.show_title === false ? '<span title="このタイトルはサイトに表示されません" style="font-size:.6rem;font-weight:700;color:#64748B;background:#E2E8F0;border-radius:3px;padding:1px 5px;flex-shrink:0;white-space:nowrap;">🙈 見出し非表示</span>' : '')
       + '<button onclick="removeContentItem(\'' + siteId + '\',' + idx + ')" '
       + 'title="削除" '
       + 'style="background:none;border:none;cursor:pointer;color:#94A3B8;font-size:.85rem;padding:0;line-height:1;flex-shrink:0;">&times;</button>'
@@ -1015,7 +1020,7 @@
     var k = String(siteId);
     if (!_contentData[k]) _contentData[k] = [];
     var num = _contentData[k].length + 1;
-    _contentData[k].push({ id: k + '_' + Date.now(), title: 'コンテンツ' + num, enabled: true, is_sub: false, type: 'text', body: '', sheet_url: '', sheet_name: '', file_url: '', link_url: '', link_label: '', gallery: [] });
+    _contentData[k].push({ id: k + '_' + Date.now(), title: 'コンテンツ' + num, enabled: true, is_sub: false, show_title: true, type: 'text', body: '', sheet_url: '', sheet_name: '', file_url: '', link_url: '', link_label: '', gallery: [] });
     var el = document.getElementById('content-chips-' + k);
     if (el) el.innerHTML = renderContentChips(k);
   }
@@ -1164,6 +1169,8 @@
     document.getElementById('cd-idx').value     = String(idx);
     var isSubEl = document.getElementById('cd-is-sub');
     if (isSubEl) isSubEl.checked = !!item.is_sub;
+    var showTitleEl = document.getElementById('cd-show-title');
+    if (showTitleEl) showTitleEl.checked = (item.show_title !== false); // 既定は表示
     document.getElementById('cd-title').value   = item.title || '';
     document.getElementById('cd-body').value    = item.body  || '';
     // 種類ラジオボタン（旧 file タイプは image として扱う）
@@ -1239,6 +1246,7 @@
     var isSubEl2 = document.getElementById('cd-is-sub');
     var isSub  = isSubEl2 ? isSubEl2.checked : false;
     var title  = document.getElementById('cd-title').value.trim();
+    var showTitle = (document.getElementById('cd-show-title') || {checked:true}).checked;
     var body   = (document.getElementById('cd-body') || {value:''}).value.trim();
     var msg    = document.getElementById('cd-msg');
     // 種類取得
@@ -1252,11 +1260,16 @@
     var fileUrl   = ((document.getElementById('cd-file-url')   || {value:''}).value || '').trim();
     var linkUrl   = ((document.getElementById('cd-link-url')   || {value:''}).value || '').trim();
     var linkLabel = ((document.getElementById('cd-link-label') || {value:''}).value || '').trim();
-    /* タイトルは任意（未入力でも保存可） */
+    /* タイトルは必須 */
+    if (!title) {
+      if (msg) { msg.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;border-radius:6px;padding:8px 14px;'; msg.textContent='⚠ タイトルを入力してください'; }
+      return;
+    }
     var item = (_contentData[String(siteId)] || [])[idx];
     if (item) {
       item.is_sub     = isSub;
       item.title      = title;
+      item.show_title = showTitle;
       item.body       = body;
       item.type       = type;
       item.sheet_url  = sheetUrl;
@@ -1306,11 +1319,11 @@
   function updateTypeLayout() {
     var isSubEl  = document.getElementById('cd-is-sub');
     var isSub    = isSubEl ? isSubEl.checked : false;
-    /* タイトルは常に任意 */
+    /* タイトルは常に必須 */
     var titleReq = document.getElementById('cd-title-req');
     if (titleReq) {
-      titleReq.textContent = '（任意）';
-      titleReq.style.color = '#718096';
+      titleReq.textContent = '（必須）';
+      titleReq.style.color = '#e53e3e';
     }
     var lblText    = document.getElementById('cd-type-label-text');
     var lblSheet   = document.getElementById('cd-type-label-sheet');
