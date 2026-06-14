@@ -646,6 +646,7 @@
       data.links.forEach(function (link) {
         if (!link.enabled) return;
         var url  = String(link.url  || '#').replace(/"/g, '%22');
+        if (/^\s*(javascript|data|vbscript):/i.test(link.url || '')) url = '#';
         var name = String(link.name || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         html += '<a href="' + url + '" class="nav-link">' + name + '</a>';
       });
@@ -667,6 +668,7 @@
       if (items.length === 0) return; /* 全て無効なら既定リンクを維持 */
       wrap.innerHTML = items.map(function (l) {
         var url = String(l.url || '#').replace(/"/g, '%22');
+        if (/^\s*(javascript|data|vbscript):/i.test(l.url || '')) url = '#';
         var tgt = l.newtab ? ' target="_blank" rel="noopener"' : '';
         return '<a href="' + url + '"' + tgt + '>' + esc(l.label || l.url) + '</a>';
       }).join('');
@@ -676,6 +678,9 @@
 
 /* ===== 直近競技会情報（本番 competitions_seibu.json をプロキシ取得して描画） ===== */
 (function () {
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
   var grid = document.getElementById('home-comp-grid');
   if (!grid) return;
   fetch('api/fetch_competitions.php?_=' + Date.now())
@@ -711,14 +716,14 @@
           } else badge = '';
         } else badge = '';
         var links = [];
-        if (c.syllabus_url) links.push('<a href="' + c.syllabus_url + '" target="_blank" rel="noopener" class="table-link">シラバス</a>');
-        if (c.entry_url) links.push('<a href="' + c.entry_url + '" target="_blank" rel="noopener" class="table-link" style="background:#e07040;color:#fff;border-color:#e07040;">エントリー</a>');
-        if (c.result_url) { var lbl = c.has_result ? '結果' : '参加者'; links.push('<a href="' + c.result_url + '" target="_blank" rel="noopener" class="table-link">' + lbl + '</a>'); }
-        var venueHtml = c.venue ? '<span class="comp-row-venue">📍 ' + c.venue + '</span>' : '';
+        if (c.syllabus_url) links.push('<a href="' + escHtml(c.syllabus_url) + '" target="_blank" rel="noopener" class="table-link">シラバス</a>');
+        if (c.entry_url) links.push('<a href="' + escHtml(c.entry_url) + '" target="_blank" rel="noopener" class="table-link" style="background:#e07040;color:#fff;border-color:#e07040;">エントリー</a>');
+        if (c.result_url) { var lbl = c.has_result ? '結果' : '参加者'; links.push('<a href="' + escHtml(c.result_url) + '" target="_blank" rel="noopener" class="table-link">' + lbl + '</a>'); }
+        var venueHtml = c.venue ? '<span class="comp-row-venue">📍 ' + escHtml(c.venue) + '</span>' : '';
         return '<div class="comp-row' + (isPast ? ' comp-row-past' : '') + '">'
-          + '<div class="comp-row-date">' + (c.date || '') + '</div>'
+          + '<div class="comp-row-date">' + escHtml(c.date || '') + '</div>'
           + '<div class="comp-row-body">'
-          + '<div class="comp-row-name">' + (c.name || '') + '</div>'
+          + '<div class="comp-row-name">' + escHtml(c.name || '') + '</div>'
           + '<div class="comp-row-meta">' + venueHtml + badge + links.join('') + '</div>'
           + '</div></div>';
       });
@@ -825,6 +830,7 @@
       var fUrl3 = item.file_url || ''; bodyEl.className = 'content-block-body'; bodyEl.textContent = fUrl3 ? fUrl3 : '（ファイルは未設定です）';
     } else if (item.type === 'link') {
       var lUrl = item.link_url || '', lLabel = item.link_label || item.title || '';
+      if (/^\s*(javascript|data|vbscript):/i.test(lUrl)) lUrl = '';
       if (lUrl) { bodyEl.innerHTML = '<a href="' + escHtml(lUrl) + '" target="_blank" rel="noopener" class="link-btn">🔗 ' + escHtml(lLabel || lUrl) + '　→</a><p class="link-btn-sub">新しいタブで開きます</p>'; }
       else { bodyEl.className = 'content-block-body'; bodyEl.textContent = '（リンクURLは未設定です）'; }
     } else {
@@ -974,7 +980,7 @@
     .then(function(d){
       var html = '<li><a href="index.html">ホーム</a></li><li><a href="news.html">お知らせ一覧</a></li>';
       if (d && Array.isArray(d.links)) {
-        d.links.forEach(function(l){ if (!l.enabled) return; html += '<li><a href="' + String(l.url||'#').replace(/"/g,'%22') + '">' + esc(l.name||'') + '</a></li>'; });
+        d.links.forEach(function(l){ if (!l.enabled) return; var _u = String(l.url||'#').replace(/"/g,'%22'); if (/^\s*(javascript|data|vbscript):/i.test(l.url||'')) _u = '#'; html += '<li><a href="' + _u + '">' + esc(l.name||'') + '</a></li>'; });
       }
       html += '<li><a href="contact.html">お問い合わせ</a></li>';
       ul.innerHTML = html;

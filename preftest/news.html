@@ -305,6 +305,7 @@
       data.links.forEach(function (link) {
         if (!link.enabled) return;
         var url  = String(link.url  || '#').replace(/"/g, '%22');
+        if (/^\s*(javascript|data|vbscript):/i.test(link.url || '')) url = '#';
         var name = String(link.name || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         html += '<a href="' + url + '" class="nav-link">' + name + '</a>';
       });
@@ -344,7 +345,7 @@
     .then(function(d){
       var html = '<li><a href="index.html">ホーム</a></li><li><a href="news.html">お知らせ一覧</a></li>';
       if (d && Array.isArray(d.links)) {
-        d.links.forEach(function(l){ if (!l.enabled) return; html += '<li><a href="' + String(l.url||'#').replace(/"/g,'%22') + '">' + esc(l.name||'') + '</a></li>'; });
+        d.links.forEach(function(l){ if (!l.enabled) return; var _u = String(l.url||'#').replace(/"/g,'%22'); if (/^\s*(javascript|data|vbscript):/i.test(l.url||'')) _u = '#'; html += '<li><a href="' + _u + '">' + esc(l.name||'') + '</a></li>'; });
       }
       html += '<li><a href="contact.html">お問い合わせ</a></li>';
       ul.innerHTML = html;
