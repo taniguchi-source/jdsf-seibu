@@ -21,13 +21,20 @@ jobs:
       - name: Install dependencies
         run: pip install requests beautifulsoup4
 
+      # 各取得は独立（1つ失敗しても他の配信は止めない）。失敗したものは配信しない＝本番を上書きしない。
       - name: Fetch competition data（西部ブロック）
+        id: fetch_comp
+        continue-on-error: true
         run: python scripts/fetch_competitions.py
 
       - name: Fetch training event data（西部ブロック）
+        id: fetch_events
+        continue-on-error: true
         run: python scripts/fetch_events.py
 
       - name: Fetch news data（お知らせ）
+        id: fetch_news
+        continue-on-error: true
         run: python scripts/fetch_news.py
 
       - name: Setup SSH key
@@ -37,12 +44,27 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -p 10022 sv16504.xserver.jp >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Deploy data/*.json to production via rsync
+      - name: Deploy competitions_seibu.json（成功時のみ）
+        if: steps.fetch_comp.outcome == 'success'
         run: |
           rsync -avz \
             -e "ssh -i ~/.ssh/deploy_key -p 10022 -o StrictHostKeyChecking=no" \
             data/competitions_seibu.json \
+            jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/data/
+
+      - name: Deploy events_seibu.json（成功時のみ）
+        if: steps.fetch_events.outcome == 'success'
+        run: |
+          rsync -avz \
+            -e "ssh -i ~/.ssh/deploy_key -p 10022 -o StrictHostKeyChecking=no" \
             data/events_seibu.json \
+            jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/data/
+
+      - name: Deploy news.json（成功時のみ）
+        if: steps.fetch_news.outcome == 'success'
+        run: |
+          rsync -avz \
+            -e "ssh -i ~/.ssh/deploy_key -p 10022 -o StrictHostKeyChecking=no" \
             data/news.json \
             jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/data/
 
