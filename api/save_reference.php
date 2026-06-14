@@ -12,9 +12,36 @@ if ($token !== 'jdsfseibu2026') {
     exit;
 }
 
-/* ── 資料操作パスワード ── */
+/* ── 資料操作パスワード（役員ログインと同じスプレッドシートM列・GAS経由） ── */
+function jdsf_officer_password() {
+    $url = 'https://script.google.com/macros/s/AKfycbxS07Mxs6TZHdq0aGTay547EfIrN5igaJ527EaWl-O-RgHv7VHMllszJyMkI30qRU3A/exec?action=auth&site=jdsf-seibu';
+    $resp = false;
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_CONNECTTIMEOUT => 5,
+        ]);
+        $resp = curl_exec($ch);
+        curl_close($ch);
+    }
+    if ($resp === false && ini_get('allow_url_fopen')) {
+        $resp = @file_get_contents($url, false, stream_context_create(['http' => ['timeout' => 10]]));
+    }
+    if ($resp) {
+        $j = json_decode($resp, true);
+        if (is_array($j) && isset($j['password'])) {
+            $p = trim((string)$j['password']);
+            if ($p !== '') return $p;
+        }
+    }
+    return 'seibu2026'; // GAS不通/空欄時のフォールバック（officers.html と一致）
+}
+
 $ref_password = $_POST['ref_password'] ?? '';
-if ($ref_password !== 'taniguchi') {
+if ($ref_password !== jdsf_officer_password()) {
     echo json_encode(['ok' => false, 'error' => 'パスワードが正しくありません']);
     exit;
 }
