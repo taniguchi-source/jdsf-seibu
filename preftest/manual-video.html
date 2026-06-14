@@ -120,7 +120,7 @@
       <div class="poster" id="poster">
         <div class="big">▶</div>
         <div class="pt">再生して操作ガイドを見る</div>
-        <div class="ps">図解が自動で進み、字幕で説明します。お使いの端末が対応していれば音声でも読み上げます（音声は右下のスイッチでON/OFFできます）。</div>
+        <div class="ps">図解が自動で進み、字幕＋音声ナレーションで説明します（音声は右下のスイッチでON/OFFできます）。</div>
       </div>
     </div>
 
@@ -143,7 +143,7 @@
   </div>
 
   <p class="note">
-    ※ この動画ガイドはブラウザ上で再生する「自動スライド」です。音声読み上げは端末・ブラウザの読み上げ機能を利用するため、環境により声や有無が異なります（字幕は常に表示されます）。
+    ※ この動画ガイドはブラウザ上で再生する「自動スライド」です。あらかじめ用意した高品質な音声（Google）を再生します。未対応の環境では端末の読み上げ、または字幕のみで進みます（字幕は常に表示されます）。
     文章で詳しく読みたいときは <a href="manual.html" style="color:#9fc2ff;font-weight:700;">📖 文章マニュアル</a> をご覧ください。
   </p>
 
@@ -378,6 +378,8 @@
 
   var cur = 0, playing = false, timer = null, started = false;
   var jaVoice = null;
+  var audioEl = new Audio(); audioEl.preload = 'none';
+  function pad(n){ return n < 10 ? '0' + n : '' + n; }
 
   /* 日本語音声を取得（非同期で読み込まれる場合あり） */
   function pickVoice(){
@@ -403,7 +405,7 @@
   })();
 
   function clearTimer(){ if (timer){ clearTimeout(timer); timer = null; } }
-  function stopVoice(){ if ('speechSynthesis' in window) window.speechSynthesis.cancel(); }
+  function stopVoice(){ if ('speechSynthesis' in window) window.speechSynthesis.cancel(); try { audioEl.pause(); audioEl.onended = null; audioEl.onerror = null; } catch(e){} }
 
   function render(i){
     var sc = S[i];
@@ -418,19 +420,37 @@
 
   function estimate(text){ return Math.max(4500, text.length * 95 + 1800); }
 
+  /* ブラウザ内蔵の読み上げ（MP3が無い/未対応のときのフォールバック） */
+  function speakBrowser(sc, adv){
+    if ('speechSynthesis' in window){
+      var u = new SpeechSynthesisUtterance(sc.c);
+      u.lang = 'ja-JP'; u.rate = 1.0; u.pitch = 1.0;
+      if (jaVoice) u.voice = jaVoice;
+      u.onend = adv;
+      try { window.speechSynthesis.speak(u); } catch(e){}
+      timer = setTimeout(adv, estimate(sc.c) + 7000);
+    } else {
+      timer = setTimeout(adv, estimate(sc.c));
+    }
+  }
+
   function run(){
     clearTimer(); stopVoice();
     var sc = S[cur];
     var advanced = false;
     function adv(){ if (advanced) return; advanced = true; clearTimer(); if (playing) goNext(true); }
 
-    if (elVoice.checked && 'speechSynthesis' in window){
-      var u = new SpeechSynthesisUtterance(sc.c);
-      u.lang = 'ja-JP'; u.rate = 1.0; u.pitch = 1.0;
-      if (jaVoice) u.voice = jaVoice;
-      u.onend = adv;
-      try { window.speechSynthesis.speak(u); } catch(e){}
-      timer = setTimeout(adv, estimate(sc.c) + 7000); /* 読み上げ非対応/失敗時の保険 */
+    if (elVoice.checked){
+      /* 1) 事前生成した高品質MP3を優先再生。無ければ 2) ブラウザ読み上げ にフォールバック */
+      var fellBack = false;
+      function fallback(){ if (fellBack) return; fellBack = true; speakBrowser(sc, adv); }
+      audioEl.onended = adv;
+      audioEl.onerror = fallback;
+      audioEl.src = 'audio/manual/scene-' + pad(cur) + '.mp3';
+      var p;
+      try { p = audioEl.play(); } catch(e){ fallback(); }
+      if (p && p.catch) p.catch(function(){ fallback(); });
+      timer = setTimeout(adv, estimate(sc.c) + 20000); /* MP3も音声も鳴らない場合の最終保険 */
     } else {
       timer = setTimeout(adv, estimate(sc.c));
     }

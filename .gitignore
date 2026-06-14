@@ -1,0 +1,2 @@
+# 音声生成用 Google API キー（ローカルのみ・絶対にコミットしない）
+scripts/.tts_key
