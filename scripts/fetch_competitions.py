@@ -275,7 +275,9 @@ def main():
     # adm.jdsf.jp の ◎ マーク更新はJDSF事務局の手動作業のため遅延する場合がある
     print(f"\n結果URL確認中（adm未更新分の補完）...")
     for i, c in enumerate(unique):
-        if not c.get('has_result') and c.get('result_url'):
+        # 「参」(参加者一覧)が付いている競技は、結果ページが200でも結果(◎)に昇格させない
+        # （参加者一覧ページも200を返すため、参のみの競技を誤って「結果」にしないようガード）
+        if not c.get('has_result') and not c.get('has_participants') and c.get('result_url'):
             live = check_result_url(c['result_url'])
             if live:
                 c['has_result'] = True
