@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>役員ページ 動画ガイド｜JDSF 近畿中四国ブロック</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{ --navy:#0D2347; --blue:#2563EB; --blue-l:#3b82f6; --ink:#1f2937; --sub:#5b6678; --line:#e2e8f0; --bg:#0b1626; --card:#ffffff; --accent:#e11d48; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Noto Sans JP",system-ui,sans-serif;color:#fff;background:var(--bg);-webkit-font-smoothing:antialiased}
+  .top{background:linear-gradient(135deg,var(--navy) 0%,#1B3A6B 60%,var(--blue) 100%);padding:13px 18px;box-shadow:0 2px 14px rgba(0,0,0,.4)}
+  .top .inner{max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .top .badge{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);border-radius:100px;font-size:.72rem;font-weight:700;padding:4px 12px}
+  .top h1{font-size:1rem;font-weight:800;margin:0}
+  .top a.back{margin-left:auto;color:#cfe0ff;font-size:.78rem;font-weight:700;text-decoration:none;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:5px 11px}
+  .top a.back:hover{background:rgba(255,255,255,.12)}
+  .wrap{max-width:1000px;margin:0 auto;padding:18px 16px 60px}
+  .player{background:#0e1d33;border:1px solid #1d3354;border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.45)}
+  .stage{position:relative;background:radial-gradient(circle at 50% 30%,#16315c,#0b1a30);padding:22px 22px 16px;min-height:300px}
+  .scene{animation:fade .5s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .scene .chlabel{font-size:.7rem;font-weight:800;letter-spacing:.08em;color:#7fb0ff}
+  .scene h2{margin:3px 0 12px;font-size:1.18rem;font-weight:800;color:#fff}
+  .figbox{background:#f8fafc;border-radius:12px;padding:14px;border:1px solid #cbd6e6}
+  .figbox svg{display:block;width:100%;height:auto}
+  .figbox svg .mk-num{animation:pulse 1.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .caption{min-height:58px;margin:14px 2px 2px;background:rgba(0,0,0,.34);border-radius:10px;padding:11px 15px;font-size:.96rem;line-height:1.7;color:#f1f5ff}
+  @media (max-width:560px){ .caption{font-size:.9rem} .scene h2{font-size:1.05rem} }
+  .seg{display:flex;gap:3px;padding:10px 14px 0}
+  .seg i{flex:1;height:5px;border-radius:3px;background:#24416b}
+  .seg i.done{background:#3b82f6}
+  .seg i.cur{background:#24416b}
+  .ctrl{display:flex;align-items:center;gap:8px;padding:12px 14px 14px;flex-wrap:wrap}
+  .btn{background:#1d3354;color:#fff;border:1px solid #2a456e;border-radius:10px;padding:9px 13px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{background:#27466f}
+  .btn.play{background:var(--blue)}
+  .btn.play:hover{background:#1d4ed8}
+  .ctrl .spacer{flex:1}
+  .ctr-info{font-size:.78rem;color:#9fb6d6}
+  .toggle{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:#cfe0ff;font-weight:700;cursor:pointer;user-select:none;border:1px solid #2a456e;border-radius:10px;padding:8px 11px}
+  .toggle input{accent-color:var(--blue)}
+  .poster{position:absolute;inset:0;background:rgba(7,16,30,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:5;cursor:pointer;backdrop-filter:blur(2px)}
+  .poster .big{width:78px;height:78px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:2rem;box-shadow:0 8px 30px rgba(37,99,235,.6);transition:transform .15s}
+  .poster:hover .big{transform:scale(1.06)}
+  .poster .pt{font-size:1.05rem;font-weight:800}
+  .poster .ps{font-size:.8rem;color:#aebfdc;max-width:420px;text-align:center;line-height:1.7;padding:0 16px}
+  .chapters{margin-top:18px;background:#0e1d33;border:1px solid #1d3354;border-radius:14px;padding:12px 12px 6px}
+  .chapters .ct{font-size:.72rem;font-weight:800;letter-spacing:.06em;color:#7fb0ff;margin:2px 6px 8px}
+  .chapters ol{list-style:none;margin:0;padding:0;counter-reset:c}
+  .chapters li{counter-increment:c}
+  .chapters button.jump{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:none;color:#dce7f7;font-size:.86rem;font-weight:600;padding:8px 8px;border-radius:8px;cursor:pointer;font-family:inherit}
+  .chapters button.jump:hover{background:#16294a}
+  .chapters button.jump.active{background:#1d3a66;color:#fff}
+  .chapters button.jump::before{content:counter(c);flex:none;width:1.6em;height:1.6em;display:inline-flex;align-items:center;justify-content:center;background:#24416b;color:#fff;border-radius:50%;font-size:.7rem;font-weight:800}
+  .chapters button.jump.active::before{background:var(--blue)}
+  .chapters .gh{font-size:.68rem;font-weight:800;color:#5f86bf;letter-spacing:.05em;margin:10px 6px 2px}
+  .note{margin:16px 2px 0;font-size:.8rem;color:#9fb6d6;line-height:1.7}
+  .mk-frame{fill:#fff;stroke:#d7dee8;stroke-width:1.5}
+  .mk-card{fill:#fff;stroke:#e2e8f0;stroke-width:1.5}
+  .mk-soft{fill:#f4f6fa;stroke:#e2e8f0;stroke-width:1}
+  .mk-field{fill:#fff;stroke:#cbd5e1;stroke-width:1.5}
+  .mk-btn{fill:#2563EB}
+  .mk-ghost{fill:#fff;stroke:#2563EB;stroke-width:1.5}
+  .mk-t{fill:#334155;font-size:13px}
+  .mk-tb{fill:#0D2347;font-size:13px;font-weight:700}
+  .mk-tw{fill:#fff;font-size:13px;font-weight:700}
+  .mk-tm{fill:#64748b;font-size:12px}
+  .mk-num{fill:#e11d48}
+  .mk-numt{fill:#fff;font-size:13px;font-weight:800}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <span class="badge">🎬 役員ページ 動画ガイド</span>
+    <h1>役員専用ページ 操作ガイド（自動再生）</h1>
+    <a class="back" href="officers-manual.html">📖 文章のマニュアルへ</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="player">
+    <div class="seg" id="seg"></div>
+    <div class="stage">
+      <div class="scene" id="scene"></div>
+      <div class="poster" id="poster">
+        <div class="big">▶</div>
+        <div class="pt">再生して操作ガイドを見る</div>
+        <div class="ps">図解が自動で進み、字幕＋音声ナレーションで説明します（音声は右下のスイッチでON/OFFできます）。</div>
+      </div>
+    </div>
+    <div class="caption" id="caption">▶ を押すとガイドが始まります。</div>
+    <div class="ctrl">
+      <button class="btn" id="prev" title="前へ">⏮ 前へ</button>
+      <button class="btn play" id="playpause" title="再生／一時停止">▶ 再生</button>
+      <button class="btn" id="next" title="次へ">次へ ⏭</button>
+      <span class="ctr-info" id="counter">— / —</span>
+      <span class="spacer"></span>
+      <label class="toggle"><input type="checkbox" id="voice" checked> 🔊 音声で読み上げ</label>
+    </div>
+  </div>
+
+  <div class="chapters">
+    <div class="ct">章を選んで再生</div>
+    <ol id="chlist"></ol>
+  </div>
+
+  <p class="note">
+    ※ ブラウザ上で再生する自動スライドです。あらかじめ用意した高品質な音声（Google）を再生します。未対応の環境では端末の読み上げ、または字幕のみで進みます。
+    文章で読みたいときは <a href="officers-manual.html" style="color:#9fc2ff;font-weight:700;">📖 文章マニュアル</a> をご覧ください。
+  </p>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var S = [
+    { g:'はじめに', t:'はじめに', c:'役員専用ページの操作ガイドです。図解と音声で、ログインから各機能の使い方までご案内します。',
+      svg:'<svg viewBox="0 0 640 220" role="img"><rect x="60" y="30" width="520" height="160" rx="16" fill="#fff"/><text x="320" y="92" text-anchor="middle" font-size="36">🔑</text><text x="320" y="132" text-anchor="middle" fill="#0D2347" font-size="22" font-weight="800">役員専用ページ 操作ガイド</text><text x="320" y="162" text-anchor="middle" fill="#64748b" font-size="13">図解と音声でご案内します</text></svg>' },
+
+    { g:'はじめに', t:'1. ログインする', c:'役員ページを開き、事務局から配布されたパスワードを入力してログインします。ログイン状態はしばらく保持されます。共用パソコンでは、作業後にログアウトしてください。',
+      svg:'<svg viewBox="0 0 640 220" role="img"><rect x="0" y="0" width="640" height="220" rx="14" fill="#16315c"/><rect class="mk-card" x="210" y="28" width="220" height="164" rx="14"/><circle cx="320" cy="66" r="20" fill="#2563EB"/><text x="320" y="73" text-anchor="middle" font-size="18">🔑</text><text x="320" y="104" text-anchor="middle" class="mk-tb" font-size="15">役員専用ページ</text><text x="320" y="124" text-anchor="middle" class="mk-tm">JDSF 近畿中四国ブロック委員会</text><rect class="mk-field" x="236" y="138" width="168" height="32" rx="8"/><text class="mk-tm" x="250" y="158">パスワードを入力</text><circle class="mk-num" cx="236" cy="154" r="12"/><text class="mk-numt" x="236" y="159" text-anchor="middle">1</text><rect class="mk-btn" x="250" y="176" width="140" height="14" rx="7"/><circle class="mk-num" cx="320" cy="190" r="11"/><text class="mk-numt" x="320" y="194" text-anchor="middle" font-size="11">2</text></svg>' },
+
+    { g:'投稿して更新', t:'2. 役員内部連絡', c:'役員内部連絡は、役員どうしの連絡用です。一般には公開されません。プラス連絡事項を投稿を押し、氏名、タイトル、詳細を入力して投稿します。最新6件が表示され、全件は連絡事項一覧で見られます。',
+      svg:'<svg viewBox="0 0 640 250" role="img"><rect class="mk-frame" x="14" y="14" width="612" height="222" rx="12"/><text class="mk-tb" x="34" y="42" font-size="14">🔔 役員内部連絡</text><rect class="mk-ghost" x="396" y="28" width="104" height="24" rx="6"/><text x="448" y="44" text-anchor="middle" font-size="11" fill="#2563EB" font-weight="700">📋 連絡事項一覧</text><rect class="mk-btn" x="508" y="28" width="102" height="24" rx="6"/><text class="mk-tw" x="559" y="44" text-anchor="middle" font-size="11">＋ 投稿</text><circle class="mk-num" cx="508" cy="30" r="11"/><text class="mk-numt" x="508" y="34" text-anchor="middle" font-size="11">1</text><rect class="mk-soft" x="34" y="62" width="576" height="166" rx="10"/><text class="mk-tm" x="50" y="86">氏名（必須）</text><rect class="mk-field" x="50" y="92" width="540" height="24" rx="6"/><text class="mk-t" x="62" y="108">例：山田 太郎</text><circle class="mk-num" cx="50" cy="104" r="11"/><text class="mk-numt" x="50" y="108" text-anchor="middle" font-size="11">2</text><text class="mk-tm" x="50" y="136">タイトル（必須）</text><rect class="mk-field" x="50" y="142" width="540" height="24" rx="6"/><circle class="mk-num" cx="50" cy="154" r="11"/><text class="mk-numt" x="50" y="158" text-anchor="middle" font-size="11">3</text><text class="mk-tm" x="50" y="184">詳細内容（必須）／関連URL（任意）</text><rect class="mk-field" x="50" y="190" width="540" height="30" rx="6"/><circle class="mk-num" cx="50" cy="200" r="11"/><text class="mk-numt" x="50" y="204" text-anchor="middle" font-size="11">4</text></svg>' },
+
+    { g:'投稿して更新', t:'3. 公開お知らせ管理', c:'公開お知らせ管理で投稿すると、トップページとお知らせページに掲載されます。カテゴリ、タイトル、詳細を入力して投稿します。一覧から編集や削除もできます。',
+      svg:'<svg viewBox="0 0 640 280" role="img"><rect class="mk-frame" x="14" y="14" width="612" height="252" rx="12"/><text class="mk-tb" x="34" y="42" font-size="14">📢 公開お知らせ管理</text><rect class="mk-btn" x="470" y="28" width="140" height="24" rx="6" fill="#e07040"/><text class="mk-tw" x="540" y="44" text-anchor="middle" font-size="11">＋ お知らせを投稿</text><circle class="mk-num" cx="470" cy="30" r="11"/><text class="mk-numt" x="470" y="34" text-anchor="middle" font-size="11">1</text><rect class="mk-soft" x="34" y="62" width="576" height="190" rx="10"/><text class="mk-tm" x="50" y="86">カテゴリ（必須）</text><rect class="mk-field" x="50" y="92" width="260" height="24" rx="6"/><text class="mk-t" x="62" y="108">イベント ▾</text><circle class="mk-num" cx="50" cy="104" r="11"/><text class="mk-numt" x="50" y="108" text-anchor="middle" font-size="11">2</text><text class="mk-tm" x="330" y="86">実施日（任意）</text><rect class="mk-field" x="330" y="92" width="260" height="24" rx="6"/><text class="mk-tm" x="50" y="138">タイトル（必須）</text><rect class="mk-field" x="50" y="144" width="540" height="24" rx="6"/><circle class="mk-num" cx="50" cy="156" r="11"/><text class="mk-numt" x="50" y="160" text-anchor="middle" font-size="11">3</text><text class="mk-tm" x="50" y="186">詳細内容（必須）</text><rect class="mk-field" x="50" y="192" width="540" height="28" rx="6"/><circle class="mk-num" cx="50" cy="202" r="11"/><text class="mk-numt" x="50" y="206" text-anchor="middle" font-size="11">4</text><rect class="mk-btn" x="486" y="226" width="104" height="24" rx="6" fill="#e07040"/><text class="mk-tw" x="538" y="242" text-anchor="middle" font-size="11">投稿する →</text><circle class="mk-num" cx="486" cy="228" r="11"/><text class="mk-numt" x="486" y="232" text-anchor="middle" font-size="11">5</text></svg>' },
+
+    { g:'資料・報告', t:'4. 会議資料・活動報告', c:'会議資料は、一覧から開いて閲覧します。活動報告は、活動報告フォームを開くボタンから、グーグルフォームでご報告ください。',
+      svg:'<svg viewBox="0 0 640 200" role="img"><rect class="mk-card" x="30" y="40" width="270" height="120" rx="12"/><text class="mk-tb" x="50" y="74" font-size="14">📁 会議資料</text><rect class="mk-soft" x="50" y="88" width="230" height="22" rx="5"/><rect class="mk-soft" x="50" y="116" width="230" height="22" rx="5"/><text class="mk-tm" x="58" y="152">一覧から開いて閲覧</text><rect class="mk-card" x="340" y="40" width="270" height="120" rx="12"/><text class="mk-tb" x="360" y="74" font-size="14">📝 活動報告</text><rect x="360" y="98" width="210" height="36" rx="8" fill="#7c52a8"/><text x="465" y="121" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">活動報告フォームを開く</text></svg>' },
+
+    { g:'資料・報告', t:'5. スプレッドシート・議事録', c:'スプレッドシートと議事録は、それぞれのカードをクリックすると開きます。名簿や集計、過去の議事録を閲覧できます。',
+      svg:'<svg viewBox="0 0 640 200" role="img"><rect class="mk-card" x="30" y="40" width="270" height="120" rx="12"/><text class="mk-tb" x="50" y="74" font-size="14">🔗 スプレッドシート</text><rect class="mk-soft" x="50" y="88" width="110" height="52" rx="8"/><rect class="mk-soft" x="172" y="88" width="110" height="52" rx="8"/><text class="mk-tm" x="58" y="156" font-size="11">カードをクリックで開く</text><rect class="mk-card" x="340" y="40" width="270" height="120" rx="12"/><text class="mk-tb" x="360" y="74" font-size="14">📋 議事録</text><rect class="mk-soft" x="360" y="88" width="230" height="20" rx="5"/><rect class="mk-soft" x="360" y="114" width="230" height="20" rx="5"/></svg>' },
+
+    { g:'資料・報告', t:'6. その他参考資料の登録', c:'その他参考資料では、規程集や様式などを登録できます。プラス資料を登録を押し、日付、登録者、タイトルを入れ、URLかファイルを選びます。登録には、役員ログインと同じパスワードが必要です。',
+      svg:'<svg viewBox="0 0 640 280" role="img"><rect class="mk-frame" x="14" y="14" width="612" height="252" rx="12"/><text class="mk-tb" x="34" y="42" font-size="14">📎 その他参考資料</text><rect class="mk-btn" x="486" y="28" width="124" height="24" rx="100"/><text class="mk-tw" x="548" y="44" text-anchor="middle" font-size="11">＋ 資料を登録</text><circle class="mk-num" cx="486" cy="30" r="11"/><text class="mk-numt" x="486" y="34" text-anchor="middle" font-size="11">1</text><rect class="mk-soft" x="34" y="62" width="576" height="190" rx="10"/><text class="mk-tm" x="50" y="86">日付＊／登録者＊</text><rect class="mk-field" x="50" y="92" width="262" height="24" rx="6"/><rect class="mk-field" x="328" y="92" width="262" height="24" rx="6"/><circle class="mk-num" cx="50" cy="104" r="11"/><text class="mk-numt" x="50" y="108" text-anchor="middle" font-size="11">2</text><text class="mk-tm" x="50" y="136">資料タイトル＊</text><rect class="mk-field" x="50" y="142" width="540" height="24" rx="6"/><text class="mk-tm" x="50" y="186">種類：（●）URL　（ ）ファイル</text><circle class="mk-num" cx="50" cy="182" r="11"/><text class="mk-numt" x="50" y="186" text-anchor="middle" font-size="11">3</text><rect class="mk-field" x="50" y="192" width="540" height="24" rx="6"/><text class="mk-tm" x="50" y="240">パスワード＊（役員ログインと同じ）</text><rect class="mk-field" x="50" y="246" width="380" height="22" rx="6"/><rect class="mk-btn" x="446" y="246" width="144" height="22" rx="100"/><text class="mk-tw" x="518" y="261" text-anchor="middle" font-size="11">登録する</text><circle class="mk-num" cx="50" cy="256" r="11"/><text class="mk-numt" x="50" y="260" text-anchor="middle" font-size="11">4</text></svg>' },
+
+    { g:'サイト設定・その他', t:'7. サイト構築（デザイン編集）', c:'トップページの見た目を変えるときは、ページ右上の、サイト構築ページへを押します。サイト構築用の、別のパスワードでログインしてください。',
+      svg:'<svg viewBox="0 0 640 170" role="img"><rect x="0" y="0" width="640" height="150" rx="12" fill="#1f4173"/><text x="40" y="58" fill="#cbd9f0" font-size="12" font-weight="700">OFFICERS PORTAL</text><text x="40" y="90" fill="#fff" font-size="22" font-weight="800">役員用ページ</text><rect x="430" y="26" width="86" height="24" rx="6" fill="#fff"/><text x="473" y="42" text-anchor="middle" font-size="10.5" fill="#e37400" font-weight="700">📊 アクセス解析</text><rect x="524" y="26" width="86" height="24" rx="6" fill="none" stroke="#cbd9f0"/><text x="567" y="42" text-anchor="middle" font-size="10.5" fill="#e2e8f0" font-weight="700">🔓 ログアウト</text><rect x="430" y="58" width="86" height="24" rx="6" fill="#fff"/><text x="473" y="74" text-anchor="middle" font-size="10.5" fill="#0D2347" font-weight="700">📖 マニュアル</text><rect x="524" y="58" width="86" height="24" rx="6" fill="#fff"/><text x="567" y="74" text-anchor="middle" font-size="10" fill="#0D2347" font-weight="800">🔧 サイト構築へ</text><circle class="mk-num" cx="524" cy="60" r="11"/><text class="mk-numt" x="524" y="64" text-anchor="middle" font-size="11">1</text></svg>' },
+
+    { g:'サイト設定・その他', t:'8. LINE・アクセス解析・ログアウト', c:'ページの一番下には、意見交換用のLINEグループの案内があります。右上のアクセス解析でサイトの閲覧状況を確認でき、作業が終わったらログアウトを押します。',
+      svg:'<svg viewBox="0 0 640 200" role="img"><rect x="20" y="26" width="600" height="62" rx="10" fill="#f0fbf4" stroke="#cdebd7"/><rect x="36" y="40" width="34" height="34" rx="6" fill="#fff" stroke="#cdebd7"/><text x="86" y="56" fill="#0D2347" font-size="13" font-weight="700">💬 西部HP担当者グループ（LINE）</text><text x="86" y="76" fill="#64748b" font-size="11">ページ最下部 — 参加ボタン／QRコード</text><rect x="120" y="116" width="160" height="36" rx="8" fill="#fff" stroke="#e2e8f0"/><text x="200" y="139" text-anchor="middle" font-size="12" fill="#e37400" font-weight="700">📊 アクセス解析</text><rect x="300" y="116" width="160" height="36" rx="8" fill="#fff" stroke="#e2e8f0"/><text x="380" y="139" text-anchor="middle" font-size="12" fill="#475569" font-weight="700">🔓 ログアウト</text></svg>' },
+
+    { g:'仕上げ', t:'9. これで準備完了です', c:'お疲れさまでした。基本は、ログイン、連絡やお知らせの投稿、資料の確認です。困ったときは、文章マニュアルのよくある質問もご覧ください。',
+      svg:'<svg viewBox="0 0 640 200" role="img"><rect x="60" y="30" width="520" height="140" rx="16" fill="#fff"/><text x="320" y="86" text-anchor="middle" font-size="34">🎉</text><text x="320" y="124" text-anchor="middle" fill="#0D2347" font-size="18" font-weight="800">これで準備完了です！</text><text x="320" y="152" text-anchor="middle" fill="#64748b" font-size="12">ログイン → 連絡・お知らせ → 資料確認</text></svg>' }
+  ];
+
+  var elScene=document.getElementById('scene'), elCap=document.getElementById('caption'),
+      elSeg=document.getElementById('seg'), elList=document.getElementById('chlist'),
+      elCount=document.getElementById('counter'), elPP=document.getElementById('playpause'),
+      elPrev=document.getElementById('prev'), elNext=document.getElementById('next'),
+      elVoice=document.getElementById('voice'), elPoster=document.getElementById('poster');
+  var cur=0, playing=false, timer=null, started=false, jaVoice=null;
+  var audioEl=new Audio(); audioEl.preload='none';
+  function pad(n){ return n<10?'0'+n:''+n; }
+
+  function pickVoice(){ if(!('speechSynthesis' in window))return; var vs=window.speechSynthesis.getVoices()||[]; for(var i=0;i<vs.length;i++){ if((vs[i].lang||'').toLowerCase().indexOf('ja')===0){ jaVoice=vs[i]; break; } } }
+  if('speechSynthesis' in window){ pickVoice(); window.speechSynthesis.onvoiceschanged=pickVoice; }
+
+  (function build(){ var seg='',list='',lastG=''; for(var i=0;i<S.length;i++){ seg+='<i data-i="'+i+'"></i>'; if(S[i].g!==lastG){ list+='<li><div class="gh">'+S[i].g+'</div></li>'; lastG=S[i].g; } list+='<li><button class="jump" data-i="'+i+'">'+S[i].t+'</button></li>'; } elSeg.innerHTML=seg; elList.innerHTML=list; })();
+
+  function clearTimer(){ if(timer){ clearTimeout(timer); timer=null; } }
+  function stopVoice(){ if('speechSynthesis' in window) window.speechSynthesis.cancel(); try{ audioEl.pause(); audioEl.onended=null; audioEl.onerror=null; }catch(e){} }
+  function render(i){ var sc=S[i]; elScene.innerHTML='<div class="chlabel">'+sc.g+'</div><h2>'+sc.t+'</h2><div class="figbox">'+sc.svg+'</div>'; elCap.textContent=sc.c; elCount.textContent=(i+1)+' / '+S.length; var segs=elSeg.children; for(var k=0;k<segs.length;k++){ segs[k].className=(k<i?'done':(k===i?'cur':'')); } var js=elList.querySelectorAll('button.jump'); for(var j=0;j<js.length;j++){ js[j].classList.toggle('active', Number(js[j].getAttribute('data-i'))===i); } }
+  function estimate(t){ return Math.max(4500, t.length*95+1800); }
+  function speakBrowser(sc, adv){ if('speechSynthesis' in window){ var u=new SpeechSynthesisUtterance(sc.c); u.lang='ja-JP'; u.rate=1.0; if(jaVoice)u.voice=jaVoice; u.onend=adv; try{ window.speechSynthesis.speak(u); }catch(e){} timer=setTimeout(adv, estimate(sc.c)+7000); } else { timer=setTimeout(adv, estimate(sc.c)); } }
+  function run(){ clearTimer(); stopVoice(); var sc=S[cur]; var advanced=false; function adv(){ if(advanced)return; advanced=true; clearTimer(); if(playing) goNext(); }
+    if(elVoice.checked){ var fb=false; function fallback(){ if(fb)return; fb=true; speakBrowser(sc,adv); } audioEl.onended=adv; audioEl.onerror=fallback; audioEl.src='audio/officers/scene-'+pad(cur)+'.mp3'; var p; try{ p=audioEl.play(); }catch(e){ fallback(); } if(p&&p.catch)p.catch(function(){ fallback(); }); timer=setTimeout(adv, estimate(sc.c)+20000); }
+    else { timer=setTimeout(adv, estimate(sc.c)); } }
+  function goNext(){ if(cur>=S.length-1){ setPlaying(false); return; } cur++; render(cur); if(playing) run(); }
+  function goPrev(){ clearTimer(); stopVoice(); cur=Math.max(0,cur-1); render(cur); if(playing) run(); }
+  function jumpTo(i){ clearTimer(); stopVoice(); cur=i; render(cur); if(playing) run(); }
+  function setPlaying(p){ playing=p; elPP.innerHTML=p?'⏸ 一時停止':'▶ 再生'; if(p){ run(); } else { clearTimer(); stopVoice(); } }
+  function startFirst(){ started=true; elPoster.style.display='none'; cur=0; render(0); setPlaying(true); }
+
+  elPoster.addEventListener('click', startFirst);
+  elPP.addEventListener('click', function(){ if(!started){ startFirst(); return; } setPlaying(!playing); });
+  elNext.addEventListener('click', function(){ if(!started){ startFirst(); return; } clearTimer(); stopVoice(); if(cur<S.length-1){ cur++; render(cur); if(playing) run(); } });
+  elPrev.addEventListener('click', function(){ if(!started){ startFirst(); return; } goPrev(); });
+  elVoice.addEventListener('change', function(){ if(playing){ run(); } else { stopVoice(); } });
+  elList.addEventListener('click', function(e){ var b=e.target.closest?e.target.closest('button.jump'):null; if(!b)return; if(!started){ started=true; elPoster.style.display='none'; playing=true; elPP.innerHTML='⏸ 一時停止'; } jumpTo(Number(b.getAttribute('data-i'))); });
+  document.addEventListener('keydown', function(e){ if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))return; if(e.code==='Space'){ e.preventDefault(); if(!started){ startFirst(); } else { setPlaying(!playing); } } else if(e.code==='ArrowRight'){ if(started){ clearTimer(); stopVoice(); if(cur<S.length-1){ cur++; render(cur); if(playing) run(); } } } else if(e.code==='ArrowLeft'){ if(started){ goPrev(); } } });
+  document.addEventListener('visibilitychange', function(){ if(document.hidden){ stopVoice(); } });
+
+  render(0);
+})();
+</script>
+
+</body>
+</html>
