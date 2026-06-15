@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>役員ページ 操作マニュアル｜JDSF 近畿中四国ブロック</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0D2347; --blue:#2563EB; --blue-l:#3b82f6;
+    --ink:#1f2937; --sub:#5b6678; --line:#e2e8f0; --bg:#f5f7fb;
+    --card:#ffffff; --accent:#e11d48; --ok:#16a34a; --warn:#d97706;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:"Noto Sans JP",system-ui,sans-serif;color:var(--ink);background:var(--bg);line-height:1.8;font-size:15px;-webkit-font-smoothing:antialiased;}
+  a{color:var(--blue);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  .top{position:sticky;top:0;z-index:50;background:linear-gradient(135deg,var(--navy) 0%,#1B3A6B 60%,var(--blue) 100%);color:#fff;padding:14px 20px;box-shadow:0 2px 14px rgba(13,35,71,.25);}
+  .top .inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .top .badge{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);border-radius:100px;font-size:.72rem;font-weight:700;padding:4px 12px;white-space:nowrap}
+  .top h1{font-size:1.05rem;font-weight:800;margin:0;letter-spacing:.02em}
+  .top a.back{margin-left:auto;color:#cfe0ff;font-size:.78rem;font-weight:700;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:5px 11px}
+  .top a.back:hover{background:rgba(255,255,255,.12);text-decoration:none}
+
+  .wrap{max-width:1120px;margin:0 auto;padding:24px 20px 80px;display:grid;grid-template-columns:250px 1fr;gap:32px}
+  @media (max-width:880px){ .wrap{grid-template-columns:1fr;gap:16px} }
+
+  nav.toc{position:sticky;top:78px;align-self:start;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 14px;max-height:calc(100vh - 100px);overflow:auto}
+  @media (max-width:880px){ nav.toc{position:static;max-height:none} }
+  nav.toc .t{font-size:.72rem;font-weight:800;color:var(--sub);letter-spacing:.08em;margin:0 6px 8px}
+  nav.toc ol{list-style:none;margin:0;padding:0;counter-reset:toc}
+  nav.toc li{counter-increment:toc;margin:0}
+  nav.toc a{display:flex;gap:8px;align-items:baseline;padding:7px 8px;border-radius:8px;color:var(--ink);font-size:.84rem;font-weight:600}
+  nav.toc a:hover{background:#eef3fb;text-decoration:none}
+  nav.toc a::before{content:counter(toc);flex:none;width:1.5em;height:1.5em;display:inline-flex;align-items:center;justify-content:center;background:var(--navy);color:#fff;border-radius:50%;font-size:.68rem;font-weight:800}
+  nav.toc li.g{counter-increment:none;margin:16px 4px 4px;font-size:.7rem;font-weight:800;letter-spacing:.05em;color:var(--blue)}
+  nav.toc li.g:first-of-type{margin-top:2px}
+  nav.toc li.g::before{display:none}
+
+  main{min-width:0}
+  .lead{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin-bottom:22px}
+  .lead h2{margin:0 0 8px;font-size:1.2rem;color:var(--navy)}
+  .lead p{margin:6px 0;color:var(--sub);font-size:.92rem}
+
+  .group-band{display:flex;align-items:center;gap:14px;margin:30px 0 14px;padding:14px 18px;border-radius:14px;background:linear-gradient(135deg,var(--navy),#1f4173);color:#fff;box-shadow:0 3px 14px rgba(13,35,71,.18)}
+  .group-band .gb-num{flex:none;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:10px;font-size:.72rem;font-weight:800;padding:6px 12px;white-space:nowrap;letter-spacing:.04em}
+  .group-band h3{margin:0;font-size:1.05rem;font-weight:800}
+  .group-band p{margin:2px 0 0;font-size:.8rem;opacity:.88}
+  .group-band:first-of-type{margin-top:10px}
+
+  section.doc{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 26px;margin-bottom:18px;scroll-margin-top:78px}
+  section.doc > h2{margin:0 0 4px;font-size:1.18rem;color:var(--navy);display:flex;align-items:center;gap:10px;}
+  section.doc > h2 .chip{flex:none;width:1.7em;height:1.7em;display:inline-flex;align-items:center;justify-content:center;background:var(--navy);color:#fff;border-radius:9px;font-size:.85rem;font-weight:800}
+  section.doc > .desc{color:var(--sub);font-size:.9rem;margin:0 0 16px;padding-left:calc(1.7em + 10px)}
+  h3.step-h{font-size:1rem;color:var(--navy);margin:22px 0 10px;border-left:4px solid var(--blue-l);padding-left:10px}
+
+  figure.fig{margin:14px 0 18px;background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:16px}
+  figure.fig svg{display:block;width:100%;height:auto}
+  figure.fig figcaption{font-size:.78rem;color:var(--sub);margin-top:10px;text-align:center}
+
+  ol.steps{counter-reset:st;list-style:none;margin:6px 0 4px;padding:0}
+  ol.steps>li{counter-increment:st;position:relative;padding:6px 0 6px 40px;font-size:.92rem}
+  ol.steps>li::before{content:counter(st);position:absolute;left:0;top:5px;width:26px;height:26px;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;box-shadow:0 1px 3px rgba(225,29,72,.4)}
+  ol.steps b{color:var(--navy)}
+
+  ul.plain{margin:8px 0;padding-left:1.2em}
+  ul.plain li{margin:4px 0;font-size:.9rem}
+
+  .note,.tip,.warn{border-radius:10px;padding:12px 16px;margin:14px 0;font-size:.86rem;line-height:1.7}
+  .tip{background:#eff6ff;border:1px solid #bfdbfe}
+  .tip b{color:var(--blue)}
+  .warn{background:#fff7ed;border:1px solid #fed7aa}
+  .warn b{color:var(--warn)}
+  .note{background:#f0fdf4;border:1px solid #bbf7d0}
+  .note b{color:var(--ok)}
+
+  .kbd{display:inline-block;background:#1f2937;color:#fff;border-radius:5px;padding:1px 8px;font-size:.78rem;font-weight:700;white-space:nowrap}
+  .pill{display:inline-block;background:var(--navy);color:#fff;border-radius:6px;padding:2px 9px;font-size:.78rem;font-weight:700}
+  code.path{background:#eef2f7;border:1px solid #dbe3ee;border-radius:6px;padding:1px 7px;font-size:.84em;color:#0f3a8a;word-break:break-all}
+
+  table.tbl{width:100%;border-collapse:collapse;margin:12px 0;font-size:.86rem}
+  table.tbl th,table.tbl td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+  table.tbl th{background:#f1f5f9;color:var(--navy);font-weight:800;white-space:nowrap}
+
+  .foot{max-width:1120px;margin:0 auto;padding:0 20px 60px;color:var(--sub);font-size:.8rem;text-align:center}
+
+  .mk-frame{fill:#fff;stroke:#d7dee8;stroke-width:1.5}
+  .mk-bar{fill:var(--navy)}
+  .mk-card{fill:#fff;stroke:#e2e8f0;stroke-width:1.5}
+  .mk-soft{fill:#f4f6fa;stroke:#e2e8f0;stroke-width:1}
+  .mk-field{fill:#fff;stroke:#cbd5e1;stroke-width:1.5}
+  .mk-btn{fill:var(--blue)}
+  .mk-btn2{fill:#0d2347}
+  .mk-ghost{fill:#fff;stroke:var(--blue);stroke-width:1.5}
+  .mk-t{fill:#334155;font-size:13px}
+  .mk-tb{fill:#0D2347;font-size:13px;font-weight:700}
+  .mk-tw{fill:#fff;font-size:13px;font-weight:700}
+  .mk-tm{fill:#64748b;font-size:12px}
+  .mk-num{fill:var(--accent)}
+  .mk-numt{fill:#fff;font-size:13px;font-weight:800}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <span class="badge">📖 役員ページ マニュアル</span>
+    <h1>役員専用ページ 操作ガイド</h1>
+    <a class="back" href="officers.html">← 役員ページへ戻る</a>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ===== 目次 ===== -->
+  <nav class="toc">
+    <div class="t">もくじ</div>
+    <ol>
+      <li class="g">▎まずはここから</li>
+      <li><a href="#intro">役員ページとは・ログイン</a></li>
+
+      <li class="g">▎投稿して更新する</li>
+      <li><a href="#notices">役員内部連絡を投稿する</a></li>
+      <li><a href="#news">公開お知らせを投稿する</a></li>
+
+      <li class="g">▎資料・報告</li>
+      <li><a href="#materials">会議資料・活動報告</a></li>
+      <li><a href="#sheets">スプレッドシート・議事録</a></li>
+      <li><a href="#refs">その他参考資料の登録・削除</a></li>
+
+      <li class="g">▎サイト設定・その他</li>
+      <li><a href="#sitebuild">サイト構築（デザイン編集）</a></li>
+      <li><a href="#etc">LINE・アクセス解析・ログアウト</a></li>
+
+      <li class="g">▎困ったとき</li>
+      <li><a href="#faq">よくある質問（Q&amp;A）</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+  <div class="lead">
+    <h2>このマニュアルについて</h2>
+    <p>役員専用ページ（<code class="path">https://jdsf-seibu.com/officers.html</code>）では、<b>役員どうしの連絡・公開お知らせの投稿・各種資料の管理</b>などができます。専門知識は不要で、スマートフォンからでも操作できます。</p>
+    <p>下の「もくじ」から知りたい項目へ飛べます。投稿・登録系（連絡／お知らせ／参考資料）と、閲覧中心の項目（会議資料／議事録／スプレッドシート）に分かれています。</p>
+    <div class="tip"><b>ログインのパスワード</b>はブロック事務局から役員へお伝えします。本マニュアルには記載していません。</div>
+  </div>
+
+  <!-- ============== A まずはここから ============== -->
+  <div class="group-band">
+    <span class="gb-num">STEP 0</span>
+    <div><h3>まずはここから</h3><p>役員ページの全体像を知り、ログインします。</p></div>
+  </div>
+
+  <section class="doc" id="intro">
+    <h2><span class="chip">1</span> 役員ページとは・ログイン</h2>
+    <p class="desc">役員ページはパスワードで保護されています。ログインすると各機能が表示されます。</p>
+
+    <figure class="fig">
+      <svg viewBox="0 0 640 220" role="img" aria-label="役員ページ ログイン画面">
+        <rect x="0" y="0" width="640" height="220" rx="14" fill="#16315c"/>
+        <rect class="mk-card" x="210" y="28" width="220" height="164" rx="14"/>
+        <circle cx="320" cy="66" r="20" fill="#2563EB"/><text x="320" y="73" text-anchor="middle" font-size="18">🔑</text>
+        <text x="320" y="104" text-anchor="middle" class="mk-tb" font-size="15">役員専用ページ</text>
+        <text x="320" y="124" text-anchor="middle" class="mk-tm">JDSF 近畿中四国ブロック委員会</text>
+        <rect class="mk-field" x="236" y="138" width="168" height="32" rx="8"/><text class="mk-tm" x="250" y="158">パスワードを入力</text>
+        <circle class="mk-num" cx="236" cy="154" r="12"/><text class="mk-numt" x="236" y="159" text-anchor="middle">1</text>
+        <rect class="mk-btn" x="250" y="176" width="140" height="14" rx="7"/>
+        <circle class="mk-num" cx="320" cy="190" r="11"/><text class="mk-numt" x="320" y="194" text-anchor="middle" font-size="11">2</text>
+      </svg>
+      <figcaption>役員ページのログイン画面</figcaption>
+    </figure>
+
+    <ol class="steps">
+      <li><code class="path">https://jdsf-seibu.com/officers.html</code> を開きます。</li>
+      <li><b>パスワード</b>を入力して <b>「ログイン」</b> を押します（事務局配布のパスワード）。</li>
+      <li>ログイン状態はしばらく保持されます。共用パソコンでは作業後に右上の <b>「🔓 ログアウト」</b> を押してください。</li>
+    </ol>
+
+    <h3 class="step-h">ログイン後にできること（全体像）</h3>
+    <table class="tbl">
+      <tr><th>機能</th><th>内容</th><th>種別</th></tr>
+      <tr><td>🔔 役員内部連絡</td><td>役員どうしの連絡を書き込む（公開されません）</td><td>投稿</td></tr>
+      <tr><td>📢 公開お知らせ管理</td><td>トップページ・お知らせページに載るお知らせ</td><td>投稿</td></tr>
+      <tr><td>📁 会議資料／📝 活動報告</td><td>資料の閲覧／活動報告フォームへの入力</td><td>閲覧・外部</td></tr>
+      <tr><td>🔗 スプレッドシート／📋 議事録</td><td>共有シート・議事録の閲覧</td><td>閲覧</td></tr>
+      <tr><td>📎 その他参考資料</td><td>資料（URL・ファイル）の登録・削除</td><td>登録</td></tr>
+      <tr><td>⚙️ サイト構築</td><td>トップページのデザイン編集（別パスワード）</td><td>設定</td></tr>
+    </table>
+    <div class="note"><b>「ホームページの見た目」を変えたいときは ⚙️ サイト構築</b>（次章以降の別ページ）へ。役員ページからボタンで移動できます。</div>
+  </section>
+
+  <!-- ============== B 投稿して更新する ============== -->
+  <div class="group-band">
+    <span class="gb-num">STEP 1</span>
+    <div><h3>投稿して更新する</h3><p>役員連絡と、一般向けお知らせを投稿します。</p></div>
+  </div>
+
+  <section class="doc" id="notices">
+    <h2><span class="chip">2</span> 役員内部連絡を投稿する</h2>
+    <p class="desc"><span class="pill">🔔 役員内部連絡</span>：役員どうしの連絡用です（一般には公開されません）。最新6件が表示され、全件は「📋 連絡事項一覧」で見られます。</p>
+
+    <figure class="fig">
+      <svg viewBox="0 0 640 270" role="img" aria-label="役員内部連絡の投稿フォーム">
+        <rect class="mk-frame" x="14" y="14" width="612" height="242" rx="12"/>
+        <text class="mk-tb" x="34" y="42" font-size="14">🔔 役員内部連絡</text>
+        <rect class="mk-ghost" x="404" y="28" width="98" height="24" rx="6"/><text x="453" y="44" text-anchor="middle" font-size="11" fill="#2563EB" font-weight="700">📋 連絡事項一覧</text>
+        <rect class="mk-btn" x="510" y="28" width="100" height="24" rx="6"/><text class="mk-tw" x="560" y="44" text-anchor="middle" font-size="11">＋ 投稿</text>
+        <circle class="mk-num" cx="510" cy="30" r="11"/><text class="mk-numt" x="510" y="34" text-anchor="middle" font-size="11">1</text>
+        <rect class="mk-soft" x="34" y="62" width="576" height="180" rx="10"/>
+        <text class="mk-tm" x="50" y="88">氏名（必須）</text><rect class="mk-field" x="50" y="94" width="540" height="26" rx="6"/><text class="mk-t" x="62" y="111">例：山田 太郎</text>
+        <circle class="mk-num" cx="50" cy="107" r="11"/><text class="mk-numt" x="50" y="111" text-anchor="middle" font-size="11">2</text>
+        <text class="mk-tm" x="50" y="140">タイトル（必須）</text><rect class="mk-field" x="50" y="146" width="540" height="26" rx="6"/><text class="mk-t" x="62" y="163">例：2026年度ブロック戦について</text>
+        <circle class="mk-num" cx="50" cy="159" r="11"/><text class="mk-numt" x="50" y="163" text-anchor="middle" font-size="11">3</text>
+        <text class="mk-tm" x="50" y="192">詳細内容（必須）／関連URL（任意）</text><rect class="mk-field" x="50" y="198" width="540" height="30" rx="6"/>
+        <circle class="mk-num" cx="50" cy="208" r="11"/><text class="mk-numt" x="50" y="212" text-anchor="middle" font-size="11">4</text>
+        <rect class="mk-btn" x="500" y="232" width="0" height="0"/>
+      </svg>
+      <figcaption>「＋ 連絡事項を投稿」で開く入力フォーム</figcaption>
+    </figure>
+
+    <ol class="steps">
+      <li><b>「＋ 連絡事項を投稿」</b>を押すとフォームが開きます。</li>
+      <li><b>氏名</b>（誰からの連絡か）を入力します。</li>
+      <li><b>タイトル</b>を入力します。</li>
+      <li><b>詳細内容</b>を入力します（必要なら関連URLも）。</li>
+      <li><b>「投稿する →」</b>で投稿。一覧の先頭に表示されます。</li>
+    </ol>
+    <div class="tip">役員であれば<b>誰でも書き込めます</b>。古い連絡も「📋 連絡事項一覧」からすべて確認できます。</div>
+  </section>
+
+  <section class="doc" id="news">
+    <h2><span class="chip">3</span> 公開お知らせを投稿する</h2>
+    <p class="desc"><span class="pill">📢 公開お知らせ管理</span>：ここで投稿すると<b>トップページと「お知らせ」ページに掲載</b>されます（一般の方が見ます）。</p>
+
+    <figure class="fig">
+      <svg viewBox="0 0 640 300" role="img" aria-label="公開お知らせの投稿フォーム">
+        <rect class="mk-frame" x="14" y="14" width="612" height="272" rx="12"/>
+        <text class="mk-tb" x="34" y="42" font-size="14">📢 公開お知らせ管理</text>
+        <rect class="mk-btn" x="470" y="28" width="140" height="24" rx="6" fill="#e07040"/><text class="mk-tw" x="540" y="44" text-anchor="middle" font-size="11">＋ お知らせを投稿</text>
+        <circle class="mk-num" cx="470" cy="30" r="11"/><text class="mk-numt" x="470" y="34" text-anchor="middle" font-size="11">1</text>
+        <rect class="mk-soft" x="34" y="62" width="576" height="210" rx="10"/>
+        <text class="mk-tm" x="50" y="88">カテゴリ（必須）</text><rect class="mk-field" x="50" y="94" width="260" height="26" rx="6"/><text class="mk-t" x="62" y="111">イベント ▾</text>
+        <circle class="mk-num" cx="50" cy="107" r="11"/><text class="mk-numt" x="50" y="111" text-anchor="middle" font-size="11">2</text>
+        <text class="mk-tm" x="330" y="88">実施日（任意）</text><rect class="mk-field" x="330" y="94" width="260" height="26" rx="6"/><text class="mk-t" x="342" y="111">2026 / 08 / 09</text>
+        <text class="mk-tm" x="50" y="140">タイトル（必須）</text><rect class="mk-field" x="50" y="146" width="540" height="26" rx="6"/><text class="mk-t" x="62" y="163">例：2026年度ブロック戦の開催について</text>
+        <circle class="mk-num" cx="50" cy="159" r="11"/><text class="mk-numt" x="50" y="163" text-anchor="middle" font-size="11">3</text>
+        <text class="mk-tm" x="50" y="192">詳細内容（必須）／関連URL（任意）</text><rect class="mk-field" x="50" y="198" width="540" height="30" rx="6"/>
+        <circle class="mk-num" cx="50" cy="208" r="11"/><text class="mk-numt" x="50" y="212" text-anchor="middle" font-size="11">4</text>
+        <rect x="50" y="238" width="14" height="14" rx="3" fill="#fff" stroke="#cbd5e1"/><text class="mk-t" x="74" y="250">常に表示する（期限なし）</text>
+        <rect class="mk-btn" x="486" y="236" width="104" height="24" rx="6" fill="#e07040"/><text class="mk-tw" x="538" y="252" text-anchor="middle" font-size="11">投稿する →</text>
+        <circle class="mk-num" cx="486" cy="238" r="11"/><text class="mk-numt" x="486" y="242" text-anchor="middle" font-size="11">5</text>
+      </svg>
+      <figcaption>公開お知らせの投稿フォーム</figcaption>
+    </figure>
+
+    <ol class="steps">
+      <li><b>「＋ お知らせを投稿」</b>を押します。</li>
+      <li><b>カテゴリ</b>を選びます（競技会／指導員／イベント／ランキング／本部お知らせ／その他）。</li>
+      <li><b>タイトル</b>と<b>詳細内容</b>を入力します（実施日・関連URLは任意）。</li>
+      <li>必要なら<b>「常に表示する」</b>にチェック（チェックなしでも削除するまで表示されます）。</li>
+      <li><b>「投稿する →」</b>で公開。<b>「📋 一覧」</b>から編集・削除もできます。</li>
+    </ol>
+    <div class="warn"><b>削除は元に戻せません。</b>一時的に隠したいだけなら、編集や表示切替を活用してください。</div>
+  </section>
+
+  <!-- ============== C 資料・報告 ============== -->
+  <div class="group-band">
+    <span class="gb-num">STEP 2</span>
+    <div><h3>資料・報告</h3><p>会議資料・議事録・スプレッドシートの閲覧と、参考資料の登録。</p></div>
+  </div>
+
+  <section class="doc" id="materials">
+    <h2><span class="chip">4</span> 会議資料・活動報告</h2>
+    <p class="desc"><span class="pill">📁 会議資料</span> は資料の一覧（閲覧）です。<span class="pill">📝 活動報告</span> はGoogleフォームから報告します。</p>
+    <ul class="plain">
+      <li><b>会議資料</b>：一覧から見たい資料をクリックして開きます（閲覧専用）。</li>
+      <li><b>西部ブロック府県連盟活動報告</b>：<b>「活動報告フォームを開く」</b>を押すと、Googleフォームが新しいタブで開きます。各府県の活動内容を入力して送信してください。</li>
+    </ul>
+    <div class="tip">会議資料や議事録の<b>追加</b>が必要なときは、ブロック事務局へご連絡ください（所定の場所に登録されると自動で一覧に表示されます）。</div>
+  </section>
+
+  <section class="doc" id="sheets">
+    <h2><span class="chip">5</span> スプレッドシート・議事録</h2>
+    <p class="desc"><span class="pill">🔗 スプレッドシート</span> と <span class="pill">📋 議事録</span> は、共有資料への<b>リンク集（閲覧）</b>です。</p>
+    <ol class="steps">
+      <li>見たい<b>スプレッドシート</b>（名簿・集計など）のカードをクリックすると、Googleスプレッドシートが開きます。</li>
+      <li><b>議事録</b>の一覧から、見たい回の議事録を開きます。</li>
+    </ol>
+    <div class="note">これらは閲覧用です。中身の編集はそれぞれのGoogleファイル側で行います（編集権限がある場合）。</div>
+  </section>
+
+  <section class="doc" id="refs">
+    <h2><span class="chip">6</span> その他参考資料の登録・削除</h2>
+    <p class="desc"><span class="pill">📎 その他参考資料</span>：規程集・各種様式などを、<b>URLリンク</b>または<b>ファイル</b>で登録できます。</p>
+
+    <figure class="fig">
+      <svg viewBox="0 0 640 290" role="img" aria-label="参考資料の登録フォーム">
+        <rect class="mk-frame" x="14" y="14" width="612" height="262" rx="12"/>
+        <text class="mk-tb" x="34" y="42" font-size="14">📎 その他参考資料</text>
+        <rect class="mk-btn" x="486" y="28" width="124" height="24" rx="100"/><text class="mk-tw" x="548" y="44" text-anchor="middle" font-size="11">＋ 資料を登録</text>
+        <circle class="mk-num" cx="486" cy="30" r="11"/><text class="mk-numt" x="486" y="34" text-anchor="middle" font-size="11">1</text>
+        <rect class="mk-soft" x="34" y="62" width="576" height="200" rx="10"/>
+        <text class="mk-tm" x="50" y="86">日付＊／登録者＊</text><rect class="mk-field" x="50" y="92" width="262" height="24" rx="6"/><rect class="mk-field" x="328" y="92" width="262" height="24" rx="6"/>
+        <circle class="mk-num" cx="50" cy="104" r="11"/><text class="mk-numt" x="50" y="108" text-anchor="middle" font-size="11">2</text>
+        <text class="mk-tm" x="50" y="134">資料タイトル＊</text><rect class="mk-field" x="50" y="140" width="540" height="24" rx="6"/><text class="mk-t" x="62" y="156">例：2026年度規程集</text>
+        <text class="mk-tm" x="50" y="182">種類：（●）URLリンク　（ ）ファイルアップロード</text>
+        <circle class="mk-num" cx="50" cy="178" r="11"/><text class="mk-numt" x="50" y="182" text-anchor="middle" font-size="11">3</text>
+        <rect class="mk-field" x="50" y="190" width="540" height="24" rx="6"/><text class="mk-t" x="62" y="206">https://… ／ またはファイルを選択</text>
+        <text class="mk-tm" x="50" y="238">パスワード＊（役員ログインと同じ）</text><rect class="mk-field" x="50" y="244" width="380" height="24" rx="6"/>
+        <circle class="mk-num" cx="50" cy="250" r="11"/><text class="mk-numt" x="50" y="254" text-anchor="middle" font-size="11">4</text>
+        <rect class="mk-btn" x="446" y="244" width="144" height="24" rx="100"/><text class="mk-tw" x="518" y="260" text-anchor="middle" font-size="11">登録する</text>
+        <circle class="mk-num" cx="446" cy="246" r="11"/><text class="mk-numt" x="446" y="250" text-anchor="middle" font-size="11">5</text>
+      </svg>
+      <figcaption>「＋ 資料を登録」で開く登録フォーム</figcaption>
+    </figure>
+
+    <ol class="steps">
+      <li><b>「＋ 資料を登録」</b>を押します。</li>
+      <li><b>日付・登録者・資料タイトル</b>を入力します（すべて必須）。</li>
+      <li><b>種類</b>を選びます。
+        <ul class="plain">
+          <li><b>URLリンク</b>：外部資料のURLを貼ります。</li>
+          <li><b>ファイルアップロード</b>：PDF・Word・Excel等（20MB以内）を選びます。必要なら<b>🔒 ダウンロード用パスワード</b>（任意）も設定できます。</li>
+        </ul>
+      </li>
+      <li><b>パスワード</b>に<b>役員ログインと同じパスワード</b>を入力します。</li>
+      <li><b>「登録する」</b>で確定。一覧に追加されます。</li>
+    </ol>
+    <div class="warn"><b>削除するとき</b>も同じ（役員ログインの）パスワードが必要です。削除は元に戻せません。</div>
+    <div class="tip">「ダウンロード用パスワード」を設定したファイルは、閲覧者がダウンロード時にそのパスワードを求められます（限定配布したい資料に便利）。</div>
+  </section>
+
+  <!-- ============== D サイト設定・その他 ============== -->
+  <div class="group-band">
+    <span class="gb-num">STEP 3</span>
+    <div><h3>サイト設定・その他</h3><p>トップページのデザイン編集や、その他の導線。</p></div>
+  </div>
+
+  <section class="doc" id="sitebuild">
+    <h2><span class="chip">7</span> サイト構築（デザイン編集）</h2>
+    <p class="desc"><span class="pill">⚙️ サイト構築</span>：トップページの<b>都道府県リンク・カルーセル画像・キャッチコピー・説明文・SNS</b>などを編集します。</p>
+    <ol class="steps">
+      <li>役員ページ下部の <b>「⚙️ サイト構築ページを開く →」</b> を押します（または <code class="path">https://jdsf-seibu.com/site-config.html</code>）。</li>
+      <li><b>サイト構築専用のパスワード</b>を入力してログインします（役員ログインとは<b>別のパスワード</b>です）。</li>
+      <li>各項目を編集し、それぞれの<b>保存</b>ボタンを押します。</li>
+    </ol>
+    <div class="note">役員ページ（officers.html）とサイト構築ページ（site-config.html）は<b>パスワードが別</b>です。サイト構築用のパスワードも事務局が管理しています。</div>
+  </section>
+
+  <section class="doc" id="etc">
+    <h2><span class="chip">8</span> LINE・アクセス解析・ログアウト</h2>
+    <ul class="plain">
+      <li><b>💬 西部HP担当者グループ（LINE）</b>：ページ内のボタン、またはQRコードからLINEグループに参加できます。ホームページについての意見交換用です（外部への転送はお控えください）。</li>
+      <li><b>📊 アクセス解析</b>：右上のボタンから、サイトの閲覧状況（Looker Studio）を確認できます。</li>
+      <li><b>🔓 ログアウト</b>：右上のボタン。共用パソコンでは作業後に必ず押してください。</li>
+    </ul>
+  </section>
+
+  <!-- ============== E 困ったとき ============== -->
+  <div class="group-band">
+    <span class="gb-num">困ったとき</span>
+    <div><h3>うまくいかないとき</h3><p>よくある質問と対処法。</p></div>
+  </div>
+
+  <section class="doc" id="faq">
+    <h2><span class="chip">9</span> よくある質問（Q&amp;A）</h2>
+    <h3 class="step-h">投稿・登録が反映されない</h3>
+    <p>投稿・登録ボタンを押したか確認し、ブラウザを<b>強制リロード</b>してください（パソコン：<span class="kbd">Ctrl + Shift + R</span>／スマホ：画面を下に引っぱって更新）。</p>
+    <h3 class="step-h">パスワードを忘れた／変えたい</h3>
+    <p>ブロック事務局へご連絡ください。役員ログイン・サイト構築のパスワードは事務局の管理表で変更でき、次回ログインから反映されます。</p>
+    <h3 class="step-h">資料ファイルが登録できない</h3>
+    <p>対応形式は <b>PDF・Word・Excel・PowerPoint・CSV・ZIP</b>、サイズは <b>20MBまで</b>です。大きすぎる場合は圧縮・分割してください。登録時の<b>パスワード（役員ログインと同じ）</b>が正しいかもご確認ください。</p>
+    <h3 class="step-h">「役員内部連絡」と「公開お知らせ」の違いは？</h3>
+    <p><b>役員内部連絡</b>は役員だけが見る連絡用（一般公開されません）。<b>公開お知らせ</b>はトップページ・お知らせページに載り、<b>一般の方が見ます</b>。投稿先を間違えないようご注意ください。</p>
+    <h3 class="step-h">スマホでも操作できる？</h3>
+    <p>できます。同じURLをスマホのブラウザで開けば、同様に操作できます。</p>
+    <h3 class="step-h">削除してしまった</h3>
+    <p>削除は元に戻せません。必要な内容は、再度投稿・登録してください。</p>
+    <div class="warn"><b>共用のパソコンで作業したとき</b>は、終わったら必ず「🔓 ログアウト」を押してください。</div>
+    <div class="tip">操作で分からないことがあれば、ブロック事務局までお問い合わせください。</div>
+  </section>
+
+  </main>
+</div>
+
+<div class="foot">
+  © 2026 公益社団法人日本ダンススポーツ連盟 近畿中四国ブロック ｜ 役員専用ページ 操作マニュアル
+</div>
+
+</body>
+</html>
