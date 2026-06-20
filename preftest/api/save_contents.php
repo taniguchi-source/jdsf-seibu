@@ -41,6 +41,14 @@ foreach ($items as $item) {
     if ($sheet_range !== '' && !preg_match('/^[A-Za-z]+[0-9]+:[A-Za-z]+[0-9]+$/', $sheet_range)) {
         $sheet_range = '';
     }
+    // AI整形済みHTML（保存して公開ページで表示。念のため script/onイベントを除去）
+    $sheet_html = (string)($item['sheet_html'] ?? '');
+    if ($sheet_html !== '') {
+        $sheet_html = preg_replace('#<script\b[^>]*>.*?</script>#is', '', $sheet_html);
+        $sheet_html = preg_replace('/\son\w+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $sheet_html);
+        $sheet_html = mb_substr($sheet_html, 0, 200000);
+    }
+    $sheet_format = ((string)($item['sheet_format'] ?? '') === 'ai') ? 'ai' : '';
     $clean[] = [
         'id'         => preg_replace('/[^a-z0-9_]/i', '', (string)($item['id'] ?? '')),
         'title'      => mb_substr(trim((string)($item['title'] ?? '')), 0, 60),
@@ -49,9 +57,11 @@ foreach ($items as $item) {
         'show_title' => array_key_exists('show_title', $item) ? !empty($item['show_title']) : true,
         'type'       => in_array($type_raw, ['text', 'sheet', 'file', 'image', 'gallery', 'pdf', 'link'], true) ? $type_raw : 'text',
         'body'       => mb_substr(trim((string)($item['body'] ?? '')), 0, 5000),
-        'sheet_url'   => mb_substr(trim((string)($item['sheet_url']  ?? '')), 0, 500),
-        'sheet_name'  => mb_substr(trim((string)($item['sheet_name'] ?? '')), 0, 100),
-        'sheet_range' => $sheet_range,
+        'sheet_url'    => mb_substr(trim((string)($item['sheet_url']  ?? '')), 0, 500),
+        'sheet_name'   => mb_substr(trim((string)($item['sheet_name'] ?? '')), 0, 100),
+        'sheet_range'  => $sheet_range,
+        'sheet_html'   => $sheet_html,
+        'sheet_format' => $sheet_format,
         'file_url'   => mb_substr(trim((string)($item['file_url']   ?? '')), 0, 500),
         'link_url'   => mb_substr(trim((string)($item['link_url']   ?? '')), 0, 500),
         'link_label' => mb_substr(trim((string)($item['link_label'] ?? '')), 0, 100),

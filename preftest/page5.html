@@ -428,8 +428,9 @@
 
   function appendWithFetch(item, bodyEl, container) {
     container.appendChild(bodyEl);
-    if (item.type === 'sheet' && item.sheet_url) {
-      fetchSheet(item.sheet_url, item.sheet_name, bodyEl, item.sheet_range);
+    if (item.type === 'sheet') {
+      if (item.sheet_html) { bodyEl.innerHTML = item.sheet_html; }
+      else if (item.sheet_url) { fetchSheet(item.sheet_url, item.sheet_name, bodyEl, item.sheet_range); }
     }
   }
 

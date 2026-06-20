@@ -460,6 +460,29 @@
             <button onclick="loadSheetPreview()" style="padding:8px 22px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">🔍 プレビュー</button>
             <span style="font-size:.75rem;color:var(--text-light);line-height:1.4;">スプレッドシートを<strong>「リンクを知っている全員が閲覧可」</strong>に設定してください</span>
           </div>
+
+          <!-- ✨ AIで見やすく整形 -->
+          <div style="border:1.5px solid #e3d9f5;background:#faf7ff;border-radius:10px;padding:12px 14px;">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <button type="button" onclick="formatSheetAI()" id="cd-ai-btn" style="padding:8px 18px;background:#7c52a8;color:#fff;border:none;border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">✨ AIで見やすく整形</button>
+              <button type="button" onclick="clearSheetAI()" id="cd-ai-clear-btn" style="display:none;padding:8px 14px;background:#fff;color:var(--text-light);border:1.5px solid var(--border);border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">元の表に戻す</button>
+              <span style="font-size:.73rem;color:var(--text-light);line-height:1.4;">委員会サイト風の見やすい表に自動整形します（保存時に反映）。</span>
+            </div>
+            <div id="cd-ai-msg" style="display:none;font-size:.75rem;margin-top:8px;"></div>
+            <!-- Gemini APIキー設定 -->
+            <details style="margin-top:10px;">
+              <summary style="cursor:pointer;font-size:.75rem;color:var(--text-medium);font-weight:700;">⚙ AI整形の設定（Gemini APIキー）<span id="cd-ai-key-status" style="font-weight:400;margin-left:6px;"></span></summary>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;">
+                <input type="password" id="cd-ai-key" class="form-input" style="flex:1;min-width:200px;" placeholder="AIza… で始まるGemini APIキー" autocomplete="off">
+                <button type="button" onclick="saveGeminiKey()" id="cd-ai-key-btn" style="padding:8px 16px;background:#7c52a8;color:#fff;border:none;border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">キーを保存</button>
+              </div>
+              <div id="cd-ai-key-msg" style="display:none;font-size:.73rem;margin-top:6px;"></div>
+              <p style="font-size:.7rem;color:var(--text-light);margin:6px 0 0;line-height:1.5;">キーはこのサイトのサーバー内（非公開）に保存され、整形時のみ使用します。Google AI Studio（aistudio.google.com）で無料発行できます。</p>
+            </details>
+          </div>
+
+          <input type="hidden" id="cd-sheet-html">
+          <input type="hidden" id="cd-sheet-format">
           <div id="cd-sheet-preview"></div>
         </div>
       </div>
@@ -1255,6 +1278,12 @@
     var rangeClr = document.getElementById('cd-range-clear-btn');
     if (rangeClr) rangeClr.style.display = (item.sheet_range ? '' : 'none');
     _rangeAnchor = null; _rangeRows = []; _rangePicked = '';
+    // AI整形フィールドの復元
+    var sHtml = document.getElementById('cd-sheet-html');   if (sHtml) sHtml.value = item.sheet_html || '';
+    var sFmt  = document.getElementById('cd-sheet-format'); if (sFmt)  sFmt.value  = item.sheet_format || '';
+    var aiMsg = document.getElementById('cd-ai-msg');       if (aiMsg) { aiMsg.style.display='none'; aiMsg.textContent=''; }
+    var aiClr = document.getElementById('cd-ai-clear-btn'); if (aiClr) aiClr.style.display = (item.sheet_html ? '' : 'none');
+    if (typeof refreshGeminiKeyStatus === 'function') refreshGeminiKeyStatus();
     // ファイルフィールド
     var fileUrl   = document.getElementById('cd-file-url');
     var fileName  = document.getElementById('cd-file-name');
@@ -1321,9 +1350,11 @@
     for (var ri = 0; ri < radios.length; ri++) {
       if (radios[ri].checked) { type = radios[ri].value; break; }
     }
-    var sheetUrl   = ((document.getElementById('cd-sheet-url')   || {value:''}).value || '').trim();
-    var sheetName  = ((document.getElementById('cd-sheet-name')  || {value:''}).value || '').trim();
-    var sheetRange = ((document.getElementById('cd-sheet-range') || {value:''}).value || '').trim();
+    var sheetUrl    = ((document.getElementById('cd-sheet-url')    || {value:''}).value || '').trim();
+    var sheetName   = ((document.getElementById('cd-sheet-name')   || {value:''}).value || '').trim();
+    var sheetRange  = ((document.getElementById('cd-sheet-range')  || {value:''}).value || '').trim();
+    var sheetHtml   = ((document.getElementById('cd-sheet-html')   || {value:''}).value || '');
+    var sheetFormat = ((document.getElementById('cd-sheet-format') || {value:''}).value || '');
     var fileUrl   = ((document.getElementById('cd-file-url')   || {value:''}).value || '').trim();
     var linkUrl   = ((document.getElementById('cd-link-url')   || {value:''}).value || '').trim();
     var linkLabel = ((document.getElementById('cd-link-label') || {value:''}).value || '').trim();
@@ -1339,9 +1370,11 @@
       item.show_title = showTitle;
       item.body       = body;
       item.type       = type;
-      item.sheet_url   = sheetUrl;
-      item.sheet_name  = sheetName;
-      item.sheet_range = sheetRange;
+      item.sheet_url    = sheetUrl;
+      item.sheet_name   = sheetName;
+      item.sheet_range  = sheetRange;
+      item.sheet_html   = sheetHtml;
+      item.sheet_format = sheetFormat;
       item.file_url   = fileUrl;
       item.link_url   = linkUrl;
       item.link_label = linkLabel;
@@ -1646,6 +1679,69 @@
       .catch(function(){ if (btn) { btn.disabled = false; btn.textContent = btn._o || '📋 シート一覧から選ぶ'; } showMsg('⚠ 通信エラーが発生しました', false); });
   }
 
+  /* ===== AIで見やすく整形（Gemini） ===== */
+  function refreshGeminiKeyStatus() {
+    var st = document.getElementById('cd-ai-key-status');
+    fetch('api/save_gemini_key.php?action=status&token=' + encodeURIComponent(TOKEN))
+      .then(function(r){ return r.json(); })
+      .then(function(res){ if (st) st.textContent = (res && res.has) ? '（設定済み）' : '（未設定）'; if (st) st.style.color = (res && res.has) ? '#166534' : '#B91C1C'; })
+      .catch(function(){ if (st) st.textContent = ''; });
+  }
+  function saveGeminiKey() {
+    var key = ((document.getElementById('cd-ai-key') || {value:''}).value || '').trim();
+    var msg = document.getElementById('cd-ai-key-msg');
+    var btn = document.getElementById('cd-ai-key-btn');
+    function show(t, ok){ if(!msg) return; msg.style.display='block'; msg.textContent=t; msg.style.color = ok?'#166534':'#B91C1C'; }
+    if (!key) { show('APIキーを入力してください', false); return; }
+    if (btn) { btn.disabled = true; btn.textContent = '保存中…'; }
+    var fd = new FormData(); fd.append('token', TOKEN); fd.append('action', 'save'); fd.append('key', key);
+    fetch('api/save_gemini_key.php', { method:'POST', body:fd })
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if (btn) { btn.disabled = false; btn.textContent = 'キーを保存'; }
+        if (res && res.ok) { show('✅ キーを保存しました', true); var k=document.getElementById('cd-ai-key'); if(k) k.value=''; refreshGeminiKeyStatus(); }
+        else show('⚠ ' + ((res && res.error) || '保存に失敗しました'), false);
+      })
+      .catch(function(){ if (btn){btn.disabled=false;btn.textContent='キーを保存';} show('⚠ 通信エラー', false); });
+  }
+  function formatSheetAI() {
+    var url   = ((document.getElementById('cd-sheet-url')   || {value:''}).value || '').trim();
+    var name  = ((document.getElementById('cd-sheet-name')  || {value:''}).value || '').trim();
+    var range = ((document.getElementById('cd-sheet-range') || {value:''}).value || '').trim();
+    var msg     = document.getElementById('cd-ai-msg');
+    var btn     = document.getElementById('cd-ai-btn');
+    var preview = document.getElementById('cd-sheet-preview');
+    function show(t, ok){ if(!msg) return; msg.style.display='block'; msg.textContent=t; msg.style.color = ok?'#166534':'#B91C1C'; }
+    if (!url) { show('先にスプレッドシートURLを入力してください', false); return; }
+    if (btn) { btn.disabled = true; btn._o = btn.textContent; btn.textContent = '✨ 整形中…'; }
+    show('⏳ Geminiで整形しています…（数秒かかります）', true);
+    var fd = new FormData(); fd.append('token', TOKEN); fd.append('sheet_url', url); fd.append('sheet_name', name); fd.append('sheet_range', range);
+    fetch('api/format_sheet_ai.php', { method:'POST', body:fd })
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if (btn) { btn.disabled = false; btn.textContent = btn._o || '✨ AIで見やすく整形'; }
+        if (res && res.ok && res.html) {
+          var h = document.getElementById('cd-sheet-html');   if (h) h.value = res.html;
+          var f = document.getElementById('cd-sheet-format'); if (f) f.value = 'ai';
+          if (preview) preview.innerHTML = '<div style="margin-top:10px;">' + res.html + '</div>';
+          var clr = document.getElementById('cd-ai-clear-btn'); if (clr) clr.style.display = '';
+          show('✅ 整形しました。「保存する →」で公開ページに反映されます。', true);
+        } else if (res && res.need_key) {
+          show('⚠ Gemini APIキーが未設定です。下の「⚙ AI整形の設定」でキーを保存してください。', false);
+        } else {
+          show('⚠ ' + ((res && res.error) || '整形に失敗しました'), false);
+        }
+      })
+      .catch(function(){ if (btn){btn.disabled=false;btn.textContent=btn._o||'✨ AIで見やすく整形';} show('⚠ 通信エラーが発生しました', false); });
+  }
+  function clearSheetAI() {
+    var h = document.getElementById('cd-sheet-html');   if (h) h.value = '';
+    var f = document.getElementById('cd-sheet-format'); if (f) f.value = '';
+    var clr = document.getElementById('cd-ai-clear-btn'); if (clr) clr.style.display = 'none';
+    var msg = document.getElementById('cd-ai-msg'); if (msg) { msg.style.display='block'; msg.style.color='#166534'; msg.textContent='整形を解除しました（保存すると通常の表に戻ります）。'; }
+    loadSheetPreview();
+  }
+
   /* ===== 範囲ピッカー（大画面でスプレッドシートを表示しセル範囲をクリックで選択） ===== */
   var _rangeAnchor = null;  // {r, c}（0始まり）／確定前の開始セル
   var _rangeRows   = [];    // ピッカー表示中のCSV行（生データ）
@@ -1886,6 +1982,9 @@
   window.closeRangePicker   = closeRangePicker;
   window.confirmRangePicker = confirmRangePicker;
   window.rpmClearSelection  = rpmClearSelection;
+  window.saveGeminiKey      = saveGeminiKey;
+  window.formatSheetAI      = formatSheetAI;
+  window.clearSheetAI       = clearSheetAI;
   window.uploadContentFile  = uploadContentFile;
   window.clearContentFile   = clearContentFile;
 
