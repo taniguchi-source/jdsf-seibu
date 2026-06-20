@@ -347,7 +347,7 @@
           <label id="cd-type-label-text" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:1;">
             <input type="radio" name="cd-type" value="text" checked onchange="switchContentType('text')" style="cursor:pointer;accent-color:var(--primary);"> 📝 テキスト
           </label>
-          <label id="cd-type-label-sheet" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:2;">
+          <label id="cd-type-label-sheet" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:7;">
             <input type="radio" name="cd-type" value="sheet" onchange="switchContentType('sheet')" style="cursor:pointer;accent-color:var(--primary);"> 📊 Googleスプレッドシート
           </label>
           <label id="cd-type-label-image" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:3;">
@@ -440,7 +440,12 @@
           </div>
           <div>
             <label class="form-label">シート名（タブ名） <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（省略時は最初のシートを表示）</span></label>
-            <input type="text" id="cd-sheet-name" class="form-input" placeholder="例：役員名">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input type="text" id="cd-sheet-name" class="form-input" style="flex:1;min-width:160px;" placeholder="例：役員名">
+              <button type="button" onclick="loadSheetList()" id="cd-sheet-list-btn" style="padding:8px 16px;background:#fff;color:var(--primary);border:1.5px solid var(--primary);border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">📋 シート一覧から選ぶ</button>
+            </div>
+            <select id="cd-sheet-select" onchange="if(this.value){document.getElementById('cd-sheet-name').value=this.value;}" style="display:none;width:100%;margin-top:8px;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.875rem;font-family:inherit;background:#fff;"></select>
+            <div id="cd-sheet-list-msg" style="display:none;font-size:.75rem;margin-top:6px;"></div>
           </div>
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
             <button onclick="loadSheetPreview()" style="padding:8px 22px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">🔍 プレビュー</button>
@@ -1207,6 +1212,10 @@
     if (sheetUrl)  sheetUrl.value  = item.sheet_url  || '';
     if (sheetName) sheetName.value = item.sheet_name || '';
     if (sheetPrev) sheetPrev.innerHTML = '';
+    var sheetSel = document.getElementById('cd-sheet-select');
+    if (sheetSel) { sheetSel.innerHTML = ''; sheetSel.style.display = 'none'; }
+    var sheetListMsg = document.getElementById('cd-sheet-list-msg');
+    if (sheetListMsg) { sheetListMsg.style.display = 'none'; sheetListMsg.textContent = ''; }
     // ファイルフィールド
     var fileUrl   = document.getElementById('cd-file-url');
     var fileName  = document.getElementById('cd-file-name');
@@ -1559,6 +1568,37 @@
       });
   }
 
+  /* ===== スプレッドシートのシート一覧を取得して選択 ===== */
+  function loadSheetList() {
+    var url = ((document.getElementById('cd-sheet-url')  || {value:''}).value || '').trim();
+    var sel = document.getElementById('cd-sheet-select');
+    var msg = document.getElementById('cd-sheet-list-msg');
+    var btn = document.getElementById('cd-sheet-list-btn');
+    function showMsg(t, ok) { if (!msg) return; msg.style.display='block'; msg.textContent=t; msg.style.color = ok ? '#166534' : '#B91C1C'; }
+    if (!url) { showMsg('先にスプレッドシートURLを入力してください', false); return; }
+    if (btn) { btn._o = btn.textContent; btn.disabled = true; btn.textContent = '取得中…'; }
+    var fd = new FormData();
+    fd.append('token', TOKEN);
+    fd.append('sheet_url', url);
+    fetch('api/list_sheets.php', { method:'POST', body:fd })
+      .then(function(r){ return r.json().catch(function(){ throw new Error('HTTP ' + r.status); }); })
+      .then(function(res){
+        if (btn) { btn.disabled = false; btn.textContent = btn._o || '📋 シート一覧から選ぶ'; }
+        if (res && res.ok && res.sheets && res.sheets.length) {
+          var cur = ((document.getElementById('cd-sheet-name') || {value:''}).value || '');
+          sel.innerHTML = '';
+          var o0 = document.createElement('option'); o0.value=''; o0.textContent='― シートを選択 ―'; sel.appendChild(o0);
+          res.sheets.forEach(function(n){ var o=document.createElement('option'); o.value=n; o.textContent=n; if (n===cur) o.selected=true; sel.appendChild(o); });
+          sel.style.display = 'block';
+          showMsg('✅ ' + res.sheets.length + '件のシートを取得しました。下の一覧から選んでください。', true);
+        } else {
+          if (sel) sel.style.display = 'none';
+          showMsg('⚠ ' + ((res && res.error) || 'シート一覧を取得できませんでした'), false);
+        }
+      })
+      .catch(function(){ if (btn) { btn.disabled = false; btn.textContent = btn._o || '📋 シート一覧から選ぶ'; } showMsg('⚠ 通信エラーが発生しました', false); });
+  }
+
   /* ===== CSV → HTML テーブル ===== */
   function parseCSV(text) {
     var rows = [];
@@ -1648,6 +1688,7 @@
   window.updateTypeLayout   = updateTypeLayout;
   window.updateLinkPreview  = updateLinkPreview;
   window.loadSheetPreview   = loadSheetPreview;
+  window.loadSheetList      = loadSheetList;
   window.uploadContentFile  = uploadContentFile;
   window.clearContentFile   = clearContentFile;
 

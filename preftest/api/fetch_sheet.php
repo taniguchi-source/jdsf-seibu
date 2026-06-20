@@ -27,14 +27,17 @@ $sheet_id = $m[1];
 
 /* ===== 試行する CSV エクスポートURL リスト ===== */
 $sheet_param = $sheet_name !== '' ? '&sheet=' . urlencode($sheet_name) : '';
-$urls = [
-    // 方法1: 標準エクスポートURL
-    'export'     => 'https://docs.google.com/spreadsheets/d/' . $sheet_id . '/export?format=csv' . $sheet_param,
-    // 方法2: gviz/tq エンドポイント（認証なしで動くことが多い）
-    'gviz'       => 'https://docs.google.com/spreadsheets/d/' . $sheet_id . '/gviz/tq?tqx=out:csv' . $sheet_param,
-    // 方法3: Pub URL（公開済みシート向け）
-    'pub'        => 'https://docs.google.com/spreadsheets/d/' . $sheet_id . '/pub?output=csv' . $sheet_param,
-];
+$base     = 'https://docs.google.com/spreadsheets/d/' . $sheet_id;
+$u_export = $base . '/export?format=csv'   . $sheet_param;  // ※シート名(&sheet=)は無視され先頭シートを返す（gidのみ有効）
+$u_gviz   = $base . '/gviz/tq?tqx=out:csv' . $sheet_param;  // ※シート名(&sheet=)を解釈できる
+$u_pub    = $base . '/pub?output=csv'      . $sheet_param;
+if ($sheet_name !== '') {
+    // シート名（タブ名）指定時は gviz を最優先。export/pub は名前を無視し先頭シートを返すため後段のフォールバックに回す。
+    $urls = ['gviz' => $u_gviz, 'export' => $u_export, 'pub' => $u_pub];
+} else {
+    // シート名なしは従来どおり標準エクスポートを優先。
+    $urls = ['export' => $u_export, 'gviz' => $u_gviz, 'pub' => $u_pub];
+}
 
 $csv   = false;
 $debug = [];
