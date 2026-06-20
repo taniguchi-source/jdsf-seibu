@@ -1589,26 +1589,30 @@
       return;
     }
     preview.innerHTML = '<p style="color:var(--text-light);font-size:.82rem;margin:6px 0 0;">⏳ 読み込み中...</p>';
-    var fd = new FormData();
-    fd.append('token',       TOKEN);
-    fd.append('sheet_url',   url);
-    fd.append('sheet_name',  name);
-    fd.append('sheet_range', range);
-    fetch('api/fetch_sheet.php', { method:'POST', body:fd })
-      .then(function(r) {
-        if (!r.ok) return r.json().then(function(e){ throw new Error(e.error || 'HTTP ' + r.status); }).catch(function(){ throw new Error('HTTP ' + r.status); });
-        return r.json();
+    function fd() { var f = new FormData(); f.append('token', TOKEN); f.append('sheet_url', url); f.append('sheet_name', name); f.append('sheet_range', range); return f; }
+    function wrap(inner) { return '<div style="overflow-x:auto;margin-top:10px;border-radius:8px;border:1px solid #dde4ef;">' + inner + '</div>'; }
+    /* まず書式付き(xlsx解析)で取得。失敗時はCSV表示にフォールバック */
+    fetch('api/fetch_sheet_styled.php', { method:'POST', body:fd() })
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if (res && res.ok && res.html) { preview.innerHTML = wrap(res.html); return; }
+        return loadCSV();
       })
-      .then(function(res) {
-        if (res.ok && res.csv) {
-          preview.innerHTML = csvToTable(res.csv);
-        } else {
-          preview.innerHTML = '<p style="color:#B91C1C;font-size:.82rem;margin:6px 0 0;">⚠ ' + escHtml(res.error || 'エラーが発生しました') + '</p>';
-        }
-      })
-      .catch(function(e) {
-        preview.innerHTML = '<p style="color:#B91C1C;font-size:.82rem;margin:6px 0 0;">⚠ ' + escHtml(e && e.message ? e.message : '通信エラー') + '</p>';
-      });
+      .catch(function(){ return loadCSV(); });
+    function loadCSV() {
+      return fetch('api/fetch_sheet.php', { method:'POST', body:fd() })
+        .then(function(r) {
+          if (!r.ok) return r.json().then(function(e){ throw new Error(e.error || 'HTTP ' + r.status); }).catch(function(){ throw new Error('HTTP ' + r.status); });
+          return r.json();
+        })
+        .then(function(res) {
+          if (res.ok && res.csv) preview.innerHTML = csvToTable(res.csv);
+          else preview.innerHTML = '<p style="color:#B91C1C;font-size:.82rem;margin:6px 0 0;">⚠ ' + escHtml(res.error || 'エラーが発生しました') + '</p>';
+        })
+        .catch(function(e) {
+          preview.innerHTML = '<p style="color:#B91C1C;font-size:.82rem;margin:6px 0 0;">⚠ ' + escHtml(e && e.message ? e.message : '通信エラー') + '</p>';
+        });
+    }
   }
 
   /* ===== スプレッドシートのシート一覧を取得して選択 ===== */

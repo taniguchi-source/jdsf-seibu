@@ -326,26 +326,32 @@
 
   /* ===== スプレッドシート取得 ===== */
   function fetchSheet(sheetUrl, sheetName, targetEl, sheetRange) {
-    var fd = new FormData();
-    fd.append('token',       TOKEN);
-    fd.append('sheet_url',   sheetUrl);
-    fd.append('sheet_name',  sheetName || '');
-    fd.append('sheet_range', sheetRange || '');
-    fetch('api/fetch_sheet.php', { method:'POST', body:fd })
-      .then(function(r) { return r.json(); })
-      .then(function(res) {
-        if (res.ok && res.csv) {
-          targetEl.innerHTML = csvToTable(res.csv);
-        } else {
-          var dbgHtml = res.debug
-            ? '<br><small style="font-size:.72rem;color:#6B7280;word-break:break-all;">🔧 ' + escHtml(res.debug) + '</small>'
-            : '';
-          targetEl.innerHTML = '<p style="color:#B91C1C;">⚠ ' + escHtml(res.error || 'データの取得に失敗しました') + '</p>' + dbgHtml;
-        }
+    function mkfd() { var fd = new FormData(); fd.append('token', TOKEN); fd.append('sheet_url', sheetUrl); fd.append('sheet_name', sheetName || ''); fd.append('sheet_range', sheetRange || ''); return fd; }
+    /* まず書式付き(xlsx解析)で取得。失敗時はCSV表示にフォールバック */
+    fetch('api/fetch_sheet_styled.php', { method:'POST', body:mkfd() })
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if (res && res.ok && res.html) { targetEl.innerHTML = '<div class="sheet-table-wrap">' + res.html + '</div>'; return; }
+        return loadCSV();
       })
-      .catch(function() {
-        targetEl.innerHTML = '<p style="color:#B91C1C;">⚠ 通信エラーが発生しました</p>';
-      });
+      .catch(function(){ return loadCSV(); });
+    function loadCSV() {
+      return fetch('api/fetch_sheet.php', { method:'POST', body:mkfd() })
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (res.ok && res.csv) {
+            targetEl.innerHTML = csvToTable(res.csv);
+          } else {
+            var dbgHtml = res.debug
+              ? '<br><small style="font-size:.72rem;color:#6B7280;word-break:break-all;">🔧 ' + escHtml(res.debug) + '</small>'
+              : '';
+            targetEl.innerHTML = '<p style="color:#B91C1C;">⚠ ' + escHtml(res.error || 'データの取得に失敗しました') + '</p>' + dbgHtml;
+          }
+        })
+        .catch(function() {
+          targetEl.innerHTML = '<p style="color:#B91C1C;">⚠ 通信エラーが発生しました</p>';
+        });
+    }
   }
 
   /* ===== コンテンツ描画（ボディ生成ヘルパー） ===== */
