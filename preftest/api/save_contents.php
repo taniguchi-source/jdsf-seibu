@@ -36,6 +36,11 @@ foreach ($items as $item) {
             if (count($gallery) >= 10) break;
         }
     }
+    // 表示範囲（A1:F20 形式のみ許可。それ以外は空＝全体）
+    $sheet_range = trim((string)($item['sheet_range'] ?? ''));
+    if ($sheet_range !== '' && !preg_match('/^[A-Za-z]+[0-9]+:[A-Za-z]+[0-9]+$/', $sheet_range)) {
+        $sheet_range = '';
+    }
     $clean[] = [
         'id'         => preg_replace('/[^a-z0-9_]/i', '', (string)($item['id'] ?? '')),
         'title'      => mb_substr(trim((string)($item['title'] ?? '')), 0, 60),
@@ -44,8 +49,9 @@ foreach ($items as $item) {
         'show_title' => array_key_exists('show_title', $item) ? !empty($item['show_title']) : true,
         'type'       => in_array($type_raw, ['text', 'sheet', 'file', 'image', 'gallery', 'pdf', 'link'], true) ? $type_raw : 'text',
         'body'       => mb_substr(trim((string)($item['body'] ?? '')), 0, 5000),
-        'sheet_url'  => mb_substr(trim((string)($item['sheet_url']  ?? '')), 0, 500),
-        'sheet_name' => mb_substr(trim((string)($item['sheet_name'] ?? '')), 0, 100),
+        'sheet_url'   => mb_substr(trim((string)($item['sheet_url']  ?? '')), 0, 500),
+        'sheet_name'  => mb_substr(trim((string)($item['sheet_name'] ?? '')), 0, 100),
+        'sheet_range' => $sheet_range,
         'file_url'   => mb_substr(trim((string)($item['file_url']   ?? '')), 0, 500),
         'link_url'   => mb_substr(trim((string)($item['link_url']   ?? '')), 0, 500),
         'link_label' => mb_substr(trim((string)($item['link_label'] ?? '')), 0, 100),

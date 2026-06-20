@@ -14,8 +14,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 /* ===== パラメータ ===== */
-$sheet_url  = trim($_POST['sheet_url']  ?? '');
-$sheet_name = trim($_POST['sheet_name'] ?? '');
+$sheet_url   = trim($_POST['sheet_url']   ?? '');
+$sheet_name  = trim($_POST['sheet_name']  ?? '');
+$sheet_range = trim($_POST['sheet_range'] ?? '');  // 例：A1:F20（空欄=シート全体）
+/* 範囲は A1:F20 形式のみ許可（不正値は無視） */
+if ($sheet_range !== '' && !preg_match('/^[A-Za-z]+[0-9]+:[A-Za-z]+[0-9]+$/', $sheet_range)) {
+    $sheet_range = '';
+}
 
 /* ===== スプレッドシートID 抽出 ===== */
 if (!preg_match('#/spreadsheets/d/([a-zA-Z0-9_-]+)#', $sheet_url, $m)) {
@@ -27,15 +32,16 @@ $sheet_id = $m[1];
 
 /* ===== 試行する CSV エクスポートURL リスト ===== */
 $sheet_param = $sheet_name !== '' ? '&sheet=' . urlencode($sheet_name) : '';
+$range_param = $sheet_range !== '' ? '&range=' . urlencode($sheet_range) : '';  // 範囲は gviz のみ解釈可
 $base     = 'https://docs.google.com/spreadsheets/d/' . $sheet_id;
-$u_export = $base . '/export?format=csv'   . $sheet_param;  // ※シート名(&sheet=)は無視され先頭シートを返す（gidのみ有効）
-$u_gviz   = $base . '/gviz/tq?tqx=out:csv' . $sheet_param;  // ※シート名(&sheet=)を解釈できる
+$u_export = $base . '/export?format=csv'   . $sheet_param;                 // ※シート名(&sheet=)・範囲(&range=)は無視（gidのみ有効）
+$u_gviz   = $base . '/gviz/tq?tqx=out:csv' . $sheet_param . $range_param;  // ※シート名・範囲ともに解釈できる
 $u_pub    = $base . '/pub?output=csv'      . $sheet_param;
-if ($sheet_name !== '') {
-    // シート名（タブ名）指定時は gviz を最優先。export/pub は名前を無視し先頭シートを返すため後段のフォールバックに回す。
+if ($sheet_name !== '' || $sheet_range !== '') {
+    // シート名（タブ名）・範囲指定時は gviz を最優先。export/pub は名前・範囲を無視し先頭シート全体を返すため後段のフォールバックに回す。
     $urls = ['gviz' => $u_gviz, 'export' => $u_export, 'pub' => $u_pub];
 } else {
-    // シート名なしは従来どおり標準エクスポートを優先。
+    // 指定なしは従来どおり標準エクスポートを優先。
     $urls = ['export' => $u_export, 'gviz' => $u_gviz, 'pub' => $u_pub];
 }
 

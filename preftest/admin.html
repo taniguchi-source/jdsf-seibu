@@ -447,6 +447,16 @@
             <select id="cd-sheet-select" onchange="if(this.value){document.getElementById('cd-sheet-name').value=this.value;}" style="display:none;width:100%;margin-top:8px;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.875rem;font-family:inherit;background:#fff;"></select>
             <div id="cd-sheet-list-msg" style="display:none;font-size:.75rem;margin-top:6px;"></div>
           </div>
+          <div>
+            <label class="form-label">表示する範囲 <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（省略時はシート全体を表示）</span></label>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input type="text" id="cd-sheet-range" class="form-input" style="flex:1;min-width:160px;" placeholder="例：A1:F20">
+              <button type="button" onclick="loadRangePicker()" id="cd-range-pick-btn" style="padding:8px 16px;background:#fff;color:var(--primary);border:1.5px solid var(--primary);border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">📐 シートから範囲を選ぶ</button>
+              <button type="button" onclick="clearSheetRange()" id="cd-range-clear-btn" style="display:none;padding:8px 14px;background:#fff;color:var(--text-light);border:1.5px solid var(--border);border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">✕ 範囲を解除</button>
+            </div>
+            <div id="cd-range-msg" style="display:none;font-size:.75rem;margin-top:6px;"></div>
+            <div id="cd-range-grid" style="display:none;margin-top:8px;"></div>
+          </div>
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
             <button onclick="loadSheetPreview()" style="padding:8px 22px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">🔍 プレビュー</button>
             <span style="font-size:.75rem;color:var(--text-light);line-height:1.4;">スプレッドシートを<strong>「リンクを知っている全員が閲覧可」</strong>に設定してください</span>
@@ -1216,6 +1226,16 @@
     if (sheetSel) { sheetSel.innerHTML = ''; sheetSel.style.display = 'none'; }
     var sheetListMsg = document.getElementById('cd-sheet-list-msg');
     if (sheetListMsg) { sheetListMsg.style.display = 'none'; sheetListMsg.textContent = ''; }
+    // 範囲フィールド + ピッカーの初期化
+    var sheetRange = document.getElementById('cd-sheet-range');
+    if (sheetRange) sheetRange.value = item.sheet_range || '';
+    var rangeGrid = document.getElementById('cd-range-grid');
+    if (rangeGrid) { rangeGrid.style.display = 'none'; rangeGrid.innerHTML = ''; }
+    var rangeMsg = document.getElementById('cd-range-msg');
+    if (rangeMsg) { rangeMsg.style.display = 'none'; rangeMsg.textContent = ''; }
+    var rangeClr = document.getElementById('cd-range-clear-btn');
+    if (rangeClr) rangeClr.style.display = (item.sheet_range ? '' : 'none');
+    _rangeAnchor = null; _rangeRows = [];
     // ファイルフィールド
     var fileUrl   = document.getElementById('cd-file-url');
     var fileName  = document.getElementById('cd-file-name');
@@ -1282,8 +1302,9 @@
     for (var ri = 0; ri < radios.length; ri++) {
       if (radios[ri].checked) { type = radios[ri].value; break; }
     }
-    var sheetUrl  = ((document.getElementById('cd-sheet-url')  || {value:''}).value || '').trim();
-    var sheetName = ((document.getElementById('cd-sheet-name') || {value:''}).value || '').trim();
+    var sheetUrl   = ((document.getElementById('cd-sheet-url')   || {value:''}).value || '').trim();
+    var sheetName  = ((document.getElementById('cd-sheet-name')  || {value:''}).value || '').trim();
+    var sheetRange = ((document.getElementById('cd-sheet-range') || {value:''}).value || '').trim();
     var fileUrl   = ((document.getElementById('cd-file-url')   || {value:''}).value || '').trim();
     var linkUrl   = ((document.getElementById('cd-link-url')   || {value:''}).value || '').trim();
     var linkLabel = ((document.getElementById('cd-link-label') || {value:''}).value || '').trim();
@@ -1299,8 +1320,9 @@
       item.show_title = showTitle;
       item.body       = body;
       item.type       = type;
-      item.sheet_url  = sheetUrl;
-      item.sheet_name = sheetName;
+      item.sheet_url   = sheetUrl;
+      item.sheet_name  = sheetName;
+      item.sheet_range = sheetRange;
       item.file_url   = fileUrl;
       item.link_url   = linkUrl;
       item.link_label = linkLabel;
@@ -1380,13 +1402,13 @@
         switchContentType('link');
       }
     } else {
-      /* 通常: テキスト(1)→スプレッドシート(2)→画像(3)→ギャラリー(4)→PDF(5)→リンク(6) */
+      /* 通常: テキスト(1)→画像(2)→ギャラリー(3)→PDF(4)→リンク(5)→スプレッドシート(6) */
       if (lblText)    { lblText.style.order    = '1'; lblText.style.display    = 'inline-flex'; }
-      if (lblSheet)   { lblSheet.style.order   = '2'; lblSheet.style.display   = 'inline-flex'; }
-      if (lblImage)   { lblImage.style.order   = '3'; lblImage.style.display   = 'inline-flex'; }
-      if (lblGallery) { lblGallery.style.order = '4'; lblGallery.style.display = 'inline-flex'; }
-      if (lblPdf)     { lblPdf.style.order     = '5'; lblPdf.style.display     = 'inline-flex'; }
-      if (lblLink)    { lblLink.style.order    = '6'; lblLink.style.display    = 'inline-flex'; }
+      if (lblImage)   { lblImage.style.order   = '2'; lblImage.style.display   = 'inline-flex'; }
+      if (lblGallery) { lblGallery.style.order = '3'; lblGallery.style.display = 'inline-flex'; }
+      if (lblPdf)     { lblPdf.style.order     = '4'; lblPdf.style.display     = 'inline-flex'; }
+      if (lblLink)    { lblLink.style.order    = '5'; lblLink.style.display    = 'inline-flex'; }
+      if (lblSheet)   { lblSheet.style.order   = '6'; lblSheet.style.display   = 'inline-flex'; }
     }
   }
 
@@ -1538,8 +1560,9 @@
 
   /* ===== スプレッドシートプレビュー ===== */
   function loadSheetPreview() {
-    var url      = ((document.getElementById('cd-sheet-url')  || {value:''}).value || '').trim();
-    var name     = ((document.getElementById('cd-sheet-name') || {value:''}).value || '').trim();
+    var url      = ((document.getElementById('cd-sheet-url')   || {value:''}).value || '').trim();
+    var name     = ((document.getElementById('cd-sheet-name')  || {value:''}).value || '').trim();
+    var range    = ((document.getElementById('cd-sheet-range') || {value:''}).value || '').trim();
     var preview  = document.getElementById('cd-sheet-preview');
     if (!preview) return;
     if (!url) {
@@ -1548,9 +1571,10 @@
     }
     preview.innerHTML = '<p style="color:var(--text-light);font-size:.82rem;margin:6px 0 0;">⏳ 読み込み中...</p>';
     var fd = new FormData();
-    fd.append('token',      TOKEN);
-    fd.append('sheet_url',  url);
-    fd.append('sheet_name', name);
+    fd.append('token',       TOKEN);
+    fd.append('sheet_url',   url);
+    fd.append('sheet_name',  name);
+    fd.append('sheet_range', range);
     fetch('api/fetch_sheet.php', { method:'POST', body:fd })
       .then(function(r) {
         if (!r.ok) return r.json().then(function(e){ throw new Error(e.error || 'HTTP ' + r.status); }).catch(function(){ throw new Error('HTTP ' + r.status); });
@@ -1597,6 +1621,131 @@
         }
       })
       .catch(function(){ if (btn) { btn.disabled = false; btn.textContent = btn._o || '📋 シート一覧から選ぶ'; } showMsg('⚠ 通信エラーが発生しました', false); });
+  }
+
+  /* ===== 範囲ピッカー（シートを表示しセル範囲をクリックで選択） ===== */
+  var _rangeAnchor = null;  // {r, c}（0始まり）
+  var _rangeRows   = [];    // ピッカー表示中のCSV行（生データ）
+
+  function colLetter(n) {  // 0→A, 25→Z, 26→AA …
+    var s = '';
+    n = n + 1;
+    while (n > 0) { var m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); }
+    return s;
+  }
+
+  function clearSheetRange() {
+    var rin = document.getElementById('cd-sheet-range'); if (rin) rin.value = '';
+    var grid = document.getElementById('cd-range-grid'); if (grid) { grid.style.display='none'; grid.innerHTML=''; }
+    var msg  = document.getElementById('cd-range-msg');  if (msg)  { msg.style.display='none'; msg.textContent=''; }
+    var clr  = document.getElementById('cd-range-clear-btn'); if (clr) clr.style.display='none';
+    _rangeAnchor = null; _rangeRows = [];
+  }
+
+  function loadRangePicker() {
+    var url  = ((document.getElementById('cd-sheet-url')  || {value:''}).value || '').trim();
+    var name = ((document.getElementById('cd-sheet-name') || {value:''}).value || '').trim();
+    var grid = document.getElementById('cd-range-grid');
+    var msg  = document.getElementById('cd-range-msg');
+    var btn  = document.getElementById('cd-range-pick-btn');
+    function showMsg(t, ok) { if (!msg) return; msg.style.display='block'; msg.textContent=t; msg.style.color = ok ? '#166534' : '#B91C1C'; }
+    if (!grid) return;
+    if (!url) { showMsg('先にスプレッドシートURLを入力してください', false); return; }
+    if (btn) { btn._o = btn.textContent; btn.disabled = true; btn.textContent = '読み込み中…'; }
+    grid.style.display = 'block';
+    grid.innerHTML = '<p style="color:var(--text-light);font-size:.82rem;margin:6px 0 0;">⏳ シートを読み込み中...</p>';
+    var fd = new FormData();
+    fd.append('token',       TOKEN);
+    fd.append('sheet_url',   url);
+    fd.append('sheet_name',  name);
+    fd.append('sheet_range', '');   // 範囲ピッカーは常にシート全体を取得
+    fetch('api/fetch_sheet.php', { method:'POST', body:fd })
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if (btn) { btn.disabled = false; btn.textContent = btn._o || '📐 シートから範囲を選ぶ'; }
+        if (res.ok && typeof res.csv === 'string') {
+          _rangeRows = parseCSV(res.csv);
+          _rangeAnchor = null;
+          renderRangeGrid();
+          showMsg('開始セルと終了セルをクリックしてください（同じセルをもう一度押すと選び直し）', true);
+        } else {
+          grid.style.display = 'none';
+          showMsg('⚠ ' + ((res && res.error) || 'シートを読み込めませんでした'), false);
+        }
+      })
+      .catch(function(){ if (btn) { btn.disabled=false; btn.textContent = btn._o || '📐 シートから範囲を選ぶ'; } grid.style.display='none'; showMsg('⚠ 通信エラーが発生しました', false); });
+  }
+
+  function renderRangeGrid() {
+    var grid = document.getElementById('cd-range-grid');
+    if (!grid) return;
+    var rows = _rangeRows;
+    if (!rows || !rows.length) { grid.innerHTML = '<p style="color:var(--text-light);font-size:.82rem;">データがありません</p>'; return; }
+    /* 表示上限（重くなりすぎないよう制限） */
+    var MAXR = 200, MAXC = 40;
+    var nr = Math.min(rows.length, MAXR);
+    var nc = 0;
+    for (var i = 0; i < nr; i++) nc = Math.max(nc, rows[i].length);
+    nc = Math.min(nc, MAXC);
+    /* 選択範囲の判定用 */
+    var sel = currentRangeBox();
+    var thBase = 'position:sticky;background:#eef2f9;color:#334155;font-weight:700;font-size:.7rem;text-align:center;padding:3px 6px;border:1px solid #d4ddec;';
+    var html = '<div style="overflow:auto;max-height:340px;border:1px solid #d4ddec;border-radius:8px;">'
+      + '<table style="border-collapse:collapse;font-size:.72rem;table-layout:fixed;">';
+    /* 列ヘッダー（A,B,C…） */
+    html += '<tr><th style="' + thBase + 'left:0;top:0;z-index:3;width:34px;"></th>';
+    for (var c = 0; c < nc; c++) html += '<th style="' + thBase + 'top:0;z-index:2;min-width:70px;">' + colLetter(c) + '</th>';
+    html += '</tr>';
+    for (var r = 0; r < nr; r++) {
+      html += '<tr><th style="' + thBase + 'left:0;z-index:2;width:34px;">' + (r + 1) + '</th>';
+      for (var c2 = 0; c2 < nc; c2++) {
+        var inSel = sel && r >= sel.r1 && r <= sel.r2 && c2 >= sel.c1 && c2 <= sel.c2;
+        var isAnchor = _rangeAnchor && _rangeAnchor.r === r && _rangeAnchor.c === c2;
+        var bg = inSel ? '#dbeafe' : '#fff';
+        var bd = isAnchor ? '2px solid #2563eb' : '1px solid #e8edf5';
+        var val = (rows[r] && rows[r][c2] != null) ? rows[r][c2] : '';
+        html += '<td onclick="pickRangeCell(' + r + ',' + c2 + ')" '
+          + 'style="cursor:pointer;padding:3px 6px;border:' + bd + ';background:' + bg + ';'
+          + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;" '
+          + 'title="' + escHtml(colLetter(c2) + (r + 1)) + '">' + escHtml(String(val)) + '</td>';
+      }
+      html += '</tr>';
+    }
+    html += '</table></div>';
+    var note = '';
+    if (rows.length > MAXR || nc >= MAXC) note = '<p style="font-size:.7rem;color:var(--text-light);margin:4px 0 0;">※ 表示は最大 ' + MAXR + '行 × ' + MAXC + '列 までです（範囲指定自体はこの外も可能）</p>';
+    grid.innerHTML = html + note;
+  }
+
+  function currentRangeBox() {  // cd-sheet-range（A1:F20）→ {r1,c1,r2,c2}（0始まり）。無効ならnull
+    var v = ((document.getElementById('cd-sheet-range') || {value:''}).value || '').trim();
+    var m = v.match(/^([A-Za-z]+)([0-9]+):([A-Za-z]+)([0-9]+)$/);
+    if (!m) return null;
+    function ci(s){ s=s.toUpperCase(); var n=0; for (var i=0;i<s.length;i++) n=n*26+(s.charCodeAt(i)-64); return n-1; }
+    var r1 = parseInt(m[2],10)-1, c1 = ci(m[1]), r2 = parseInt(m[4],10)-1, c2 = ci(m[3]);
+    return { r1: Math.min(r1,r2), c1: Math.min(c1,c2), r2: Math.max(r1,r2), c2: Math.max(c1,c2) };
+  }
+
+  function pickRangeCell(r, c) {
+    if (!_rangeAnchor) {
+      _rangeAnchor = { r: r, c: c };
+    } else if (_rangeAnchor.r === r && _rangeAnchor.c === c) {
+      _rangeAnchor = null;  // 同じセル → 選び直し
+      var rin0 = document.getElementById('cd-sheet-range'); if (rin0) rin0.value = '';
+      var clr0 = document.getElementById('cd-range-clear-btn'); if (clr0) clr0.style.display='none';
+      renderRangeGrid();
+      return;
+    } else {
+      var r1 = Math.min(_rangeAnchor.r, r), r2 = Math.max(_rangeAnchor.r, r);
+      var c1 = Math.min(_rangeAnchor.c, c), c2 = Math.max(_rangeAnchor.c, c);
+      var rangeStr = colLetter(c1) + (r1 + 1) + ':' + colLetter(c2) + (r2 + 1);
+      var rin = document.getElementById('cd-sheet-range'); if (rin) rin.value = rangeStr;
+      var clr = document.getElementById('cd-range-clear-btn'); if (clr) clr.style.display='';
+      var msg = document.getElementById('cd-range-msg');
+      if (msg) { msg.style.display='block'; msg.style.color='#166534'; msg.textContent='✅ 範囲を ' + rangeStr + ' に設定しました。「🔍 プレビュー」で確認できます。'; }
+      _rangeAnchor = null;
+    }
+    renderRangeGrid();
   }
 
   /* ===== CSV → HTML テーブル ===== */
@@ -1689,6 +1838,9 @@
   window.updateLinkPreview  = updateLinkPreview;
   window.loadSheetPreview   = loadSheetPreview;
   window.loadSheetList      = loadSheetList;
+  window.loadRangePicker    = loadRangePicker;
+  window.clearSheetRange    = clearSheetRange;
+  window.pickRangeCell      = pickRangeCell;
   window.uploadContentFile  = uploadContentFile;
   window.clearContentFile   = clearContentFile;
 

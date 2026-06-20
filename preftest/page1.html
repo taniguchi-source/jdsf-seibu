@@ -329,11 +329,12 @@
   }
 
   /* ===== スプレッドシート取得 ===== */
-  function fetchSheet(sheetUrl, sheetName, targetEl) {
+  function fetchSheet(sheetUrl, sheetName, targetEl, sheetRange) {
     var fd = new FormData();
-    fd.append('token',      TOKEN);
-    fd.append('sheet_url',  sheetUrl);
-    fd.append('sheet_name', sheetName || '');
+    fd.append('token',       TOKEN);
+    fd.append('sheet_url',   sheetUrl);
+    fd.append('sheet_name',  sheetName || '');
+    fd.append('sheet_range', sheetRange || '');
     fetch('api/fetch_sheet.php', { method:'POST', body:fd })
       .then(function(r) { return r.json(); })
       .then(function(res) {
@@ -428,7 +429,7 @@
   function appendWithFetch(item, bodyEl, container) {
     container.appendChild(bodyEl);
     if (item.type === 'sheet' && item.sheet_url) {
-      fetchSheet(item.sheet_url, item.sheet_name, bodyEl);
+      fetchSheet(item.sheet_url, item.sheet_name, bodyEl, item.sheet_range);
     }
   }
 
