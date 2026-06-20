@@ -455,7 +455,6 @@
               <button type="button" onclick="clearSheetRange()" id="cd-range-clear-btn" style="display:none;padding:8px 14px;background:#fff;color:var(--text-light);border:1.5px solid var(--border);border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">✕ 範囲を解除</button>
             </div>
             <div id="cd-range-msg" style="display:none;font-size:.75rem;margin-top:6px;"></div>
-            <div id="cd-range-grid" style="display:none;margin-top:8px;"></div>
           </div>
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
             <button onclick="loadSheetPreview()" style="padding:8px 22px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">🔍 プレビュー</button>
@@ -470,6 +469,28 @@
       <div style="display:flex;gap:10px;justify-content:flex-end;">
         <button onclick="closeContentModal()" style="padding:10px 22px;background:none;border:1.5px solid var(--border);border-radius:8px;font-size:.875rem;cursor:pointer;color:var(--text-light);font-family:inherit;">キャンセル</button>
         <button onclick="saveContentDetail()" style="padding:10px 28px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.875rem;font-weight:700;cursor:pointer;font-family:inherit;">保存する →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 範囲選択モーダル（大画面でスプレッドシートを表示して範囲を選ぶ） -->
+<div id="range-picker-modal" class="modal-overlay" style="z-index:9500;padding:24px;" onclick="if(event.target===this)closeRangePicker()">
+  <div style="background:#fff;border-radius:12px;width:96vw;max-width:1200px;height:90vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.22);position:relative;overflow:hidden;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 22px;border-bottom:2px solid #BFDBFE;flex-shrink:0;">
+      <h3 style="font-size:1rem;font-weight:700;color:var(--primary);margin:0;">📐 表示する範囲を選ぶ</h3>
+      <button onclick="closeRangePicker()" style="background:none;border:none;font-size:1.3rem;color:var(--text-light);cursor:pointer;line-height:1;">✕</button>
+    </div>
+    <div style="padding:12px 22px;flex-shrink:0;background:#f8fafc;border-bottom:1px solid var(--border);">
+      <p id="rpm-help" style="margin:0;font-size:.85rem;color:var(--text-medium);">開始セルと終了セルをクリックしてください（同じセルをもう一度押すと選び直し）。</p>
+    </div>
+    <div id="rpm-grid" style="flex:1;overflow:auto;padding:14px 22px;"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;border-top:1px solid var(--border);flex-shrink:0;background:#f8fafc;flex-wrap:wrap;">
+      <div style="font-size:.9rem;color:var(--text-dark);">選択中の範囲：<strong id="rpm-current" style="color:var(--primary);font-size:1rem;">（未選択 ＝ シート全体）</strong></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button onclick="rpmClearSelection()" style="padding:9px 18px;background:#fff;color:var(--text-light);border:1.5px solid var(--border);border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;">選択をクリア</button>
+        <button onclick="closeRangePicker()" style="padding:9px 18px;background:none;border:1.5px solid var(--border);border-radius:8px;font-size:.85rem;cursor:pointer;color:var(--text-light);font-family:inherit;">キャンセル</button>
+        <button onclick="confirmRangePicker()" style="padding:9px 26px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;">この範囲で確定 →</button>
       </div>
     </div>
   </div>
@@ -1229,13 +1250,11 @@
     // 範囲フィールド + ピッカーの初期化
     var sheetRange = document.getElementById('cd-sheet-range');
     if (sheetRange) sheetRange.value = item.sheet_range || '';
-    var rangeGrid = document.getElementById('cd-range-grid');
-    if (rangeGrid) { rangeGrid.style.display = 'none'; rangeGrid.innerHTML = ''; }
     var rangeMsg = document.getElementById('cd-range-msg');
     if (rangeMsg) { rangeMsg.style.display = 'none'; rangeMsg.textContent = ''; }
     var rangeClr = document.getElementById('cd-range-clear-btn');
     if (rangeClr) rangeClr.style.display = (item.sheet_range ? '' : 'none');
-    _rangeAnchor = null; _rangeRows = [];
+    _rangeAnchor = null; _rangeRows = []; _rangePicked = '';
     // ファイルフィールド
     var fileUrl   = document.getElementById('cd-file-url');
     var fileName  = document.getElementById('cd-file-name');
@@ -1623,9 +1642,10 @@
       .catch(function(){ if (btn) { btn.disabled = false; btn.textContent = btn._o || '📋 シート一覧から選ぶ'; } showMsg('⚠ 通信エラーが発生しました', false); });
   }
 
-  /* ===== 範囲ピッカー（シートを表示しセル範囲をクリックで選択） ===== */
-  var _rangeAnchor = null;  // {r, c}（0始まり）
+  /* ===== 範囲ピッカー（大画面でスプレッドシートを表示しセル範囲をクリックで選択） ===== */
+  var _rangeAnchor = null;  // {r, c}（0始まり）／確定前の開始セル
   var _rangeRows   = [];    // ピッカー表示中のCSV行（生データ）
+  var _rangePicked = '';    // モーダル内で選択中の範囲（確定するまで cd-sheet-range には反映しない）
 
   function colLetter(n) {  // 0→A, 25→Z, 26→AA …
     var s = '';
@@ -1634,26 +1654,22 @@
     return s;
   }
 
+  /* 範囲入力欄（A1:F20）の解除 */
   function clearSheetRange() {
     var rin = document.getElementById('cd-sheet-range'); if (rin) rin.value = '';
-    var grid = document.getElementById('cd-range-grid'); if (grid) { grid.style.display='none'; grid.innerHTML=''; }
     var msg  = document.getElementById('cd-range-msg');  if (msg)  { msg.style.display='none'; msg.textContent=''; }
     var clr  = document.getElementById('cd-range-clear-btn'); if (clr) clr.style.display='none';
-    _rangeAnchor = null; _rangeRows = [];
   }
 
+  /* 「📐 シートから範囲を選ぶ」→ シートを取得して大画面モーダルを開く */
   function loadRangePicker() {
     var url  = ((document.getElementById('cd-sheet-url')  || {value:''}).value || '').trim();
     var name = ((document.getElementById('cd-sheet-name') || {value:''}).value || '').trim();
-    var grid = document.getElementById('cd-range-grid');
     var msg  = document.getElementById('cd-range-msg');
     var btn  = document.getElementById('cd-range-pick-btn');
     function showMsg(t, ok) { if (!msg) return; msg.style.display='block'; msg.textContent=t; msg.style.color = ok ? '#166534' : '#B91C1C'; }
-    if (!grid) return;
     if (!url) { showMsg('先にスプレッドシートURLを入力してください', false); return; }
     if (btn) { btn._o = btn.textContent; btn.disabled = true; btn.textContent = '読み込み中…'; }
-    grid.style.display = 'block';
-    grid.innerHTML = '<p style="color:var(--text-light);font-size:.82rem;margin:6px 0 0;">⏳ シートを読み込み中...</p>';
     var fd = new FormData();
     fd.append('token',       TOKEN);
     fd.append('sheet_url',   url);
@@ -1664,66 +1680,94 @@
       .then(function(res){
         if (btn) { btn.disabled = false; btn.textContent = btn._o || '📐 シートから範囲を選ぶ'; }
         if (res.ok && typeof res.csv === 'string') {
-          _rangeRows = parseCSV(res.csv);
+          _rangeRows   = parseCSV(res.csv);
           _rangeAnchor = null;
-          renderRangeGrid();
-          showMsg('開始セルと終了セルをクリックしてください（同じセルをもう一度押すと選び直し）', true);
+          _rangePicked = ((document.getElementById('cd-sheet-range') || {value:''}).value || '').trim();  // 既存の範囲を初期表示
+          openRangePicker();
         } else {
-          grid.style.display = 'none';
           showMsg('⚠ ' + ((res && res.error) || 'シートを読み込めませんでした'), false);
         }
       })
-      .catch(function(){ if (btn) { btn.disabled=false; btn.textContent = btn._o || '📐 シートから範囲を選ぶ'; } grid.style.display='none'; showMsg('⚠ 通信エラーが発生しました', false); });
+      .catch(function(){ if (btn) { btn.disabled=false; btn.textContent = btn._o || '📐 シートから範囲を選ぶ'; } showMsg('⚠ 通信エラーが発生しました', false); });
   }
 
-  function renderRangeGrid() {
-    var grid = document.getElementById('cd-range-grid');
-    if (!grid) return;
-    var rows = _rangeRows;
-    if (!rows || !rows.length) { grid.innerHTML = '<p style="color:var(--text-light);font-size:.82rem;">データがありません</p>'; return; }
-    /* 表示上限（重くなりすぎないよう制限） */
-    var MAXR = 200, MAXC = 40;
-    var nr = Math.min(rows.length, MAXR);
-    var nc = 0;
-    for (var i = 0; i < nr; i++) nc = Math.max(nc, rows[i].length);
-    nc = Math.min(nc, MAXC);
-    /* 選択範囲の判定用 */
-    var sel = currentRangeBox();
-    var thBase = 'position:sticky;background:#eef2f9;color:#334155;font-weight:700;font-size:.7rem;text-align:center;padding:3px 6px;border:1px solid #d4ddec;';
-    var html = '<div style="overflow:auto;max-height:340px;border:1px solid #d4ddec;border-radius:8px;">'
-      + '<table style="border-collapse:collapse;font-size:.72rem;table-layout:fixed;">';
-    /* 列ヘッダー（A,B,C…） */
-    html += '<tr><th style="' + thBase + 'left:0;top:0;z-index:3;width:34px;"></th>';
-    for (var c = 0; c < nc; c++) html += '<th style="' + thBase + 'top:0;z-index:2;min-width:70px;">' + colLetter(c) + '</th>';
-    html += '</tr>';
-    for (var r = 0; r < nr; r++) {
-      html += '<tr><th style="' + thBase + 'left:0;z-index:2;width:34px;">' + (r + 1) + '</th>';
-      for (var c2 = 0; c2 < nc; c2++) {
-        var inSel = sel && r >= sel.r1 && r <= sel.r2 && c2 >= sel.c1 && c2 <= sel.c2;
-        var isAnchor = _rangeAnchor && _rangeAnchor.r === r && _rangeAnchor.c === c2;
-        var bg = inSel ? '#dbeafe' : '#fff';
-        var bd = isAnchor ? '2px solid #2563eb' : '1px solid #e8edf5';
-        var val = (rows[r] && rows[r][c2] != null) ? rows[r][c2] : '';
-        html += '<td onclick="pickRangeCell(' + r + ',' + c2 + ')" '
-          + 'style="cursor:pointer;padding:3px 6px;border:' + bd + ';background:' + bg + ';'
-          + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;" '
-          + 'title="' + escHtml(colLetter(c2) + (r + 1)) + '">' + escHtml(String(val)) + '</td>';
-      }
-      html += '</tr>';
+  function openRangePicker() {
+    var ov = document.getElementById('range-picker-modal');
+    if (!ov) return;
+    renderRangeGrid();
+    updateRpmCurrent();
+    ov.style.display = 'flex';
+  }
+  function closeRangePicker() {
+    var ov = document.getElementById('range-picker-modal');
+    if (ov) ov.style.display = 'none';
+    _rangeAnchor = null;
+  }
+  function rpmClearSelection() {
+    _rangePicked = ''; _rangeAnchor = null;
+    renderRangeGrid(); updateRpmCurrent();
+  }
+  function confirmRangePicker() {
+    var rin = document.getElementById('cd-sheet-range'); if (rin) rin.value = _rangePicked;
+    var clr = document.getElementById('cd-range-clear-btn'); if (clr) clr.style.display = _rangePicked ? '' : 'none';
+    var msg = document.getElementById('cd-range-msg');
+    if (msg) {
+      msg.style.display='block'; msg.style.color='#166534';
+      msg.textContent = _rangePicked ? ('✅ 範囲を ' + _rangePicked + ' に設定しました。「🔍 プレビュー」で確認できます。')
+                                     : '範囲を解除しました（シート全体を表示します）。';
     }
-    html += '</table></div>';
-    var note = '';
-    if (rows.length > MAXR || nc >= MAXC) note = '<p style="font-size:.7rem;color:var(--text-light);margin:4px 0 0;">※ 表示は最大 ' + MAXR + '行 × ' + MAXC + '列 までです（範囲指定自体はこの外も可能）</p>';
-    grid.innerHTML = html + note;
+    closeRangePicker();
+  }
+  function updateRpmCurrent() {
+    var el = document.getElementById('rpm-current');
+    if (el) el.textContent = _rangePicked ? _rangePicked : '（未選択 ＝ シート全体）';
   }
 
-  function currentRangeBox() {  // cd-sheet-range（A1:F20）→ {r1,c1,r2,c2}（0始まり）。無効ならnull
-    var v = ((document.getElementById('cd-sheet-range') || {value:''}).value || '').trim();
-    var m = v.match(/^([A-Za-z]+)([0-9]+):([A-Za-z]+)([0-9]+)$/);
+  function pickedRangeBox() {  // _rangePicked（A1:F20）→ {r1,c1,r2,c2}（0始まり）。無効ならnull
+    var m = (_rangePicked || '').match(/^([A-Za-z]+)([0-9]+):([A-Za-z]+)([0-9]+)$/);
     if (!m) return null;
     function ci(s){ s=s.toUpperCase(); var n=0; for (var i=0;i<s.length;i++) n=n*26+(s.charCodeAt(i)-64); return n-1; }
     var r1 = parseInt(m[2],10)-1, c1 = ci(m[1]), r2 = parseInt(m[4],10)-1, c2 = ci(m[3]);
     return { r1: Math.min(r1,r2), c1: Math.min(c1,c2), r2: Math.max(r1,r2), c2: Math.max(c1,c2) };
+  }
+
+  function renderRangeGrid() {
+    var grid = document.getElementById('rpm-grid');
+    if (!grid) return;
+    var rows = _rangeRows;
+    if (!rows || !rows.length) { grid.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;">データがありません</p>'; return; }
+    /* 表示上限（重くなりすぎないよう制限） */
+    var MAXR = 300, MAXC = 60;
+    var nr = Math.min(rows.length, MAXR);
+    var nc = 0;
+    for (var i = 0; i < nr; i++) nc = Math.max(nc, rows[i].length);
+    nc = Math.min(nc, MAXC);
+    var sel = pickedRangeBox();
+    var thBase = 'position:sticky;background:#eef2f9;color:#334155;font-weight:700;font-size:.78rem;text-align:center;padding:5px 8px;border:1px solid #d4ddec;';
+    var html = '<table style="border-collapse:collapse;font-size:.82rem;table-layout:fixed;">';
+    /* 列ヘッダー（A,B,C…） */
+    html += '<tr><th style="' + thBase + 'left:0;top:0;z-index:3;width:42px;"></th>';
+    for (var c = 0; c < nc; c++) html += '<th style="' + thBase + 'top:0;z-index:2;min-width:90px;">' + colLetter(c) + '</th>';
+    html += '</tr>';
+    for (var r = 0; r < nr; r++) {
+      html += '<tr><th style="' + thBase + 'left:0;z-index:2;width:42px;">' + (r + 1) + '</th>';
+      for (var c2 = 0; c2 < nc; c2++) {
+        var inSel = sel && r >= sel.r1 && r <= sel.r2 && c2 >= sel.c1 && c2 <= sel.c2;
+        var isAnchor = _rangeAnchor && _rangeAnchor.r === r && _rangeAnchor.c === c2;
+        var bg = isAnchor ? '#bfdbfe' : (inSel ? '#dbeafe' : '#fff');
+        var bd = isAnchor ? '2px solid #2563eb' : '1px solid #e8edf5';
+        var val = (rows[r] && rows[r][c2] != null) ? rows[r][c2] : '';
+        html += '<td onclick="pickRangeCell(' + r + ',' + c2 + ')" '
+          + 'style="cursor:pointer;padding:5px 8px;border:' + bd + ';background:' + bg + ';'
+          + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px;" '
+          + 'title="' + escHtml(colLetter(c2) + (r + 1)) + '">' + escHtml(String(val)) + '</td>';
+      }
+      html += '</tr>';
+    }
+    html += '</table>';
+    var note = '';
+    if (rows.length > MAXR || nc >= MAXC) note = '<p style="font-size:.75rem;color:var(--text-light);margin:8px 0 0;">※ 表示は最大 ' + MAXR + '行 × ' + MAXC + '列 までです（範囲指定自体はこの外も可能）</p>';
+    grid.innerHTML = html + note;
   }
 
   function pickRangeCell(r, c) {
@@ -1731,21 +1775,15 @@
       _rangeAnchor = { r: r, c: c };
     } else if (_rangeAnchor.r === r && _rangeAnchor.c === c) {
       _rangeAnchor = null;  // 同じセル → 選び直し
-      var rin0 = document.getElementById('cd-sheet-range'); if (rin0) rin0.value = '';
-      var clr0 = document.getElementById('cd-range-clear-btn'); if (clr0) clr0.style.display='none';
-      renderRangeGrid();
-      return;
+      _rangePicked = '';
     } else {
       var r1 = Math.min(_rangeAnchor.r, r), r2 = Math.max(_rangeAnchor.r, r);
       var c1 = Math.min(_rangeAnchor.c, c), c2 = Math.max(_rangeAnchor.c, c);
-      var rangeStr = colLetter(c1) + (r1 + 1) + ':' + colLetter(c2) + (r2 + 1);
-      var rin = document.getElementById('cd-sheet-range'); if (rin) rin.value = rangeStr;
-      var clr = document.getElementById('cd-range-clear-btn'); if (clr) clr.style.display='';
-      var msg = document.getElementById('cd-range-msg');
-      if (msg) { msg.style.display='block'; msg.style.color='#166534'; msg.textContent='✅ 範囲を ' + rangeStr + ' に設定しました。「🔍 プレビュー」で確認できます。'; }
+      _rangePicked = colLetter(c1) + (r1 + 1) + ':' + colLetter(c2) + (r2 + 1);
       _rangeAnchor = null;
     }
     renderRangeGrid();
+    updateRpmCurrent();
   }
 
   /* ===== CSV → HTML テーブル ===== */
@@ -1841,6 +1879,9 @@
   window.loadRangePicker    = loadRangePicker;
   window.clearSheetRange    = clearSheetRange;
   window.pickRangeCell      = pickRangeCell;
+  window.closeRangePicker   = closeRangePicker;
+  window.confirmRangePicker = confirmRangePicker;
+  window.rpmClearSelection  = rpmClearSelection;
   window.uploadContentFile  = uploadContentFile;
   window.clearContentFile   = clearContentFile;
 
