@@ -205,7 +205,8 @@ function render_section($sec) {
         $h .= '<tr>';
         for ($c = 0; $c < $ncol; $c++) {
             $v = isset($r[$c]) ? $r[$c] : '';
-            $first = ($c === 0 && count($columns) > 1);
+            // 先頭列（氏名）は列数に関わらず常に同じ強調スタイルにする（セクション間で統一）
+            $first = ($c === 0);
             $cellStyle = 'padding:9px 14px;border-top:1px solid #eef1f7;background:' . $bg . ';';
             if ($first) $cellStyle .= 'color:#3b5ea6;font-weight:700;white-space:nowrap;';
             $h .= '<td style="' . $cellStyle . '">' . esc($v) . '</td>';
