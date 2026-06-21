@@ -899,6 +899,25 @@
         +   '<button onclick="saveNavSlot(' + n + ')" '
         +     'style="padding:7px 20px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">💾 ページ設定を保存</button>'
         + '</div>'
+        /* ヒーロー（ページ上部）の表示文字 */
+        + '<div style="border-top:1px dashed #e2e8f0;margin-top:10px;padding-top:10px;">'
+        +   '<div style="font-size:.72rem;font-weight:700;color:var(--text-light);margin-bottom:6px;">🎯 ページ上部（ヒーロー）の表示文字 <span style="font-weight:400;">（空欄なら自動表示）</span></div>'
+        +   '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">'
+        +     '<div style="flex:1;min-width:110px;">'
+        +       '<label style="font-size:.7rem;color:var(--text-light);display:block;margin-bottom:3px;">小ラベル</label>'
+        +       '<input type="text" id="hero-label-' + n + '" value="' + escHtml(link.hero_label || '') + '" placeholder="例：SITE 1" '
+        +         'style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-family:inherit;box-sizing:border-box;outline:none;"></div>'
+        +     '<div style="flex:1.4;min-width:140px;">'
+        +       '<label style="font-size:.7rem;color:var(--text-light);display:block;margin-bottom:3px;">大見出し</label>'
+        +       '<input type="text" id="hero-title-' + n + '" value="' + escHtml(link.hero_title || '') + '" placeholder="例：KDSF（空欄ならページ名称）" '
+        +         'style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-family:inherit;box-sizing:border-box;outline:none;"></div>'
+        +     '<div style="flex:1.8;min-width:160px;">'
+        +       '<label style="font-size:.7rem;color:var(--text-light);display:block;margin-bottom:3px;">サブ見出し</label>'
+        +       '<input type="text" id="hero-desc-' + n + '" value="' + escHtml(link.hero_desc || '') + '" placeholder="例：京都府ダンススポーツ連盟（空欄なら連盟名）" '
+        +         'style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-family:inherit;box-sizing:border-box;outline:none;"></div>'
+        +   '</div>'
+        +   '<p style="font-size:.68rem;color:var(--text-light);margin:6px 0 0;">※ 上の「💾 ページ設定を保存」で一緒に保存されます。</p>'
+        + '</div>'
         /* メッセージ行 */
         + '<div id="nav-msg-' + n + '" style="display:none;font-size:.775rem;padding:4px 10px;border-radius:5px;margin-top:8px;"></div>'
         /* コンテンツ管理エリア */
@@ -928,9 +947,13 @@
     var enabled   = enabledEl ? enabledEl.checked : false;
     var name      = nameEl    ? nameEl.value.trim()  : '';
     var url       = urlEl     ? urlEl.value.trim()   : '';
+    var heroLabel = (document.getElementById('hero-label-' + n) || {value:''}).value.trim();
+    var heroTitle = (document.getElementById('hero-title-' + n) || {value:''}).value.trim();
+    var heroDesc  = (document.getElementById('hero-desc-'  + n) || {value:''}).value.trim();
     var fd = new FormData();
     fd.append('token', TOKEN); fd.append('slot', n);
     fd.append('enabled', enabled ? '1' : ''); fd.append('name', name); fd.append('url', url);
+    fd.append('hero_label', heroLabel); fd.append('hero_title', heroTitle); fd.append('hero_desc', heroDesc);
     fetch('api/save_nav.php', {method:'POST', body:fd})
       .then(function(r){
         if (!r.ok) return r.text().then(function(t){ throw new Error('HTTP ' + r.status + (t ? ': ' + t.substring(0,120) : '')); });
@@ -942,6 +965,7 @@
           for (var i = 0; i < _navLinks.length; i++) {
             if ((_navLinks[i].id || i+1) === n) {
               _navLinks[i].enabled = enabled; _navLinks[i].name = name; _navLinks[i].url = url;
+              _navLinks[i].hero_label = heroLabel; _navLinks[i].hero_title = heroTitle; _navLinks[i].hero_desc = heroDesc;
               break;
             }
           }

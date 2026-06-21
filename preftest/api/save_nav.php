@@ -22,6 +22,10 @@ if ($slot < 1 || $slot > 5) {
 $enabled = !empty($_POST['enabled']);
 $name    = trim($_POST['name'] ?? '');
 $url     = trim($_POST['url']  ?? '');
+// ヒーロー（ページ上部）の表示文字。送信時のみ更新（空文字＝自動表示に戻す）
+$hero_label = isset($_POST['hero_label']) ? mb_substr(trim((string)$_POST['hero_label']), 0, 40)  : null;
+$hero_title = isset($_POST['hero_title']) ? mb_substr(trim((string)$_POST['hero_title']), 0, 80)  : null;
+$hero_desc  = isset($_POST['hero_desc'])  ? mb_substr(trim((string)$_POST['hero_desc']),  0, 200) : null;
 
 $nav_file = dirname(__DIR__) . '/data/nav.json';
 $raw  = @file_get_contents($nav_file);
@@ -53,6 +57,9 @@ for ($i = 1; $i <= 5; $i++) {
 $keyed[$slot]['enabled'] = $enabled;
 $keyed[$slot]['name']    = $name !== '' ? $name : $defaults[$slot]['name'];
 $keyed[$slot]['url']     = $url  !== '' ? $url  : $defaults[$slot]['url'];
+if ($hero_label !== null) $keyed[$slot]['hero_label'] = $hero_label;
+if ($hero_title !== null) $keyed[$slot]['hero_title'] = $hero_title;
+if ($hero_desc  !== null) $keyed[$slot]['hero_desc']  = $hero_desc;
 
 // id 順に並べ直す
 ksort($keyed);

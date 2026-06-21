@@ -600,10 +600,18 @@
       if (!data || !Array.isArray(data.links)) return;
       // ページタイトル更新
       var me = data.links.filter(function(l) { return String(l.id) === SITE_ID; })[0];
-      if (me && me.name) {
+      if (me) {
+        var hTitle = (me.hero_title && me.hero_title.trim()) ? me.hero_title : (me.name || ('サイト' + SITE_ID));
+        var hLabel = (me.hero_label && me.hero_label.trim()) ? me.hero_label : ('Site ' + SITE_ID);
         var titleEl = document.getElementById('page-title');
-        if (titleEl) titleEl.textContent = me.name;
-        document.title = me.name + '｜テストダンススポーツ連盟';
+        if (titleEl) titleEl.textContent = hTitle;
+        var labelEl = document.querySelector('.page-hero-label');
+        if (labelEl) labelEl.textContent = hLabel;
+        if (me.hero_desc && me.hero_desc.trim()) {
+          var descEl = document.getElementById('page-desc');
+          if (descEl) descEl.textContent = me.hero_desc;
+        }
+        document.title = hTitle + '｜テストダンススポーツ連盟';
       }
       // ナビ生成
       var container = document.getElementById('dynamic-nav');
