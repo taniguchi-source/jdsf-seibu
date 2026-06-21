@@ -108,6 +108,8 @@ $schema = ['type' => 'object', 'properties' => ['sections' => ['type' => 'array'
             'bold'      => ['type' => 'boolean'],
             'underline' => ['type' => 'boolean'],
             'color'     => ['type' => 'string'],
+            'size'      => ['type' => 'string', 'enum' => ['small', 'normal', 'large', 'xlarge']],
+            'bg'        => ['type' => 'string'],
         ]]],
     ], 'required' => ['heading', 'side', 'columns', 'rows']]]], 'required' => ['sections']];
 $prompt = "あなたは表データ整形の専門家です。次のCSVは、ある団体の役員名簿などをGoogleスプレッドシートから取り出したものです。"
@@ -127,8 +129,9 @@ $prompt = "あなたは表データ整形の専門家です。次のCSVは、あ
         . "  例：左に『理事』『監事』、右に『参与』が並んでいる場合、理事と監事は left、参与は right にする。"
         . "上部に中央寄せで置かれた『会長・副会長』のようなグループは center。\n"
         . "  左右で対になるグループは、ウェブでも左右2列に並べて表示するので、この side の判定を正確に行うこと。\n"
-        . "【見た目の指定 column_styles】各セクションの列ごとに見た目を指定できる（任意）。columns と同じ順番・同じ個数の配列で、各要素は {bold(真偽), underline(真偽), color(\"#RRGGBB\"形式の文字列)}。"
-        . "指定が無い列は空オブジェクト {} でよい。color は必ず #RRGGBB 形式（例 赤=#FF0000）。下のユーザー要望があれば、それに沿って該当列に設定すること。\n"
+        . "【見た目の指定 column_styles】各セクションの列ごとに見た目を指定できる（任意）。columns と同じ順番・同じ個数の配列で、各要素は "
+        . "{bold(真偽), underline(真偽), color(文字色 \"#RRGGBB\"), size(文字サイズ small/normal/large/xlarge), bg(背景色 \"#RRGGBB\")}。"
+        . "指定が無い列は空オブジェクト {} でよい。color・bg は必ず #RRGGBB 形式（例 赤=#FF0000）。下のユーザー要望があれば、それに沿って該当列に設定すること。\n"
         . ($extra !== '' ? ("【ユーザーの追加要望（最優先で column_styles に反映）】" . $extra . "\n") : "")
         . "\nCSV:\n" . $csv;
 $payload = json_encode(['contents' => [['parts' => [['text' => $prompt]]]],
@@ -207,6 +210,8 @@ function render_section($sec) {
                 if (!empty($cs['bold']))      $custom .= 'font-weight:700;';
                 if (!empty($cs['underline'])) $custom .= 'text-decoration:underline;';
                 if (!empty($cs['color']) && preg_match('/^#[0-9A-Fa-f]{6}$/', (string)$cs['color'])) $custom .= 'color:' . $cs['color'] . ';';
+                if (!empty($cs['size'])) { $sm = ['small' => '.8rem', 'normal' => '.9rem', 'large' => '1.05rem', 'xlarge' => '1.2rem']; if (isset($sm[$cs['size']])) $custom .= 'font-size:' . $sm[$cs['size']] . ';'; }
+                if (!empty($cs['bg']) && preg_match('/^#[0-9A-Fa-f]{6}$/', (string)$cs['bg'])) $custom .= 'background:' . $cs['bg'] . ';';
             }
             if ($custom !== '') { $cellStyle .= 'white-space:nowrap;' . $custom; }
             elseif ($c === 0)   { $cellStyle .= 'color:#3b5ea6;font-weight:700;white-space:nowrap;'; }
