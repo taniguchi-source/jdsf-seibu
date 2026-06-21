@@ -23,6 +23,7 @@ if (!is_string($API_KEY) || $API_KEY === '') {
         'sheet_url'   => $_POST['sheet_url']   ?? '',
         'sheet_name'  => $_POST['sheet_name']  ?? '',
         'sheet_range' => $_POST['sheet_range'] ?? '',
+        'extra'       => $_POST['extra']       ?? '',
     ]);
     $central = 'https://jdsf-seibu.com/api/gemini_central.php';
     $out = false;
@@ -51,6 +52,7 @@ $sheet_url   = trim($_POST['sheet_url']   ?? '');
 $sheet_name  = trim($_POST['sheet_name']  ?? '');
 $sheet_range = trim($_POST['sheet_range'] ?? '');
 if ($sheet_range !== '' && !preg_match('/^[A-Za-z]+[0-9]+:[A-Za-z]+[0-9]+$/', $sheet_range)) $sheet_range = '';
+$extra = mb_substr(trim((string)($_POST['extra'] ?? '')), 0, 500);   // 追加の見た目指示（任意）
 
 if (!preg_match('#/spreadsheets/d/([a-zA-Z0-9_-]+)#', $sheet_url, $m)) {
     http_response_code(400);
@@ -110,6 +112,11 @@ $schema = [
                     'side'    => ['type' => 'string', 'enum' => ['full', 'center', 'left', 'right']],
                     'columns' => ['type' => 'array', 'items' => ['type' => 'string']],
                     'rows'    => ['type' => 'array', 'items' => ['type' => 'array', 'items' => ['type' => 'string']]],
+                    'column_styles' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => [
+                        'bold'      => ['type' => 'boolean'],
+                        'underline' => ['type' => 'boolean'],
+                        'color'     => ['type' => 'string'],
+                    ]]],
                 ],
                 'required' => ['heading', 'side', 'columns', 'rows'],
             ],
@@ -133,8 +140,11 @@ $prompt = "あなたは表データ整形の専門家です。次のCSVは、あ
         . "  * 表の横幅いっぱいに広がるグループ → \"full\"\n"
         . "  例：左に『理事』『監事』、右に『参与』が並んでいる場合、理事と監事は left、参与は right にする。"
         . "上部に中央寄せで置かれた『会長・副会長』のようなグループは center。\n"
-        . "  左右で対になるグループは、ウェブでも左右2列に並べて表示するので、この side の判定を正確に行うこと。\n\n"
-        . "CSV:\n" . $csv;
+        . "  左右で対になるグループは、ウェブでも左右2列に並べて表示するので、この side の判定を正確に行うこと。\n"
+        . "【見た目の指定 column_styles】各セクションの列ごとに見た目を指定できる（任意）。columns と同じ順番・同じ個数の配列で、各要素は {bold(真偽), underline(真偽), color(\"#RRGGBB\"形式の文字列)}。"
+        . "指定が無い列は空オブジェクト {} でよい。color は必ず #RRGGBB 形式（例 赤=#FF0000）。下のユーザー要望があれば、それに沿って該当列に設定すること。\n"
+        . ($extra !== '' ? ("【ユーザーの追加要望（最優先で column_styles に反映）】" . $extra . "\n") : "")
+        . "\nCSV:\n" . $csv;
 
 $payload = json_encode([
     'contents' => [['parts' => [['text' => $prompt]]]],
@@ -202,6 +212,7 @@ function render_section($sec) {
     $heading = isset($sec['heading']) ? trim((string)$sec['heading']) : '';
     $columns = (isset($sec['columns']) && is_array($sec['columns'])) ? $sec['columns'] : [];
     $rows    = (isset($sec['rows'])    && is_array($sec['rows']))    ? $sec['rows']    : [];
+    $colStyles = (isset($sec['column_styles']) && is_array($sec['column_styles'])) ? $sec['column_styles'] : [];
     $ncol = count($columns);
     if ($ncol === 0) { foreach ($rows as $r) { if (is_array($r)) $ncol = max($ncol, count($r)); } }
     if ($ncol === 0) return '';
@@ -231,10 +242,17 @@ function render_section($sec) {
         $h .= '<tr>';
         for ($c = 0; $c < $ncol; $c++) {
             $v = isset($r[$c]) ? $r[$c] : '';
-            // 先頭列（氏名）は列数に関わらず常に同じ強調スタイルにする（セクション間で統一）
-            $first = ($c === 0);
             $cellStyle = 'padding:9px 14px;border-top:1px solid #eef1f7;background:' . $bg . ';';
-            if ($first) $cellStyle .= 'color:#3b5ea6;font-weight:700;white-space:nowrap;';
+            // 追加指示による列スタイル（安全な項目のみ）
+            $cs = (isset($colStyles[$c]) && is_array($colStyles[$c])) ? $colStyles[$c] : null;
+            $custom = '';
+            if ($cs) {
+                if (!empty($cs['bold']))      $custom .= 'font-weight:700;';
+                if (!empty($cs['underline'])) $custom .= 'text-decoration:underline;';
+                if (!empty($cs['color']) && preg_match('/^#[0-9A-Fa-f]{6}$/', (string)$cs['color'])) $custom .= 'color:' . $cs['color'] . ';';
+            }
+            if ($custom !== '') { $cellStyle .= 'white-space:nowrap;' . $custom; }
+            elseif ($c === 0)   { $cellStyle .= 'color:#3b5ea6;font-weight:700;white-space:nowrap;'; }  // 既定：先頭列(氏名)を強調
             $h .= '<td style="' . $cellStyle . '">' . esc($v) . '</td>';
         }
         $h .= '</tr>';

@@ -468,6 +468,11 @@
               <button type="button" onclick="clearSheetAI()" id="cd-ai-clear-btn" style="display:none;padding:8px 14px;background:#fff;color:var(--text-light);border:1.5px solid var(--border);border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">元の表に戻す</button>
               <span style="font-size:.73rem;color:var(--text-light);line-height:1.4;">委員会サイト風の見やすい表に自動整形します（保存時に反映）。</span>
             </div>
+            <div style="margin-top:10px;">
+              <label style="font-size:.72rem;font-weight:700;color:var(--text-light);display:block;margin-bottom:4px;">追加の指示（任意）</label>
+              <input type="text" id="cd-ai-extra" placeholder="例：氏名を太字・赤色に／役職に下線を引く" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-family:inherit;box-sizing:border-box;outline:none;">
+              <p style="font-size:.68rem;color:var(--text-light);margin:4px 0 0;line-height:1.5;">列ごとの「太字・下線・色」を指示できます（例：氏名を赤く太字に）。レイアウトの大枠は自動のままです。</p>
+            </div>
             <div id="cd-ai-msg" style="display:none;font-size:.75rem;margin-top:8px;"></div>
             <!-- Gemini APIキー設定 -->
             <details style="margin-top:10px;">
@@ -1306,6 +1311,7 @@
     var sHtml = document.getElementById('cd-sheet-html');   if (sHtml) sHtml.value = item.sheet_html || '';
     var sFmt  = document.getElementById('cd-sheet-format'); if (sFmt)  sFmt.value  = item.sheet_format || '';
     var aiMsg = document.getElementById('cd-ai-msg');       if (aiMsg) { aiMsg.style.display='none'; aiMsg.textContent=''; }
+    var aiExtra = document.getElementById('cd-ai-extra');   if (aiExtra) aiExtra.value = '';
     var aiClr = document.getElementById('cd-ai-clear-btn'); if (aiClr) aiClr.style.display = (item.sheet_html ? '' : 'none');
     if (typeof refreshGeminiKeyStatus === 'function') refreshGeminiKeyStatus();
     // ファイルフィールド
@@ -1732,6 +1738,7 @@
     var url   = ((document.getElementById('cd-sheet-url')   || {value:''}).value || '').trim();
     var name  = ((document.getElementById('cd-sheet-name')  || {value:''}).value || '').trim();
     var range = ((document.getElementById('cd-sheet-range') || {value:''}).value || '').trim();
+    var extra = ((document.getElementById('cd-ai-extra')   || {value:''}).value || '').trim();
     var msg     = document.getElementById('cd-ai-msg');
     var btn     = document.getElementById('cd-ai-btn');
     var preview = document.getElementById('cd-sheet-preview');
@@ -1739,7 +1746,7 @@
     if (!url) { show('先にスプレッドシートURLを入力してください', false); return; }
     if (btn) { btn.disabled = true; btn._o = btn.textContent; btn.textContent = '✨ 整形中…'; }
     show('⏳ Geminiで整形しています…（数秒かかります）', true);
-    var fd = new FormData(); fd.append('token', TOKEN); fd.append('sheet_url', url); fd.append('sheet_name', name); fd.append('sheet_range', range);
+    var fd = new FormData(); fd.append('token', TOKEN); fd.append('sheet_url', url); fd.append('sheet_name', name); fd.append('sheet_range', range); fd.append('extra', extra);
     fetch('api/format_sheet_ai.php', { method:'POST', body:fd })
       .then(function(r){ return r.json(); })
       .then(function(res){
