@@ -106,32 +106,46 @@ $payload = json_encode([
     'generationConfig' => ['temperature' => 0.1, 'responseMimeType' => 'application/json', 'responseSchema' => $schema],
 ], JSON_UNESCAPED_UNICODE);
 
-$model = 'gemini-2.0-flash';
-$endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/' . $model . ':generateContent?key=' . urlencode($API_KEY);
-
-$resp = null; $httpcode = 0; $curlerr = '';
-if (function_exists('curl_init')) {
-    $ch = curl_init($endpoint);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => $payload,
-        CURLOPT_HTTPHEADER => ['Content-Type: application/json'], CURLOPT_TIMEOUT => 45,
-        CURLOPT_SSL_VERIFYPEER => false, CURLOPT_SSL_VERIFYHOST => false,
-    ]);
-    $resp = curl_exec($ch); $httpcode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); $curlerr = curl_error($ch); curl_close($ch);
-}
-if (($resp === false || $resp === null || $resp === '') && ini_get('allow_url_fopen')) {
-    $ctx = stream_context_create(['http' => ['method' => 'POST', 'header' => "Content-Type: application/json\r\n", 'content' => $payload, 'timeout' => 45, 'ignore_errors' => true], 'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
-    $resp = @file_get_contents($endpoint, false, $ctx);
-}
-if ($resp === false || $resp === null || $resp === '') {
-    echo json_encode(['error' => 'Gemini APIへの接続に失敗しました。', 'debug' => $curlerr], JSON_UNESCAPED_UNICODE);
-    exit;
+function gemini_post($endpoint, $payload) {
+    $resp = null; $code = 0; $err = '';
+    if (function_exists('curl_init')) {
+        $ch = curl_init($endpoint);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => $payload,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json'], CURLOPT_TIMEOUT => 45,
+            CURLOPT_SSL_VERIFYPEER => false, CURLOPT_SSL_VERIFYHOST => false,
+        ]);
+        $resp = curl_exec($ch); $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); $err = curl_error($ch); curl_close($ch);
+    }
+    if (($resp === false || $resp === null || $resp === '') && ini_get('allow_url_fopen')) {
+        $ctx = stream_context_create(['http' => ['method' => 'POST', 'header' => "Content-Type: application/json\r\n", 'content' => $payload, 'timeout' => 45, 'ignore_errors' => true], 'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
+        $resp = @file_get_contents($endpoint, false, $ctx);
+    }
+    return [$resp, $code, $err];
 }
 
-$j = json_decode($resp, true);
-if ($httpcode >= 400 || isset($j['error'])) {
-    $msg = isset($j['error']['message']) ? $j['error']['message'] : ('HTTP ' . $httpcode);
-    echo json_encode(['error' => 'Gemini APIエラー: ' . $msg], JSON_UNESCAPED_UNICODE);
+/* 新しめのモデルを順に試す（提供終了に強くするため複数候補） */
+$models = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.5-flash-lite', 'gemini-2.0-flash-001'];
+$j = null; $httpcode = 0; $curlerr = ''; $lastMsg = '';
+foreach ($models as $model) {
+    $endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/' . $model . ':generateContent?key=' . urlencode($API_KEY);
+    list($resp, $httpcode, $curlerr) = gemini_post($endpoint, $payload);
+    if ($resp === false || $resp === null || $resp === '') { $lastMsg = '接続に失敗しました' . ($curlerr ? '（' . $curlerr . '）' : ''); continue; }
+    $jj = json_decode($resp, true);
+    if ($httpcode >= 400 || isset($jj['error'])) {
+        $lastMsg = isset($jj['error']['message']) ? $jj['error']['message'] : ('HTTP ' . $httpcode);
+        // モデル提供終了/未提供なら次の候補へ。その他のエラーは即終了。
+        if (stripos($lastMsg, 'no longer available') !== false || stripos($lastMsg, 'not found') !== false
+            || stripos($lastMsg, 'not supported') !== false || $httpcode === 404) {
+            continue;
+        }
+        echo json_encode(['error' => 'Gemini APIエラー: ' . $lastMsg], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    $j = $jj; break;   // 成功
+}
+if ($j === null) {
+    echo json_encode(['error' => 'Gemini APIエラー: ' . ($lastMsg ?: '利用可能なモデルが見つかりませんでした')], JSON_UNESCAPED_UNICODE);
     exit;
 }
 $text = $j['candidates'][0]['content']['parts'][0]['text'] ?? '';
