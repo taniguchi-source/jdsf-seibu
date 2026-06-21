@@ -34,9 +34,10 @@ if ($action === 'delete') {
 }
 
 $key = trim($_POST['key'] ?? '');
-if (!preg_match('/^AIza[0-9A-Za-z_\-]{20,}$/', $key)) {
+// Gemini APIキー：旧形式(AIza…) と 新形式(AQ.…) の両方を許可
+if (!preg_match('/^(AIza[0-9A-Za-z_\-]{20,}|AQ\.[0-9A-Za-z_\-\.]{20,})$/', $key)) {
     http_response_code(400);
-    echo json_encode(['error' => 'APIキーの形式が正しくありません（AIza… で始まるキーを入力してください）。'], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['error' => 'APIキーの形式が正しくありません（AIza… または AQ.… で始まるキーを貼り付けてください）。'], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
