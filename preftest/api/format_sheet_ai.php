@@ -103,6 +103,7 @@ $csv = mb_substr($csv, 0, 20000, 'UTF-8');   // 入力過大を防止
 $schema = [
     'type' => 'object',
     'properties' => [
+        'density' => ['type' => 'string', 'enum' => ['compact', 'normal', 'relaxed']],
         'sections' => [
             'type' => 'array',
             'items' => [
@@ -143,6 +144,7 @@ $prompt = "あなたは表データ整形の専門家です。次のCSVは、あ
         . "  例：左に『理事』『監事』、右に『参与』が並んでいる場合、理事と監事は left、参与は right にする。"
         . "上部に中央寄せで置かれた『会長・副会長』のようなグループは center。\n"
         . "  左右で対になるグループは、ウェブでも左右2列に並べて表示するので、この side の判定を正確に行うこと。\n"
+        . "【行間 density】表全体の行の高さを density で指定できる：compact(詰める)/normal(標準)/relaxed(ゆったり)。ユーザーが行間の詰め・広げを求めたら反映、指定が無ければ normal。\n"
         . "【見た目の指定 column_styles】各セクションの列ごとに見た目を指定できる（任意）。columns と同じ順番・同じ個数の配列で、各要素は "
         . "{bold(真偽), underline(真偽), color(文字色 \"#RRGGBB\"), size(文字サイズ small/normal/large/xlarge), bg(背景色 \"#RRGGBB\")}。"
         . "指定が無い列は空オブジェクト {} でよい。color・bg は必ず #RRGGBB 形式（例 赤=#FF0000）。下のユーザー要望があれば、それに沿って該当列に設定すること。\n"
@@ -214,8 +216,8 @@ if (!is_array($data) || !isset($data['sections']) || !is_array($data['sections']
 /* ===== HTML 描画（委員会サイト風・全値エスケープ） ===== */
 function esc($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 
-/** 1グループ（見出し＋表）のHTMLを返す。空なら '' */
-function render_section($sec) {
+/** 1グループ（見出し＋表）のHTMLを返す。空なら ''。$pad はセルの余白（行間） */
+function render_section($sec, $pad) {
     $heading = isset($sec['heading']) ? trim((string)$sec['heading']) : '';
     $columns = (isset($sec['columns']) && is_array($sec['columns'])) ? $sec['columns'] : [];
     $rows    = (isset($sec['rows'])    && is_array($sec['rows']))    ? $sec['rows']    : [];
@@ -249,7 +251,7 @@ function render_section($sec) {
         $h .= '<tr>';
         for ($c = 0; $c < $ncol; $c++) {
             $v = isset($r[$c]) ? $r[$c] : '';
-            $cellStyle = 'padding:9px 14px;border-top:1px solid #eef1f7;background:' . $bg . ';';
+            $cellStyle = 'padding:' . $pad . ';border-top:1px solid #eef1f7;background:' . $bg . ';';
             // 追加指示による列スタイル（安全な項目のみ）
             $cs = (isset($colStyles[$c]) && is_array($colStyles[$c])) ? $colStyles[$c] : null;
             $custom = '';
@@ -271,6 +273,11 @@ function render_section($sec) {
     return $h;
 }
 
+/* 行間（density）→ セル余白 */
+$density = isset($data['density']) ? (string)$data['density'] : 'normal';
+$padMap = ['compact' => '4px 12px', 'normal' => '9px 14px', 'relaxed' => '15px 16px'];
+$pad = isset($padMap[$density]) ? $padMap[$density] : '9px 14px';
+
 /* full は全幅、left/right は左右2列にまとめて配置（スプレッドシートの左右並びを再現） */
 $html  = '<div style="display:flex;flex-direction:column;gap:22px;">';
 $pendL = ''; $pendR = '';
@@ -283,7 +290,7 @@ $flush = function () use (&$html, &$pendL, &$pendR) {
     $pendL = ''; $pendR = '';
 };
 foreach ($data['sections'] as $sec) {
-    $sh = render_section($sec);
+    $sh = render_section($sec, $pad);
     if ($sh === '') continue;
     $side = strtolower(isset($sec['side']) ? (string)$sec['side'] : 'full');
     if ($side === 'left')      { $pendL .= $sh; }

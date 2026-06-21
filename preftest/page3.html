@@ -425,11 +425,36 @@
     return bodyEl;
   }
 
+  function _printEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function printHtmlTable(html, title){
+    var w = window.open('', '_blank');
+    if (!w) { alert('印刷用ウィンドウを開けませんでした。ポップアップを許可してください。'); return; }
+    w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>' + _printEsc(title||'印刷') + '</title>'
+      + '<style>body{font-family:"Hiragino Kaku Gothic ProN","Meiryo",sans-serif;margin:24px;color:#1f2937;}table{border-collapse:collapse;}@page{margin:12mm;}</style></head><body>'
+      + (title ? '<h2 style="font-size:1.15rem;margin:0 0 16px;">' + _printEsc(title) + '</h2>' : '')
+      + html
+      + '<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},250);};</scr'+'ipt>'
+      + '</body></html>');
+    w.document.close();
+  }
+  function makePrintBtn(targetEl, title){
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'text-align:right;margin-top:12px;';
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = '🖨 印刷／PDF保存';
+    b.style.cssText = 'padding:8px 18px;background:#fff;border:1.5px solid #5b7cb8;color:#3b5ea6;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;';
+    b.onclick = function(){ printHtmlTable(targetEl.innerHTML, title); };
+    wrap.appendChild(b);
+    return wrap;
+  }
   function appendWithFetch(item, bodyEl, container) {
     container.appendChild(bodyEl);
     if (item.type === 'sheet') {
-      if (item.sheet_html) { bodyEl.innerHTML = item.sheet_html; }
-      else if (item.sheet_url) { fetchSheet(item.sheet_url, item.sheet_name, bodyEl, item.sheet_range); }
+      var tw = document.createElement('div');
+      bodyEl.appendChild(tw);
+      if (item.sheet_html) { tw.innerHTML = item.sheet_html; }
+      else if (item.sheet_url) { fetchSheet(item.sheet_url, item.sheet_name, tw, item.sheet_range); }
+      if (item.sheet_html || item.sheet_url) bodyEl.appendChild(makePrintBtn(tw, item.title));
     }
   }
 
