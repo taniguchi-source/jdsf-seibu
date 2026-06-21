@@ -256,8 +256,8 @@ function render_section($sec) {
                 if (!empty($cs['size'])) { $sm = ['small' => '.8rem', 'normal' => '.9rem', 'large' => '1.05rem', 'xlarge' => '1.2rem']; if (isset($sm[$cs['size']])) $custom .= 'font-size:' . $sm[$cs['size']] . ';'; }
                 if (!empty($cs['bg']) && preg_match('/^#[0-9A-Fa-f]{6}$/', (string)$cs['bg'])) $custom .= 'background:' . $cs['bg'] . ';';
             }
-            if ($custom !== '') { $cellStyle .= 'white-space:nowrap;' . $custom; }
-            elseif ($c === 0)   { $cellStyle .= 'color:#3b5ea6;font-weight:700;white-space:nowrap;'; }  // 既定：先頭列(氏名)を強調
+            if ($c === 0) $cellStyle .= 'color:#3b5ea6;font-weight:700;white-space:nowrap;';  // 既定：先頭列(氏名)を強調
+            if ($custom !== '') $cellStyle .= 'white-space:nowrap;' . $custom;                // 追加指定を上書き・追加
             $h .= '<td style="' . $cellStyle . '">' . esc($v) . '</td>';
         }
         $h .= '</tr>';
