@@ -81,7 +81,7 @@ $schema = [
                 'type' => 'object',
                 'properties' => [
                     'heading' => ['type' => 'string'],
-                    'side'    => ['type' => 'string', 'enum' => ['full', 'left', 'right']],
+                    'side'    => ['type' => 'string', 'enum' => ['full', 'center', 'left', 'right']],
                     'columns' => ['type' => 'array', 'items' => ['type' => 'string']],
                     'rows'    => ['type' => 'array', 'items' => ['type' => 'array', 'items' => ['type' => 'string']]],
                 ],
@@ -103,9 +103,10 @@ $prompt = "あなたは表データ整形の専門家です。次のCSVは、あ
         . "【重要・横方向の配置 side】各グループが元の表で左右どこに置かれているかを、CSVの列位置から判断し side に入れる:\n"
         . "  * 左側の列にあるグループ → \"left\"\n"
         . "  * 右側の列にあるグループ → \"right\"\n"
-        . "  * 横幅いっぱい、または単独で中央/上部に置かれているグループ → \"full\"\n"
+        . "  * 左右に空の列があり中央に単独で置かれているグループ（例：上部の『会長・副会長』）→ \"center\"\n"
+        . "  * 表の横幅いっぱいに広がるグループ → \"full\"\n"
         . "  例：左に『理事』『監事』、右に『参与』が並んでいる場合、理事と監事は left、参与は right にする。"
-        . "上部に単独で置かれた『会長・副会長』のようなグループは full。\n"
+        . "上部に中央寄せで置かれた『会長・副会長』のようなグループは center。\n"
         . "  左右で対になるグループは、ウェブでも左右2列に並べて表示するので、この side の判定を正確に行うこと。\n\n"
         . "CSV:\n" . $csv;
 
@@ -233,6 +234,7 @@ foreach ($data['sections'] as $sec) {
     $side = strtolower(isset($sec['side']) ? (string)$sec['side'] : 'full');
     if ($side === 'left')      { $pendL .= $sh; }
     elseif ($side === 'right') { $pendR .= $sh; }
+    elseif ($side === 'center') { $flush(); $html .= '<div style="max-width:520px;width:100%;margin:0 auto;">' . $sh . '</div>'; }  // 中央配置
     else { $flush(); $html .= $sh; }   // full：左右ブロックを確定してから全幅で出力
 }
 $flush();
