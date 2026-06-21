@@ -132,7 +132,11 @@ $prompt = "あなたは表データ整形の専門家です。次のCSVは、あ
         . "【見た目の指定 column_styles】各セクションの列ごとに見た目を指定できる（任意）。columns と同じ順番・同じ個数の配列で、各要素は "
         . "{bold(真偽), underline(真偽), color(文字色 \"#RRGGBB\"), size(文字サイズ small/normal/large/xlarge), bg(背景色 \"#RRGGBB\")}。"
         . "指定が無い列は空オブジェクト {} でよい。color・bg は必ず #RRGGBB 形式（例 赤=#FF0000）。下のユーザー要望があれば、それに沿って該当列に設定すること。\n"
-        . ($extra !== '' ? ("【ユーザーの追加要望（最優先で column_styles に反映）】" . $extra . "\n") : "")
+        . ($extra !== '' ? ("【ユーザーの追加要望（最優先で反映）】次の要望に従うこと。"
+            . "見た目（太字/下線/文字色/文字サイズ/背景色）は該当列の column_styles に反映。"
+            . "配置の要望は各セクションの side に反映（左→left／右→right／中央→center／横幅いっぱい→full。"
+            . "『1列にまとめる/縦に並べる』なら関係セクションを full または center にする。左右の入れ替え要望なら left と right を入れ替える）。"
+            . "指示が無い項目は自動判断のままでよい。\n要望: " . $extra . "\n") : "")
         . "\nCSV:\n" . $csv;
 $payload = json_encode(['contents' => [['parts' => [['text' => $prompt]]]],
     'generationConfig' => ['temperature' => 0.1, 'responseMimeType' => 'application/json', 'responseSchema' => $schema]], JSON_UNESCAPED_UNICODE);
