@@ -81,10 +81,11 @@ $schema = [
                 'type' => 'object',
                 'properties' => [
                     'heading' => ['type' => 'string'],
+                    'side'    => ['type' => 'string', 'enum' => ['full', 'left', 'right']],
                     'columns' => ['type' => 'array', 'items' => ['type' => 'string']],
                     'rows'    => ['type' => 'array', 'items' => ['type' => 'array', 'items' => ['type' => 'string']]],
                 ],
-                'required' => ['heading', 'columns', 'rows'],
+                'required' => ['heading', 'side', 'columns', 'rows'],
             ],
         ],
     ],
@@ -98,7 +99,14 @@ $prompt = "あなたは表データ整形の専門家です。次のCSVは、あ
         . "- 装飾目的の空セル・空列・空行は取り除く。各行の列数は columns に揃える（不足は空文字）。\n"
         . "- 人物・役職・氏名・所属を勝手に変更・要約・省略しないこと。CSVに登場する全員を漏れなく含める。\n"
         . "- 値は元の表記のまま（読み仮名や敬称の追加・削除をしない）。\n"
-        . "- セクション見出しが元データに無い場合は、適切な1つのセクションにまとめ、heading は空文字でよい。\n\n"
+        . "- セクション見出しが元データに無い場合は、適切な1つのセクションにまとめ、heading は空文字でよい。\n"
+        . "【重要・横方向の配置 side】各グループが元の表で左右どこに置かれているかを、CSVの列位置から判断し side に入れる:\n"
+        . "  * 左側の列にあるグループ → \"left\"\n"
+        . "  * 右側の列にあるグループ → \"right\"\n"
+        . "  * 横幅いっぱい、または単独で中央/上部に置かれているグループ → \"full\"\n"
+        . "  例：左に『理事』『監事』、右に『参与』が並んでいる場合、理事と監事は left、参与は right にする。"
+        . "上部に単独で置かれた『会長・副会長』のようなグループは full。\n"
+        . "  左右で対になるグループは、ウェブでも左右2列に並べて表示するので、この side の判定を正確に行うこと。\n\n"
         . "CSV:\n" . $csv;
 
 $payload = json_encode([
@@ -161,52 +169,73 @@ if (!is_array($data) || !isset($data['sections']) || !is_array($data['sections']
 
 /* ===== HTML 描画（委員会サイト風・全値エスケープ） ===== */
 function esc($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
-$html = '<div style="display:flex;flex-direction:column;gap:22px;">';
-foreach ($data['sections'] as $sec) {
+
+/** 1グループ（見出し＋表）のHTMLを返す。空なら '' */
+function render_section($sec) {
     $heading = isset($sec['heading']) ? trim((string)$sec['heading']) : '';
     $columns = (isset($sec['columns']) && is_array($sec['columns'])) ? $sec['columns'] : [];
     $rows    = (isset($sec['rows'])    && is_array($sec['rows']))    ? $sec['rows']    : [];
-    // 列数を決定（columns 優先、無ければ最大行長）
     $ncol = count($columns);
     if ($ncol === 0) { foreach ($rows as $r) { if (is_array($r)) $ncol = max($ncol, count($r)); } }
-    if ($ncol === 0) continue;
+    if ($ncol === 0) return '';
 
-    $html .= '<div>';
+    $h = '<div style="margin-bottom:4px;">';
     if ($heading !== '') {
-        $html .= '<div style="font-weight:800;font-size:1rem;color:#23375f;border-left:5px solid #e8a13c;'
-              .  'background:#eef3fb;padding:8px 14px;border-radius:4px;margin-bottom:10px;">' . esc($heading) . '</div>';
+        $h .= '<div style="font-weight:800;font-size:1rem;color:#23375f;border-left:5px solid #e8a13c;'
+            . 'background:#eef3fb;padding:8px 14px;border-radius:4px;margin-bottom:10px;">' . esc($heading) . '</div>';
     }
-    $html .= '<div style="overflow-x:auto;border-radius:8px;border:1px solid #dde4ef;">'
-          .  '<table style="width:100%;border-collapse:collapse;font-size:.9rem;">';
+    $h .= '<div style="overflow-x:auto;border-radius:8px;border:1px solid #dde4ef;">'
+        . '<table style="width:100%;border-collapse:collapse;font-size:.9rem;">';
     if (count($columns)) {
-        $html .= '<thead><tr>';
-        foreach ($columns as $i => $col) {
-            $html .= '<th style="background:#5b7cb8;color:#fff;font-weight:700;text-align:left;padding:10px 14px;'
-                  .  'font-size:.82rem;white-space:nowrap;border-right:1px solid rgba(255,255,255,.18);">' . esc($col) . '</th>';
+        $h .= '<thead><tr>';
+        foreach ($columns as $col) {
+            $h .= '<th style="background:#5b7cb8;color:#fff;font-weight:700;text-align:left;padding:10px 14px;'
+                . 'font-size:.82rem;white-space:nowrap;border-right:1px solid rgba(255,255,255,.18);">' . esc($col) . '</th>';
         }
-        $html .= '</tr></thead>';
+        $h .= '</tr></thead>';
     }
-    $html .= '<tbody>';
+    $h .= '<tbody>';
     $rc = 0;
     foreach ($rows as $r) {
         if (!is_array($r)) continue;
-        // 空行スキップ
         $hasVal = false; foreach ($r as $v) { if (trim((string)$v) !== '') { $hasVal = true; break; } }
         if (!$hasVal) continue;
         $bg = ($rc % 2 === 0) ? '#ffffff' : '#f7f9fc';
-        $html .= '<tr>';
+        $h .= '<tr>';
         for ($c = 0; $c < $ncol; $c++) {
             $v = isset($r[$c]) ? $r[$c] : '';
             $first = ($c === 0 && count($columns) > 1);
             $cellStyle = 'padding:9px 14px;border-top:1px solid #eef1f7;background:' . $bg . ';';
             if ($first) $cellStyle .= 'color:#3b5ea6;font-weight:700;white-space:nowrap;';
-            $html .= '<td style="' . $cellStyle . '">' . esc($v) . '</td>';
+            $h .= '<td style="' . $cellStyle . '">' . esc($v) . '</td>';
         }
-        $html .= '</tr>';
+        $h .= '</tr>';
         $rc++;
     }
-    $html .= '</tbody></table></div></div>';
+    $h .= '</tbody></table></div></div>';
+    return $h;
 }
+
+/* full は全幅、left/right は左右2列にまとめて配置（スプレッドシートの左右並びを再現） */
+$html  = '<div style="display:flex;flex-direction:column;gap:22px;">';
+$pendL = ''; $pendR = '';
+$flush = function () use (&$html, &$pendL, &$pendR) {
+    if ($pendL === '' && $pendR === '') return;
+    $html .= '<div style="display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start;">'
+          .  '<div style="flex:1 1 300px;min-width:260px;display:flex;flex-direction:column;gap:18px;">' . $pendL . '</div>'
+          .  '<div style="flex:1 1 300px;min-width:260px;display:flex;flex-direction:column;gap:18px;">' . $pendR . '</div>'
+          .  '</div>';
+    $pendL = ''; $pendR = '';
+};
+foreach ($data['sections'] as $sec) {
+    $sh = render_section($sec);
+    if ($sh === '') continue;
+    $side = strtolower(isset($sec['side']) ? (string)$sec['side'] : 'full');
+    if ($side === 'left')      { $pendL .= $sh; }
+    elseif ($side === 'right') { $pendR .= $sh; }
+    else { $flush(); $html .= $sh; }   // full：左右ブロックを確定してから全幅で出力
+}
+$flush();
 $html .= '</div>';
 
 echo json_encode(['ok' => true, 'html' => $html], JSON_UNESCAPED_UNICODE);
