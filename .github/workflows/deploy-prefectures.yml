@@ -71,8 +71,9 @@ jobs:
         run: |
           lftp -u "jdsfseibu,$FTP_PASS" ftp://sv16504.xserver.jp \
             -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; \
-                set net:timeout 30; set net:max-retries 3; \
-                mirror -R --delete \
+                set net:timeout 60; set net:max-retries 5; set net:reconnect-interval-base 5; \
+                set xfer:clobber on; set cmd:fail-exit yes; \
+                mirror -R --delete --verbose=1 \
                   --exclude '^data/' \
                   --exclude '^uploads/' \
                   preftest/ \
