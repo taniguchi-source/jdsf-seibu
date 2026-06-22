@@ -13,6 +13,15 @@ $CENTRAL_SECRET = 'jdsf-ai-central-9f3k2026';      // 府県⇔主サイトの�
 $keyfile        = dirname(__DIR__) . '/data/gemini_key.php';
 $action         = $_POST['action'] ?? $_GET['action'] ?? 'format';
 
+/* ===== 共通キーの有無確認（府県からサーバー間で・共有シークレット認可） ===== */
+if ($action === 'ping') {
+    if (($_POST['secret'] ?? $_GET['secret'] ?? '') !== $CENTRAL_SECRET) { http_response_code(403); echo json_encode(['error' => 'Forbidden'], JSON_UNESCAPED_UNICODE); exit; }
+    $has = false;
+    if (is_file($keyfile)) { $k = @include $keyfile; $has = is_string($k) && $k !== ''; }
+    echo json_encode(['ok' => true, 'has' => $has], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 /* ===== キー管理（主サイト管理トークン） ===== */
 if ($action === 'status' || $action === 'save' || $action === 'delete') {
     $token = $_POST['token'] ?? $_GET['token'] ?? '';

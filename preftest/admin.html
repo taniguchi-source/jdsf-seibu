@@ -1712,10 +1712,15 @@
   /* ===== AIで見やすく整形（Gemini） ===== */
   function refreshGeminiKeyStatus() {
     var st = document.getElementById('cd-ai-key-status');
+    if (!st) return;
     fetch('api/save_gemini_key.php?action=status&token=' + encodeURIComponent(TOKEN))
       .then(function(r){ return r.json(); })
-      .then(function(res){ if (st) st.textContent = (res && res.has) ? '（設定済み）' : '（未設定）'; if (st) st.style.color = (res && res.has) ? '#166534' : '#B91C1C'; })
-      .catch(function(){ if (st) st.textContent = ''; });
+      .then(function(res){
+        if (res && res.has)        { st.textContent = '（このサイト個別で設定済み）'; st.style.color = '#166534'; }
+        else if (res && res.central){ st.textContent = '（主サイトの共通キーを使用中：設定済み・個別設定は不要）'; st.style.color = '#166534'; }
+        else                       { st.textContent = '（未設定：主サイトで共通キーを登録してください）'; st.style.color = '#B91C1C'; }
+      })
+      .catch(function(){ st.textContent = ''; });
   }
   function saveGeminiKey() {
     var key = ((document.getElementById('cd-ai-key') || {value:''}).value || '').trim();

@@ -21,7 +21,22 @@ $action  = $_POST['action'] ?? $_GET['action'] ?? 'save';
 if ($action === 'status') {
     $has = false;
     if (is_file($keyfile)) { $k = @include $keyfile; $has = is_string($k) && $k !== ''; }
-    echo json_encode(['ok' => true, 'has' => $has], JSON_UNESCAPED_UNICODE);
+    // 主サイトの共通キーの有無も確認（サーバー間・共有シークレット）
+    $central = false;
+    $post = http_build_query(['action' => 'ping', 'secret' => 'jdsf-ai-central-9f3k2026']);
+    $url  = 'https://jdsf-seibu.com/api/gemini_central.php';
+    $resp = false;
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => $post, CURLOPT_TIMEOUT => 8, CURLOPT_SSL_VERIFYPEER => false, CURLOPT_SSL_VERIFYHOST => false]);
+        $resp = curl_exec($ch); curl_close($ch);
+    }
+    if (($resp === false || $resp === '') && ini_get('allow_url_fopen')) {
+        $ctx = stream_context_create(['http' => ['method' => 'POST', 'header' => "Content-Type: application/x-www-form-urlencoded\r\n", 'content' => $post, 'timeout' => 8, 'ignore_errors' => true], 'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
+        $resp = @file_get_contents($url, false, $ctx);
+    }
+    if ($resp) { $jj = json_decode($resp, true); if (is_array($jj) && !empty($jj['has'])) $central = true; }
+    echo json_encode(['ok' => true, 'has' => $has, 'central' => $central, 'usable' => ($has || $central)], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
