@@ -353,13 +353,21 @@
 
   <section class="doc" id="sitebuild">
     <h2><span class="chip">7</span> サイト構築（デザイン編集）</h2>
-    <p class="desc"><span class="pill">⚙️ サイト構築</span>：トップページの<b>都道府県リンク・カルーセル画像・キャッチコピー・説明文・SNS</b>などを編集します。</p>
+    <p class="desc"><span class="pill">⚙️ サイト構築</span>：トップページの<b>都道府県リンク・カルーセル画像・キャッチコピー・説明文・SNS</b>に加え、<b>AI整形キー（全府県共通）</b>を編集します。</p>
     <ol class="steps">
       <li>役員ページ<b>右上（「📊 アクセス解析」「🔓 ログアウト」の下）</b>にある <b>「🔧 サイト構築ページへ →」</b> を押します（または <code class="path">https://jdsf-seibu.com/site-config.html</code>）。</li>
       <li><b>サイト構築専用のパスワード</b>を入力してログインします（役員ログインとは<b>別のパスワード</b>です）。</li>
       <li>各項目を編集し、それぞれの<b>保存</b>ボタンを押します。</li>
     </ol>
     <div class="note">役員ページ（officers.html）とサイト構築ページ（site-config.html）は<b>パスワードが別</b>です。サイト構築用のパスワードも事務局が管理しています。</div>
+
+    <h3 class="step-h">✨ AI整形キー（全府県共通）</h3>
+    <p class="desc">各府県サイトの「スプレッドシートをAIで見やすく整形」で使う <b>Gemini APIキー</b> を、ここで<b>1回だけ</b>登録します。ここで設定すれば<b>全14府県が共通で利用</b>でき、各府県での個別設定は不要になります。</p>
+    <ol class="steps">
+      <li>サイト構築ページの <b>「✨ AI整形キー（全府県共通）」</b> 欄を開きます。</li>
+      <li>Gemini APIキー（<code class="path">AIza…</code> または <code class="path">AQ.…</code> で始まる文字列）を貼り付けて <b>「キーを保存」</b>。「設定済み」と出れば完了です。</li>
+    </ol>
+    <div class="note">キーは<b>主サイトのサーバー内（非公開）</b>に保存され、各府県の整形時のみ使用されます（府県の管理画面にキーは表示されません）。キーは Google AI Studio（<code class="path">aistudio.google.com/apikey</code>）で無料発行できます。<b>キーの文字列は鍵欄にだけ</b>入力し、メール・チャット・スクショに写さないでください。</div>
   </section>
 
   <section class="doc" id="etc">
