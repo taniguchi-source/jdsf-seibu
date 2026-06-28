@@ -274,6 +274,13 @@
     if (range) u += '&range=' + encodeURIComponent(range);
     return u;
   }
+  /* 指定範囲の行数からiframeの高さ(px)を見積もる（末尾の余白を作らない）。範囲なし時は既定値 */
+  function sheetEmbedHeight(range){
+    var m = String(range||'').match(/^[A-Za-z]+(\d+):[A-Za-z]+(\d+)$/);
+    if(!m) return 600;
+    var rows = Math.abs(parseInt(m[2],10) - parseInt(m[1],10)) + 1;
+    return Math.max(140, Math.min(rows * 21 + 8, 1200));
+  }
 
   function parseCSV(text) {
     var rows = [];
@@ -470,10 +477,13 @@
       bodyEl.className = ''; bodyEl.textContent = '';
       var src = sheetEmbedUrl(item.sheet_url, item.sheet_range);
       if (src) {
+        var box = document.createElement('div');
+        box.style.cssText = 'border:1px solid var(--border,#c9d4e3);border-radius:8px;overflow:hidden;background:#fff;';
         var fr = document.createElement('iframe');
         fr.src = src; fr.loading = 'lazy';
-        fr.style.cssText = 'width:100%;height:600px;border:1px solid var(--border,#ddd);border-radius:8px;background:#fff;display:block;';
-        bodyEl.appendChild(fr);
+        fr.style.cssText = 'width:100%;height:' + sheetEmbedHeight(item.sheet_range) + 'px;border:0;display:block;';
+        box.appendChild(fr);
+        bodyEl.appendChild(box);
         var a = document.createElement('a');
         a.href = item.sheet_url; a.target = '_blank'; a.rel = 'noopener';
         a.textContent = '🔗 別タブで開く（印刷・PDF保存・編集はこちら）';
