@@ -620,12 +620,17 @@
       el.innerHTML = news.slice(0, 3).map(function (n) {
         var catCls = CAT_CLASS[n.category] || 'tag-info';
         var detail = (n.detail || '').length > 60 ? n.detail.substring(0, 60) + '…' : (n.detail || '');
-        var href   = 'news.html'; /* news-detail.html 未実装のため一覧へ誘導 */
-        return '<a href="' + href + '" class="placeholder-card" style="text-decoration:none;color:inherit;">'
+        /* 関連URLが設定されていればそのリンク先（別タブ）へ、なければお知らせ一覧へ */
+        var nu = String(n.url || '').trim();
+        var hasUrl = /^https?:\/\//i.test(nu);
+        var href   = hasUrl ? nu.replace(/"/g, '%22') : 'news.html';
+        var tgt    = hasUrl ? ' target="_blank" rel="noopener"' : '';
+        return '<a href="' + href + '"' + tgt + ' class="placeholder-card" style="text-decoration:none;color:inherit;">'
           + '<div class="placeholder-card-date" style="display:flex;align-items:center;gap:6px;">📅 ' + escHtml(n.date)
           + ' <span class="tag ' + catCls + '" style="font-size:0.7rem;">' + escHtml(n.category || '') + '</span></div>'
           + '<div class="placeholder-card-title">' + escHtml(n.title) + '</div>'
           + (detail ? '<div class="placeholder-card-body">' + escHtml(detail) + '</div>' : '')
+          + (hasUrl ? '<div class="placeholder-card-body" style="color:var(--primary);font-weight:700;font-size:0.8rem;margin-top:6px;">🔗 詳しくはこちら →</div>' : '')
           + '</a>';
       }).join('');
     })
