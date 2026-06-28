@@ -280,52 +280,37 @@
         +'</svg>'
     },
     {
-      g:'スプレッドシートの便利機能', t:'スプレッドシート：書式・シート名・範囲',
-      c:'スプレッドシートを選ぶと、色やセルの結合、太字などの書式をそのまま表示できます。シート名はシート一覧から選ぶで一覧から選べ、表示する範囲は、シートから範囲を選ぶで、開始セルと終了セルをクリックして指定できます。',
+      g:'スプレッドシートの便利機能', t:'スプレッドシート：範囲を書式そのまま表示',
+      c:'スプレッドシートは、指定した範囲を、色やセルの結合、太字などの書式そのままで、ページに埋め込んで表示できます。表示したいタブを開いた状態で、ブラウザのアドレス欄のURLをコピーして貼り付け、表示する範囲を、開始セルから終了セルの形で入力します。プレビューを押すと、公開ページと同じ見た目を確認できます。',
       svg:
         '<svg viewBox="0 0 640 250" role="img">'
         +'<rect class="mk-frame" x="14" y="14" width="612" height="222" rx="12"/>'
         +'<text class="mk-tb" x="34" y="40" font-size="14">📊 Googleスプレッドシート</text>'
-        +'<rect class="mk-field" x="34" y="56" width="430" height="26" rx="6"/><text class="mk-t" x="46" y="74">https://docs.google.com/spreadsheets/…</text>'
-        +'<rect class="mk-soft" x="474" y="56" width="136" height="26" rx="6"/><text x="490" y="74" font-size="12" font-weight="700" fill="#0D2347">📋 シート一覧から選ぶ</text>'
-        +'<rect class="mk-field" x="34" y="92" width="300" height="26" rx="6"/><text class="mk-t" x="46" y="110">表示する範囲：A1:F20</text>'
-        +'<rect class="mk-soft" x="344" y="92" width="150" height="26" rx="6"/><text x="358" y="110" font-size="12" font-weight="700" fill="#0D2347">📐 シートから範囲を選ぶ</text>'
+        +'<rect class="mk-field" x="34" y="56" width="576" height="26" rx="6"/><text class="mk-t" x="46" y="74">https://docs.google.com/spreadsheets/…/edit#gid=…</text>'
+        +'<rect class="mk-field" x="34" y="92" width="250" height="26" rx="6"/><text class="mk-t" x="46" y="110">表示する範囲：B3:G32</text>'
+        +'<rect class="mk-btn" x="294" y="92" width="120" height="26" rx="6"/><text class="mk-tw" x="354" y="110" text-anchor="middle">🔍 プレビュー</text>'
         +'<rect x="34" y="132" width="576" height="92" rx="6" fill="#fff" stroke="#dde4ef"/>'
-        +'<rect x="34" y="132" width="576" height="24" fill="#5b7cb8"/><text x="44" y="149" fill="#fff" font-size="12" font-weight="700">役職　　氏名　　所属</text>'
-        +'<text x="44" y="176" font-size="12" fill="#3b5ea6" font-weight="700">会長　　松本　　京都府</text>'
-        +'<text x="44" y="200" font-size="12" fill="#334155">理事　　大島　　大阪府</text>'
+        +'<rect x="34" y="132" width="576" height="24" fill="#5b7cb8"/><text x="44" y="149" fill="#fff" font-size="12" font-weight="700">役職　氏名　所属（書式そのまま）</text>'
+        +'<text x="44" y="176" font-size="12" fill="#3b5ea6" font-weight="700">会長　松本　京都府</text>'
+        +'<text x="44" y="200" font-size="12" fill="#334155">理事　大島　大阪府</text>'
         +'</svg>'
     },
     {
-      g:'スプレッドシートの便利機能', t:'✨ AIで見やすく整形',
-      c:'AIで見やすく整形を押すと、委員会サイト風の見やすい表に自動で整え直せます。追加の指示の欄に、氏名を太字に、参与を左、行間を詰めて、のように日本語で書くと、太字、色、文字サイズ、背景色、左右の配置や行間まで反映できます。',
+      g:'スプレッドシートの便利機能', t:'🔗 別タブで開く（印刷・PDF・編集）',
+      c:'表の下にある、別タブで開くを押すと、新しいタブでスプレッドシートが開き、そこから印刷や、PDF保存、編集ができます。編集できるのは、編集権限を持つ方だけです。表の下の余白が大きいときは、表示する範囲を、実際のデータの最終行までに縮めると、ぴったり収まります。',
       svg:
         '<svg viewBox="0 0 640 250" role="img">'
         +'<rect class="mk-frame" x="14" y="14" width="612" height="222" rx="12"/>'
-        +'<rect x="34" y="34" width="220" height="34" rx="8" fill="#7c52a8"/><text x="144" y="56" text-anchor="middle" fill="#fff" font-size="13" font-weight="800">✨ AIで見やすく整形</text>'
-        +'<text class="mk-tm" x="34" y="92">追加の指示（任意）</text>'
-        +'<rect class="mk-field" x="34" y="100" width="576" height="30" rx="6"/><text class="mk-t" x="46" y="120">氏名を太字・赤色に／参与を左・理事を右／行間を詰めて</text>'
-        +'<rect x="34" y="146" width="576" height="78" rx="6" fill="#fff" stroke="#dde4ef"/>'
-        +'<rect x="44" y="156" width="130" height="20" rx="4" fill="#eef3fb"/><text x="50" y="171" font-size="11" font-weight="800" fill="#23375f">▍会長・副会長</text>'
-        +'<text x="50" y="198" font-size="12" font-weight="700" fill="#c0392b">松本 武士</text><text x="180" y="198" font-size="12" fill="#334155">会長</text>'
-        +'<text x="50" y="216" font-size="12" font-weight="700" fill="#c0392b">植村 和正</text><text x="180" y="216" font-size="12" fill="#334155">副会長</text>'
+        +'<rect x="60" y="34" width="520" height="120" rx="8" fill="#fff" stroke="#dde4ef"/>'
+        +'<rect x="60" y="34" width="520" height="26" fill="#5b7cb8"/><text x="72" y="52" fill="#fff" font-size="12" font-weight="700">連盟役員（指定範囲・書式そのまま）</text>'
+        +'<text x="72" y="88" font-size="12" fill="#334155">… 表の内容 …</text>'
+        +'<text x="72" y="116" font-size="12" fill="#334155">… 表の内容 …</text>'
+        +'<text x="60" y="184" font-size="13" font-weight="700" fill="#3b5ea6">🔗 別タブで開く（印刷・PDF保存・編集はこちら）</text>'
+        +'<text x="60" y="210" font-size="12" fill="#64748b">→ 新しいタブで開き、印刷／PDF保存／編集ができます</text>'
         +'</svg>'
     },
     {
-      g:'スプレッドシートの便利機能', t:'🖨 印刷・PDF保存',
-      c:'公開ページの表の下には、印刷・PDF保存のボタンが自動で付きます。閲覧する方がこれを押すと、表だけを取り出して印刷でき、送信先でPDFに保存を選べば、そのままPDFとして保存できます。',
-      svg:
-        '<svg viewBox="0 0 640 250" role="img">'
-        +'<rect class="mk-frame" x="14" y="14" width="612" height="222" rx="12"/>'
-        +'<rect x="60" y="40" width="520" height="120" rx="8" fill="#fff" stroke="#dde4ef"/>'
-        +'<rect x="60" y="40" width="520" height="26" fill="#5b7cb8"/><text x="72" y="58" fill="#fff" font-size="12" font-weight="700">連盟役員（整形後の表）</text>'
-        +'<text x="72" y="92" font-size="12" fill="#334155">… 表の内容 …</text>'
-        +'<rect class="mk-btn" x="430" y="172" width="150" height="34" rx="8"/><text class="mk-tw" x="505" y="194" text-anchor="middle">🖨 印刷／PDF保存</text>'
-        +'<text x="60" y="194" font-size="12" fill="#64748b">→ 送信先で「PDFに保存」を選べます</text>'
-        +'</svg>'
-    },
-    {
-      g:'スプレッドシートの便利機能', t:'🎯 ページ上部の表示文字',
+      g:'ページ上部の設定', t:'🎯 ページ上部の表示文字',
       c:'各ページの上部、ヒーローの表示文字も自由に変えられます。ページ設定のヒーローの欄で、小ラベル、大見出し、サブ見出しの3つを個別に入力し、ページ設定を保存を押します。空欄なら自動で表示されます。',
       svg:
         '<svg viewBox="0 0 640 250" role="img">'

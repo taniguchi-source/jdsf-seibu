@@ -116,17 +116,6 @@
       <div id="h-msg" class="msg"></div>
     </div>
 
-    <!-- ⑤ AI整形キー（全府県共通） -->
-    <div class="card">
-      <h2>✨ AI整形キー（全府県共通）</h2>
-      <p class="hint">各府県サイトの「AIで見やすく整形」で使う Gemini APIキーを、ここで<strong>1回だけ</strong>登録します。<span id="ai-key-status" style="font-weight:700;"></span></p>
-      <label class="fl">Gemini APIキー</label>
-      <input type="password" id="ai-key" placeholder="AIza… または AQ.… で始まるキー" autocomplete="off">
-      <button class="btn btn-sm" style="margin-top:12px;" onclick="aiKeySave()">💾 キーを保存</button>
-      <div id="ai-key-msg" class="msg"></div>
-      <p class="hint" style="margin-top:10px;">※ キーは主サイトのサーバー内（非公開）に保存され、各府県の整形時にサーバー間で利用されます。府県の管理画面にキーは表示されません。<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a> で無料発行できます。</p>
-    </div>
-
   </div>
 </div>
 
@@ -212,25 +201,6 @@ function loadAll(){
   fetch('data/home_hero.json?_='+Date.now()).then(function(r){return r.ok?r.json():null;})
     .then(function(d){ fillHero(d||DEFAULT_HERO, d); })
     .catch(function(){ fillHero(DEFAULT_HERO, null); });
-  aiKeyStatus();
-}
-
-/* ===== AI整形キー（全府県共通） ===== */
-function aiKeyStatus(){
-  var el=document.getElementById('ai-key-status'); if(!el) return;
-  fetch('api/gemini_central.php?action=status&token='+encodeURIComponent(TOKEN)+'&_='+Date.now())
-    .then(function(r){return r.json();})
-    .then(function(d){ el.textContent = (d&&d.has)?'（設定済み）':'（未設定）'; el.style.color=(d&&d.has)?'#166534':'#B91C1C'; })
-    .catch(function(){ el.textContent=''; });
-}
-function aiKeySave(){
-  var key=(document.getElementById('ai-key').value||'').trim();
-  if(!key){ setMsg('ai-key-msg','APIキーを入力してください',false); return; }
-  var fd=new FormData(); fd.append('token',TOKEN); fd.append('action','save'); fd.append('key',key);
-  fetch('api/gemini_central.php',{method:'POST',body:fd})
-    .then(function(r){return r.json();})
-    .then(function(d){ if(d&&d.ok){ setMsg('ai-key-msg','✅ キーを保存しました（全府県で使えます）',true); document.getElementById('ai-key').value=''; aiKeyStatus(); } else { setMsg('ai-key-msg','⚠ '+((d&&d.error)||'保存に失敗しました'),false); } })
-    .catch(function(){ setMsg('ai-key-msg','⚠ 通信エラー',false); });
 }
 
 /* ===== ① クイックリンク ===== */
