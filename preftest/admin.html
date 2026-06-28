@@ -437,57 +437,21 @@
           <div>
             <label class="form-label">スプレッドシートURL</label>
             <input type="text" id="cd-sheet-url" class="form-input" placeholder="https://docs.google.com/spreadsheets/d/...">
-          </div>
-          <div>
-            <label class="form-label">シート名（タブ名） <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（省略時は最初のシートを表示）</span></label>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-              <input type="text" id="cd-sheet-name" class="form-input" style="flex:1;min-width:160px;" placeholder="例：役員名">
-              <button type="button" onclick="loadSheetList()" id="cd-sheet-list-btn" style="padding:8px 16px;background:#fff;color:var(--primary);border:1.5px solid var(--primary);border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">📋 シート一覧から選ぶ</button>
-            </div>
-            <select id="cd-sheet-select" onchange="if(this.value){document.getElementById('cd-sheet-name').value=this.value;}" style="display:none;width:100%;margin-top:8px;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.875rem;font-family:inherit;background:#fff;"></select>
-            <div id="cd-sheet-list-msg" style="display:none;font-size:.75rem;margin-top:6px;"></div>
+            <p style="font-size:.73rem;color:var(--text-light);margin:5px 0 0;line-height:1.6;">表示したい<strong>タブ（シート）を開いた状態</strong>で、ブラウザのアドレスバーのURLをそのままコピーして貼り付けてください（タブ情報 <code>#gid=…</code> を自動で読み取ります）。</p>
           </div>
           <div>
             <label class="form-label">表示する範囲 <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（省略時はシート全体を表示）</span></label>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-              <input type="text" id="cd-sheet-range" class="form-input" style="flex:1;min-width:160px;" placeholder="例：A1:F20">
-              <button type="button" onclick="loadRangePicker()" id="cd-range-pick-btn" style="padding:8px 16px;background:#fff;color:var(--primary);border:1.5px solid var(--primary);border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">📐 シートから範囲を選ぶ</button>
-              <button type="button" onclick="clearSheetRange()" id="cd-range-clear-btn" style="display:none;padding:8px 14px;background:#fff;color:var(--text-light);border:1.5px solid var(--border);border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">✕ 範囲を解除</button>
-            </div>
-            <div id="cd-range-msg" style="display:none;font-size:.75rem;margin-top:6px;"></div>
+            <input type="text" id="cd-sheet-range" class="form-input" placeholder="例：B3:G32">
           </div>
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-            <button onclick="loadSheetPreview()" style="padding:8px 22px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">🔍 プレビュー</button>
-            <span style="font-size:.75rem;color:var(--text-light);line-height:1.4;">スプレッドシートを<strong>「リンクを知っている全員が閲覧可」</strong>に設定してください</span>
+            <button type="button" onclick="loadSheetPreview()" style="padding:8px 22px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">🔍 プレビュー</button>
+            <span style="font-size:.75rem;color:var(--text-light);line-height:1.5;">スプレッドシートを<strong>「リンクを知っている全員が閲覧可」</strong>に設定してください。指定範囲・色・セル結合・太字がそのまま表示されます。</span>
           </div>
-
-          <!-- ✨ AIで見やすく整形 -->
-          <div style="border:1.5px solid #e3d9f5;background:#faf7ff;border-radius:10px;padding:12px 14px;">
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-              <button type="button" onclick="formatSheetAI()" id="cd-ai-btn" style="padding:8px 18px;background:#7c52a8;color:#fff;border:none;border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">✨ AIで見やすく整形</button>
-              <button type="button" onclick="clearSheetAI()" id="cd-ai-clear-btn" style="display:none;padding:8px 14px;background:#fff;color:var(--text-light);border:1.5px solid var(--border);border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">元の表に戻す</button>
-              <span style="font-size:.73rem;color:var(--text-light);line-height:1.4;">委員会サイト風の見やすい表に自動整形します（保存時に反映）。</span>
-            </div>
-            <div style="margin-top:10px;">
-              <label style="font-size:.72rem;font-weight:700;color:var(--text-light);display:block;margin-bottom:4px;">追加の指示（任意）</label>
-              <input type="text" id="cd-ai-extra" placeholder="例：氏名を太字・赤色・大きめに／参与を左・理事を右に／全部1列にまとめて" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-family:inherit;box-sizing:border-box;outline:none;">
-              <p style="font-size:.68rem;color:var(--text-light);margin:4px 0 0;line-height:1.5;">列ごとの「太字・下線・文字色・文字サイズ（小/標準/大/特大）・背景色」や、配置（左右2列の振り分け・1列にまとめる・中央/全幅）を指示できます。</p>
-            </div>
-            <div id="cd-ai-msg" style="display:none;font-size:.75rem;margin-top:8px;"></div>
-            <!-- Gemini APIキー設定 -->
-            <details style="margin-top:10px;">
-              <summary style="cursor:pointer;font-size:.75rem;color:var(--text-medium);font-weight:700;">⚙ AI整形の設定（Gemini APIキー）<span id="cd-ai-key-status" style="font-weight:400;margin-left:6px;"></span></summary>
-              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;">
-                <input type="password" id="cd-ai-key" class="form-input" style="flex:1;min-width:200px;" placeholder="AIza… で始まるGemini APIキー" autocomplete="off">
-                <button type="button" onclick="saveGeminiKey()" id="cd-ai-key-btn" style="padding:8px 16px;background:#7c52a8;color:#fff;border:none;border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">キーを保存</button>
-              </div>
-              <div id="cd-ai-key-msg" style="display:none;font-size:.73rem;margin-top:6px;"></div>
-              <p style="font-size:.7rem;color:var(--text-light);margin:6px 0 0;line-height:1.5;">キーはこのサイトのサーバー内（非公開）に保存され、整形時のみ使用します。Google AI Studio（aistudio.google.com）で無料発行できます。</p>
-            </details>
+          <div style="border:1px solid #dbe7f3;background:#f7fbff;border-radius:8px;padding:10px 12px;font-size:.73rem;color:var(--text-light);line-height:1.6;">
+            ℹ 公開ページにはこの表が<strong>iframeで埋め込み表示</strong>されます（閲覧専用）。表の下に「🔗 別タブで開く」リンクが付き、そこから<strong>印刷・PDF保存・編集</strong>ができます（編集できるのは編集権限を持つ方のみ）。
           </div>
-
-          <input type="hidden" id="cd-sheet-html">
-          <input type="hidden" id="cd-sheet-format">
+          <!-- 後方互換用（現在は未使用） -->
+          <input type="hidden" id="cd-sheet-name">
           <div id="cd-sheet-preview"></div>
         </div>
       </div>
@@ -502,27 +466,6 @@
   </div>
 </div>
 
-<!-- 範囲選択モーダル（大画面でスプレッドシートを表示して範囲を選ぶ） -->
-<div id="range-picker-modal" class="modal-overlay" style="z-index:9500;padding:24px;" onclick="if(event.target===this)closeRangePicker()">
-  <div style="background:#fff;border-radius:12px;width:96vw;max-width:1200px;height:90vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.22);position:relative;overflow:hidden;">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 22px;border-bottom:2px solid #BFDBFE;flex-shrink:0;">
-      <h3 style="font-size:1rem;font-weight:700;color:var(--primary);margin:0;">📐 表示する範囲を選ぶ</h3>
-      <button onclick="closeRangePicker()" style="background:none;border:none;font-size:1.3rem;color:var(--text-light);cursor:pointer;line-height:1;">✕</button>
-    </div>
-    <div style="padding:12px 22px;flex-shrink:0;background:#f8fafc;border-bottom:1px solid var(--border);">
-      <p id="rpm-help" style="margin:0;font-size:.85rem;color:var(--text-medium);">開始セルと終了セルをクリックしてください（同じセルをもう一度押すと選び直し）。</p>
-    </div>
-    <div id="rpm-grid" style="flex:1;overflow:auto;padding:14px 22px;"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;border-top:1px solid var(--border);flex-shrink:0;background:#f8fafc;flex-wrap:wrap;">
-      <div style="font-size:.9rem;color:var(--text-dark);">選択中の範囲：<strong id="rpm-current" style="color:var(--primary);font-size:1rem;">（未選択 ＝ シート全体）</strong></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <button onclick="rpmClearSelection()" style="padding:9px 18px;background:#fff;color:var(--text-light);border:1.5px solid var(--border);border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;">選択をクリア</button>
-        <button onclick="closeRangePicker()" style="padding:9px 18px;background:none;border:1.5px solid var(--border);border-radius:8px;font-size:.85rem;cursor:pointer;color:var(--text-light);font-family:inherit;">キャンセル</button>
-        <button onclick="confirmRangePicker()" style="padding:9px 26px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;">この範囲で確定 →</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <div id="edit-modal" class="modal-overlay" onclick="if(event.target===this)closeEditModal()">
   <div class="modal-box">
@@ -1295,25 +1238,9 @@
     if (sheetUrl)  sheetUrl.value  = item.sheet_url  || '';
     if (sheetName) sheetName.value = item.sheet_name || '';
     if (sheetPrev) sheetPrev.innerHTML = '';
-    var sheetSel = document.getElementById('cd-sheet-select');
-    if (sheetSel) { sheetSel.innerHTML = ''; sheetSel.style.display = 'none'; }
-    var sheetListMsg = document.getElementById('cd-sheet-list-msg');
-    if (sheetListMsg) { sheetListMsg.style.display = 'none'; sheetListMsg.textContent = ''; }
-    // 範囲フィールド + ピッカーの初期化
+    // 範囲フィールド
     var sheetRange = document.getElementById('cd-sheet-range');
     if (sheetRange) sheetRange.value = item.sheet_range || '';
-    var rangeMsg = document.getElementById('cd-range-msg');
-    if (rangeMsg) { rangeMsg.style.display = 'none'; rangeMsg.textContent = ''; }
-    var rangeClr = document.getElementById('cd-range-clear-btn');
-    if (rangeClr) rangeClr.style.display = (item.sheet_range ? '' : 'none');
-    _rangeAnchor = null; _rangeRows = []; _rangePicked = '';
-    // AI整形フィールドの復元
-    var sHtml = document.getElementById('cd-sheet-html');   if (sHtml) sHtml.value = item.sheet_html || '';
-    var sFmt  = document.getElementById('cd-sheet-format'); if (sFmt)  sFmt.value  = item.sheet_format || '';
-    var aiMsg = document.getElementById('cd-ai-msg');       if (aiMsg) { aiMsg.style.display='none'; aiMsg.textContent=''; }
-    var aiExtra = document.getElementById('cd-ai-extra');   if (aiExtra) aiExtra.value = '';
-    var aiClr = document.getElementById('cd-ai-clear-btn'); if (aiClr) aiClr.style.display = (item.sheet_html ? '' : 'none');
-    if (typeof refreshGeminiKeyStatus === 'function') refreshGeminiKeyStatus();
     // ファイルフィールド
     var fileUrl   = document.getElementById('cd-file-url');
     var fileName  = document.getElementById('cd-file-name');
@@ -1383,8 +1310,6 @@
     var sheetUrl    = ((document.getElementById('cd-sheet-url')    || {value:''}).value || '').trim();
     var sheetName   = ((document.getElementById('cd-sheet-name')   || {value:''}).value || '').trim();
     var sheetRange  = ((document.getElementById('cd-sheet-range')  || {value:''}).value || '').trim();
-    var sheetHtml   = ((document.getElementById('cd-sheet-html')   || {value:''}).value || '');
-    var sheetFormat = ((document.getElementById('cd-sheet-format') || {value:''}).value || '');
     var fileUrl   = ((document.getElementById('cd-file-url')   || {value:''}).value || '').trim();
     var linkUrl   = ((document.getElementById('cd-link-url')   || {value:''}).value || '').trim();
     var linkLabel = ((document.getElementById('cd-link-label') || {value:''}).value || '').trim();
@@ -1403,8 +1328,6 @@
       item.sheet_url    = sheetUrl;
       item.sheet_name   = sheetName;
       item.sheet_range  = sheetRange;
-      item.sheet_html   = sheetHtml;
-      item.sheet_format = sheetFormat;
       item.file_url   = fileUrl;
       item.link_url   = linkUrl;
       item.link_label = linkLabel;
@@ -1641,41 +1564,31 @@
   window.uploadGalleryImages = uploadGalleryImages;
 
   /* ===== スプレッドシートプレビュー ===== */
+  /* スプレッドシートを「指定範囲・書式そのまま」で埋め込むGoogle公式htmlembed URLを組み立てる */
+  function sheetEmbedUrl(url, range){
+    var m = String(url||'').match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/); if(!m) return '';
+    var id = m[1];
+    var g = String(url||'').match(/[?#&]gid=(\d+)/);
+    var u = 'https://docs.google.com/spreadsheets/d/' + id + '/htmlembed?single=true&widget=false&chrome=false';
+    if (g)     u += '&gid=' + g[1];
+    if (range) u += '&range=' + encodeURIComponent(range);
+    return u;
+  }
   function loadSheetPreview() {
     var url      = ((document.getElementById('cd-sheet-url')   || {value:''}).value || '').trim();
-    var name     = ((document.getElementById('cd-sheet-name')  || {value:''}).value || '').trim();
     var range    = ((document.getElementById('cd-sheet-range') || {value:''}).value || '').trim();
     var preview  = document.getElementById('cd-sheet-preview');
     if (!preview) return;
-    if (!url) {
-      preview.innerHTML = '<p style="color:#B91C1C;font-size:.82rem;margin:6px 0 0;">⚠ スプレッドシートのURLを入力してください</p>';
+    var src = sheetEmbedUrl(url, range);
+    if (!src) {
+      preview.innerHTML = '<p style="color:#B91C1C;font-size:.82rem;margin:6px 0 0;">⚠ 正しいスプレッドシートのURLを入力してください</p>';
       return;
     }
-    preview.innerHTML = '<p style="color:var(--text-light);font-size:.82rem;margin:6px 0 0;">⏳ 読み込み中...</p>';
-    function fd() { var f = new FormData(); f.append('token', TOKEN); f.append('sheet_url', url); f.append('sheet_name', name); f.append('sheet_range', range); return f; }
-    function wrap(inner) { return '<div style="overflow-x:auto;margin-top:10px;border-radius:8px;border:1px solid #dde4ef;">' + inner + '</div>'; }
-    /* まず書式付き(xlsx解析)で取得。失敗時はCSV表示にフォールバック */
-    fetch('api/fetch_sheet_styled.php', { method:'POST', body:fd() })
-      .then(function(r){ return r.json(); })
-      .then(function(res){
-        if (res && res.ok && res.html) { preview.innerHTML = wrap(res.html); return; }
-        return loadCSV();
-      })
-      .catch(function(){ return loadCSV(); });
-    function loadCSV() {
-      return fetch('api/fetch_sheet.php', { method:'POST', body:fd() })
-        .then(function(r) {
-          if (!r.ok) return r.json().then(function(e){ throw new Error(e.error || 'HTTP ' + r.status); }).catch(function(){ throw new Error('HTTP ' + r.status); });
-          return r.json();
-        })
-        .then(function(res) {
-          if (res.ok && res.csv) preview.innerHTML = csvToTable(res.csv);
-          else preview.innerHTML = '<p style="color:#B91C1C;font-size:.82rem;margin:6px 0 0;">⚠ ' + escHtml(res.error || 'エラーが発生しました') + '</p>';
-        })
-        .catch(function(e) {
-          preview.innerHTML = '<p style="color:#B91C1C;font-size:.82rem;margin:6px 0 0;">⚠ ' + escHtml(e && e.message ? e.message : '通信エラー') + '</p>';
-        });
-    }
+    preview.innerHTML =
+      '<div style="margin-top:10px;">'
+      +   '<iframe src="' + src.replace(/"/g,'&quot;') + '" loading="lazy" style="width:100%;height:520px;border:1px solid #dde4ef;border-radius:8px;background:#fff;display:block;"></iframe>'
+      +   '<p style="font-size:.73rem;color:var(--text-light);margin:6px 0 0;line-height:1.6;">↑ 公開ページにはこの見た目（指定範囲・書式そのまま・閲覧専用）で表示されます。表示されない場合は、シートの共有を「リンクを知っている全員が閲覧可」にしてください。</p>'
+      + '</div>';
   }
 
   /* ===== スプレッドシートのシート一覧を取得して選択 ===== */
