@@ -36,6 +36,7 @@ jobs:
             --exclude='old.jdsf-seibu.com/' \
             --exclude='nara.jdsf-seibu.com/' \
             --exclude='nara1.jdsf-seibu.com/' \
+            --exclude='naraken.jdsf-seibu.com/' \
             --exclude='hyogo.jdsf-seibu.com/' \
             --exclude='hiroshima.jdsf-seibu.com/' \
             --exclude='kagawa.jdsf-seibu.com/' \
