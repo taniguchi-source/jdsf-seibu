@@ -171,6 +171,16 @@
       background: rgba(255,255,255,0.1);
       color: #fff;
     }
+    .hero-info-links a.has-img { padding: 8px 10px; text-align: center; }
+    .hero-info-links a.has-img img.hero-info-img {
+      max-width: 100%;
+      max-height: 90px;
+      width: auto;
+      height: auto;
+      display: inline-block;
+      object-fit: contain;
+      vertical-align: middle;
+    }
 
     /* ===== セクション ===== */
     .pref-section {
@@ -675,7 +685,12 @@
         var url = String(l.url || '#').replace(/"/g, '%22');
         if (/^\s*(javascript|data|vbscript):/i.test(l.url || '')) url = '#';
         var tgt = l.newtab ? ' target="_blank" rel="noopener"' : '';
-        return '<a href="' + url + '"' + tgt + '>' + esc(l.label || l.url) + '</a>';
+        var img = String(l.image || '');
+        if (!/^(https?:\/\/|uploads\/)/i.test(img)) img = '';
+        var inner = img
+          ? '<img src="' + img.replace(/"/g, '%22') + '" alt="' + esc(l.label || '') + '" class="hero-info-img">'
+          : esc(l.label || l.url);
+        return '<a href="' + url + '"' + tgt + (img ? ' class="has-img"' : '') + '>' + inner + '</a>';
       }).join('');
     })
     .catch(function () { /* フォールバック: 既定のクイックリンクを維持 */ });

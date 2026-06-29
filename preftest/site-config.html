@@ -1152,9 +1152,55 @@
         + '</div>'
         + '<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;font-size:.75rem;font-weight:700;color:var(--text-light);">'
         +   '<input type="checkbox" id="ql-newtab-' + i + '" ' + (l.newtab ? 'checked' : '') + ' style="width:15px;height:15px;cursor:pointer;accent-color:var(--primary);">別タブ</label>'
+        + '<div style="flex:1.4;min-width:210px;">'
+        +   '<label style="font-size:.68rem;font-weight:700;color:var(--text-light);display:block;margin-bottom:2px;">画像ボタン（任意）</label>'
+        +   '<input type="hidden" id="ql-image-' + i + '" value="' + escHtml(l.image || '') + '">'
+        +   '<div id="ql-thumb-' + i + '" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' + quickLinkThumbHtml(i, l.image || '') + '</div>'
+        +   '<input type="file" accept="image/*" id="ql-imgfile-' + i + '" onchange="if(this.files[0])uploadQuickLinkImage(' + i + ',this.files[0])" style="margin-top:5px;font-size:.72rem;max-width:205px;">'
+        + '</div>'
         + '</div>';
     }).join('');
   }
+
+  function quickLinkThumbHtml(i, url) {
+    if (!url) return '<span style="font-size:.72rem;color:var(--text-light);">未設定（テキスト表示）</span>';
+    return '<img src="' + escHtml(url) + '" alt="" style="max-height:34px;max-width:130px;border:1px solid var(--border);border-radius:4px;background:#fff;">'
+      + '<button type="button" onclick="clearQuickLinkImage(' + i + ')" style="padding:3px 8px;background:#fff;color:#B91C1C;border:1.5px solid #FECACA;border-radius:5px;font-size:.7rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">✕ 画像を削除</button>';
+  }
+
+  function uploadQuickLinkImage(i, file) {
+    var thumb = document.getElementById('ql-thumb-' + i);
+    if (thumb) thumb.innerHTML = '<span style="font-size:.72rem;color:var(--primary);">⏳ アップロード中…</span>';
+    var fd = new FormData();
+    fd.append('token', TOKEN);
+    fd.append('file', file);
+    fetch('api/upload_file.php', {method:'POST', body:fd})
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        var cur = (document.getElementById('ql-image-' + i) || {value:''}).value;
+        if (res && res.ok && res.url) {
+          var hid = document.getElementById('ql-image-' + i); if (hid) hid.value = res.url;
+          if (thumb) thumb.innerHTML = quickLinkThumbHtml(i, res.url);
+          toast('✅ 画像をアップロードしました（保存を忘れずに）');
+        } else {
+          if (thumb) thumb.innerHTML = quickLinkThumbHtml(i, cur);
+          toast('⚠ ' + ((res && res.error) || '画像のアップロードに失敗しました'));
+        }
+      })
+      .catch(function(){
+        var cur = (document.getElementById('ql-image-' + i) || {value:''}).value;
+        if (thumb) thumb.innerHTML = quickLinkThumbHtml(i, cur);
+        toast('⚠ 通信エラー');
+      });
+  }
+
+  function clearQuickLinkImage(i) {
+    var hid = document.getElementById('ql-image-' + i); if (hid) hid.value = '';
+    var thumb = document.getElementById('ql-thumb-' + i); if (thumb) thumb.innerHTML = quickLinkThumbHtml(i, '');
+    var f = document.getElementById('ql-imgfile-' + i); if (f) f.value = '';
+  }
+  window.uploadQuickLinkImage = uploadQuickLinkImage;
+  window.clearQuickLinkImage  = clearQuickLinkImage;
 
   function saveQuickLinks() {
     var links = _quickLinks.map(function(l, i){
@@ -1168,6 +1214,7 @@
         label:   lb ? lb.value.trim() : '',
         url:     ur ? ur.value.trim() : '',
         newtab:  nt ? nt.checked : false,
+        image:   (document.getElementById('ql-image-' + i) || {value:''}).value.trim(),
       };
     });
     _quickLinks = links;

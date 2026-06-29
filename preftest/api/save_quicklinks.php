@@ -21,12 +21,16 @@ $i = 0;
 foreach ($items as $item) {
     $i++;
     if ($i > 12) break; // スロット上限
+    // 画像URL：uploads/... または http(s):// のみ許可（javascript:/data: 等は破棄）
+    $img = mb_substr(trim((string)($item['image'] ?? '')), 0, 300);
+    if ($img !== '' && !preg_match('#^(https?://|uploads/)#i', $img)) $img = '';
     $clean[] = [
         'id'      => $i,
         'enabled' => !empty($item['enabled']),
         'label'   => mb_substr(trim((string)($item['label'] ?? '')), 0, 40),
         'url'     => mb_substr(trim((string)($item['url'] ?? '')), 0, 300),
         'newtab'  => !empty($item['newtab']),
+        'image'   => $img,
     ];
 }
 
