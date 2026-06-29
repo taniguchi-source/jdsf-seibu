@@ -264,6 +264,24 @@
 </section>
 
 
+<!-- ===== 広告バナー（フッター直前・サイト構築で編集／data/home_banner.json／未設定時は非表示） ===== -->
+<style>
+  .ad-banners { display:flex; flex-wrap:wrap; justify-content:center; gap:16px; }
+  .ad-banners > a, .ad-banners > span { flex:0 1 360px; max-width:360px; line-height:0; display:block; }
+  .ad-banners img { width:100%; height:auto; max-height:140px; object-fit:contain; border:1px solid var(--border); border-radius:8px; background:#fff; }
+  @media (max-width:768px){
+    .ad-banners > a, .ad-banners > span { flex:1 1 100%; max-width:100%; }
+    .ad-banners img { max-height:none; }
+  }
+</style>
+<section id="ad-banner-section" class="section" style="display:none;padding:20px 0;background:#fff;border-top:1px solid var(--border);">
+  <div class="container">
+    <p style="font-size:.7rem;color:var(--text-light);text-align:center;margin:0 0 10px;letter-spacing:.08em;">広告</p>
+    <div class="ad-banners" id="ad-banners"></div>
+  </div>
+</section>
+
+
 <!-- ===== FOOTER ===== -->
 <footer class="site-footer">
   <div class="container footer-top">
@@ -536,6 +554,34 @@
           }
         }
       }
+    })
+    .catch(function(){});
+
+  /* 広告バナー（フッター直前。1枚以上あれば帯を表示） */
+  fetch('data/home_banner.json?_=' + Date.now())
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if (!d || !Array.isArray(d.banners)) return;
+      var items = d.banners.filter(function(b){ return b.enabled !== false && b.image; });
+      if (!items.length) return;
+      var box = document.getElementById('ad-banners');
+      var sec = document.getElementById('ad-banner-section');
+      if (!box || !sec) return;
+      var html = items.map(function(b){
+        var img = String(b.image || '');
+        if (!/^(https?:\/\/|uploads\/)/i.test(img)) return '';
+        var url = String(b.url || '');
+        if (/^\s*(javascript|data|vbscript):/i.test(url)) url = '';
+        var inner = '<img src="' + esc(img) + '" alt="広告">';
+        if (url) {
+          var tgt = b.newtab ? ' target="_blank" rel="noopener"' : '';
+          return '<a href="' + esc(url) + '"' + tgt + '>' + inner + '</a>';
+        }
+        return '<span>' + inner + '</span>';
+      }).join('');
+      if (!html) return;
+      box.innerHTML = html;
+      sec.style.display = '';
     })
     .catch(function(){});
 })();

@@ -116,6 +116,18 @@
       <div id="h-msg" class="msg"></div>
     </div>
 
+    <!-- ⑤ 広告バナー管理 -->
+    <div class="card">
+      <h2>📣 広告バナー管理</h2>
+      <p class="hint">トップページの<strong>フッター直前</strong>に表示される広告バナー（画像＋リンク）です。最大6枚。PCは横並び・スマホは縦積み。推奨：横長 600×150px 前後・8MB以内（JPG/PNG/WebP/GIF）。<strong>画像が未設定の行・「表示」オフの行は出ません</strong>（全部オフ/0枚ならバナー帯ごと非表示）。</p>
+      <div id="banner-list" style="display:grid;gap:10px;"></div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="btn btn-sec btn-sm" onclick="bannerAdd()">＋ バナーを追加</button>
+        <button class="btn btn-sm" onclick="bannerSave()">💾 広告バナーを保存</button>
+      </div>
+      <div id="banner-msg" class="msg"></div>
+    </div>
+
   </div>
 </div>
 
@@ -201,6 +213,9 @@ function loadAll(){
   fetch('data/home_hero.json?_='+Date.now()).then(function(r){return r.ok?r.json():null;})
     .then(function(d){ fillHero(d||DEFAULT_HERO, d); })
     .catch(function(){ fillHero(DEFAULT_HERO, null); });
+  fetch('data/home_banner.json?_='+Date.now()).then(function(r){return r.ok?r.json():null;})
+    .then(function(d){ _bn = (d && Array.isArray(d.banners)) ? d.banners : []; bnRender(); })
+    .catch(function(){ _bn = []; bnRender(); });
 }
 
 /* ===== ① クイックリンク ===== */
@@ -277,6 +292,57 @@ function slUpload(n){
       else setMsg('sl-msg','⚠ '+(res.error||'失敗'),false);
     })
     .catch(function(){ setMsg('sl-msg','⚠ 通信エラー',false); });
+}
+
+/* ===== ⑤ 広告バナー（フッター直前・最大6枚） ===== */
+var _bn = [];
+function bnRender(){
+  var box=document.getElementById('banner-list');
+  if(!box) return;
+  if(!_bn.length){ box.innerHTML='<p class="hint" style="margin:0;">バナーはまだありません。「＋ バナーを追加」で作成してください。</p>'; return; }
+  box.innerHTML = _bn.map(function(it,i){
+    return '<div class="row">'
+      + '<div style="display:flex;flex-direction:column;gap:6px;align-items:center;min-width:150px;">'
+        + '<div id="bn-thumb-'+i+'">'+bnThumbHtml(i, it.image||'')+'</div>'
+        + '<input type="file" accept="image/*" id="bn-file-'+i+'" onchange="if(this.files[0])bnUpload('+i+',this.files[0])" style="font-size:.72rem;max-width:160px;">'
+      + '</div>'
+      + '<div class="grow">'
+        + '<input type="text" value="'+esc(it.url||'')+'" placeholder="リンク先URL（例 https://...／空ならリンクなし表示）" oninput="_bn['+i+'].url=this.value">'
+      + '</div>'
+      + '<div style="display:flex;flex-direction:column;gap:4px;">'
+        + '<label class="ck"><input type="checkbox" '+(it.enabled!==false?'checked':'')+' onchange="_bn['+i+'].enabled=this.checked"> 表示</label>'
+        + '<label class="ck"><input type="checkbox" '+(it.newtab?'checked':'')+' onchange="_bn['+i+'].newtab=this.checked"> 別タブ</label>'
+      + '</div>'
+      + '<button class="btn btn-sm btn-del" onclick="bnDel('+i+')">×</button>'
+    + '</div>';
+  }).join('');
+}
+function bnThumbHtml(i, url){
+  if(!url) return '<span style="font-size:.72rem;color:#888;">画像なし</span>';
+  return '<img src="'+esc(url)+'?_='+Date.now()+'" alt="" style="max-height:48px;max-width:160px;border:1px solid #ddd;border-radius:4px;background:#fff;">'
+    + '<button class="btn btn-sm btn-sec" style="display:block;margin-top:4px;" onclick="bnClearImg('+i+')">✕ 画像を削除</button>';
+}
+function bannerAdd(){ if(_bn.length>=6){ alert('上限6枚です'); return; } _bn.push({image:'',url:'',enabled:true,newtab:true}); bnRender(); }
+function bnDel(i){ _bn.splice(i,1); bnRender(); }
+function bnClearImg(i){ _bn[i].image=''; bnRender(); }
+function bnUpload(i, file){
+  var thumb=document.getElementById('bn-thumb-'+i);
+  if(thumb) thumb.innerHTML='<span style="font-size:.72rem;color:var(--primary);">⏳ アップロード中...</span>';
+  var fd=new FormData(); fd.append('token',TOKEN); fd.append('image',file);
+  fetch('api/upload_home_banner.php',{method:'POST',body:fd})
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(res && res.ok && res.url){ _bn[i].image=res.url; bnRender(); setMsg('banner-msg','✅ 画像をアップロードしました（最後に「保存」を押してください）',true); }
+      else { bnRender(); setMsg('banner-msg','⚠ '+((res&&res.error)||'画像のアップロードに失敗しました'),false); }
+    })
+    .catch(function(){ bnRender(); setMsg('banner-msg','⚠ 通信エラー',false); });
+}
+function bannerSave(){
+  var fd=new FormData(); fd.append('token',TOKEN); fd.append('banners',JSON.stringify(_bn));
+  fetch('api/save_home_banner.php',{method:'POST',body:fd})
+    .then(function(r){return r.json();})
+    .then(function(res){ setMsg('banner-msg', res.ok?'✅ 保存しました（トップのフッター直前に反映されます）':('⚠ '+(res.error||'失敗')), !!res.ok); })
+    .catch(function(){ setMsg('banner-msg','⚠ 通信エラー',false); });
 }
 </script>
 </body>

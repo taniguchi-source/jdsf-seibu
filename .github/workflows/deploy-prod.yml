@@ -59,6 +59,7 @@ jobs:
             --exclude='data/references.json' \
             --exclude='data/home_quicklinks.json' \
             --exclude='data/home_hero.json' \
+            --exclude='data/home_banner.json' \
             --exclude='data/gemini_key.php' \
             --exclude='uploads/' \
             ./ jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/
