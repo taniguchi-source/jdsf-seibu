@@ -7,3 +7,11 @@
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule ^ index.html [L]
 </IfModule>
+
+# HTML は常に最新を確認させる（更新後に古いキャッシュが表示されるのを防ぐ。
+# ETag により未変更なら 304 が返り通信は軽量。JSON はURLに ?_=時刻 を付けて取得済み）
+<IfModule mod_headers.c>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
