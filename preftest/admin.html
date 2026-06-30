@@ -171,7 +171,13 @@
           📢 公開お知らせ管理
           <small style="font-size:.75rem;font-weight:400;color:var(--text-light);display:block;margin-top:4px;">（トップページに掲載されます）</small>
         </h2>
-        <div style="display:flex;gap:10px;">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <label style="display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:700;color:var(--text-light);white-space:nowrap;">トップ掲載件数
+            <select id="news-count-select" onchange="saveNewsCount()" style="padding:8px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-family:inherit;cursor:pointer;background:#fff;">
+              <option value="3">3件</option>
+              <option value="6">6件</option>
+            </select>
+          </label>
           <a href="news.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#fff;color:var(--primary);border:2px solid var(--primary);border-radius:6px;font-size:.875rem;font-weight:700;text-decoration:none;">📋 一覧</a>
           <button onclick="toggleNewsForm()" id="news-form-toggle-btn"
             style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:.875rem;font-weight:700;cursor:pointer;">
@@ -571,6 +577,7 @@
     loginScreen.style.display   = 'none';
     contentScreen.style.display = 'block';
     loadNews();
+    loadNewsCount();
     loadContents();
     loadNav();
     loadTopPageSettings();
@@ -614,6 +621,25 @@
       });
   }
   window.saveTopPageSettings = saveTopPageSettings;
+
+  /* ===== トップに掲載するお知らせ件数（3 or 6） ===== */
+  function loadNewsCount() {
+    fetch('data/hero.json?_=' + Date.now())
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){ var sel=document.getElementById('news-count-select'); if(sel && d && parseInt(d.news_count,10)===6) sel.value='6'; })
+      .catch(function(){});
+  }
+  function saveNewsCount() {
+    var sel=document.getElementById('news-count-select'); if(!sel) return;
+    var n = sel.value==='6' ? '6' : '3';
+    var fd=new FormData(); fd.append('token',TOKEN); fd.append('news_count', n);
+    fetch('api/save_hero.php',{method:'POST',body:fd})
+      .then(function(r){ return r.json(); })
+      .then(function(res){ if(res && res.ok) toast('✅ トップ掲載件数を'+n+'件にしました'); else toast('⚠ 保存に失敗しました'); })
+      .catch(function(){ toast('⚠ 通信エラー'); });
+  }
+  window.loadNewsCount = loadNewsCount;
+  window.saveNewsCount = saveNewsCount;
   window.doLogin  = doLogin;
   window.doLogout = doLogout;
 

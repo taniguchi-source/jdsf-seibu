@@ -619,18 +619,23 @@
   }
   var el = document.getElementById('top-news-list');
   if (!el) return;
-  fetch('data/news.json?_=' + Date.now())
+  fetch('data/hero.json?_=' + Date.now())
     .then(function (r) { return r.ok ? r.json() : {}; })
-    .then(function (data) {
+    .catch(function () { return {}; })
+    .then(function (cfg) {
+      var _count = (cfg && parseInt(cfg.news_count, 10) === 6) ? 6 : 3;
+      fetch('data/news.json?_=' + Date.now())
+        .then(function (r) { return r.ok ? r.json() : {}; })
+        .then(function (data) {
       var news = (data.news || []).filter(function (n) { return n.published !== false; });
       if (news.length === 0) {
         el.innerHTML = '<p style="color:var(--text-light);font-size:0.9rem;padding:8px 0;">現在、お知らせはありません。</p>';
         return;
       }
-      /* 「常に表示（always_show）」を先頭に固定し、残りは元の並び（新しい順）で最大3件 */
+      /* 「常に表示（always_show）」を先頭に固定し、残りは元の並び（新しい順）で最大 _count 件（3 or 6） */
       var pinned  = news.filter(function (n) { return n.always_show; });
       var regular = news.filter(function (n) { return !n.always_show; });
-      el.innerHTML = pinned.concat(regular).slice(0, 3).map(function (n) {
+      el.innerHTML = pinned.concat(regular).slice(0, _count).map(function (n) {
         var catCls = CAT_CLASS[n.category] || 'tag-info';
         var detail = (n.detail || '').length > 60 ? n.detail.substring(0, 60) + '…' : (n.detail || '');
         /* 関連URLが設定されていればそのリンク先（別タブ）へ、なければお知らせ一覧へ */
@@ -646,9 +651,10 @@
           + (hasUrl ? '<div class="placeholder-card-body" style="color:var(--primary);font-weight:700;font-size:0.8rem;margin-top:6px;">🔗 詳しくはこちら →</div>' : '')
           + '</a>';
       }).join('');
-    })
-    .catch(function () {
-      el.innerHTML = '<p style="color:var(--text-light);font-size:0.9rem;padding:8px 0;">お知らせの読み込みに失敗しました。</p>';
+        })
+        .catch(function () {
+          el.innerHTML = '<p style="color:var(--text-light);font-size:0.9rem;padding:8px 0;">お知らせの読み込みに失敗しました。</p>';
+        });
     });
 })();
 

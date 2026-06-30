@@ -44,11 +44,17 @@ if (isset($_POST['ticker_text'])) {
     $data['ticker_text'] = mb_substr(trim((string)$_POST['ticker_text']), 0, 200);
 }
 
+// トップページに掲載するお知らせの件数（3 or 6。指定された場合のみ更新）
+if (isset($_POST['news_count'])) {
+    $data['news_count'] = ((int)$_POST['news_count'] === 6) ? 6 : 3;
+}
+
 // 既定値の保証
 if (!isset($data['height'])) $data['height'] = 'standard';
 if (!isset($data['width']))  $data['width']  = 'standard';
 if (!isset($data['arrows'])) $data['arrows'] = true; // 既定は表示
 if (!isset($data['ticker_enabled'])) $data['ticker_enabled'] = true; // 既定は表示
+if (!isset($data['news_count'])) $data['news_count'] = 3; // 既定は3件
 $data['updated'] = date('Y-m-d') . 'T' . date('H:i:s');
 
 if (file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) === false) {
