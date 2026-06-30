@@ -9,6 +9,7 @@ $title    = trim($_POST['title']    ?? '');
 $detail   = trim($_POST['detail']   ?? '');
 $url      = trim($_POST['url']      ?? '');
 $event_date = trim($_POST['event_date'] ?? '');
+$always_show = !empty($_POST['always_show']);
 if ($id === '' || !$category || !$title || !$detail) {
     http_response_code(400); echo json_encode(['error'=>'必須項目が不足しています'],JSON_UNESCAPED_UNICODE); exit;
 }
@@ -26,6 +27,7 @@ foreach ($existing['news'] as &$item) {
         $item['category'] = $category; $item['title'] = $title;
         $item['detail'] = $detail; $item['url'] = $url;
         if ($event_display !== '') $item['event_date'] = $event_display;
+        $item['always_show'] = $always_show;
         $found = true; break;
     }
 }
