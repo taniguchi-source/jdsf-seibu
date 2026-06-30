@@ -627,7 +627,10 @@
         el.innerHTML = '<p style="color:var(--text-light);font-size:0.9rem;padding:8px 0;">現在、お知らせはありません。</p>';
         return;
       }
-      el.innerHTML = news.slice(0, 3).map(function (n) {
+      /* 「常に表示（always_show）」を先頭に固定し、残りは元の並び（新しい順）で最大3件 */
+      var pinned  = news.filter(function (n) { return n.always_show; });
+      var regular = news.filter(function (n) { return !n.always_show; });
+      el.innerHTML = pinned.concat(regular).slice(0, 3).map(function (n) {
         var catCls = CAT_CLASS[n.category] || 'tag-info';
         var detail = (n.detail || '').length > 60 ? n.detail.substring(0, 60) + '…' : (n.detail || '');
         /* 関連URLが設定されていればそのリンク先（別タブ）へ、なければお知らせ一覧へ */
