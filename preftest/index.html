@@ -205,9 +205,10 @@
     }
     .ticker-inner {
       display: flex;
-      align-items: center;
+      align-items: flex-start;  /* 折り返し時にNEWバッジを1行目に合わせる */
       gap: 12px;
     }
+    .ticker-label { margin-top: 1px; }
     .ticker-label {
       background: #e53e3e;
       color: #fff;
@@ -220,7 +221,10 @@
     }
     .ticker-text {
       font-size: 0.875rem;
-      white-space: nowrap;
+      white-space: normal;     /* 長文は折り返して全文表示（スマホで右が切れないように） */
+      line-height: 1.5;
+      min-width: 0;            /* flex内で確実に折り返させる */
+      word-break: break-word;  /* 長いURL等もはみ出さない */
     }
 
     /* ===== プレースホルダーカード ===== */
