@@ -571,9 +571,10 @@
 
   /* 管理ページからテキストを動的注入できる公開関数 */
   window._setCarouselTexts = function (newTitles, newDescs) {
+    /* 設定された内容をそのまま反映（未設定＝空欄なら空白表示。既定の例文へはフォールバックしない） */
     for (var i = 0; i < 3; i++) {
-      if (newTitles[i]) titles[i] = newTitles[i];
-      if (newDescs[i])  descs[i]  = newDescs[i];
+      titles[i] = newTitles[i] || '';
+      descs[i]  = newDescs[i]  || '';
     }
     var titleEl = document.getElementById('slide-title');
     var descEl  = document.getElementById('slide-desc');
@@ -596,8 +597,9 @@
 /* ===== カルーセル 画像・テキスト の動的読み込み ===== */
 (function () {
   fetch('data/slides.json?_=' + Date.now())
-    .then(function (r) { return r.ok ? r.json() : {}; })
+    .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (data) {
+      if (!data) return; /* slides.json 自体が無い（未設定の府県）→ 初期のハードコード文言を維持 */
       var slideUrls  = data.slides || {};
       var slideTexts = data.texts  || {};
       var ts = Date.now();

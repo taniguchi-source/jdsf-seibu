@@ -788,10 +788,10 @@
 
   function _getSlideText(n) {
     var saved = _slidesTexts['slide' + n] || {};
-    var def   = _DEFAULT_TEXTS[n - 1]    || {};
+    /* 未設定（未保存）のスライドは空欄にする。既定の例文は入れない（設定しない＝公開でも空白） */
     return {
-      title: saved.title !== undefined ? saved.title : (def.title || ''),
-      desc:  saved.desc  !== undefined ? saved.desc  : (def.desc  || ''),
+      title: saved.title !== undefined ? saved.title : '',
+      desc:  saved.desc  !== undefined ? saved.desc  : '',
     };
   }
 
@@ -833,12 +833,12 @@
         +   '<div style="display:grid;gap:8px;margin-bottom:8px;">'
         +     '<div><label style="font-size:.75rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:3px;">タイトル</label>'
         +     '<input type="text" id="slide-title-input-' + n + '" value="' + escHtml(txt.title) + '" '
-        +       'placeholder="例：ダンススポーツの普及・振興" '
+        +       'placeholder="未入力の場合はタイトルを表示しません" '
         +       'style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-family:inherit;box-sizing:border-box;outline:none;" '
         +       'onfocus="this.style.borderColor=\'var(--primary)\'" onblur="this.style.borderColor=\'var(--border)\'"></div>'
         +     '<div><label style="font-size:.75rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:3px;">サブタイトル <span style="font-weight:400;color:var(--text-light);">（改行可）</span></label>'
         +     '<textarea id="slide-desc-input-' + n + '" rows="2" '
-        +       'placeholder="例：地域のダンススポーツ競技の発展を支援します。" '
+        +       'placeholder="未入力の場合はサブタイトルを表示しません" '
         +       'style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-family:inherit;resize:vertical;box-sizing:border-box;outline:none;line-height:1.55;" '
         +       'onfocus="this.style.borderColor=\'var(--primary)\'" onblur="this.style.borderColor=\'var(--border)\'">' + escHtml(txt.desc) + '</textarea></div>'
         +   '</div>'
