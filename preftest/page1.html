@@ -375,6 +375,55 @@
     }
   }
 
+  /* ===== PDFをインライン描画（PDF.js）：枠内スクロールバーを使わず全ページを表示 ===== */
+  var _pdfjsPromise = null;
+  function ensurePdfJs() {
+    if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    if (_pdfjsPromise) return _pdfjsPromise;
+    _pdfjsPromise = new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s.onload = function () {
+        try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; } catch (e) {}
+        resolve(window.pdfjsLib);
+      };
+      s.onerror = function () { reject(new Error('pdfjs load failed')); };
+      document.head.appendChild(s);
+    });
+    return _pdfjsPromise;
+  }
+  function renderPdfInline(container, url) {
+    ensurePdfJs()
+      .then(function (pdfjsLib) { return pdfjsLib.getDocument(url).promise; })
+      .then(function (pdf) {
+        container.innerHTML = '';
+        var width = container.clientWidth || 800;
+        var dpr   = window.devicePixelRatio || 1;
+        var chain = Promise.resolve();
+        for (var p = 1; p <= pdf.numPages; p++) {
+          (function (pageNum) {
+            chain = chain.then(function () {
+              return pdf.getPage(pageNum).then(function (page) {
+                var base  = page.getViewport({ scale: 1 });
+                var vp    = page.getViewport({ scale: (width / base.width) * dpr });
+                var canvas = document.createElement('canvas');
+                canvas.width  = Math.floor(vp.width);
+                canvas.height = Math.floor(vp.height);
+                canvas.style.cssText = 'width:100%;height:auto;display:block;' + (pageNum > 1 ? 'margin-top:8px;' : '');
+                container.appendChild(canvas);
+                return page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+              });
+            });
+          })(p);
+        }
+        return chain;
+      })
+      .catch(function () {
+        /* フォールバック: 従来のブラウザ内蔵ビューア */
+        container.innerHTML = '<iframe src="' + url + '#toolbar=0&navpanes=0&view=FitH" style="width:100%;height:80vh;border:0;display:block;background:#fff;"></iframe>';
+      });
+  }
+
   /* ===== コンテンツ描画（ボディ生成ヘルパー） ===== */
   function buildBodyEl(item) {
     var bodyEl = document.createElement('div');
@@ -412,17 +461,19 @@
         bodyEl.textContent = '（ギャラリー画像が未設定です）';
       }
     } else if (item.type === 'pdf' || (item.type === 'file' && (item.file_url || '').match(/\.pdf$/i))) {
-      /* PDF（ビューアのツールバー・周囲の黒余白を隠し、PDFページのみを幅に合わせて表示） */
+      /* PDF（PDF.jsで全ページをインライン描画。枠内スクロールバーなしで全体表示） */
       var fUrl = item.file_url || '';
       if (fUrl) {
-        var pdfView = escHtml(fUrl) + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
-        bodyEl.innerHTML =
-          '<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fff;">'
-          + '<iframe src="' + pdfView + '" title="' + escHtml(item.title || 'PDF') + '" '
-          +   'style="width:100%;height:70vh;min-height:460px;border:0;display:block;background:#fff;"></iframe>'
-          + '</div>'
-          + '<p style="text-align:right;margin:6px 0 0;font-size:.8125rem;">'
-          + '<a href="' + escHtml(fUrl) + '" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;">🔗 PDFを別タブで開く</a></p>';
+        var pdfBox = document.createElement('div');
+        pdfBox.style.cssText = 'border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fff;';
+        pdfBox.innerHTML = '<p style="text-align:center;color:var(--text-light);font-size:.85rem;padding:24px 0;margin:0;">⏳ PDFを読み込み中...</p>';
+        bodyEl.appendChild(pdfBox);
+        var pdfLink = document.createElement('p');
+        pdfLink.style.cssText = 'text-align:right;margin:6px 0 0;font-size:.8125rem;';
+        pdfLink.innerHTML = '<a href="' + escHtml(fUrl) + '" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;">🔗 PDFを別タブで開く</a>';
+        bodyEl.appendChild(pdfLink);
+        /* DOM 追加後（幅が確定してから）描画 */
+        setTimeout(function () { renderPdfInline(pdfBox, fUrl); }, 0);
       } else {
         bodyEl.className = 'content-block-body';
         bodyEl.textContent = '（PDFは未設定です）';
