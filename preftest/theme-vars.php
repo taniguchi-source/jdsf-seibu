@@ -160,6 +160,12 @@ if (array_key_exists('ticker_enabled', $hsaved) && $hsaved['ticker_enabled'] ===
     echo "\n/* ニュースティッカーを非表示 */\n.news-ticker { display: none !important; }\n";
 }
 
+// ── 公式サイトバッジの表示ON/OFF（data/hero.json badge_enabled 連動・チラつき防止） ──
+// 既定（キー無し）は表示。badge_enabled===false のときだけ隠す。
+if (array_key_exists('badge_enabled', $hsaved) && $hsaved['badge_enabled'] === false) {
+    echo "\n/* 公式サイトバッジを非表示 */\n.hero-badge { display: none !important; }\n";
+}
+
 // ── カルーセル横幅（data/hero.json width 連動・デスクトップのみ） ──
 $hw = $hsaved['width'] ?? 'standard';
 $width_map = ['three-quarters' => 75, 'half' => 50, 'third' => 33.333];

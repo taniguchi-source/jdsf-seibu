@@ -36,6 +36,11 @@ if (isset($_POST['arrows'])) {
     $data['arrows'] = ($_POST['arrows'] === '1' || $_POST['arrows'] === 'true' || $_POST['arrows'] === 1 || $_POST['arrows'] === true);
 }
 
+// 公式サイトバッジ（カルーセル左上の「○○県…公式サイト」）の表示ON/OFF（指定された場合のみ更新）
+if (isset($_POST['badge_enabled'])) {
+    $data['badge_enabled'] = ($_POST['badge_enabled'] === '1' || $_POST['badge_enabled'] === 'true' || $_POST['badge_enabled'] === 1 || $_POST['badge_enabled'] === true);
+}
+
 // ニュースティッカー 表示ON/OFF・本文（指定された場合のみ更新）
 if (isset($_POST['ticker_enabled'])) {
     $data['ticker_enabled'] = ($_POST['ticker_enabled'] === '1' || $_POST['ticker_enabled'] === 'true' || $_POST['ticker_enabled'] === 1 || $_POST['ticker_enabled'] === true);
@@ -54,6 +59,7 @@ if (!isset($data['height'])) $data['height'] = 'standard';
 if (!isset($data['width']))  $data['width']  = 'standard';
 if (!isset($data['arrows'])) $data['arrows'] = true; // 既定は表示
 if (!isset($data['ticker_enabled'])) $data['ticker_enabled'] = true; // 既定は表示
+if (!isset($data['badge_enabled'])) $data['badge_enabled'] = true; // 既定は表示
 if (!isset($data['news_count'])) $data['news_count'] = 3; // 既定は3件
 $data['updated'] = date('Y-m-d') . 'T' . date('H:i:s');
 
