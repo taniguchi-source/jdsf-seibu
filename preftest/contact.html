@@ -222,6 +222,17 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  /* ===== ページ上部（ヒーロー）の表示文字 動的反映（data/contact_hero.json／空欄は既定文言のまま） ===== */
+  fetch('data/contact_hero.json?_=' + Date.now())
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if (!d) return;
+      if (d.label){ var l=document.querySelector('.page-hero-label'); if(l) l.textContent=d.label; }
+      if (d.title){ var t=document.querySelector('.page-hero-title'); if(t) t.textContent=d.title; }
+      if (d.desc) { var p=document.querySelector('.page-hero-desc');  if(p) p.textContent=d.desc; }
+    })
+    .catch(function(){});
+
   /* ===== ナビゲーション動的ロード ===== */
   fetch('data/nav.json?_=' + Date.now())
     .then(function(r) { return r.ok ? r.json() : null; })
