@@ -273,6 +273,27 @@
     </div>
   </section>
 
+  <!-- ===== ③ 広告バナー管理 ===== -->
+  <section style="background:var(--bg-light,#f4f6fa);border-top:1px solid var(--border,#e2e8f0);padding:28px 0 44px;">
+    <div class="container">
+      <div style="margin-bottom:16px;">
+        <h2 style="font-size:1.05rem;font-weight:800;color:var(--primary);margin:0 0 4px;">📣 広告バナー管理</h2>
+        <p style="font-size:.8rem;color:var(--text-light);margin:0;">
+          トップページの<strong>フッター直前</strong>に表示される広告バナー（画像＋リンク）です。最大6枚。PCは横並び・スマホは縦積み。推奨：横長 600×150px 前後。<br>
+          <strong>画像が未設定の行・「表示」オフの行は出ません</strong>（全部オフ／0枚ならバナー帯ごと非表示）。
+        </p>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border,#e2e8f0);border-radius:10px;padding:18px 20px;">
+        <div id="banner-list" style="display:grid;gap:10px;"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+          <button type="button" onclick="bannerAdd()" style="padding:8px 18px;background:#fff;color:var(--primary);border:1.5px solid var(--primary);border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;">＋ バナーを追加</button>
+          <button type="button" onclick="bannerSave()" style="padding:8px 22px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;">💾 広告バナーを保存</button>
+        </div>
+        <div id="banner-msg" style="display:none;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:12px;"></div>
+      </div>
+    </div>
+  </section>
+
   <!-- ===== ③ ニュースティッカー管理 ===== -->
   <section style="background:var(--bg-light,#f4f6fa);border-top:1px solid var(--border,#e2e8f0);padding:28px 0 44px;">
     <div class="container">
@@ -455,6 +476,7 @@
     loadCarouselWidth();
     loadSlides();
     loadQuickLinks();
+    loadBanner();
     loadContactConfig();
   }
 
@@ -1284,6 +1306,128 @@
       });
   }
   window.saveQuickLinks = saveQuickLinks;
+
+  /* ===== ③ 広告バナー（フッター直前・最大6枚） ===== */
+  var _banners = [];
+  function loadBanner() {
+    fetch('data/home_banner.json?_=' + Date.now())
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){ _banners = (d && Array.isArray(d.banners)) ? d.banners : []; renderBanners(); })
+      .catch(function(){ _banners = []; renderBanners(); });
+  }
+
+  function renderBanners() {
+    var wrap = document.getElementById('banner-list');
+    if (!wrap) return;
+    if (!_banners.length) {
+      wrap.innerHTML = '<p style="font-size:.8rem;color:var(--text-light);margin:0;">バナーはまだありません。「＋ バナーを追加」で作成してください。</p>';
+      return;
+    }
+    wrap.innerHTML = _banners.map(function(b, i){
+      var enabled = b.enabled !== false;
+      return '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;background:' + (enabled ? '#F8FAFC' : '#F1F5F9') + ';border:1px solid var(--border);border-radius:8px;">'
+        + '<div style="display:flex;flex-direction:column;gap:5px;align-items:center;min-width:150px;">'
+        +   '<div id="bn-thumb-' + i + '" style="display:flex;flex-direction:column;align-items:center;gap:5px;">' + bannerThumbHtml(i, b.image || '') + '</div>'
+        +   '<input type="file" accept="image/*" id="bn-imgfile-' + i + '" onchange="if(this.files[0])uploadBannerImage(' + i + ',this.files[0])" style="font-size:.72rem;max-width:160px;">'
+        + '</div>'
+        + '<div style="flex:1.5;min-width:180px;">'
+        +   '<label style="font-size:.68rem;font-weight:700;color:var(--text-light);display:block;margin-bottom:2px;">リンク先URL（任意）</label>'
+        +   '<input type="text" id="bn-url-' + i + '" value="' + escHtml(b.url || '') + '" placeholder="例：https://...（空ならリンクなし表示）" style="width:100%;padding:6px 9px;border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-family:inherit;box-sizing:border-box;outline:none;">'
+        + '</div>'
+        + '<div style="display:flex;flex-direction:column;gap:5px;">'
+        +   '<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;font-size:.75rem;font-weight:700;color:var(--text-light);"><input type="checkbox" id="bn-enabled-' + i + '" ' + (enabled ? 'checked' : '') + ' style="width:15px;height:15px;cursor:pointer;accent-color:var(--primary);">表示</label>'
+        +   '<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;font-size:.75rem;font-weight:700;color:var(--text-light);"><input type="checkbox" id="bn-newtab-' + i + '" ' + (b.newtab ? 'checked' : '') + ' style="width:15px;height:15px;cursor:pointer;accent-color:var(--primary);">別タブ</label>'
+        + '</div>'
+        + '<button type="button" onclick="bannerDel(' + i + ')" style="padding:5px 11px;background:#fff;color:#B91C1C;border:1.5px solid #FECACA;border-radius:6px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;">×</button>'
+        + '</div>';
+    }).join('');
+  }
+
+  function bannerThumbHtml(i, url) {
+    if (!url) return '<span style="font-size:.72rem;color:var(--text-light);">画像なし</span>';
+    return '<img src="' + escHtml(url) + '?_=' + Date.now() + '" alt="" style="max-height:48px;max-width:150px;border:1px solid var(--border);border-radius:4px;background:#fff;">'
+      + '<button type="button" onclick="clearBannerImage(' + i + ')" style="padding:3px 8px;background:#fff;color:#B91C1C;border:1.5px solid #FECACA;border-radius:5px;font-size:.7rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">✕ 画像を削除</button>';
+  }
+
+  /* 編集中の入力値を _banners に取り込んでから再描画（再描画で入力が消えないように） */
+  function syncBannerInputs() {
+    _banners = _banners.map(function(b, i){
+      var en = document.getElementById('bn-enabled-' + i);
+      var ur = document.getElementById('bn-url-' + i);
+      var nt = document.getElementById('bn-newtab-' + i);
+      return {
+        enabled: en ? en.checked : (b.enabled !== false),
+        url:     ur ? ur.value.trim() : (b.url || ''),
+        newtab:  nt ? nt.checked : !!b.newtab,
+        image:   b.image || '',
+      };
+    });
+  }
+
+  function bannerAdd() {
+    if (_banners.length >= 6) { toast('⚠ バナーは最大6枚までです'); return; }
+    syncBannerInputs();
+    _banners.push({ image:'', url:'', enabled:true, newtab:true });
+    renderBanners();
+  }
+  function bannerDel(i) { syncBannerInputs(); _banners.splice(i, 1); renderBanners(); }
+  function clearBannerImage(i) {
+    syncBannerInputs();
+    _banners[i].image = '';
+    renderBanners();
+  }
+  function uploadBannerImage(i, file) {
+    syncBannerInputs();
+    var thumb = document.getElementById('bn-thumb-' + i);
+    if (thumb) thumb.innerHTML = '<span style="font-size:.72rem;color:var(--primary);">⏳ アップロード中…</span>';
+    var fd = new FormData();
+    fd.append('token', TOKEN);
+    fd.append('file', file);
+    fetch('api/upload_file.php', {method:'POST', body:fd})
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if (res && res.ok && res.url) {
+          _banners[i].image = res.url;
+          renderBanners();
+          toast('✅ 画像をアップロードしました（保存を忘れずに）');
+        } else {
+          renderBanners();
+          toast('⚠ ' + ((res && res.error) || '画像のアップロードに失敗しました'));
+        }
+      })
+      .catch(function(){ renderBanners(); toast('⚠ 通信エラー'); });
+  }
+
+  function bannerSave() {
+    syncBannerInputs();
+    var msgEl = document.getElementById('banner-msg');
+    var fd = new FormData();
+    fd.append('token', TOKEN);
+    fd.append('banners', JSON.stringify(_banners));
+    fetch('api/save_home_banner.php', {method:'POST', body:fd})
+      .then(function(r){
+        if (!r.ok) return r.text().then(function(t){ throw new Error('HTTP ' + r.status + (t ? ': ' + t.substring(0,80) : '')); });
+        return r.json();
+      })
+      .then(function(res){
+        if (res.ok) {
+          if (msgEl){ msgEl.style.cssText='display:block;background:#F0FFF4;color:#166534;border:1px solid #86EFAC;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:12px;'; msgEl.textContent='✅ 保存しました（トップのフッター直前に反映されます）'; }
+          toast('✅ 広告バナーを保存しました');
+          setTimeout(function(){ var e=document.getElementById('banner-msg'); if(e) e.style.display='none'; }, 3000);
+        } else {
+          if (msgEl){ msgEl.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:12px;'; msgEl.textContent='⚠ ' + (res.error||'エラー'); }
+        }
+      })
+      .catch(function(e){
+        if (msgEl){ msgEl.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:12px;'; msgEl.textContent='⚠ ' + (e && e.message ? e.message : '通信エラー'); }
+      });
+  }
+
+  window.bannerAdd         = bannerAdd;
+  window.bannerDel         = bannerDel;
+  window.clearBannerImage  = clearBannerImage;
+  window.uploadBannerImage = uploadBannerImage;
+  window.bannerSave        = bannerSave;
 
 })();
 </script>
