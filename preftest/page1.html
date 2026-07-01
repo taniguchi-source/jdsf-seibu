@@ -787,7 +787,7 @@
       if (md && md.content) md.content = md.content.split(OLD).join(name);
       var logos = document.querySelectorAll('.header-logo-text .name, .footer-logo-name');
       for (var i=0;i<logos.length;i++) logos[i].textContent = name;
-      var txts = document.querySelectorAll('#badge-text, .hero-desc, #slide-desc, .ticker-text, .footer-desc, .footer-bottom span');
+      var txts = document.querySelectorAll('#badge-text, .hero-desc, .page-hero-desc, #slide-desc, .ticker-text, .footer-desc, .footer-bottom span');
       for (var j=0;j<txts.length;j++){ if (txts[j].innerHTML.indexOf(OLD) !== -1) txts[j].innerHTML = txts[j].innerHTML.split(OLD).join(name); }
     })
     .catch(function(){});

@@ -2135,6 +2135,11 @@
       for (var i=0;i<els.length;i++) els[i].textContent = d.name;
       var cps = document.querySelectorAll('.footer-bottom span');
       for (var j=0;j<cps.length;j++){ if (/All rights reserved|©/.test(cps[j].textContent)) cps[j].textContent = cps[j].textContent.replace(/テストダンススポーツ連盟/g, d.name); }
+      /* ヒーロー サブ見出し・ログイン副題・タイトルの「テストダンススポーツ連盟」もサイト名に置換 */
+      var OLD = 'テストダンススポーツ連盟';
+      var subs = document.querySelectorAll('.page-hero-desc, .login-sub');
+      for (var k=0;k<subs.length;k++){ if (subs[k].innerHTML.indexOf(OLD) !== -1) subs[k].innerHTML = subs[k].innerHTML.split(OLD).join(d.name); }
+      if (document.title) document.title = document.title.split(OLD).join(d.name);
     })
     .catch(function(){});
 })();
