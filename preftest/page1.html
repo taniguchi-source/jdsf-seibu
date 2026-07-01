@@ -464,10 +464,24 @@
       /* PDF（PDF.jsで全ページをインライン描画。枠内スクロールバーなしで全体表示） */
       var fUrl = item.file_url || '';
       if (fUrl) {
+        /* PC表示幅（%）。スマホは常に全幅。未設定/範囲外は100 */
+        var pcw = parseInt(item.pdf_pc_width, 10);
+        if (!(pcw >= 20 && pcw <= 100)) pcw = 100;
+        /* PC幅を絞るためのメディアクエリCSS（1回だけ挿入） */
+        if (!document.getElementById('pdf-scale-style')) {
+          var st = document.createElement('style');
+          st.id = 'pdf-scale-style';
+          st.textContent = '@media (min-width:769px){ .pdf-scale-wrap{ max-width: var(--pdf-pc-width, 100%); } }';
+          document.head.appendChild(st);
+        }
+        var scaleWrap = document.createElement('div');
+        scaleWrap.className = 'pdf-scale-wrap';
+        scaleWrap.style.setProperty('--pdf-pc-width', pcw + '%');
         var pdfBox = document.createElement('div');
         pdfBox.style.cssText = 'border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fff;';
         pdfBox.innerHTML = '<p style="text-align:center;color:var(--text-light);font-size:.85rem;padding:24px 0;margin:0;">⏳ PDFを読み込み中...</p>';
-        bodyEl.appendChild(pdfBox);
+        scaleWrap.appendChild(pdfBox);
+        bodyEl.appendChild(scaleWrap);
         var pdfLink = document.createElement('p');
         pdfLink.style.cssText = 'text-align:right;margin:6px 0 0;font-size:.8125rem;';
         pdfLink.innerHTML = '<a href="' + escHtml(fUrl) + '" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;">🔗 PDFを別タブで開く</a>';

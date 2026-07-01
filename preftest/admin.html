@@ -443,6 +443,18 @@
           </div>
           <!-- プレビュー -->
           <div id="cd-file-preview"></div>
+          <!-- PDF専用: PCで表示する幅（%）。スマホは常に全幅 -->
+          <div id="cd-pdf-pcwidth-wrap" style="display:none;">
+            <label class="form-label">PCで表示する幅（%）
+              <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（スマホは常に全幅。小さくすると縮小表示されます）</span>
+            </label>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <input type="range" id="cd-pdf-pcwidth" min="20" max="100" step="5" value="100"
+                oninput="var v=document.getElementById('cd-pdf-pcwidth-val'); if(v) v.textContent=this.value+'%';"
+                style="flex:1;accent-color:var(--primary);cursor:pointer;">
+              <span id="cd-pdf-pcwidth-val" style="min-width:52px;text-align:right;font-weight:800;color:var(--primary);font-size:.95rem;">100%</span>
+            </div>
+          </div>
           <!-- 保存URL（隠しフィールド） -->
           <input type="hidden" id="cd-file-url">
         </div>
@@ -1353,6 +1365,13 @@
         filePrev.innerHTML = '';
       }
     }
+    // PDF: PC表示幅（%）
+    var pcwEl  = document.getElementById('cd-pdf-pcwidth');
+    var pcwVal = document.getElementById('cd-pdf-pcwidth-val');
+    var pcwNum = parseInt(item.pdf_pc_width, 10);
+    if (!(pcwNum >= 20 && pcwNum <= 100)) pcwNum = 100;
+    if (pcwEl)  pcwEl.value = pcwNum;
+    if (pcwVal) pcwVal.textContent = pcwNum + '%';
     // ギャラリーフィールド
     _galleryImages = Array.isArray(item.gallery) ? item.gallery.slice() : [];
     renderGalleryThumbs();
@@ -1425,6 +1444,10 @@
       item.link_url   = linkUrl;
       item.link_label = linkLabel;
       item.gallery    = (_galleryImages || []).slice();
+      var pcwEl2 = document.getElementById('cd-pdf-pcwidth');
+      var pcwv = pcwEl2 ? parseInt(pcwEl2.value, 10) : 100;
+      if (!(pcwv >= 20 && pcwv <= 100)) pcwv = 100;
+      item.pdf_pc_width = pcwv;
     }
     var chipsEl = document.getElementById('content-chips-' + siteId);
     if (chipsEl) chipsEl.innerHTML = renderContentChips(siteId);
@@ -1450,15 +1473,18 @@
     var lbl  = document.getElementById('cd-file-type-label');
     var hint = document.getElementById('cd-file-type-hint');
     var inp  = document.getElementById('cd-file-input');
+    var pcwWrap = document.getElementById('cd-pdf-pcwidth-wrap');
     if (type === 'pdf') {
       if (lbl)  lbl.textContent  = 'PDFファイルを選択';
       if (hint) hint.textContent = '（pdf　最大10MB）';
       if (inp)  inp.accept = '.pdf';
+      if (pcwWrap) pcwWrap.style.display = '';
     } else {
       /* image / file(旧) */
       if (lbl)  lbl.textContent  = '画像ファイルを選択';
       if (hint) hint.textContent = '（jpg / png / gif　最大10MB）';
       if (inp)  inp.accept = '.jpg,.jpeg,.png,.gif';
+      if (pcwWrap) pcwWrap.style.display = 'none';
     }
   }
 

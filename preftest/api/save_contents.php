@@ -49,6 +49,10 @@ foreach ($items as $item) {
         $sheet_html = mb_substr($sheet_html, 0, 200000);
     }
     $sheet_format = ((string)($item['sheet_format'] ?? '') === 'ai') ? 'ai' : '';
+    // PDFのPC表示幅（%）。20〜100の整数。未指定/範囲外は100（＝全幅）
+    $pdf_pc_width = (int)($item['pdf_pc_width'] ?? 100);
+    if ($pdf_pc_width < 20)  $pdf_pc_width = 20;
+    if ($pdf_pc_width > 100) $pdf_pc_width = 100;
     $clean[] = [
         'id'         => preg_replace('/[^a-z0-9_]/i', '', (string)($item['id'] ?? '')),
         'title'      => mb_substr(trim((string)($item['title'] ?? '')), 0, 60),
