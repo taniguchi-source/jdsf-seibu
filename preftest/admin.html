@@ -242,7 +242,7 @@
             🔗 ナビゲーション管理
           </h2>
           <p style="font-size:.8125rem;color:var(--text-light);margin:0;padding-left:16px;">
-            ホームページのナビゲーションメニュー（最大5ページ）の名称・リンク先・表示を管理します。<br>
+            ホームページのナビゲーションメニュー（最大15ページ）の名称・リンク先・表示を管理します。<br>
             ホーム・お問い合わせ・サイト管理は常に固定表示されます。
           </p>
         </div>
@@ -289,6 +289,13 @@
       </div>
 
       <div id="nav-cards" style="display:flex;flex-direction:column;gap:8px;"></div>
+
+      <!-- ＋ ページを追加 -->
+      <div style="margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <button id="add-page-btn" onclick="addPage()"
+          style="padding:8px 18px;background:#fff;color:var(--primary);border:1.5px dashed var(--primary);border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;">＋ ページを追加</button>
+        <span style="font-size:.7rem;color:var(--text-light);">サイト6以降を追加できます（最大15ページ）。追加したページは各カードの「🗑 削除」で削除できます。</span>
+      </div>
 
       <!-- お問い合わせページ（固定）ヒーロー設定 -->
       <div style="background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:12px 18px;box-shadow:var(--shadow);margin-top:8px;">
@@ -932,6 +939,7 @@
         +   '<span id="nav-badge-' + n + '" style="font-size:.7rem;font-weight:700;padding:2px 9px;border-radius:100px;'
         +     (enabled ? 'background:#DCFCE7;color:#166534;' : 'background:#F1F5F9;color:#94A3B8;') + '">'
         +     (enabled ? '● 表示中' : '○ 非表示') + '</span>'
+        +   (n > 5 ? '<button onclick="deletePage(' + n + ')" title="このページを削除" style="margin-left:auto;padding:3px 11px;background:#fff;color:#B91C1C;border:1.5px solid #FECACA;border-radius:6px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">🗑 削除</button>' : '')
         + '</div>'
         /* 2行目：ページ名称 + URL + 保存ボタン（横並び） */
         + '<div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;">'
@@ -1069,32 +1077,73 @@
     '5': _makeDefaults('5')
   };
 
+  /* 読み込むサイトID一覧＝top/1〜5 ＋ 保存済み(contents.json)のID ＋ ナビの追加ページID */
+  function _allSiteKeys(data) {
+    var keys = ['top','1','2','3','4','5'];
+    if (data) Object.keys(data).forEach(function(k){ if (keys.indexOf(k) < 0 && (k === 'top' || /^\d+$/.test(k))) keys.push(k); });
+    (_navLinks || []).forEach(function(l){ var k = String(l.id); if (keys.indexOf(k) < 0) keys.push(k); });
+    return keys;
+  }
   function loadContents() {
     fetch('data/contents.json?_=' + Date.now())
       .then(function(r){ return r.ok ? r.json() : {}; })
       .then(function(data){
-        ['top','1','2','3','4','5'].forEach(function(k){
+        var keys = _allSiteKeys(data);
+        keys.forEach(function(k){
           var serverItems = Array.isArray(data[k]) ? data[k] : null;
           if (serverItems !== null) {
             /* サーバーに保存済みデータがあればそのまま使用（削除・追加を尊重） */
             _contentData[k] = serverItems;
           } else {
-            /* 一度も保存されていないサイトのみ、デフォルト6スロットで初期化 */
-            _contentData[k] = _CONTENT_DEFAULTS[k].slice();
+            /* 一度も保存されていないサイトのみ、既定で初期化（追加ページは空） */
+            _contentData[k] = _CONTENT_DEFAULTS[k] ? _CONTENT_DEFAULTS[k].slice() : [];
           }
         });
         /* nav cards が既にレンダー済みならコンテンツ部分だけ更新 */
-        ['top','1','2','3','4','5'].forEach(function(k){
+        keys.forEach(function(k){
           var el = document.getElementById('content-chips-' + k);
           if (el) el.innerHTML = renderContentChips(k);
         });
       })
       .catch(function(){
         ['top','1','2','3','4','5'].forEach(function(k){
-          _contentData[k] = _CONTENT_DEFAULTS[k].slice();
+          _contentData[k] = _CONTENT_DEFAULTS[k] ? _CONTENT_DEFAULTS[k].slice() : [];
         });
       });
   }
+
+  /* ===== ページ（サイト）の追加・削除 ===== */
+  function _nextPageId() {
+    var maxId = 5;
+    (_navLinks || []).forEach(function(l){ var id = parseInt(l.id, 10) || 0; if (id > maxId) maxId = id; });
+    return maxId + 1;
+  }
+  function addPage() {
+    var nid = _nextPageId();
+    if (nid > 15) { toast('⚠ ページは最大15までです'); return; }
+    _navLinks.push({ id: nid, enabled: true, name: 'サイト' + nid, url: 'page.html?id=' + nid, hero_label: '', hero_title: '', hero_desc: '' });
+    if (!_contentData[String(nid)]) _contentData[String(nid)] = [];
+    renderNavCards();
+    renderAdminHeaderNav();
+    saveNavSlot(nid);   /* サーバーへ新規スロットを保存 */
+    toast('✅ サイト' + nid + ' を追加しました');
+  }
+  function deletePage(n) {
+    n = parseInt(n, 10);
+    if (n <= 5) { toast('⚠ サイト1〜5は削除できません'); return; }
+    if (!confirm('サイト' + n + ' を削除します。よろしいですか？\n（このページの中身も削除されます）')) return;
+    _navLinks = _navLinks.filter(function(l){ return parseInt(l.id, 10) !== n; });
+    delete _contentData[String(n)];
+    renderNavCards();
+    renderAdminHeaderNav();
+    var fd = new FormData(); fd.append('token', TOKEN); fd.append('slot', n); fd.append('action', 'delete');
+    fetch('api/save_nav.php', { method:'POST', body:fd }).then(function(r){ return r.json(); }).catch(function(){});
+    var fd2 = new FormData(); fd2.append('token', TOKEN); fd2.append('site_id', String(n)); fd2.append('items', '[]');
+    fetch('api/save_contents.php', { method:'POST', body:fd2 }).catch(function(){});
+    toast('🗑 サイト' + n + ' を削除しました');
+  }
+  window.addPage = addPage;
+  window.deletePage = deletePage;
 
   /* 1チップ分のHTML（idx指定）。サブは琥珀色＋「↳ サブ」バッジ。 */
   function _chipHtml(siteId, item, idx) {

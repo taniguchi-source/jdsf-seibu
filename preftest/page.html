@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>サイト1｜テストダンススポーツ連盟</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://jdsf-seibu.com/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="theme-vars.php">
+  <style>
+    .content-block {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    .content-block-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin: 0 0 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #BFDBFE;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .content-block-body {
+      font-size: .9375rem;
+      color: var(--text-medium);
+      line-height: 1.8;
+      white-space: pre-wrap;
+    }
+    .sheet-table-wrap {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid #dde4ef;
+      margin-top: 4px;
+    }
+    .sheet-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .875rem;
+    }
+    .sheet-table thead th {
+      background: #3B5EA6;
+      color: #fff;
+      padding: 11px 16px;
+      text-align: left;
+      font-size: .8125rem;
+      font-weight: 700;
+      white-space: nowrap;
+      border-right: 1px solid rgba(255,255,255,.18);
+    }
+    .sheet-table tbody td {
+      padding: 9px 16px;
+      border-top: 1px solid #e8edf5;
+      border-right: 1px solid #edf1f7;
+      color: var(--text-medium);
+    }
+    .sheet-table .sheet-row-even td { background: #fff; }
+    .sheet-table .sheet-row-odd  td { background: #f7f9fc; }
+    .sheet-table .sheet-section-row td {
+      background: #EFF6FF;
+      color: #1e3a8a;
+      font-weight: 800;
+      font-size: .875rem;
+      padding: 9px 16px;
+      border-top: 2px solid #BFDBFE;
+      border-left: 4px solid #3B5EA6;
+    }
+    .loading-text {
+      color: var(--text-light);
+      font-size: .875rem;
+      padding: 8px 0;
+    }
+    .link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 24px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: .9375rem;
+      font-weight: 700;
+      transition: background .2s;
+    }
+    .link-btn:hover { background: var(--primary-dark, #0D2347); }
+    .link-btn-sub { font-size: .8rem; color: var(--text-light); margin: 6px 0 0; }
+    .link-title-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 700;
+      transition: background .2s, transform .15s;
+    }
+    .link-title-btn:hover { background: var(--primary-dark, #0D2347); transform: translateY(-1px); }
+    .link-sub-title-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: #3B5EA6;
+      color: #fff;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: .875rem;
+      font-weight: 700;
+      transition: background .2s;
+      margin-bottom: 6px;
+    }
+    .link-sub-title-btn:hover { background: #1e3a8a; }
+    .sub-content-list {
+      margin-top: 20px;
+      margin-left: 24px;
+      padding-top: 16px;
+      border-top: 1px dashed #BFDBFE;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .sub-content-item {
+      background: #F0F7FF;
+      border: 1px solid #BFDBFE;
+      border-left: 4px solid #3B5EA6;
+      border-radius: 8px;
+      padding: 16px 20px;
+    }
+    .sub-content-title {
+      font-size: .9375rem;
+      font-weight: 700;
+      color: #1e3a8a;
+      margin: 0 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #DBEAFE;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    /* ===== ギャラリー（Lightroom風）＋ Lightbox ===== */
+    .gallery-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px; }
+    .gallery-item { position:relative; aspect-ratio:1/1; overflow:hidden; border-radius:8px; cursor:pointer; background:#0e1726; }
+    .gallery-item img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .35s ease, opacity .2s; }
+    .gallery-item:hover img { transform:scale(1.07); opacity:.9; }
+    .glb-overlay { position:fixed; inset:0; background:rgba(10,12,18,.93); z-index:99999; display:none; align-items:center; justify-content:center; }
+    .glb-overlay.open { display:flex; }
+    .glb-img { max-width:92vw; max-height:84vh; object-fit:contain; border-radius:4px; box-shadow:0 12px 48px rgba(0,0,0,.55); }
+    .glb-overlay button { background:rgba(255,255,255,.13); color:#fff; border:none; cursor:pointer; }
+    .glb-overlay button:hover { background:rgba(255,255,255,.3); }
+    .glb-close { position:absolute; top:16px; right:20px; width:44px; height:44px; border-radius:50%; font-size:1.4rem; }
+    .glb-prev,.glb-next { position:absolute; top:50%; transform:translateY(-50%); width:50px; height:50px; border-radius:50%; font-size:2rem; line-height:1; }
+    .glb-prev{ left:16px; } .glb-next{ right:16px; }
+    .glb-download { position:absolute; bottom:22px; left:50%; transform:translateX(-50%); background:var(--primary,#0D2347); color:#fff; padding:10px 24px; border-radius:8px; text-decoration:none; font-size:.875rem; font-weight:700; box-shadow:0 4px 14px rgba(0,0,0,.4); }
+    .glb-counter { position:absolute; top:22px; left:50%; transform:translateX(-50%); color:rgba(255,255,255,.85); font-size:.85rem; letter-spacing:.05em; }
+    @media (max-width: 600px) {
+      .content-block { padding: 20px 18px; }
+      .link-btn { padding: 12px 18px; font-size: .875rem; }
+      .sub-content-item { padding: 14px 16px; }
+      .gallery-grid { grid-template-columns:repeat(auto-fill,minmax(95px,1fr)); }
+      .glb-prev,.glb-next { width:42px; height:42px; font-size:1.5rem; }
+      .glb-download { padding:9px 18px; font-size:.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="header-logo">
+      <img src="https://jdsf-seibu.com/images/jdsf-mark.png" alt="JDSFマーク" class="header-logo-img">
+      <div class="header-logo-text">
+        <div class="org">公益社団法人日本ダンススポーツ連盟</div>
+        <div class="name">テストダンススポーツ連盟</div>
+      </div>
+    </a>
+    <button class="hamburger" aria-label="メニュー" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-nav" aria-label="メインナビゲーション">
+      <a href="index.html" class="nav-link">ホーム</a>
+      <span id="dynamic-nav" style="display:contents;">
+        <a href="page1.html" class="nav-link active">サイト1</a>
+        <a href="page2.html" class="nav-link">サイト2</a>
+        <a href="page3.html" class="nav-link">サイト3</a>
+      </span>
+      <a href="contact.html" class="nav-link nav-cta">お問い合わせ</a>
+      <a href="admin.html"   class="nav-link">サイト管理</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page-hero">
+  <div class="container">
+    <div class="page-hero-label" id="page-label"></div>
+    <h1 class="page-hero-title" id="page-title"></h1>
+    <p class="page-hero-desc" id="page-desc"></p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div id="contents-wrap">
+      <p class="loading-text">⏳ 読み込み中...</p>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-top">
+    <div>
+      <div class="footer-logo">
+        <img src="https://jdsf-seibu.com/images/jdsf-sakura-mark.png" alt="JDSF" class="footer-logo-mark-img" style="height:50px;width:auto;">
+        <div class="footer-logo-name">テストダンススポーツ連盟</div>
+      </div>
+      <p class="footer-desc">
+        テストダンススポーツ連盟は、<br>
+        地域のダンススポーツ活動を<br>
+        支援・普及する連盟です。
+      </p>
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="footer-jdsf">🔗 JDSF本部サイト</a>
+    </div>
+    <div class="footer-col">
+      <h4>サイトマップ</h4>
+      <ul class="footer-links">
+        <li><a href="index.html">ホーム</a></li>
+        <li><a href="news.html">お知らせ一覧</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>関連リンク</h4>
+      <ul class="footer-links">
+        <li><a href="https://jdsf-seibu.com/" target="_blank" rel="noopener">JDSF西部ブロック委員会</a></li>
+        <li><a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener">JDSF本部</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© 2026 テストダンススポーツ連盟. All rights reserved.</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var SITE_ID = (function () {
+    var m = (location.search.match(/[?&]id=(\d{1,2})/) || [])[1];
+    var n = parseInt(m, 10);
+    return (n >= 1 && n <= 15) ? String(n) : '1';
+  })();
+  var TOKEN   = 'preftest2026';
+
+  /* ===== ユーティリティ ===== */
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  /* スプレッドシートを「指定範囲・書式そのまま」で埋め込むGoogle公式htmlembed URLを組み立てる */
+  function sheetEmbedUrl(url, range){
+    var m = String(url||'').match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/); if(!m) return '';
+    var id = m[1];
+    var g = String(url||'').match(/[?#&]gid=(\d+)/);
+    var u = 'https://docs.google.com/spreadsheets/d/' + id + '/htmlembed?single=true&widget=false&chrome=false';
+    if (g)     u += '&gid=' + g[1];
+    if (range) u += '&range=' + encodeURIComponent(range);
+    return u;
+  }
+  /* 指定範囲の行数からiframeの高さ(px)を見積もる（末尾の余白を作らない）。範囲なし時は既定値 */
+  function sheetEmbedHeight(range){
+    var m = String(range||'').match(/^[A-Za-z]+(\d+):[A-Za-z]+(\d+)$/);
+    if(!m) return 600;
+    var rows = Math.abs(parseInt(m[2],10) - parseInt(m[1],10)) + 1;
+    return Math.max(140, Math.min(rows * 21 + 8, 1200));
+  }
+
+  function parseCSV(text) {
+    var rows = [];
+    var lines = text.split(/\r?\n/);
+    for (var li = 0; li < lines.length; li++) {
+      var line = lines[li];
+      if (!line.trim()) continue;
+      var row = [], inQ = false, cell = '';
+      for (var ci = 0; ci < line.length; ci++) {
+        var c = line[ci];
+        if (c === '"') {
+          if (inQ && line[ci+1] === '"') { cell += '"'; ci++; }
+          else { inQ = !inQ; }
+        } else if (c === ',' && !inQ) {
+          row.push(cell); cell = '';
+        } else { cell += c; }
+      }
+      row.push(cell);
+      rows.push(row);
+    }
+    return rows;
+  }
+
+  function csvToTable(csv) {
+    var rows = parseCSV(csv);
+    if (!rows || rows.length === 0) return '<p style="color:var(--text-light);">データがありません</p>';
+    /* タイトル行検出（有効セルが1つ以下ならスキップ） */
+    var startRow = 0;
+    if (rows.length > 1) {
+      var ne = rows[0].filter(function(c){ return c.trim() !== ''; });
+      if (ne.length <= 1) startRow = 1;
+    }
+    if (startRow >= rows.length) return '<p style="color:var(--text-light);">データがありません</p>';
+    var headerRow = rows[startRow];
+    var dataRows  = rows.slice(startRow + 1);
+    /* セクション列検出（ヘッダー先頭が空ならセクション列あり） */
+    var hasSection = headerRow.length > 0 && headerRow[0].trim() === '';
+    var colStart   = hasSection ? 1 : 0;
+    /* ヘッダー */
+    var html = '<div class="sheet-table-wrap"><table class="sheet-table"><thead><tr>';
+    for (var hi = colStart; hi < headerRow.length; hi++) {
+      html += '<th>' + escHtml(headerRow[hi]) + '</th>';
+    }
+    html += '</tr></thead><tbody>';
+    /* データ行 */
+    var curSection = '', rowCount = 0;
+    dataRows.forEach(function(row) {
+      if (row.every(function(c){ return !c.trim(); })) return;
+      var secVal = hasSection ? (row[0] || '').trim() : '';
+      if (hasSection && secVal && secVal !== curSection) {
+        curSection = secVal;
+        html += '<tr class="sheet-section-row"><td colspan="' + (headerRow.length - colStart) + '">'
+          + escHtml(secVal) + '</td></tr>';
+      }
+      html += '<tr class="' + (rowCount % 2 === 0 ? 'sheet-row-even' : 'sheet-row-odd') + '">';
+      for (var di = colStart; di < headerRow.length; di++) {
+        html += '<td>' + escHtml(row[di] || '') + '</td>';
+      }
+      html += '</tr>';
+      rowCount++;
+    });
+    return html + '</tbody></table></div>';
+  }
+
+  /* ===== スプレッドシート取得 ===== */
+  function fetchSheet(sheetUrl, sheetName, targetEl, sheetRange) {
+    function mkfd() { var fd = new FormData(); fd.append('token', TOKEN); fd.append('sheet_url', sheetUrl); fd.append('sheet_name', sheetName || ''); fd.append('sheet_range', sheetRange || ''); return fd; }
+    /* まず書式付き(xlsx解析)で取得。失敗時はCSV表示にフォールバック */
+    fetch('api/fetch_sheet_styled.php', { method:'POST', body:mkfd() })
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if (res && res.ok && res.html) { targetEl.innerHTML = '<div class="sheet-table-wrap">' + res.html + '</div>'; return; }
+        return loadCSV();
+      })
+      .catch(function(){ return loadCSV(); });
+    function loadCSV() {
+      return fetch('api/fetch_sheet.php', { method:'POST', body:mkfd() })
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (res.ok && res.csv) {
+            targetEl.innerHTML = csvToTable(res.csv);
+          } else {
+            var dbgHtml = res.debug
+              ? '<br><small style="font-size:.72rem;color:#6B7280;word-break:break-all;">🔧 ' + escHtml(res.debug) + '</small>'
+              : '';
+            targetEl.innerHTML = '<p style="color:#B91C1C;">⚠ ' + escHtml(res.error || 'データの取得に失敗しました') + '</p>' + dbgHtml;
+          }
+        })
+        .catch(function() {
+          targetEl.innerHTML = '<p style="color:#B91C1C;">⚠ 通信エラーが発生しました</p>';
+        });
+    }
+  }
+
+  /* ===== PDFをインライン描画（PDF.js）：枠内スクロールバーを使わず全ページを表示 ===== */
+  var _pdfjsPromise = null;
+  function ensurePdfJs() {
+    if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    if (_pdfjsPromise) return _pdfjsPromise;
+    _pdfjsPromise = new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s.onload = function () {
+        try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; } catch (e) {}
+        resolve(window.pdfjsLib);
+      };
+      s.onerror = function () { reject(new Error('pdfjs load failed')); };
+      document.head.appendChild(s);
+    });
+    return _pdfjsPromise;
+  }
+  function renderPdfInline(container, url) {
+    ensurePdfJs()
+      .then(function (pdfjsLib) { return pdfjsLib.getDocument(url).promise; })
+      .then(function (pdf) {
+        container.innerHTML = '';
+        var width = container.clientWidth || 800;
+        var dpr   = window.devicePixelRatio || 1;
+        var chain = Promise.resolve();
+        for (var p = 1; p <= pdf.numPages; p++) {
+          (function (pageNum) {
+            chain = chain.then(function () {
+              return pdf.getPage(pageNum).then(function (page) {
+                var base  = page.getViewport({ scale: 1 });
+                var vp    = page.getViewport({ scale: (width / base.width) * dpr });
+                var canvas = document.createElement('canvas');
+                canvas.width  = Math.floor(vp.width);
+                canvas.height = Math.floor(vp.height);
+                canvas.style.cssText = 'width:100%;height:auto;display:block;' + (pageNum > 1 ? 'margin-top:8px;' : '');
+                container.appendChild(canvas);
+                return page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+              });
+            });
+          })(p);
+        }
+        return chain;
+      })
+      .catch(function () {
+        /* フォールバック: 従来のブラウザ内蔵ビューア */
+        container.innerHTML = '<iframe src="' + url + '#toolbar=0&navpanes=0&view=FitH" style="width:100%;height:80vh;border:0;display:block;background:#fff;"></iframe>';
+      });
+  }
+
+  /* ===== コンテンツ描画（ボディ生成ヘルパー） ===== */
+  function buildBodyEl(item) {
+    var bodyEl = document.createElement('div');
+    if (item.type === 'sheet') {
+      bodyEl.className = 'loading-text';
+      bodyEl.textContent = '⏳ スプレッドシートを読み込み中...';
+    } else if (item.type === 'image' || (item.type === 'file' && (item.file_url || '').match(/\.(jpe?g|png|gif)$/i))) {
+      /* 画像 */
+      var fUrl = item.file_url || '';
+      if (fUrl) {
+        var img = document.createElement('img');
+        img.src   = fUrl;
+        img.alt   = item.title || '';
+        img.style.cssText = 'max-width:100%;height:auto;border-radius:8px;display:block;';
+        bodyEl.appendChild(img);
+      } else {
+        bodyEl.className = 'content-block-body';
+        bodyEl.textContent = '（画像は未設定です）';
+      }
+    } else if (item.type === 'gallery') {
+      var gimgs = Array.isArray(item.gallery) ? item.gallery.filter(Boolean) : [];
+      if (gimgs.length) {
+        bodyEl.className = 'gallery-grid';
+        gimgs.forEach(function(gurl, gi){
+          var cell = document.createElement('div');
+          cell.className = 'gallery-item';
+          var gim = document.createElement('img');
+          gim.src = gurl; gim.alt = (item.title || '') + ' ' + (gi + 1); gim.loading = 'lazy';
+          cell.appendChild(gim);
+          cell.addEventListener('click', function(){ openGalleryLightbox(gimgs, gi); });
+          bodyEl.appendChild(cell);
+        });
+      } else {
+        bodyEl.className = 'content-block-body';
+        bodyEl.textContent = '（ギャラリー画像が未設定です）';
+      }
+    } else if (item.type === 'pdf' || (item.type === 'file' && (item.file_url || '').match(/\.pdf$/i))) {
+      /* PDF（PDF.jsで全ページをインライン描画。枠内スクロールバーなしで全体表示） */
+      var fUrl = item.file_url || '';
+      if (fUrl) {
+        /* PC表示幅（%）。スマホは常に全幅。未設定/範囲外は100 */
+        var pcw = parseInt(item.pdf_pc_width, 10);
+        if (!(pcw >= 20 && pcw <= 100)) pcw = 100;
+        /* PC幅を絞るためのメディアクエリCSS（1回だけ挿入） */
+        if (!document.getElementById('pdf-scale-style')) {
+          var st = document.createElement('style');
+          st.id = 'pdf-scale-style';
+          st.textContent = '@media (min-width:769px){ .pdf-scale-wrap{ max-width: var(--pdf-pc-width, 100%); margin-left:auto; margin-right:auto; } }';
+          document.head.appendChild(st);
+        }
+        var scaleWrap = document.createElement('div');
+        scaleWrap.className = 'pdf-scale-wrap';
+        scaleWrap.style.setProperty('--pdf-pc-width', pcw + '%');
+        var pdfBox = document.createElement('div');
+        pdfBox.style.cssText = 'border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fff;';
+        pdfBox.innerHTML = '<p style="text-align:center;color:var(--text-light);font-size:.85rem;padding:24px 0;margin:0;">⏳ PDFを読み込み中...</p>';
+        scaleWrap.appendChild(pdfBox);
+        bodyEl.appendChild(scaleWrap);
+        var pdfLink = document.createElement('p');
+        pdfLink.style.cssText = 'text-align:right;margin:6px 0 0;font-size:.8125rem;';
+        pdfLink.innerHTML = '<a href="' + escHtml(fUrl) + '" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;">🔗 PDFを別タブで開く</a>';
+        bodyEl.appendChild(pdfLink);
+        /* DOM 追加後（幅が確定してから）描画 */
+        setTimeout(function () { renderPdfInline(pdfBox, fUrl); }, 0);
+      } else {
+        bodyEl.className = 'content-block-body';
+        bodyEl.textContent = '（PDFは未設定です）';
+      }
+    } else if (item.type === 'file') {
+      /* 旧 file タイプ・拡張子不明 → URLがあれば汎用リンク表示 */
+      var fUrl = item.file_url || '';
+      bodyEl.className = 'content-block-body';
+      bodyEl.textContent = fUrl ? fUrl : '（ファイルは未設定です）';
+    } else if (item.type === 'link') {
+      var lUrl   = item.link_url   || '';
+      if (/^\s*(javascript|data|vbscript):/i.test(lUrl)) lUrl = '';
+      var lLabel = item.link_label || item.title || '';
+      if (lUrl) {
+        bodyEl.innerHTML =
+          '<a href="' + escHtml(lUrl) + '" target="_blank" rel="noopener" class="link-btn">'
+          + '🔗 ' + escHtml(lLabel || lUrl) + '　→'
+          + '</a>'
+          + '<p class="link-btn-sub">新しいタブで開きます</p>';
+      } else {
+        bodyEl.className = 'content-block-body';
+        bodyEl.textContent = '（リンクURLは未設定です）';
+      }
+    } else {
+      bodyEl.className = 'content-block-body';
+      bodyEl.textContent = item.body || '（内容はまだ設定されていません）';
+    }
+    return bodyEl;
+  }
+
+  function _printEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function printHtmlTable(html, title){
+    var w = window.open('', '_blank');
+    if (!w) { alert('印刷用ウィンドウを開けませんでした。ポップアップを許可してください。'); return; }
+    w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>' + _printEsc(title||'印刷') + '</title>'
+      + '<style>body{font-family:"Hiragino Kaku Gothic ProN","Meiryo",sans-serif;margin:24px;color:#1f2937;}table{border-collapse:collapse;}@page{margin:12mm;}</style></head><body>'
+      + (title ? '<h2 style="font-size:1.15rem;margin:0 0 16px;">' + _printEsc(title) + '</h2>' : '')
+      + html
+      + '<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},250);};</scr'+'ipt>'
+      + '</body></html>');
+    w.document.close();
+  }
+  function makePrintBtn(targetEl, title){
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'text-align:right;margin-top:12px;';
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = '🖨 印刷／PDF保存';
+    b.style.cssText = 'padding:8px 18px;background:#fff;border:1.5px solid #5b7cb8;color:#3b5ea6;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;';
+    b.onclick = function(){ printHtmlTable(targetEl.innerHTML, title); };
+    wrap.appendChild(b);
+    return wrap;
+  }
+  function appendWithFetch(item, bodyEl, container) {
+    container.appendChild(bodyEl);
+    if (item.type === 'sheet') {
+      bodyEl.className = ''; bodyEl.textContent = '';
+      var src = sheetEmbedUrl(item.sheet_url, item.sheet_range);
+      if (src) {
+        var box = document.createElement('div');
+        box.style.cssText = 'border:1px solid var(--border,#c9d4e3);border-radius:8px;overflow:hidden;background:#fff;';
+        var fr = document.createElement('iframe');
+        fr.src = src; fr.loading = 'lazy';
+        fr.style.cssText = 'width:100%;height:' + sheetEmbedHeight(item.sheet_range) + 'px;border:0;display:block;';
+        box.appendChild(fr);
+        bodyEl.appendChild(box);
+        var a = document.createElement('a');
+        a.href = item.sheet_url; a.target = '_blank'; a.rel = 'noopener';
+        a.textContent = '🔗 別タブで開く（印刷・PDF保存・編集はこちら）';
+        a.style.cssText = 'display:inline-block;margin-top:8px;color:var(--primary);font-weight:700;font-size:.85rem;text-decoration:none;';
+        bodyEl.appendChild(a);
+      } else {
+        bodyEl.className = 'content-block-body';
+        bodyEl.textContent = '（スプレッドシートのURLが未設定です）';
+      }
+    }
+  }
+
+  /* ===== コンテンツ描画 ===== */
+  function renderContents(items) {
+    var wrap = document.getElementById('contents-wrap');
+    if (!wrap) return;
+    if (!items || items.length === 0) {
+      wrap.innerHTML = '<div style="text-align:center;padding:60px 20px;"><p style="color:var(--text-light);">現在、コンテンツはありません。</p></div>';
+      return;
+    }
+    wrap.innerHTML = '';
+
+    /* サブコンテンツをグループ化: is_sub=true は直前の通常コンテンツに束ねる */
+    var groups = [];
+    var cur = null;
+    items.forEach(function(item) {
+      if (!item.is_sub) {
+        cur = { main: item, subs: [] };
+        groups.push(cur);
+      } else {
+        if (cur) { cur.subs.push(item); }
+        else     { cur = { main: item, subs: [] }; groups.push(cur); }
+      }
+    });
+
+    groups.forEach(function(group) {
+      var block = document.createElement('div');
+      block.className = 'content-block';
+
+      /* メインタイトル・ボディ */
+      var m = group.main;
+      if (m.type === 'link' && m.link_url) {
+        /* リンクタイプ: タイトルをボタンとして表示 */
+        var lBtn = document.createElement('a');
+        lBtn.href      = /^\s*(javascript|data|vbscript):/i.test(m.link_url) ? '#' : m.link_url;
+        lBtn.target    = '_blank';
+        lBtn.rel       = 'noopener';
+        lBtn.className = 'link-title-btn';
+        lBtn.textContent = '🔗 ' + (m.title || 'リンク') + '　→';
+        block.appendChild(lBtn);
+        if (m.link_label) {
+          var lDesc = document.createElement('p');
+          lDesc.className   = 'link-btn-sub';
+          lDesc.textContent = m.link_label;
+          block.appendChild(lDesc);
+        }
+        var lNote = document.createElement('p');
+        lNote.className   = 'link-btn-sub';
+        lNote.textContent = '新しいタブで開きます';
+        block.appendChild(lNote);
+      } else {
+        var titleIcon = m.type === 'sheet' ? '📊 ' : ((m.type === 'file' || m.type === 'image') ? '🖼️ ' : (m.type === 'gallery' ? '🏞 ' : (m.type === 'pdf' ? '📄 ' : (m.type === 'link' ? '🔗 ' : '📝 '))));
+        if (m.title && m.show_title !== false) {
+          var titleEl = document.createElement('h2');
+          titleEl.className = 'content-block-title';
+          titleEl.textContent = titleIcon + m.title;
+          block.appendChild(titleEl);
+        }
+        appendWithFetch(m, buildBodyEl(m), block);
+      }
+
+      /* サブコンテンツ */
+      if (group.subs.length > 0) {
+        var subList = document.createElement('div');
+        subList.className = 'sub-content-list';
+        group.subs.forEach(function(sub) {
+          var subItem = document.createElement('div');
+          subItem.className = 'sub-content-item';
+          if (sub.type === 'link' && sub.link_url) {
+            /* サブリンクタイプ: タイトルをボタンとして表示 */
+            var slBtn = document.createElement('a');
+            slBtn.href      = /^\s*(javascript|data|vbscript):/i.test(sub.link_url) ? '#' : sub.link_url;
+            slBtn.target    = '_blank';
+            slBtn.rel       = 'noopener';
+            slBtn.className = 'link-sub-title-btn';
+            slBtn.textContent = '🔗 ' + (sub.title || 'リンク') + '　→';
+            subItem.appendChild(slBtn);
+            if (sub.link_label) {
+              var slDesc = document.createElement('p');
+              slDesc.className   = 'link-btn-sub';
+              slDesc.style.marginTop = '6px';
+              slDesc.textContent = sub.link_label;
+              subItem.appendChild(slDesc);
+            }
+            var slNote = document.createElement('p');
+            slNote.className   = 'link-btn-sub';
+            slNote.textContent = '新しいタブで開きます';
+            subItem.appendChild(slNote);
+          } else {
+            var subIcon = sub.type === 'sheet' ? '📊 ' : ((sub.type === 'file' || sub.type === 'image') ? '🖼️ ' : (sub.type === 'gallery' ? '🏞 ' : (sub.type === 'pdf' ? '📄 ' : (sub.type === 'link' ? '🔗 ' : '📝 '))));
+            if (sub.title && sub.show_title !== false) {
+              var subTitle = document.createElement('h3');
+              subTitle.className = 'sub-content-title';
+              subTitle.textContent = subIcon + sub.title;
+              subItem.appendChild(subTitle);
+            }
+            appendWithFetch(sub, buildBodyEl(sub), subItem);
+          }
+          subList.appendChild(subItem);
+        });
+        block.appendChild(subList);
+      }
+
+      wrap.appendChild(block);
+    });
+  }
+
+  /* ===== ギャラリー Lightbox（クリックで拡大・前後送り・ダウンロード） ===== */
+  var _glbImgs = [], _glbIdx = 0, _glbEl = null;
+  function buildGlb() {
+    if (_glbEl) return;
+    var o = document.createElement('div');
+    o.className = 'glb-overlay';
+    o.innerHTML =
+      '<div class="glb-counter"></div>'
+      + '<button class="glb-close" aria-label="閉じる">&times;</button>'
+      + '<button class="glb-prev" aria-label="前へ">&#8249;</button>'
+      + '<img class="glb-img" alt="">'
+      + '<button class="glb-next" aria-label="次へ">&#8250;</button>'
+      + '<a class="glb-download" download>⬇ ダウンロード</a>';
+    o.addEventListener('click', function(e){ if (e.target === o) closeGlb(); });
+    o.querySelector('.glb-close').addEventListener('click', closeGlb);
+    o.querySelector('.glb-prev').addEventListener('click', function(e){ e.stopPropagation(); glbGo(-1); });
+    o.querySelector('.glb-next').addEventListener('click', function(e){ e.stopPropagation(); glbGo(1); });
+    document.body.appendChild(o);
+    _glbEl = o;
+  }
+  function glbShow() {
+    if (!_glbEl) return;
+    var url = _glbImgs[_glbIdx];
+    _glbEl.querySelector('.glb-img').src = url;
+    _glbEl.querySelector('.glb-download').href = url;
+    _glbEl.querySelector('.glb-counter').textContent = (_glbIdx + 1) + ' / ' + _glbImgs.length;
+    var multi = _glbImgs.length > 1;
+    _glbEl.querySelector('.glb-prev').style.display = multi ? '' : 'none';
+    _glbEl.querySelector('.glb-next').style.display = multi ? '' : 'none';
+  }
+  function glbGo(d) { _glbIdx = (_glbIdx + d + _glbImgs.length) % _glbImgs.length; glbShow(); }
+  function openGalleryLightbox(imgs, idx) { _glbImgs = imgs; _glbIdx = idx || 0; buildGlb(); _glbEl.classList.add('open'); document.body.style.overflow = 'hidden'; glbShow(); }
+  function closeGlb() { if (_glbEl) { _glbEl.classList.remove('open'); document.body.style.overflow = ''; } }
+  document.addEventListener('keydown', function(e){
+    if (!_glbEl || !_glbEl.classList.contains('open')) return;
+    if (e.key === 'Escape') closeGlb();
+    else if (e.key === 'ArrowLeft') glbGo(-1);
+    else if (e.key === 'ArrowRight') glbGo(1);
+  });
+
+  /* ===== コンテンツ読み込み ===== */
+  fetch('data/contents.json?_=' + Date.now())
+    .then(function(r) { return r.ok ? r.json() : {}; })
+    .then(function(data) {
+      var items = (data[SITE_ID] || []).filter(function(item) {
+        return item.enabled !== false;
+      });
+      renderContents(items);
+    })
+    .catch(function() {
+      var wrap = document.getElementById('contents-wrap');
+      if (wrap) wrap.innerHTML = '<p style="color:#B91C1C;">⚠ コンテンツの読み込みに失敗しました。</p>';
+    });
+
+  /* ===== ナビゲーション動的ロード ===== */
+  fetch('data/nav.json?_=' + Date.now())
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (!data || !Array.isArray(data.links)) return;
+      // ページタイトル更新
+      var me = data.links.filter(function(l) { return String(l.id) === SITE_ID; })[0];
+      if (me) {
+        var hTitle = (me.hero_title && me.hero_title.trim()) ? me.hero_title : (me.name || ('サイト' + SITE_ID));
+        var hLabel = (me.hero_label && me.hero_label.trim()) ? me.hero_label : ('Site ' + SITE_ID);
+        var titleEl = document.getElementById('page-title');
+        if (titleEl) titleEl.textContent = hTitle;
+        var labelEl = document.querySelector('.page-hero-label');
+        if (labelEl) labelEl.textContent = hLabel;
+        if (me.hero_desc && me.hero_desc.trim()) {
+          var descEl = document.getElementById('page-desc');
+          if (descEl) descEl.textContent = me.hero_desc;
+        }
+        document.title = hTitle + '｜テストダンススポーツ連盟';
+      }
+      // ナビ生成
+      var container = document.getElementById('dynamic-nav');
+      if (!container) return;
+      var html = '';
+      data.links.forEach(function(link) {
+        if (!link.enabled) return;
+        var url  = String(link.url  || '#').replace(/"/g, '%22');
+        if (/^\s*(javascript|data|vbscript):/i.test(link.url || '')) url = '#';
+        var name = escHtml(link.name || '');
+        var cls  = String(link.id) === SITE_ID ? ' active' : '';
+        html += '<a href="' + url + '" class="nav-link' + cls + '">' + name + '</a>';
+      });
+      container.innerHTML = html;
+    })
+    .catch(function() {});
+
+  /* ===== ハンバーガーメニュー ===== */
+  var hamburger = document.querySelector('.hamburger');
+  var nav       = document.querySelector('.site-nav');
+  if (hamburger && nav) {
+    hamburger.addEventListener('click', function() {
+      var open = nav.classList.toggle('is-open');
+      hamburger.classList.toggle('is-open', open);
+      hamburger.setAttribute('aria-expanded', open);
+    });
+  }
+}());
+</script>
+
+<script>
+/* ===== サイト名 動的反映（data/sitename.json） ===== */
+(function(){
+  fetch('data/sitename.json?_=' + Date.now())
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if (!d || !d.name) return;
+      var name = d.name, OLD = 'テストダンススポーツ連盟';
+      window._fedName = name;
+      if (document.title) document.title = document.title.split(OLD).join(name);
+      var md = document.querySelector('meta[name="description"]');
+      if (md && md.content) md.content = md.content.split(OLD).join(name);
+      var logos = document.querySelectorAll('.header-logo-text .name, .footer-logo-name');
+      for (var i=0;i<logos.length;i++) logos[i].textContent = name;
+      var txts = document.querySelectorAll('#badge-text, .hero-desc, #slide-desc, .ticker-text, .footer-desc, .footer-bottom span');
+      for (var j=0;j<txts.length;j++){ if (txts[j].innerHTML.indexOf(OLD) !== -1) txts[j].innerHTML = txts[j].innerHTML.split(OLD).join(name); }
+    })
+    .catch(function(){});
+})();
+/* ===== フッター サイトマップ 動的反映（data/nav.json） ===== */
+(function(){
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  var h4s = document.querySelectorAll('.site-footer h4'), ul = null;
+  for (var i=0;i<h4s.length;i++){ if (h4s[i].textContent.indexOf('サイトマップ') >= 0) { ul = h4s[i].parentNode.querySelector('ul'); break; } }
+  if (!ul) return;
+  fetch('data/nav.json?_=' + Date.now())
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      var html = '<li><a href="index.html">ホーム</a></li><li><a href="news.html">お知らせ一覧</a></li>';
+      if (d && Array.isArray(d.links)) {
+        d.links.forEach(function(l){ if (!l.enabled) return; var _u = String(l.url||'#').replace(/"/g,'%22'); if (/^\s*(javascript|data|vbscript):/i.test(l.url||'')) _u = '#'; html += '<li><a href="' + _u + '">' + esc(l.name||'') + '</a></li>'; });
+      }
+      html += '<li><a href="contact.html">お問い合わせ</a></li>';
+      ul.innerHTML = html;
+    })
+    .catch(function(){});
+})();
+</script>
+
+</body>
+</html>
