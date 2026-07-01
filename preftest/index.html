@@ -661,16 +661,19 @@
       el.innerHTML = pinned.concat(regular).slice(0, _count).map(function (n) {
         var catCls = CAT_CLASS[n.category] || 'tag-info';
         var detail = (n.detail || '').length > 60 ? n.detail.substring(0, 60) + '…' : (n.detail || '');
+        var detailHtml = escHtml(detail).replace(/\n/g, '<br>');   /* 改行を反映 */
+        /* 開催日（実施日）があれば表示。投稿日は表示しない */
+        var dateHtml = n.event_date ? '📅 開催 ' + escHtml(n.event_date) + ' ' : '';
         /* 関連URLが設定されていればそのリンク先（別タブ）へ、なければお知らせ一覧へ */
         var nu = String(n.url || '').trim();
         var hasUrl = /^https?:\/\//i.test(nu);
         var href   = hasUrl ? nu.replace(/"/g, '%22') : 'news.html';
         var tgt    = hasUrl ? ' target="_blank" rel="noopener"' : '';
         return '<a href="' + href + '"' + tgt + ' class="placeholder-card" style="text-decoration:none;color:inherit;">'
-          + '<div class="placeholder-card-date" style="display:flex;align-items:center;gap:6px;">📅 ' + escHtml(n.date)
-          + ' <span class="tag ' + catCls + '" style="font-size:0.7rem;">' + escHtml(n.category || '') + '</span></div>'
+          + '<div class="placeholder-card-date" style="display:flex;align-items:center;gap:6px;">' + dateHtml
+          + '<span class="tag ' + catCls + '" style="font-size:0.7rem;">' + escHtml(n.category || '') + '</span></div>'
           + '<div class="placeholder-card-title">' + escHtml(n.title) + '</div>'
-          + (detail ? '<div class="placeholder-card-body">' + escHtml(detail) + '</div>' : '')
+          + (detail ? '<div class="placeholder-card-body">' + detailHtml + '</div>' : '')
           + (hasUrl ? '<div class="placeholder-card-body" style="color:var(--primary);font-weight:700;font-size:0.8rem;margin-top:6px;">🔗 詳しくはこちら →</div>' : '')
           + '</a>';
       }).join('');
