@@ -471,7 +471,7 @@
         if (!document.getElementById('pdf-scale-style')) {
           var st = document.createElement('style');
           st.id = 'pdf-scale-style';
-          st.textContent = '@media (min-width:769px){ .pdf-scale-wrap{ max-width: var(--pdf-pc-width, 100%); } }';
+          st.textContent = '@media (min-width:769px){ .pdf-scale-wrap{ max-width: var(--pdf-pc-width, 100%); margin-left:auto; margin-right:auto; } }';
           document.head.appendChild(st);
         }
         var scaleWrap = document.createElement('div');
