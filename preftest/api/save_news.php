@@ -25,13 +25,14 @@ if (!$category || !$title) {
 if ($url !== '' && !preg_match('/^https?:\/\//i', $url)) { $url = ''; }
 
 $today_display = date('Y.m.d');
+// 実施日は任意。空欄なら event_date も空（ホームの「開催」を表示しない）
 if ($event_date) {
     $parts = explode('-', $event_date);
     $event_display = count($parts) === 3
         ? sprintf('%s.%02d.%02d', $parts[0], (int)$parts[1], (int)$parts[2])
-        : $today_display;
+        : '';
 } else {
-    $event_display = $today_display;
+    $event_display = '';
 }
 
 $data_file = dirname(__DIR__) . '/data/news.json';
