@@ -310,6 +310,10 @@
       /* style.cssがスマホで .hero-carousel-wrapper を display:none!important にするため打ち消す */
       .hero-carousel-wrapper { display: block !important; min-height: 200px; flex: none; }
       .hero-info-wrapper { width: 100%; }
+      /* スマホではクイックリンクの行を低く（縦の占有を削減）。PCは無変更 */
+      .hero-info-links a         { padding: 6px 14px; }
+      .hero-info-links a.has-img { padding: 4px 14px; }
+      .hero-info-links a.has-img img.hero-info-img { max-height: 52px; }
       .hero-title { font-size: 1.4rem; }
       /* スマホでは常にカルーセル画像へ重ねる（上部のカルーセル領域に配置） */
       .carousel-content {
