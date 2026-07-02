@@ -26,7 +26,7 @@ foreach ($existing['news'] as &$item) {
     if (($item['id'] ?? '') === $id) {
         $item['category'] = $category; $item['title'] = $title;
         $item['detail'] = $detail; $item['url'] = $url;
-        if ($event_display !== '') $item['event_date'] = $event_display;
+        $item['event_date'] = $event_display; // 空欄で保存＝実施日をクリア（ホームの「開催」も非表示に）
         $item['always_show'] = $always_show;
         $found = true; break;
     }
