@@ -53,6 +53,12 @@
     .news-row-date { color:var(--text-light);font-size:.8rem;white-space:nowrap;flex-shrink:0; }
     .news-row-title { flex:1;font-weight:600;color:var(--text-dark);min-width:140px; }
     .news-row-actions { display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap; }
+    .news-grip { cursor:grab;touch-action:none;user-select:none;color:#94A3B8;font-size:1.05rem;line-height:1;flex-shrink:0;padding:2px; }
+    .news-grip:active { cursor:grabbing; }
+    .news-move { display:inline-flex;flex-direction:column;gap:2px;flex-shrink:0; }
+    .btn-move { width:26px;height:18px;padding:0;border:1px solid var(--border);background:#fff;color:#475569;border-radius:4px;font-size:.6rem;line-height:1;cursor:pointer;font-family:inherit; }
+    .btn-move:hover:not(:disabled) { background:var(--bg-blue,#eef4ff);border-color:var(--primary);color:var(--primary); }
+    .btn-move:disabled { opacity:.35;cursor:default; }
     .btn-sm {
       padding:4px 12px;border-radius:4px;font-size:.775rem;font-weight:600;
       cursor:pointer;border:none;font-family:inherit;transition:all .2s;
@@ -745,18 +751,24 @@
     var countEl = document.getElementById('news-count');
     var listEl  = document.getElementById('news-list');
     if (!listEl) return;
-    if (countEl) countEl.textContent = news.length ? '全 '+news.length+' 件（新しい順）' : '';
+    if (countEl) countEl.textContent = news.length ? '全 '+news.length+' 件（表示順・⠿ドラッグや▲▼で並べ替え）' : '';
     if (!news.length) {
       listEl.innerHTML = '<div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:20px;text-align:center;"><p style="color:var(--text-medium);margin:0;">まだお知らせはありません。</p></div>';
       return;
     }
-    listEl.innerHTML = news.map(function(n){
+    var _last = news.length - 1;
+    listEl.innerHTML = news.map(function(n, i){
       var safeId = (n.id||'').replace(/'/g,"\\'");
       var tagCls = 'tag tag-'+(n.category||'その他');
       var badge  = n.always_show
         ? '<span class="badge-always">★ 常に表示</span>'
         : '<span class="badge-normal">一般表示</span>';
-      return '<div class="news-row">'
+      return '<div class="news-row" data-idx="'+i+'">'
+        + '<span class="news-grip" title="ドラッグして並べ替え">⠿</span>'
+        + '<span class="news-move">'
+        +   '<button type="button" class="btn-move" onclick="moveNews('+i+',-1)" title="上へ"'+(i===0?' disabled':'')+'>▲</button>'
+        +   '<button type="button" class="btn-move" onclick="moveNews('+i+',1)" title="下へ"'+(i===_last?' disabled':'')+'>▼</button>'
+        + '</span>'
         + '<span class="news-row-date">📅 '+(n.event_date||n.date||'')+'</span>'
         + '<span class="tag '+tagCls+'">'+(n.category||'')+'</span>'
         + '<span class="news-row-title">'+escHtml(n.title||'')+'</span>'
@@ -768,6 +780,71 @@
         + '</div></div>';
     }).join('');
   }
+
+  /* ===== お知らせの並べ替え（▲▼ ＋ ドラッグ）＝順序を即保存 ===== */
+  function saveNewsOrder() {
+    var ids = _newsList.map(function(n){ return n.id; });
+    var fd = new FormData(); fd.append('token', TOKEN); fd.append('ids', JSON.stringify(ids));
+    fetch('api/reorder_news.php', {method:'POST', body:fd})
+      .then(function(r){ return r.json(); })
+      .then(function(res){ if(!res || !res.ok){ toast('⚠ 並べ替えの保存に失敗しました'); } })
+      .catch(function(){ toast('⚠ 通信エラー（並べ替え）'); });
+  }
+  function moveNews(idx, dir) {
+    var to = idx + dir;
+    if (to < 0 || to >= _newsList.length) return;
+    var tmp = _newsList[idx]; _newsList[idx] = _newsList[to]; _newsList[to] = tmp;
+    renderNews(_newsList);
+    saveNewsOrder();
+  }
+  window.moveNews = moveNews;
+
+  (function initNewsSortable() {
+    var listEl = document.getElementById('news-list');
+    if (!listEl) return;
+    var drag = null;
+    function clearMarks() {
+      [].forEach.call(listEl.querySelectorAll('.news-row'), function(r){ r.style.outline=''; r.style.outlineOffset=''; });
+    }
+    function cleanup() {
+      if (drag) { try { drag.row.style.opacity=''; } catch(_){} clearMarks(); }
+      document.body.style.userSelect=''; drag=null;
+    }
+    listEl.addEventListener('pointerdown', function(e){
+      if (e.button && e.button !== 0) return;
+      var t = e.target; if (t && t.nodeType===3) t=t.parentNode;
+      if (!t || !t.closest) return;
+      if (!t.closest('.news-grip')) return;           // グリップからのみドラッグ開始
+      var row = t.closest('.news-row'); if (!row) return;
+      var idx = parseInt(row.getAttribute('data-idx'),10); if (isNaN(idx)) return;
+      e.preventDefault();
+      drag = { row: row, from: idx };
+      row.style.opacity='0.45'; document.body.style.userSelect='none';
+      try { row.setPointerCapture(e.pointerId); } catch(_){}
+    });
+    listEl.addEventListener('pointermove', function(e){
+      if (!drag) return;
+      clearMarks();
+      var el = document.elementFromPoint(e.clientX, e.clientY);
+      var target = el && el.closest ? el.closest('.news-row') : null;
+      if (target && target !== drag.row) { target.style.outline='2px dashed var(--primary)'; target.style.outlineOffset='1px'; }
+    });
+    listEl.addEventListener('pointerup', function(e){
+      if (!drag) return;
+      var el = document.elementFromPoint(e.clientX, e.clientY);
+      var target = el && el.closest ? el.closest('.news-row') : null;
+      var from = drag.from;
+      cleanup();
+      if (!target) return;
+      var to = parseInt(target.getAttribute('data-idx'),10);
+      if (isNaN(to) || to === from) return;
+      var item = _newsList.splice(from, 1)[0];
+      _newsList.splice(to, 0, item);
+      renderNews(_newsList);
+      saveNewsOrder();
+    });
+    listEl.addEventListener('pointercancel', cleanup);
+  })();
 
   function deleteNews(id) {
     if (!confirm('このお知らせを削除しますか？')) return;
