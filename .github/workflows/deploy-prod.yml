@@ -61,8 +61,22 @@ jobs:
             --exclude='data/home_hero.json' \
             --exclude='data/home_banner.json' \
             --exclude='data/gemini_key.php' \
+            --exclude='data/auth.php' \
+            --exclude='data/auth_secret.php' \
+            --exclude='data/login_attempts.php' \
             --exclude='uploads/' \
             ./ jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/
+
+      # 認証マスター秘密を data/auth_secret.php へ配置（ブラウザにもGitにも出さない）
+      - name: Write auth master secret
+        env:
+          AUTH_MASTER_SECRET: ${{ secrets.AUTH_MASTER_SECRET }}
+        run: |
+          printf '<?php return %s;\n' "'$AUTH_MASTER_SECRET'" > auth_secret.php
+          scp -i ~/.ssh/deploy_key -P 10022 -o StrictHostKeyChecking=no \
+            auth_secret.php \
+            jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/data/auth_secret.php
+          rm -f auth_secret.php
 
       - name: Cleanup
         if: always()

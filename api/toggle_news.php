@@ -6,12 +6,8 @@
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
-$token = $_POST['token'] ?? '';
-if ($token !== 'jdsfseibu2026') {
-    http_response_code(403);
-    echo json_encode(['error' => 'Forbidden'], JSON_UNESCAPED_UNICODE);
-    exit;
-}
+require __DIR__ . '/_auth.php';
+require_auth('admin');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);

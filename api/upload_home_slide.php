@@ -3,12 +3,8 @@
 //   + data/home_hero.json の slides.slideN を更新（badge/desc/sns は保持）
 header('Content-Type: application/json; charset=utf-8');
 
-$token = $_POST['token'] ?? '';
-if ($token !== 'jdsfseibu2026') {
-    http_response_code(403);
-    echo json_encode(['error' => 'Forbidden'], JSON_UNESCAPED_UNICODE);
-    exit;
-}
+require __DIR__ . '/_auth.php';
+require_auth('build');
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     exit;

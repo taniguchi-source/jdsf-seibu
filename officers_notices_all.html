@@ -195,38 +195,39 @@
 (function () {
   'use strict';
 
-  var PASSWORD    = 'seibu2026';
-  var SESSION_KEY = 'jdsf_seibu_officers_auth';
+  var ROLE = 'admin';
   var NOTICE_TOKEN = 'jdsfseibu2026';
+  window.__CSRF = '';
+  (function(){ var _f=window.fetch; window.fetch=function(url,opts){opts=opts||{};try{if(typeof url==='string'&&url.indexOf('api/')!==-1&&String(opts.method||'').toUpperCase()==='POST'){opts.headers=opts.headers||{};if(!('X-CSRF-Token' in opts.headers)&&!('x-csrf-token' in opts.headers))opts.headers['X-CSRF-Token']=window.__CSRF||'';}}catch(e){}return _f.call(this,url,opts);}; })();
 
   var loginScreen   = document.getElementById('login-screen');
   var contentScreen = document.getElementById('content-screen');
   var pwInput       = document.getElementById('pw-input');
   var loginError    = document.getElementById('login-error');
 
-  if (sessionStorage.getItem(SESSION_KEY) === '1') {
-    showContent();
-  }
+  fetch('api/session-status.php').then(function(r){return r.json();}).then(function(d){ window.__CSRF=(d&&d.csrf)||''; if(d&&d.admin) showContent(); }).catch(function(){});
 
   if (pwInput) {
-    pwInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') doLogin();
-    });
+    pwInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
   }
 
   function doLogin() {
     var val = pwInput ? pwInput.value : '';
-    if (val === PASSWORD) {
-      sessionStorage.setItem(SESSION_KEY, '1');
-      showContent();
-    } else {
-      loginError.style.display = 'block';
-      if (pwInput) { pwInput.classList.add('error'); pwInput.value = ''; pwInput.focus(); }
-    }
+    var fd = new FormData(); fd.append('role', ROLE); fd.append('password', val);
+    fetch('api/login.php', {method:'POST', body:fd})
+      .then(function(r){ return r.json().then(function(j){ return {status:r.status, j:j}; }); })
+      .then(function(res){
+        if (res.j && res.j.ok) { window.__CSRF=res.j.csrf||''; if(pwInput)pwInput.value=''; loginError.style.display='none'; showContent(); }
+        else if (res.j && res.j.error==='locked'){ loginError.textContent='試行回数が多すぎます。しばらくしてからお試しください。'; loginError.style.display='block'; }
+        else { loginError.textContent='パスワードが正しくありません。'; loginError.style.display='block'; if(pwInput){pwInput.classList.add('error');pwInput.value='';pwInput.focus();} }
+      })
+      .catch(function(){ loginError.textContent='通信エラーが発生しました。'; loginError.style.display='block'; });
   }
 
   function doLogout() {
-    sessionStorage.removeItem(SESSION_KEY);
+    var fd=new FormData(); fd.append('role', ROLE);
+    fetch('api/logout.php',{method:'POST',body:fd}).catch(function(){});
+    window.__CSRF='';
     contentScreen.style.display = 'none';
     loginScreen.style.display   = 'flex';
     if (pwInput) { pwInput.value = ''; pwInput.classList.remove('error'); }

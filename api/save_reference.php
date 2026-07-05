@@ -6,11 +6,8 @@ header('Access-Control-Allow-Headers: Content-Type');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 
 /* ── システム認証 ── */
-$token = $_POST['token'] ?? '';
-if ($token !== 'jdsfseibu2026') {
-    echo json_encode(['ok' => false, 'error' => '認証エラー']);
-    exit;
-}
+require __DIR__ . '/_auth.php';
+require_auth('admin');
 
 /* ── 資料操作パスワード（役員ログインと同じスプレッドシートM列・GAS経由） ── */
 function jdsf_officer_password() {
