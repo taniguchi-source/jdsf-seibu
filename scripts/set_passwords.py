@@ -95,8 +95,13 @@ def main():
     if args.inherit:
         sub = args.sub or urllib.parse.urlparse(base).hostname.split(".")[0]
         a, b = fetch_current_pw(sub)
-        args.admin = args.admin or a
-        args.build = args.build or b
+        def ok8(pw, role):
+            if len(pw) < 8:
+                print(f"  ⚠ {role} の現行PWが8文字未満 → {sub}2026 に設定（担当者へ連絡要）")
+                return sub + "2026"
+            return pw
+        args.admin = args.admin or ok8(a, "admin")
+        args.build = args.build or ok8(b, "build")
         print(f"継承: {sub} の現行PWを取得しました。")
 
     if not args.admin and not args.build:
