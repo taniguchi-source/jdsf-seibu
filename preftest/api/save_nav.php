@@ -43,22 +43,29 @@ $defaults = [
     5 => ['name' => 'サイト5', 'url' => 'page5.html'],
 ];
 
-// links を id キーで再構築
-$keyed = [];
-foreach ($data['links'] as $link) {
-    if (isset($link['id'])) $keyed[(int)$link['id']] = $link;
-}
+// 既存 links は「配列順＝表示順」なので順序を保持したまま扱う（手動並べ替えを壊さない）
+$links = array_values($data['links']);
+
+// 既存 id 一覧
+$existingIds = [];
+foreach ($links as $lnk) { if (isset($lnk['id'])) $existingIds[(int)$lnk['id']] = true; }
+
+// デフォルト5スロット保証（未存在のものだけ末尾に追加＝既存順は崩さない）
 for ($i = 1; $i <= 5; $i++) {
-    if (!isset($keyed[$i])) {
-        $keyed[$i] = ['id' => $i, 'enabled' => ($i <= 3), 'name' => $defaults[$i]['name'], 'url' => $defaults[$i]['url']];
+    if (!isset($existingIds[$i])) {
+        $links[] = ['id' => $i, 'enabled' => ($i <= 3), 'name' => $defaults[$i]['name'], 'url' => $defaults[$i]['url']];
+        $existingIds[$i] = true;
     }
 }
 
-// 追加ページ（6以上）の削除。1〜5 は削除不可（既定として残す）
+// 追加ページ（6以上）の削除。1〜5 は削除不可。順序は保持
 if ($action === 'delete') {
-    if ($slot > 5) unset($keyed[$slot]);
-    ksort($keyed);
-    $data['links']   = array_values($keyed);
+    if ($slot > 5) {
+        $links = array_values(array_filter($links, function ($lnk) use ($slot) {
+            return (int)($lnk['id'] ?? 0) !== $slot;
+        }));
+    }
+    $data['links']   = $links;
     $data['updated'] = date('Y-m-d') . 'T' . date('H:i:s');
     file_put_contents($nav_file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     echo json_encode(['ok' => true, 'deleted' => $slot], JSON_UNESCAPED_UNICODE);
@@ -69,19 +76,33 @@ if ($action === 'delete') {
 $def_name = isset($defaults[$slot]) ? $defaults[$slot]['name'] : ('サイト' . $slot);
 $def_url  = isset($defaults[$slot]) ? $defaults[$slot]['url']  : ('page.html?id=' . $slot);
 
-// 対象スロットを更新（無ければ新規作成）
-if (!isset($keyed[$slot])) $keyed[$slot] = ['id' => $slot];
-$keyed[$slot]['id']      = $slot;
-$keyed[$slot]['enabled'] = $enabled;
-$keyed[$slot]['name']    = $name !== '' ? $name : $def_name;
-$keyed[$slot]['url']     = $url  !== '' ? $url  : $def_url;
-if ($hero_label !== null) $keyed[$slot]['hero_label'] = $hero_label;
-if ($hero_title !== null) $keyed[$slot]['hero_title'] = $hero_title;
-if ($hero_desc  !== null) $keyed[$slot]['hero_desc']  = $hero_desc;
+// 対象スロットを「既存の並び順のまま」その場更新（無ければ末尾に追加）
+$found = false;
+foreach ($links as &$lnk) {
+    if ((int)($lnk['id'] ?? 0) === $slot) {
+        $lnk['id']      = $slot;
+        $lnk['enabled'] = $enabled;
+        $lnk['name']    = $name !== '' ? $name : $def_name;
+        $lnk['url']     = $url  !== '' ? $url  : $def_url;
+        if ($hero_label !== null) $lnk['hero_label'] = $hero_label;
+        if ($hero_title !== null) $lnk['hero_title'] = $hero_title;
+        if ($hero_desc  !== null) $lnk['hero_desc']  = $hero_desc;
+        $found = true;
+        break;
+    }
+}
+unset($lnk);
+if (!$found) {
+    $newLink = ['id' => $slot, 'enabled' => $enabled,
+                'name' => ($name !== '' ? $name : $def_name),
+                'url'  => ($url  !== '' ? $url  : $def_url)];
+    if ($hero_label !== null) $newLink['hero_label'] = $hero_label;
+    if ($hero_title !== null) $newLink['hero_title'] = $hero_title;
+    if ($hero_desc  !== null) $newLink['hero_desc']  = $hero_desc;
+    $links[] = $newLink;
+}
 
-// id 順に並べ直す
-ksort($keyed);
-$data['links']   = array_values($keyed);
+$data['links']   = array_values($links);
 $data['updated'] = date('Y-m-d') . 'T' . date('H:i:s');
 
 if (file_put_contents($nav_file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) === false) {

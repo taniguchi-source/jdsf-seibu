@@ -249,7 +249,7 @@
           </h2>
           <p style="font-size:.8125rem;color:var(--text-light);margin:0;padding-left:16px;">
             ホームページのナビゲーションメニュー（最大15ページ）の名称・リンク先・表示を管理します。<br>
-            ホーム・お問い合わせ・サイト管理は常に固定表示されます。
+            ホーム・お問い合わせ・サイト管理は常に固定表示されます。<span style="color:var(--primary);font-weight:700;">各ページは ⠿ドラッグ や ▲▼ で並べ替えできます。</span>
           </p>
         </div>
         <a href="index.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#fff;color:var(--primary);border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-weight:700;text-decoration:none;white-space:nowrap;">🔗 トップページを確認</a>
@@ -998,15 +998,21 @@
   function renderNavCards() {
     var grid = document.getElementById('nav-cards');
     if (!grid) return;
+    var _navLast = _navLinks.length - 1;
     grid.innerHTML = _navLinks.map(function(link, idx) {
       var n       = link.id || (idx + 1);
       var enabled = !!link.enabled;
       var name    = escHtml(link.name || '');
       var url     = escHtml(link.url  || '');
 
-      return '<div style="background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:12px 18px;box-shadow:var(--shadow);">'
-        /* 1行目：チェックボックス + サイト番号 + バッジ */
+      return '<div class="nav-card" data-idx="' + idx + '" style="background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:12px 18px;box-shadow:var(--shadow);">'
+        /* 1行目：並べ替え + チェックボックス + サイト番号 + バッジ */
         + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'
+        +   '<span class="news-grip" title="ドラッグして並べ替え">⠿</span>'
+        +   '<span class="news-move">'
+        +     '<button type="button" class="btn-move" onclick="moveNav(' + idx + ',-1)" title="上へ"' + (idx === 0 ? ' disabled' : '') + '>▲</button>'
+        +     '<button type="button" class="btn-move" onclick="moveNav(' + idx + ',1)" title="下へ"' + (idx === _navLast ? ' disabled' : '') + '>▼</button>'
+        +   '</span>'
         +   '<label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;">'
         +     '<input type="checkbox" id="nav-enabled-' + n + '" ' + (enabled ? 'checked' : '') + ' '
         +       'onchange="(function(cb){var b=document.getElementById(\'nav-badge-' + n + '\');if(!b)return;b.textContent=cb.checked?\'● 表示中\':\'○ 非表示\';b.style.background=cb.checked?\'#DCFCE7\':\'#F1F5F9\';b.style.color=cb.checked?\'#166534\':\'#94A3B8\';})(this)" '
@@ -1076,6 +1082,75 @@
         + '</div>'
         + '</div>';
     }).join('');
+    initNavSortable();
+  }
+
+  /* ===== ページ（ナビ）の並べ替え（▲▼ ＋ ドラッグ）＝順序を即保存 ===== */
+  function saveNavOrder() {
+    var ids = _navLinks.map(function(l){ return l.id; });
+    var fd = new FormData(); fd.append('token', TOKEN); fd.append('ids', JSON.stringify(ids));
+    fetch('api/reorder_nav.php', {method:'POST', body:fd})
+      .then(function(r){ return r.json(); })
+      .then(function(res){ if(!res || !res.ok){ toast('⚠ ページの並べ替え保存に失敗しました'); } })
+      .catch(function(){ toast('⚠ 通信エラー（ページ並べ替え）'); });
+  }
+  function moveNav(idx, dir) {
+    var to = idx + dir;
+    if (to < 0 || to >= _navLinks.length) return;
+    var tmp = _navLinks[idx]; _navLinks[idx] = _navLinks[to]; _navLinks[to] = tmp;
+    renderNavCards();
+    renderAdminHeaderNav();
+    saveNavOrder();
+  }
+  window.moveNav = moveNav;
+
+  function initNavSortable() {
+    var listEl = document.getElementById('nav-cards');
+    if (!listEl || listEl._sortable) return;
+    listEl._sortable = true;
+    var drag = null;
+    function clearMarks() {
+      [].forEach.call(listEl.querySelectorAll('.nav-card'), function(r){ r.style.outline=''; r.style.outlineOffset=''; });
+    }
+    function cleanup() {
+      if (drag) { try { drag.row.style.opacity=''; } catch(_){} clearMarks(); }
+      document.body.style.userSelect=''; drag=null;
+    }
+    listEl.addEventListener('pointerdown', function(e){
+      if (e.button && e.button !== 0) return;
+      var t = e.target; if (t && t.nodeType===3) t=t.parentNode;
+      if (!t || !t.closest) return;
+      if (!t.closest('.news-grip')) return;           // グリップからのみドラッグ開始
+      var row = t.closest('.nav-card'); if (!row) return;
+      var idx = parseInt(row.getAttribute('data-idx'),10); if (isNaN(idx)) return;
+      e.preventDefault();
+      drag = { row: row, from: idx };
+      row.style.opacity='0.45'; document.body.style.userSelect='none';
+      try { row.setPointerCapture(e.pointerId); } catch(_){}
+    });
+    listEl.addEventListener('pointermove', function(e){
+      if (!drag) return;
+      clearMarks();
+      var el = document.elementFromPoint(e.clientX, e.clientY);
+      var target = el && el.closest ? el.closest('.nav-card') : null;
+      if (target && target !== drag.row) { target.style.outline='2px dashed var(--primary)'; target.style.outlineOffset='1px'; }
+    });
+    listEl.addEventListener('pointerup', function(e){
+      if (!drag) return;
+      var el = document.elementFromPoint(e.clientX, e.clientY);
+      var target = el && el.closest ? el.closest('.nav-card') : null;
+      var from = drag.from;
+      cleanup();
+      if (!target) return;
+      var to = parseInt(target.getAttribute('data-idx'),10);
+      if (isNaN(to) || to === from) return;
+      var item = _navLinks.splice(from, 1)[0];
+      _navLinks.splice(to, 0, item);
+      renderNavCards();
+      renderAdminHeaderNav();
+      saveNavOrder();
+    });
+    listEl.addEventListener('pointercancel', cleanup);
   }
 
   function saveNavSlot(n) {

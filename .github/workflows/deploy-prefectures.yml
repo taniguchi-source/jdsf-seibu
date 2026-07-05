@@ -65,6 +65,29 @@ jobs:
         if: steps.gate.outputs.go == 'true'
         run: sudo apt-get install -y lftp
 
+      # LINE等のリンクプレビュー対策：クローラはJSを実行せず生HTMLを読むため、
+      # 配信直前に各府県の正式名称を <title>/<meta>/OGP へ焼き込む。
+      # 名称はその府県の「現在の」data/sitename.json（サーバー側の真実）から取得。
+      # 取得不可 or 雛形のままなら焼き込まず、従来どおりJSが差し替える（安全側）。
+      - name: Bake federation name into meta tags (LINE preview)
+        if: steps.gate.outputs.go == 'true'
+        run: |
+          SUB="${{ matrix.sub }}"
+          PLACEHOLDER="テストダンススポーツ連盟"
+          NAME=$(curl -fsS --max-time 20 "https://${SUB}.jdsf-seibu.com/data/sitename.json" | jq -r '.name // empty' 2>/dev/null || true)
+          if [ -z "$NAME" ] || [ "$NAME" = "$PLACEHOLDER" ]; then
+            echo "ℹ️  $SUB: サイト名が取得できない/雛形のまま → 焼き込みスキップ（JSが差し替え）"
+            exit 0
+          fi
+          echo "🔤 $SUB: メタ情報に「$NAME」を焼き込みます"
+          NAME_ESC=$(printf '%s' "$NAME" | sed -e 's/[\/&\\]/\\&/g')   # sed置換用に / & \ をエスケープ
+          for f in preftest/index.html preftest/news.html preftest/contact.html \
+                   preftest/page.html preftest/page1.html preftest/page2.html \
+                   preftest/page3.html preftest/page4.html preftest/page5.html; do
+            [ -f "$f" ] && sed -i "s/${PLACEHOLDER}/${NAME_ESC}/g" "$f"
+          done
+          echo "✅ $SUB: 焼き込み完了（生HTMLに実名が入りLINEプレビューが正しくなります）"
+
       - name: Deploy preftest/ to ${{ matrix.sub }}.jdsf-seibu.com
         if: steps.gate.outputs.go == 'true'
         env:
