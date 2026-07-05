@@ -10,6 +10,9 @@ $detail   = trim($_POST['detail']   ?? '');
 $url      = trim($_POST['url']      ?? '');
 $event_date = trim($_POST['event_date'] ?? '');
 $always_show = !empty($_POST['always_show']);
+// 日付の表示トグル（未送信は既定=表示）
+$show_event = !isset($_POST['show_event_date']) ? true : ($_POST['show_event_date'] === '1');
+$show_post  = !isset($_POST['show_post_date'])  ? true : ($_POST['show_post_date']  === '1');
 if ($id === '' || !$category || !$title || !$detail) {
     http_response_code(400); echo json_encode(['error'=>'必須項目が不足しています'],JSON_UNESCAPED_UNICODE); exit;
 }
@@ -28,6 +31,9 @@ foreach ($existing['news'] as &$item) {
         $item['detail'] = $detail; $item['url'] = $url;
         $item['event_date'] = $event_display; // 空欄で保存＝実施日をクリア（ホームの「開催」も非表示に）
         $item['always_show'] = $always_show;
+        $item['show_event_date'] = $show_event;
+        $item['show_post_date']  = $show_post;
+        $item['edited_date'] = date('Y.m.d'); // 編集日を記録（ホームでは「編集 ○」と表示）
         $found = true; break;
     }
 }

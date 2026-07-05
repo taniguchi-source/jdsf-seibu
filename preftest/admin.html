@@ -217,6 +217,16 @@
             <textarea id="news-detail" rows="3" class="form-input" style="resize:vertical;" placeholder="補足説明…"></textarea></div>
           <div><label class="form-label">関連URL <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（任意）</span></label>
             <input type="url" id="news-url" class="form-input" placeholder="https://…"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;cursor:pointer;">
+              <input type="checkbox" id="news-show-event" checked style="width:16px;height:16px;cursor:pointer;">
+              実施日（開催日）をホームに表示
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;cursor:pointer;">
+              <input type="checkbox" id="news-show-post" checked style="width:16px;height:16px;cursor:pointer;">
+              投稿・編集日をホームに表示
+            </label>
+          </div>
           <div>
             <label style="display:inline-flex;align-items:center;gap:8px;font-size:.875rem;font-weight:600;cursor:pointer;">
               <input type="checkbox" id="news-always-show" style="width:16px;height:16px;cursor:pointer;">
@@ -548,6 +558,16 @@
         <textarea id="edit-news-detail" rows="3" class="form-input" style="resize:vertical;"></textarea></div>
       <div><label class="form-label">関連URL <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（任意）</span></label>
         <input type="url" id="edit-news-url" class="form-input" placeholder="https://…"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;cursor:pointer;">
+          <input type="checkbox" id="edit-news-show-event" style="width:16px;height:16px;cursor:pointer;">
+          実施日（開催日）をホームに表示
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;cursor:pointer;">
+          <input type="checkbox" id="edit-news-show-post" style="width:16px;height:16px;cursor:pointer;">
+          投稿・編集日をホームに表示
+        </label>
+      </div>
       <div>
         <label style="display:inline-flex;align-items:center;gap:8px;font-size:.875rem;font-weight:600;cursor:pointer;">
           <input type="checkbox" id="edit-news-always-show" style="width:16px;height:16px;cursor:pointer;">
@@ -763,13 +783,18 @@
       var badge  = n.always_show
         ? '<span class="badge-always">★ 常に表示</span>'
         : '<span class="badge-normal">一般表示</span>';
+      var pLabel = n.edited_date ? '編集' : '投稿';
+      var pDate  = n.edited_date ? n.edited_date : (n.date || '');
+      var evTxt  = n.event_date ? '📅 開催 ' + escHtml(n.event_date) + (n.show_event_date===false ? '（非表示）' : '') : '';
+      var poTxt  = pDate ? '🖊 ' + pLabel + ' ' + escHtml(pDate) + (n.show_post_date===false ? '（非表示）' : '') : '';
+      var dateTxt = [evTxt, poTxt].filter(Boolean).join('　');
       return '<div class="news-row" data-idx="'+i+'">'
         + '<span class="news-grip" title="ドラッグして並べ替え">⠿</span>'
         + '<span class="news-move">'
         +   '<button type="button" class="btn-move" onclick="moveNews('+i+',-1)" title="上へ"'+(i===0?' disabled':'')+'>▲</button>'
         +   '<button type="button" class="btn-move" onclick="moveNews('+i+',1)" title="下へ"'+(i===_last?' disabled':'')+'>▼</button>'
         + '</span>'
-        + '<span class="news-row-date">📅 '+(n.event_date||n.date||'')+'</span>'
+        + '<span class="news-row-date">'+dateTxt+'</span>'
         + '<span class="tag '+tagCls+'">'+(n.category||'')+'</span>'
         + '<span class="news-row-title">'+escHtml(n.title||'')+'</span>'
         + '<div class="news-row-actions">'
@@ -874,6 +899,8 @@
     var url        = (document.getElementById('news-url')        ||{value:''}).value.trim();
     var eventDate  = (document.getElementById('news-event-date') ||{value:''}).value;
     var alwaysShow = (document.getElementById('news-always-show')||{checked:false}).checked;
+    var showEvent  = (document.getElementById('news-show-event') ||{checked:true}).checked;
+    var showPost   = (document.getElementById('news-show-post')  ||{checked:true}).checked;
     var msgEl = document.getElementById('news-form-msg');
     var btn   = document.getElementById('news-submit-btn');
 
@@ -887,12 +914,16 @@
     fd.append('token',TOKEN); fd.append('category',category); fd.append('title',title);
     fd.append('detail',detail); fd.append('url',url); fd.append('event_date',eventDate);
     fd.append('always_show', alwaysShow?'1':'');
+    fd.append('show_event_date', showEvent?'1':'');
+    fd.append('show_post_date',  showPost?'1':'');
     fetch('api/save_news.php', {method:'POST',body:fd})
       .then(function(r){return r.json();})
       .then(function(res){
         if (res.ok) {
           ['news-category','news-title','news-detail','news-url','news-event-date'].forEach(function(id){ var el=document.getElementById(id); if(el)el.value=''; });
           var cb=document.getElementById('news-always-show'); if(cb)cb.checked=false;
+          var se=document.getElementById('news-show-event'); if(se)se.checked=true;
+          var sp=document.getElementById('news-show-post');  if(sp)sp.checked=true;
           toggleNewsForm(); loadNews();
         } else { showMsg('⚠ '+(res.error||'エラーが発生しました'),true); }
       })
@@ -915,6 +946,8 @@
     var ed = (n.event_date||'').replace(/\./g,'-');
     document.getElementById('edit-news-event-date').value = ed;
     var asEl=document.getElementById('edit-news-always-show'); if(asEl)asEl.checked = !!n.always_show;
+    var seEl=document.getElementById('edit-news-show-event'); if(seEl)seEl.checked = (n.show_event_date !== false);
+    var spEl=document.getElementById('edit-news-show-post');  if(spEl)spEl.checked = (n.show_post_date  !== false);
     var msgEl=document.getElementById('edit-news-msg'); if(msgEl)msgEl.style.display='none';
     var ov=document.getElementById('edit-modal'); ov.style.display='flex'; document.body.style.overflow='hidden';
   }
@@ -929,6 +962,8 @@
     var url      = (document.getElementById('edit-news-url')        ||{value:''}).value.trim();
     var eventDate=(document.getElementById('edit-news-event-date')  ||{value:''}).value;
     var alwaysShow=(document.getElementById('edit-news-always-show')||{checked:false}).checked;
+    var showEvent=(document.getElementById('edit-news-show-event')  ||{checked:true}).checked;
+    var showPost =(document.getElementById('edit-news-show-post')   ||{checked:true}).checked;
     var msgEl=document.getElementById('edit-news-msg');
     var btn  =document.getElementById('edit-save-btn');
 
@@ -942,6 +977,8 @@
     fd.append('token',TOKEN);fd.append('id',id);fd.append('category',category);
     fd.append('title',title);fd.append('detail',detail);fd.append('url',url);fd.append('event_date',eventDate);
     fd.append('always_show', alwaysShow?'1':'');
+    fd.append('show_event_date', showEvent?'1':'');
+    fd.append('show_post_date',  showPost?'1':'');
     fetch('api/update_news.php',{method:'POST',body:fd})
       .then(function(r){return r.json();})
       .then(function(res){

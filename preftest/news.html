@@ -260,14 +260,20 @@
     wrap.innerHTML = items.map(function (n) {
       var catCls   = CAT_CLASS[n.category] || 'tag-info';
       /* news-detail.html 未実装のため、各お知らせはリンクなし(div)で表示 */
-      var leftDate = n.event_date || '';   /* 開催日のみ表示。投稿日は表示しない */
+      /* 開催日＋投稿/編集日。各トグルで表示可否。編集済みは「編集」表示 */
+      var _showEv = (n.show_event_date !== false) && n.event_date;
+      var _pLabel = n.edited_date ? '編集' : '投稿';
+      var _pDate  = n.edited_date ? n.edited_date : (n.date || '');
+      var _showPo = (n.show_post_date !== false) && _pDate;
+      var leftDate = (_showEv ? '<span style="display:block;">開催 ' + escHtml(n.event_date) + '</span>' : '')
+                   + (_showPo ? '<span style="display:block;font-size:.78em;opacity:.72;margin-top:2px;">' + _pLabel + ' ' + escHtml(_pDate) + '</span>' : '');
       var nu = String(n.url || '').trim();
       var hasUrl = /^https?:\/\//i.test(nu);
       var linkHtml = hasUrl
         ? '<a href="' + nu.replace(/"/g, '%22') + '" target="_blank" rel="noopener" class="nli-link" style="display:inline-block;margin-top:6px;color:var(--primary);font-weight:700;font-size:0.85rem;text-decoration:none;">🔗 関連リンクを開く →</a>'
         : '';
       return '<div class="news-list-item no-link">'
-        + '<span class="nli-date">' + escHtml(leftDate) + '</span>'
+        + '<span class="nli-date">' + leftDate + '</span>'
         + '<span class="nli-badge"><span class="tag ' + catCls + '">' + escHtml(n.category || '') + '</span></span>'
         + '<span class="nli-body">'
         +   '<span class="nli-title">' + escHtml(n.title) + '</span>'

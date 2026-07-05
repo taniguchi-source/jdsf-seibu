@@ -673,8 +673,14 @@
         var catCls = CAT_CLASS[n.category] || 'tag-info';
         var detail = (n.detail || '').length > 60 ? n.detail.substring(0, 60) + '…' : (n.detail || '');
         var detailHtml = escHtml(detail).replace(/\n/g, '<br>');   /* 改行を反映 */
-        /* 開催日（実施日）があれば表示。投稿日は表示しない */
-        var dateHtml = n.event_date ? '📅 開催 ' + escHtml(n.event_date) + ' ' : '';
+        /* 開催日（実施日）と 投稿/編集日。各トグルで表示可否。編集済みは「編集」表示 */
+        var _showEv = (n.show_event_date !== false) && n.event_date;
+        var _evHtml = _showEv ? '📅 開催 ' + escHtml(n.event_date) + ' ' : '';
+        var _pLabel = n.edited_date ? '編集' : '投稿';
+        var _pDate  = n.edited_date ? n.edited_date : (n.date || '');
+        var _showPo = (n.show_post_date !== false) && _pDate;
+        var _poHtml = _showPo ? '🖊 ' + _pLabel + ' ' + escHtml(_pDate) + ' ' : '';
+        var dateHtml = _evHtml + _poHtml;
         /* 関連URLが設定されていればそのリンク先（別タブ）へ、なければお知らせ一覧へ */
         var nu = String(n.url || '').trim();
         var hasUrl = /^https?:\/\//i.test(nu);
