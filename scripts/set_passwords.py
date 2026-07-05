@@ -32,6 +32,22 @@ except Exception:
     pass
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+GAS_AUTH_URL = "https://script.google.com/macros/s/AKfycbxS07Mxs6TZHdq0aGTay547EfIrN5igaJ527EaWl-O-RgHv7VHMllszJyMkI30qRU3A/exec"
+
+
+def fetch_current_pw(sub):
+    """現行GAS(?action=auth)から現在の 管理PW/構築PW を取得。空なら旧フォールバック <sub>2026。"""
+    url = GAS_AUTH_URL + "?action=auth&site=" + urllib.parse.quote(sub)
+    fallback = sub + "2026"
+    try:
+        with urllib.request.urlopen(url, timeout=30) as r:
+            d = json.loads(r.read().decode("utf-8", "replace"))
+    except Exception as e:
+        print(f"  ⚠ GAS取得失敗（{e}）→ フォールバック {fallback} を使用")
+        return fallback, fallback
+    admin = (d.get("password") or "").strip() or fallback
+    build = (d.get("build") or "").strip() or fallback
+    return admin, build
 
 
 def master_secret():
@@ -69,13 +85,22 @@ def main():
     ap.add_argument("--sub", help="府県サブドメイン名（base の代わりに https://<sub>.jdsf-seibu.com）")
     ap.add_argument("--admin", help="管理(admin)パスワード")
     ap.add_argument("--build", help="構築(build)パスワード")
+    ap.add_argument("--inherit", action="store_true", help="現行GASから現在のPWを取得して継承（--admin/--build不要）")
     args = ap.parse_args()
 
     base = args.base or (f"https://{args.sub}.jdsf-seibu.com" if args.sub else None)
     if not base:
         sys.exit("サイトURL（または --sub）を指定してください。")
+
+    if args.inherit:
+        sub = args.sub or urllib.parse.urlparse(base).hostname.split(".")[0]
+        a, b = fetch_current_pw(sub)
+        args.admin = args.admin or a
+        args.build = args.build or b
+        print(f"継承: {sub} の現行PWを取得しました。")
+
     if not args.admin and not args.build:
-        sys.exit("--admin または --build のいずれかを指定してください。")
+        sys.exit("--admin / --build か --inherit を指定してください。")
     for pw in (args.admin, args.build):
         if pw is not None and len(pw) < 8:
             sys.exit("パスワードは8文字以上にしてください。")
