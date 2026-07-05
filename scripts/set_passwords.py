@@ -35,9 +35,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 GAS_AUTH_URL = "https://script.google.com/macros/s/AKfycbxS07Mxs6TZHdq0aGTay547EfIrN5igaJ527EaWl-O-RgHv7VHMllszJyMkI30qRU3A/exec"
 
 
-def fetch_current_pw(sub):
-    """現行GAS(?action=auth)から現在の 管理PW/構築PW を取得。空なら旧フォールバック <sub>2026。"""
+def fetch_current_pw(sub, secret=""):
+    """現行GAS(?action=auth)から現在の 管理PW/構築PW を取得。空なら旧フォールバック <sub>2026。
+    GAS更新後は secret 必須。"""
     url = GAS_AUTH_URL + "?action=auth&site=" + urllib.parse.quote(sub)
+    if secret:
+        url += "&secret=" + urllib.parse.quote(secret)
     fallback = sub + "2026"
     try:
         with urllib.request.urlopen(url, timeout=30) as r:
@@ -95,7 +98,7 @@ def main():
 
     if args.inherit:
         sub = args.sub or urllib.parse.urlparse(base).hostname.split(".")[0]
-        a, b = fetch_current_pw(sub)
+        a, b = fetch_current_pw(sub, master_secret())
         def ok8(pw, role):
             if not args.allow_short and len(pw) < 8:
                 print(f"  ⚠ {role} の現行PWが8文字未満 → {sub}2026 に設定（担当者へ連絡要）")

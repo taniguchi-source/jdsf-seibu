@@ -18,8 +18,16 @@
  *   で更新してください（新規デプロイにするとURLが変わります）。
  */
 
+// ★私用シート（非公開）へ切り替える時は、この SHEET_ID を新しいシートのIDに変更してください。
+//   （新シートは「HP用資料」を丸ごとコピーし、共有は自分のみ＝非公開に。列構成は同じ）
 var SHEET_ID   = '1fpEa8jiIk9hUKyDOp4yWvBKaoPek-LsF2SPhDRTFX0g';
 var SHEET_NAME = 'HP用資料';
+
+// パスワード同期・書き戻し用のマスター秘密（スクリプトのプロパティ AUTH_SECRET に設定）。
+// 各サイトの data/auth_secret.php と同じ値にすること。
+function getSecret() {
+  return PropertiesService.getScriptProperties().getProperty('AUTH_SECRET') || '';
+}
 
 // 主サイトの全問い合わせに控えを送る事務局アドレス（不要なら '' に）
 var OFFICE_BCC = 'info@jdsf-seibu.com';
@@ -32,7 +40,7 @@ var CONTACT_TOKEN = 'seibu-contact2026';
 function doGet(e) {
   var p = e.parameter || {};
   if (p.action === 'data')           { return getContactData(); }                 // 主: 府県→担当者名
-  if (p.action === 'auth')           { return getAuthPassword(p.site || ''); }     // 認証
+  if (p.action === 'auth')           { return getAuthPassword(p.site || '', p.secret || ''); } // 認証（要secret）
   if (p.action === 'contactInfo')    { return getContactInfo(p.url || ''); }       // 府県: 担当者名（メール非公開）
   if (p.action === 'getContactConfig'){ return getContactConfig(p.url || '', p.token || ''); } // site-config 読込
   if (p.action === 'saveContact')    { return saveContact(p); }                    // site-config 保存（CORS可なGETで結果確認）
@@ -46,6 +54,7 @@ function doPost(e) {
   // ハニーポット（bot対策）: 隠し項目 hp が埋まっていたら送らず正常終了を装う
   if (data.hp) { return json({ status: 'ok' }); }
 
+  if (data.action === 'setSheetPassword') { return setSheetPassword(data); } // サイト→シート 書き戻し
   if (data.action === 'saveContact') { return saveContact(data); }  // site-config 保存
   if (data.url)                      { return handlePrefContact(data); } // 府県サブドメイン
   return handleContact(data);                                        // 主サイト（府県プルダウン）
@@ -217,7 +226,9 @@ function saveContact(data) {
 
 // ============================ 4) 認証（M列/N列） ============================
 
-function getAuthPassword(site) {
+// 平文PWの取得は secret 必須（＝サーバー間のみ）。公開ブラウザからは取得不可。
+function getAuthPassword(site, secret) {
+  if (!getSecret() || String(secret || '') !== getSecret()) return json({ error: 'forbidden' });
   site = String(site || '').toLowerCase().trim();
   var pw = null, build = null;
   if (site) {
@@ -236,6 +247,63 @@ function getAuthPassword(site) {
     }
   }
   return json({ password: pw, build: build });
+}
+
+// ============================ 5) パスワード双方向同期 ============================
+
+// スプレッドシートを開いた時のメニュー
+function onOpen() {
+  SpreadsheetApp.getUi().createMenu('🔐 パスワード管理')
+    .addItem('全サイトへ反映（シート→各サイト）', 'syncPasswords')
+    .addToUi();
+}
+
+// シート→全サイト：J列URLごとに M(管理)/N(構築) を各サイトの set_password.php へPOST
+function syncPasswords() {
+  var ui = SpreadsheetApp.getUi();
+  var secret = getSecret();
+  if (!secret) { ui.alert('AUTH_SECRET が未設定です（ファイル→プロジェクトのプロパティ→スクリプトのプロパティ）。'); return; }
+  var sh = sheet(), last = sh.getLastRow();
+  if (last < 3) { ui.alert('対象行がありません。'); return; }
+  var rows = sh.getRange(3, 10, last - 2, 5).getValues(); // J〜N
+  var ok = 0, fail = 0, log = [];
+  for (var i = 0; i < rows.length; i++) {
+    var host = hostOf(rows[i][0]); // 例 kochi.jdsf-seibu.com / jdsf-seibu.com
+    if (!host) continue;
+    var url = 'https://' + host + '/api/set_password.php';
+    var pairs = [['admin', String(rows[i][3]).trim()], ['build', String(rows[i][4]).trim()]];
+    for (var k = 0; k < pairs.length; k++) {
+      if (!pairs[k][1]) continue;
+      try {
+        var res = UrlFetchApp.fetch(url, { method: 'post', muteHttpExceptions: true,
+          payload: { master: secret, role: pairs[k][0], 'new': pairs[k][1] } });
+        var body = res.getContentText();
+        if (res.getResponseCode() === 200 && body.indexOf('"ok":true') >= 0) ok++;
+        else { fail++; log.push(host + ' ' + pairs[k][0] + ': ' + res.getResponseCode() + ' ' + body.slice(0, 60)); }
+      } catch (e) { fail++; log.push(host + ' ' + pairs[k][0] + ': ' + e); }
+    }
+  }
+  ui.alert('パスワード反映 完了\n成功 ' + ok + ' / 失敗 ' + fail + (log.length ? '\n\n' + log.join('\n') : ''));
+}
+
+// サイト→シート：担当者がセルフ変更した新PWを、該当サイト行の M/N に書き戻す（secret必須）
+function setSheetPassword(data) {
+  if (!getSecret() || String(data.secret || '') !== getSecret()) return json({ error: 'forbidden' });
+  var site = String(data.site || '').toLowerCase().trim();
+  var role = (data.role === 'build') ? 'build' : 'admin';
+  var pw = String(data.password || '');
+  if (!site || pw === '') return json({ error: 'bad request' });
+  var sh = sheet(), last = sh.getLastRow();
+  if (last < 3) return json({ error: 'no rows' });
+  var rows = sh.getRange(3, 10, last - 2, 5).getValues(); // J〜N
+  for (var i = 0; i < rows.length; i++) {
+    var sub = hostOf(rows[i][0]).split('.')[0];
+    if (sub && sub === site) {
+      sh.getRange(3 + i, (role === 'build') ? 14 : 13).setValue(pw); // N or M
+      return json({ ok: true });
+    }
+  }
+  return json({ error: 'site not found' });
 }
 
 // ============================ 自動返信（送信者控え） ============================
