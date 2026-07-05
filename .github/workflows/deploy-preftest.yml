@@ -31,3 +31,18 @@ jobs:
                   preftest/ \
                   /jdsf-seibu.com/public_html/preftest.jdsf-seibu.com/; \
                 quit"
+
+      # 認証マスター秘密を data/auth_secret.php としてサーバーへ配置（ブラウザにもGitにも出さない）
+      - name: Write auth master secret
+        env:
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+          AUTH_MASTER_SECRET: ${{ secrets.AUTH_MASTER_SECRET }}
+        run: |
+          mkdir -p _secret
+          printf '<?php return %s;\n' "'$AUTH_MASTER_SECRET'" > _secret/auth_secret.php
+          lftp -u "jdsfseibu,$FTP_PASS" ftp://sv16504.xserver.jp \
+            -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; set net:timeout 30; set cmd:fail-exit no; \
+                mkdir -p /jdsf-seibu.com/public_html/preftest.jdsf-seibu.com/data; \
+                put _secret/auth_secret.php -o /jdsf-seibu.com/public_html/preftest.jdsf-seibu.com/data/auth_secret.php; \
+                quit"
+          rm -rf _secret

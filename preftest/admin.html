@@ -158,7 +158,10 @@
         <p class="page-hero-desc">テストダンススポーツ連盟 — コンテンツ管理ポータル</p>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;">
-        <button class="logout-btn" onclick="doLogout()">🔓 ログアウト</button>
+        <div style="display:flex;gap:8px;">
+          <button onclick="openPwModal()" style="padding:7px 14px;background:#fff;color:var(--primary);border:1.5px solid var(--border);border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap;">🔑 パスワード変更</button>
+          <button class="logout-btn" onclick="doLogout()">🔓 ログアウト</button>
+        </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
           <a href="manual.html" target="_blank" rel="noopener"
              style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:#fff;color:var(--primary);border-radius:8px;font-size:.85rem;font-weight:700;text-decoration:none;box-shadow:0 1px 5px rgba(0,0,0,.18);white-space:nowrap;">📖 操作マニュアル</a>
@@ -583,64 +586,93 @@
   </div>
 </div>
 
+<div id="pw-modal" class="modal-overlay" onclick="if(event.target===this)closePwModal()">
+  <div class="modal-box" style="max-width:420px;">
+    <button class="modal-close" onclick="closePwModal()">✕</button>
+    <h3 style="font-size:1rem;font-weight:700;color:var(--primary);margin:0 0 6px;">🔑 管理パスワードの変更</h3>
+    <p style="font-size:.8rem;color:var(--text-light);margin:0 0 16px;">この府県の「サイト管理」パスワードを変更します（他府県には影響しません）。</p>
+    <div style="display:grid;gap:12px;">
+      <div><label class="form-label">現在のパスワード</label>
+        <input type="password" id="cpw-current" class="form-input" autocomplete="current-password"></div>
+      <div><label class="form-label">新しいパスワード（8文字以上）</label>
+        <input type="password" id="cpw-new" class="form-input" autocomplete="new-password"></div>
+      <div><label class="form-label">新しいパスワード（確認）</label>
+        <input type="password" id="cpw-new2" class="form-input" autocomplete="new-password"></div>
+      <div id="cpw-msg" style="display:none;font-size:.85rem;"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button onclick="closePwModal()" style="padding:9px 20px;background:none;border:1.5px solid var(--border);border-radius:8px;font-size:.85rem;cursor:pointer;color:var(--text-light);">キャンセル</button>
+        <button onclick="changeMyPassword()" style="padding:9px 24px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;">変更する →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 (function () {
   'use strict';
 
-  /* ===== 認証 ===== */
-  /* 管理画面パスワードはスプレッドシート「HP用資料」M列で管理（府県別・自由に変更可）。
-     ログイン時にGAS経由で、このサイト(サブドメイン)に対応する行のM列値を取得して照合する。
-     GAS不通時のみ サブドメイン名+'2026'（例 osaka2026）にフォールバック。 */
-  var GAS_AUTH_URL = 'https://script.google.com/macros/s/AKfycbxS07Mxs6TZHdq0aGTay547EfIrN5igaJ527EaWl-O-RgHv7VHMllszJyMkI30qRU3A/exec';
-  var _sub = (function(){
-    var h = (location.hostname || '').toLowerCase(), s = h.split('.')[0];
-    return (h.indexOf('.') === -1 || !s || s === 'jdsf-seibu' || s === 'www' || s === 'localhost') ? '' : s;
+  /* ===== 認証（サーバー側セッション）=====
+     パスワードは api/login.php でサーバー側照合（ブラウザに渡さない）。
+     書き込みAPIはセッションCookie＋CSRFトークンで保護。
+     TOKEN は公開の読み取りproxy（fetch_sheet 等）用にのみ残置。 */
+  var ROLE  = 'admin';
+  var TOKEN = 'preftest2026';
+  window.__CSRF = '';
+
+  /* すべての api/ への POST に CSRFヘッダを自動付与（各fetchを個別に直さない） */
+  (function(){
+    var _f = window.fetch;
+    window.fetch = function(url, opts){
+      opts = opts || {};
+      try {
+        if (typeof url === 'string' && url.indexOf('api/') !== -1 && String(opts.method||'').toUpperCase() === 'POST') {
+          opts.headers = opts.headers || {};
+          if (!('X-CSRF-Token' in opts.headers) && !('x-csrf-token' in opts.headers)) opts.headers['X-CSRF-Token'] = window.__CSRF || '';
+        }
+      } catch(e){}
+      return _f.call(this, url, opts);
+    };
   })();
-  var FALLBACK_PW = _sub ? _sub + '2026' : 'admin2026';
-  function fetchPassword(cb){
-    if (!_sub) { cb(FALLBACK_PW); return; }
-    fetch(GAS_AUTH_URL + '?action=auth&site=' + encodeURIComponent(_sub) + '&_=' + Date.now())
-      .then(function(r){ return r.json(); })
-      .then(function(d){ cb(d && d.password ? String(d.password) : FALLBACK_PW); })
-      .catch(function(){ cb(FALLBACK_PW); });
-  }
-  var SESSION_KEY = 'preftest_admin_auth';
-  var EXPIRE_DAYS = 3;
-  var TOKEN       = 'preftest2026'; // PHP API 共通トークン
 
   var loginScreen   = document.getElementById('login-screen');
   var contentScreen = document.getElementById('content-screen');
   var pwInput       = document.getElementById('pw-input');
   var loginError    = document.getElementById('login-error');
 
-  function isAuthenticated() {
-    try {
-      var raw = localStorage.getItem(SESSION_KEY);
-      if (!raw) return false;
-      var data = JSON.parse(raw);
-      if (Date.now() - data.ts < EXPIRE_DAYS * 24 * 60 * 60 * 1000) return true;
-    } catch(e) {}
-    localStorage.removeItem(SESSION_KEY);
-    return false;
-  }
-  if (isAuthenticated()) showContent();
+  /* ロード時にセッション状態を確認（Cookieが有効なら自動でコンテンツ表示） */
+  fetch('api/session-status.php')
+    .then(function(r){ return r.json(); })
+    .then(function(d){ window.__CSRF = (d && d.csrf) || ''; if (d && d.admin) showContent(); })
+    .catch(function(){});
 
   if (pwInput) pwInput.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
 
   function doLogin() {
     var val = pwInput ? pwInput.value : '';
-    fetchPassword(function(pw){
-      if (val === pw) {
-        localStorage.setItem(SESSION_KEY, JSON.stringify({ ts: Date.now() }));
-        showContent();
-      } else {
-        loginError.style.display = 'block';
-        if (pwInput) { pwInput.classList.add('error'); pwInput.value=''; pwInput.focus(); }
-      }
-    });
+    var fd = new FormData(); fd.append('role', ROLE); fd.append('password', val);
+    fetch('api/login.php', {method:'POST', body:fd})
+      .then(function(r){ return r.json().then(function(j){ return {status:r.status, j:j}; }); })
+      .then(function(res){
+        if (res.j && res.j.ok) {
+          window.__CSRF = res.j.csrf || '';
+          if (pwInput) pwInput.value = '';
+          loginError.style.display = 'none';
+          showContent();
+        } else if (res.j && res.j.error === 'locked') {
+          loginError.textContent = '試行回数が多すぎます。約' + Math.ceil((res.j.retry||300)/60) + '分後に再度お試しください。';
+          loginError.style.display = 'block';
+        } else {
+          loginError.textContent = 'パスワードが正しくありません。';
+          loginError.style.display = 'block';
+          if (pwInput) { pwInput.classList.add('error'); pwInput.value=''; pwInput.focus(); }
+        }
+      })
+      .catch(function(){ loginError.textContent = '通信エラーが発生しました。'; loginError.style.display = 'block'; });
   }
   function doLogout() {
-    localStorage.removeItem(SESSION_KEY);
+    var fd = new FormData(); fd.append('role', ROLE);
+    fetch('api/logout.php', {method:'POST', body:fd}).catch(function(){});
+    window.__CSRF = '';
     contentScreen.style.display = 'none';
     loginScreen.style.display   = 'flex';
     if (pwInput) { pwInput.value=''; pwInput.classList.remove('error'); }
@@ -656,6 +688,27 @@
     loadTopPageSettings();
     loadContactHero();
   }
+
+  /* ===== パスワード変更（この府県の管理PWのみ） ===== */
+  function changeMyPassword() {
+    var cur = document.getElementById('cpw-current'), nw = document.getElementById('cpw-new'), nw2 = document.getElementById('cpw-new2'), msg = document.getElementById('cpw-msg');
+    function show(t, err){ msg.style.display='block'; msg.style.color = err ? '#C53030' : '#276749'; msg.textContent = t; }
+    if (!nw.value || nw.value.length < 8) return show('新しいパスワードは8文字以上にしてください。', true);
+    if (nw.value !== nw2.value)          return show('新しいパスワード（確認）が一致しません。', true);
+    var fd = new FormData(); fd.append('role', ROLE); fd.append('current', cur.value); fd.append('new', nw.value);
+    fetch('api/change_password.php', {method:'POST', body:fd})
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if (res && res.ok) { show('✅ パスワードを変更しました。', false); cur.value=nw.value=nw2.value=''; }
+        else show('⚠ ' + ((res && res.error) || '変更に失敗しました'), true);
+      })
+      .catch(function(){ show('⚠ 通信エラー', true); });
+  }
+  function openPwModal(){ var m=document.getElementById('pw-msg'); var e=document.getElementById('cpw-msg'); if(e)e.style.display='none'; ['cpw-current','cpw-new','cpw-new2'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';}); document.getElementById('pw-modal').style.display='flex'; document.body.style.overflow='hidden'; }
+  function closePwModal(){ document.getElementById('pw-modal').style.display='none'; document.body.style.overflow=''; }
+  window.changeMyPassword = changeMyPassword;
+  window.openPwModal = openPwModal;
+  window.closePwModal = closePwModal;
 
   /* ===== トップページ ページ設定 ===== */
   function loadTopPageSettings() {

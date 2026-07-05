@@ -8,17 +8,10 @@
  */
 header('Content-Type: application/json; charset=utf-8');
 
-$token = $_POST['token'] ?? $_GET['token'] ?? '';
-if ($token !== 'preftest2026') {
-    http_response_code(403);
-    echo json_encode(['error' => 'Forbidden'], JSON_UNESCAPED_UNICODE);
-    exit;
-}
-
 $keyfile = dirname(__DIR__) . '/data/gemini_key.php';
 $action  = $_POST['action'] ?? $_GET['action'] ?? 'save';
 
-if ($action === 'status') {
+if ($action === 'status') {   // 有無のみ返す（秘密は返さない）。ログイン不要。
     $has = false;
     if (is_file($keyfile)) { $k = @include $keyfile; $has = is_string($k) && $k !== ''; }
     // 主サイトの共通キーの有無も確認（サーバー間・共有シークレット）
@@ -40,7 +33,8 @@ if ($action === 'status') {
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); exit; }
+require __DIR__ . '/_auth.php';
+require_auth('admin');   // 保存/削除はログイン必須
 
 if ($action === 'delete') {
     if (is_file($keyfile)) @unlink($keyfile);
