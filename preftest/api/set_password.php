@@ -11,7 +11,9 @@ if ($ms === null || $given === '' || !hash_equals($ms, $given)) json_out(['error
 
 $role = (($_POST['role'] ?? '') === 'build') ? 'build' : 'admin';
 $new  = (string)($_POST['new'] ?? '');
-if (mb_strlen($new) < 8) json_out(['error' => 'パスワードは8文字以上にしてください'], 400);
+// マスター(ブロック事務局)による設定/リセット/現行PW継承用。空だけ拒否＝短い現行PWも保持可。
+// 担当者のセルフ変更(change_password.php)は別途8文字以上を強制。
+if ($new === '') json_out(['error' => 'パスワードを入力してください'], 400);
 
 $auth = load_auth();
 $auth[$role] = password_hash($new, PASSWORD_DEFAULT);

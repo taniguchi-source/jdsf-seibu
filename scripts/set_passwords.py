@@ -86,6 +86,7 @@ def main():
     ap.add_argument("--admin", help="管理(admin)パスワード")
     ap.add_argument("--build", help="構築(build)パスワード")
     ap.add_argument("--inherit", action="store_true", help="現行GASから現在のPWを取得して継承（--admin/--build不要）")
+    ap.add_argument("--allow-short", action="store_true", help="8文字未満のPWも許可（現行の短いPWをそのまま保持したい時）")
     args = ap.parse_args()
 
     base = args.base or (f"https://{args.sub}.jdsf-seibu.com" if args.sub else None)
@@ -96,7 +97,7 @@ def main():
         sub = args.sub or urllib.parse.urlparse(base).hostname.split(".")[0]
         a, b = fetch_current_pw(sub)
         def ok8(pw, role):
-            if len(pw) < 8:
+            if not args.allow_short and len(pw) < 8:
                 print(f"  ⚠ {role} の現行PWが8文字未満 → {sub}2026 に設定（担当者へ連絡要）")
                 return sub + "2026"
             return pw
@@ -106,9 +107,10 @@ def main():
 
     if not args.admin and not args.build:
         sys.exit("--admin / --build か --inherit を指定してください。")
-    for pw in (args.admin, args.build):
-        if pw is not None and len(pw) < 8:
-            sys.exit("パスワードは8文字以上にしてください。")
+    if not args.allow_short:
+        for pw in (args.admin, args.build):
+            if pw is not None and len(pw) < 8:
+                sys.exit("パスワードは8文字以上にしてください（現行の短いPWを保持するなら --allow-short）。")
 
     secret = master_secret()
     print(f"対象: {base}")
