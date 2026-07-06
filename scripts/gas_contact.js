@@ -5,13 +5,13 @@
  * 【このコードでできること】
  *  1) 主サイト(jdsf-seibu.com)のお問い合わせフォーム … 府県プルダウンで選んだ府県へ送信（G/H/I列）
  *  2) 府県サブドメインのお問い合わせフォーム        … サイトURLで宛先を自動判定して送信（Q〜V列）
- *  3) サイト構築(site-config)からの宛先編集         … Q〜V列(R/S/T/U)を保存
+ *  3) サイト構築(site-config)からの宛先編集         … Q〜X列(R/S/T/U/W/X)を保存
  *  4) ログイン認証                                   … J列URLで判定し M列(管理PW)/N列(構築PW)を返す
  *
  * 【スプレッドシート「HP用資料」の列対応】
  *   G=府県名  H=メール   I=担当者            … 主サイトの府県プルダウン用（従来どおり）
  *   J=サイトURL  K=slug  L=年度  M=管理PW  N=構築PW … 認証用（従来どおり）
- *   Q=府県名  R=送信先メール(To)  S=担当者名  T=CC①  U=CC②  V=サイトURL … 府県サブドメイン用（新）
+ *   Q=府県名  R=送信先メール(To)  S=担当者名  T=CC①  U=CC②  V=サイトURL  W=社名  X=自動返信文 … 府県サブドメイン用（新）
  *
  * 【再デプロイの注意】URLを変えないため、必ず
  *   「デプロイ」→「デプロイを管理」→ 既存を選び ✏️ →「新バージョン」→「デプロイ」
@@ -20,7 +20,7 @@
 
 // ★私用シート（非公開）へ切り替える時は、この SHEET_ID を新しいシートのIDに変更してください。
 //   （新シートは「HP用資料」を丸ごとコピーし、共有は自分のみ＝非公開に。列構成は同じ）
-var SHEET_ID   = '1fpEa8jiIk9hUKyDOp4yWvBKaoPek-LsF2SPhDRTFX0g';
+var SHEET_ID   = '1VPGOGFK39F0UayyPnohdv39gtBFk0v14cQVovA8dXfU';
 var SHEET_NAME = 'HP用資料';
 
 // パスワード同期・書き戻し用のマスター秘密（スクリプトのプロパティ AUTH_SECRET に設定）。
@@ -251,11 +251,24 @@ function getAuthPassword(site, secret) {
 
 // ============================ 5) パスワード双方向同期 ============================
 
-// スプレッドシートを開いた時のメニュー
+// スプレッドシートを開いた時のメニュー。
+// ※このGASは standalone（シート非紐付け）のため simple onOpen は自動起動しません。
+//   新・非公開シートでこのメニューを出すには、エディタで installMenu を1回だけ実行してください。
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('🔐 パスワード管理')
     .addItem('全サイトへ反映（シート→各サイト）', 'syncPasswords')
     .addToUi();
+}
+
+// 【一度だけ実行】新・非公開シート(SHEET_ID)を開いた時にメニューを出すインストール型トリガーを設定。
+//  standalone GAS では simple onOpen が動かないため、これで代替する。SHEET_ID 変更後に実行すること。
+function installMenu() {
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'onOpen') ScriptApp.deleteTrigger(triggers[i]); // 重複防止
+  }
+  ScriptApp.newTrigger('onOpen').forSpreadsheet(SHEET_ID).onOpen().create();
+  SpreadsheetApp.openById(SHEET_ID).toast('パスワード管理メニューを設定しました。シートを再読み込みしてください。');
 }
 
 // シート→全サイト：J列URLごとに M(管理)/N(構築) を各サイトの set_password.php へPOST
