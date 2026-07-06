@@ -140,10 +140,15 @@
   <div id="pw-modal" onclick="if(event.target===this)closePwModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;padding:16px;">
     <div style="background:#fff;border-radius:12px;padding:24px;max-width:420px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.3);position:relative;">
       <button onclick="closePwModal()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:1.1rem;cursor:pointer;color:#94A3B8;">✕</button>
-      <h3 style="font-size:1rem;font-weight:700;color:var(--primary);margin:0 0 6px;">🔑 サイト構築パスワードの変更</h3>
-      <p style="font-size:.8rem;color:var(--text-light);margin:0 0 16px;">この府県の「サイト構築」パスワードを変更します（他府県には影響しません）。</p>
+      <h3 style="font-size:1rem;font-weight:700;color:var(--primary);margin:0 0 6px;">🔑 パスワードの変更</h3>
+      <p style="font-size:.8rem;color:var(--text-light);margin:0 0 12px;">この府県のパスワードを変更します（他府県には影響しません）。まず<b>変更するパスワード</b>を選び、その<b>現在の値</b>と新しい値を入力してください。</p>
+      <div style="margin:0 0 14px;padding:10px 12px;background:var(--bg-light,#f4f6fa);border-radius:8px;">
+        <div style="font-size:.8rem;font-weight:700;color:var(--text-dark);margin-bottom:6px;">変更するパスワード</div>
+        <label style="display:inline-flex;align-items:center;gap:5px;font-size:.85rem;margin-right:16px;cursor:pointer;"><input type="radio" name="cpw-role" value="admin"> サイト管理用</label>
+        <label style="display:inline-flex;align-items:center;gap:5px;font-size:.85rem;cursor:pointer;"><input type="radio" name="cpw-role" value="build" checked> サイト構築ページ用</label>
+      </div>
       <div style="display:grid;gap:12px;">
-        <div><label style="font-size:.8rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:4px;">現在のパスワード</label>
+        <div><label style="font-size:.8rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:4px;">現在のパスワード（上で選んだ方）</label>
           <input type="password" id="cpw-current" autocomplete="current-password" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.9rem;box-sizing:border-box;"></div>
         <div><label style="font-size:.8rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:4px;">新しいパスワード（8文字以上）</label>
           <input type="password" id="cpw-new" autocomplete="new-password" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.9rem;box-sizing:border-box;"></div>
@@ -505,13 +510,15 @@
     function show(t, err){ msg.style.display='block'; msg.style.color = err ? '#C53030' : '#276749'; msg.textContent = t; }
     if (!nw.value || nw.value.length < 8) return show('新しいパスワードは8文字以上にしてください。', true);
     if (nw.value !== nw2.value)          return show('新しいパスワード（確認）が一致しません。', true);
-    var fd = new FormData(); fd.append('role', ROLE); fd.append('current', cur.value); fd.append('new', nw.value);
+    var rSel = document.querySelector('input[name="cpw-role"]:checked');
+    var role = rSel ? rSel.value : 'build';
+    var fd = new FormData(); fd.append('role', role); fd.append('current', cur.value); fd.append('new', nw.value);
     fetch('api/change_password.php', {method:'POST', body:fd})
       .then(function(r){ return r.json(); })
       .then(function(res){ if (res && res.ok) { show('✅ パスワードを変更しました。', false); cur.value=nw.value=nw2.value=''; } else show('⚠ ' + ((res && res.error) || '変更に失敗しました'), true); })
       .catch(function(){ show('⚠ 通信エラー', true); });
   }
-  function openPwModal(){ var e=document.getElementById('cpw-msg'); if(e)e.style.display='none'; ['cpw-current','cpw-new','cpw-new2'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';}); document.getElementById('pw-modal').style.display='flex'; document.body.style.overflow='hidden'; }
+  function openPwModal(){ var e=document.getElementById('cpw-msg'); if(e)e.style.display='none'; ['cpw-current','cpw-new','cpw-new2'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';}); var rb=document.querySelector('input[name="cpw-role"][value="build"]'); if(rb)rb.checked=true; document.getElementById('pw-modal').style.display='flex'; document.body.style.overflow='hidden'; }
   function closePwModal(){ document.getElementById('pw-modal').style.display='none'; document.body.style.overflow=''; }
   window.changeMyPassword = changeMyPassword;
   window.openPwModal = openPwModal;

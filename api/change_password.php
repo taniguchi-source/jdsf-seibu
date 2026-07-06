@@ -3,7 +3,15 @@
    現PW確認 → 新PWをハッシュ化して自サイトの data/auth.php を更新。 */
 require __DIR__ . '/_auth.php';
 $role = (($_POST['role'] ?? '') === 'build') ? 'build' : 'admin';
-require_auth($role);   // POST + 同一オリジン + CSRF + 該当ロールのセッション
+
+/* PW変更はサイト構築(build)ページに集約。build セッションがあれば admin(役員)/build どちらのPWも
+   変更できる（変更には対象PWの「現在の値」が必須＝実質のゲート）。従来どおり対象ロール自身の
+   セッションでも可。POST + 同一オリジン + CSRF は必須。 */
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST')   json_out(['error' => 'Method Not Allowed'], 405);
+if (!same_origin_ok())                               json_out(['error' => 'Bad Origin'], 403);
+$csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? ($_POST['csrf'] ?? '');
+if (empty($_SESSION['csrf']) || !hash_equals($_SESSION['csrf'], (string)$csrf)) json_out(['error' => 'CSRF'], 403);
+if (empty($_SESSION['auth']['build']) && empty($_SESSION['auth'][$role]))        json_out(['error' => 'Forbidden'], 403);
 
 $cur = (string)($_POST['current'] ?? '');
 $new = (string)($_POST['new'] ?? '');
