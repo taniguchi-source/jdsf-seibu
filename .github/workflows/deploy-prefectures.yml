@@ -32,6 +32,9 @@ jobs:
     name: Deploy ${{ matrix.sub }}
     strategy:
       fail-fast: false
+      # XServerのSSH同時接続制限で kex_exchange_identification: Connection reset
+      # が起きるため、同時実行数を絞る（15並列→3並列）。全府県でも数分で完了する。
+      max-parallel: 3
       matrix:
         sub:
           - hiroshima
