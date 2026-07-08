@@ -1,3 +1,6 @@
+# preftest.jdsf-seibu.com への配信（SSH/rsync）
+# ※2026-07 のFTP不正アクセス疑い/パスワード変更を受け、FTP(lftp)から SSH へ移行。
+#   deploy-prod.yml と同じ SSH デプロイ鍵（Secret: SSH_PRIVATE_KEY_B64）を使用。
 name: Deploy preftest to XServer
 
 on:
@@ -15,34 +18,35 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Install lftp
-        run: sudo apt-get install -y lftp
-
-      - name: Deploy preftest/ to XServer
-        env:
-          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+      - name: Setup SSH key
         run: |
-          lftp -u "jdsfseibu,$FTP_PASS" ftp://sv16504.xserver.jp \
-            -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; \
-                set net:timeout 30; set net:max-retries 3; \
-                mirror -R --delete \
-                  --exclude '^data/' \
-                  --exclude '^uploads/' \
-                  preftest/ \
-                  /jdsf-seibu.com/public_html/preftest.jdsf-seibu.com/; \
-                quit"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY_B64 }}" | base64 -d > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p 10022 sv16504.xserver.jp >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy preftest/ via rsync over SSH
+        run: |
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/deploy_key -p 10022 -o StrictHostKeyChecking=no" \
+            --exclude='data/' \
+            --exclude='uploads/' \
+            preftest/ \
+            jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/preftest.jdsf-seibu.com/
 
       # 認証マスター秘密を data/auth_secret.php としてサーバーへ配置（ブラウザにもGitにも出さない）
       - name: Write auth master secret
         env:
-          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
           AUTH_MASTER_SECRET: ${{ secrets.AUTH_MASTER_SECRET }}
         run: |
-          mkdir -p _secret
-          printf '<?php return %s;\n' "'$AUTH_MASTER_SECRET'" > _secret/auth_secret.php
-          lftp -u "jdsfseibu,$FTP_PASS" ftp://sv16504.xserver.jp \
-            -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; set net:timeout 30; set cmd:fail-exit no; \
-                mkdir -p /jdsf-seibu.com/public_html/preftest.jdsf-seibu.com/data; \
-                put _secret/auth_secret.php -o /jdsf-seibu.com/public_html/preftest.jdsf-seibu.com/data/auth_secret.php; \
-                quit"
-          rm -rf _secret
+          ssh -i ~/.ssh/deploy_key -p 10022 -o StrictHostKeyChecking=no jdsfseibu@sv16504.xserver.jp \
+            "mkdir -p /home/jdsfseibu/jdsf-seibu.com/public_html/preftest.jdsf-seibu.com/data"
+          printf '<?php return %s;\n' "'$AUTH_MASTER_SECRET'" > auth_secret.php
+          scp -i ~/.ssh/deploy_key -P 10022 -o StrictHostKeyChecking=no \
+            auth_secret.php \
+            jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/preftest.jdsf-seibu.com/data/auth_secret.php
+          rm -f auth_secret.php
+
+      - name: Cleanup
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

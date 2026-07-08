@@ -1,8 +1,12 @@
-# 府県連盟サイト 一括デプロイ（共通コード方式）
+# 府県連盟サイト 一括デプロイ（共通コード方式・SSH/rsync）
 #
 # preftest/ の管理システム一式を、各府県サブドメインへそのまま配信する。
 # 全府県が同一コードを共有し、府県ごとの違い（連盟名・テーマ色・コンテンツ・
 # カルーセル画像）はサーバー側 data/・uploads/（管理画面で編集）で持つ。
+#
+# ■ 配信方式: SSH(rsync)。deploy-prod.yml と同じ SSH デプロイ鍵
+#   （Secret: SSH_PRIVATE_KEY_B64）を使用。FTPパスワードは不要。
+#   ※2026-07 のFTP不正アクセス疑い/パスワード変更を受け、FTP(lftp)から移行。
 #
 # ■ 府県を追加するには:  下の matrix.sub に <サブドメイン名> を1行足すだけ。
 # ■ 実行は手動のみ（テスト中の変更が本番府県へ自動波及しないようにするため）:
@@ -61,9 +65,13 @@ jobs:
             echo "⏭  $SUB は only='$ONLY' に含まれないためスキップ"
           fi
 
-      - name: Install lftp
+      - name: Setup SSH key
         if: steps.gate.outputs.go == 'true'
-        run: sudo apt-get install -y lftp
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY_B64 }}" | base64 -d > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p 10022 sv16504.xserver.jp >> ~/.ssh/known_hosts 2>/dev/null
 
       # LINE等のリンクプレビュー対策：クローラはJSを実行せず生HTMLを読むため、
       # 配信直前に各府県の正式名称を <title>/<meta>/OGP へ焼き込む。
@@ -88,46 +96,36 @@ jobs:
           done
           echo "✅ $SUB: 焼き込み完了（生HTMLに実名が入りLINEプレビューが正しくなります）"
 
-      - name: Deploy preftest/ to ${{ matrix.sub }}.jdsf-seibu.com
+      - name: Deploy preftest/ to ${{ matrix.sub }}.jdsf-seibu.com (rsync over SSH)
         if: steps.gate.outputs.go == 'true'
-        env:
-          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
         run: |
-          lftp -u "jdsfseibu,$FTP_PASS" ftp://sv16504.xserver.jp \
-            -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; \
-                set net:timeout 60; set net:max-retries 5; set net:reconnect-interval-base 5; \
-                set xfer:clobber on; set cmd:fail-exit yes; \
-                mirror -R --delete --verbose=1 \
-                  --exclude '^data/' \
-                  --exclude '^uploads/' \
-                  preftest/ \
-                  /jdsf-seibu.com/public_html/${{ matrix.sub }}.jdsf-seibu.com/; \
-                quit"
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/deploy_key -p 10022 -o StrictHostKeyChecking=no" \
+            --exclude='data/' \
+            --exclude='uploads/' \
+            preftest/ \
+            jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/${{ matrix.sub }}.jdsf-seibu.com/
 
       - name: Ensure data/ and uploads/ directories exist (PHP write targets)
         if: steps.gate.outputs.go == 'true'
-        env:
-          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
         run: |
-          lftp -u "jdsfseibu,$FTP_PASS" ftp://sv16504.xserver.jp \
-            -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; \
-                set net:timeout 30; set cmd:fail-exit no; \
-                mkdir -p /jdsf-seibu.com/public_html/${{ matrix.sub }}.jdsf-seibu.com/data; \
-                mkdir -p /jdsf-seibu.com/public_html/${{ matrix.sub }}.jdsf-seibu.com/uploads; \
-                mkdir -p /jdsf-seibu.com/public_html/${{ matrix.sub }}.jdsf-seibu.com/uploads/slides; \
-                quit" || true
+          ssh -i ~/.ssh/deploy_key -p 10022 -o StrictHostKeyChecking=no jdsfseibu@sv16504.xserver.jp \
+            "mkdir -p /home/jdsfseibu/jdsf-seibu.com/public_html/${{ matrix.sub }}.jdsf-seibu.com/data \
+                     /home/jdsfseibu/jdsf-seibu.com/public_html/${{ matrix.sub }}.jdsf-seibu.com/uploads \
+                     /home/jdsfseibu/jdsf-seibu.com/public_html/${{ matrix.sub }}.jdsf-seibu.com/uploads/slides"
 
       # 認証マスター秘密を各府県の data/auth_secret.php へ配置（ブラウザにもGitにも出さない）
       - name: Write auth master secret
         if: steps.gate.outputs.go == 'true'
         env:
-          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
           AUTH_MASTER_SECRET: ${{ secrets.AUTH_MASTER_SECRET }}
         run: |
-          mkdir -p _secret
-          printf '<?php return %s;\n' "'$AUTH_MASTER_SECRET'" > _secret/auth_secret.php
-          lftp -u "jdsfseibu,$FTP_PASS" ftp://sv16504.xserver.jp \
-            -e "set ftp:ssl-allow yes; set ssl:verify-certificate no; set net:timeout 30; set cmd:fail-exit yes; \
-                put _secret/auth_secret.php -o /jdsf-seibu.com/public_html/${{ matrix.sub }}.jdsf-seibu.com/data/auth_secret.php; \
-                quit"
-          rm -rf _secret
+          printf '<?php return %s;\n' "'$AUTH_MASTER_SECRET'" > auth_secret.php
+          scp -i ~/.ssh/deploy_key -P 10022 -o StrictHostKeyChecking=no \
+            auth_secret.php \
+            jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/${{ matrix.sub }}.jdsf-seibu.com/data/auth_secret.php
+          rm -f auth_secret.php
+
+      - name: Cleanup
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
