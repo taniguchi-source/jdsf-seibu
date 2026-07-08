@@ -2,3 +2,7 @@
 scripts/.tts_key
 
 scripts/.master_secret
+
+# 開発用ローカル設定（公開領域に配信しない）
+.claude/
+scripts/__pycache__/
