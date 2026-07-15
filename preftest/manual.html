@@ -166,6 +166,7 @@
       <li><a href="#quicklinks">クイックリンク</a></li>
       <li><a href="#hero">ヒーローの高さ・幅・矢印</a></li>
       <li><a href="#ticker">ニュースティッカー</a></li>
+      <li><a href="#sns">公式SNSリンク</a></li>
       <li><a href="#theme">配色テーマ</a></li>
       <li><a href="#contact-setup">お問い合わせ先の設定</a></li>
 
@@ -683,7 +684,7 @@
   <!-- ===== 12. ティッカー ===== -->
   <section class="doc" id="ticker">
     <h2><span class="chip">12</span> ニュースティッカー</h2>
-    <p class="desc"><span class="pill">📢 ニュースティッカー管理</span>：トップ上部で横に流れる赤い「NEW」付きの一行ニュースです。表示ON/OFFと文章を設定します。</p>
+    <p class="desc"><span class="pill">📢 ニュースティッカー管理</span>：トップ上部の赤い「NEW」付き一行ニュースです。表示ON/OFF・文章に加え、<b>横に流す（スクロール）か、折り返して表示するか</b>を選べます。</p>
     <figure class="fig">
       <svg viewBox="0 0 640 160" role="img" aria-label="ニュースティッカー">
         <!-- 実物イメージ -->
@@ -709,14 +710,42 @@
     </figure>
     <ol class="steps">
       <li><b>「ニュースティッカーを表示する」</b>のチェックで、バー全体の表示/非表示を切り替えます。</li>
+      <li><b>「横に流す（スクロール表示）」</b>にチェックすると、ニュースが横に流れます（マウスを乗せると一時停止）。<b>オフ（既定）</b>だと折り返して全文を表示します。長めのお知らせを目立たせたいときにオンにしましょう。</li>
       <li><b>本文</b>に流したい文章を入力します（空欄なら標準の文が表示されます）。</li>
       <li><b>「💾 ニュースティッカーを保存」</b>で反映します。</li>
     </ol>
   </section>
 
-  <!-- ===== 13. 配色 ===== -->
+  <!-- ===== 13. 公式SNSリンク ===== -->
+  <section class="doc" id="sns">
+    <h2><span class="chip">13</span> 公式SNSリンク</h2>
+    <p class="desc"><span class="pill">🔗 公式SNSリンク</span>：トップページのメインビジュアル（ヒーロー）に、公式SNS（Facebook・Instagram・LINE・YouTube）のアイコンリンクを表示できます。</p>
+    <figure class="fig">
+      <svg viewBox="0 0 640 210" role="img" aria-label="公式SNSリンクの設定">
+        <rect class="mk-card" x="14" y="14" width="612" height="182" rx="10"/>
+        <text class="mk-tb" x="34" y="40" font-size="13">🔗 公式SNSリンク（使うものだけ入力）</text>
+        <text class="mk-t" x="34" y="70" font-size="12">Facebook</text>
+        <rect class="mk-field" x="150" y="56" width="440" height="22" rx="6"/><text class="mk-tm" x="160" y="71" font-size="10">https://www.facebook.com/…</text>
+        <text class="mk-t" x="34" y="100" font-size="12">Instagram</text>
+        <rect class="mk-field" x="150" y="86" width="440" height="22" rx="6"/><text class="mk-tm" x="160" y="101" font-size="10">https://www.instagram.com/…</text>
+        <text class="mk-t" x="34" y="130" font-size="12">LINE</text>
+        <rect class="mk-field" x="150" y="116" width="440" height="22" rx="6"/><text class="mk-tm" x="160" y="131" font-size="10">https://lin.ee/…</text>
+        <text class="mk-t" x="34" y="160" font-size="12">YouTube</text>
+        <rect class="mk-field" x="150" y="146" width="440" height="22" rx="6"/><text class="mk-tm" x="160" y="161" font-size="10">https://www.youtube.com/@…</text>
+        <rect class="mk-btn" x="458" y="170" width="132" height="24" rx="6"/><text class="mk-tw" x="524" y="186" text-anchor="middle">💾 保存</text>
+      </svg>
+      <figcaption>サイト構築ページ「🔗 公式SNSリンク」の入力欄</figcaption>
+    </figure>
+    <ol class="steps">
+      <li>使いたいSNSの<b>URL</b>を、それぞれの欄（Facebook／Instagram／LINE／YouTube）に入力します。</li>
+      <li><b>「💾 SNSリンクを保存」</b>で反映します。トップページのヒーローにアイコンが表示されます。</li>
+    </ol>
+    <div class="tip">入力した<b>SNSだけ</b>アイコンが表示されます。使っていないSNSは<b>空欄のまま</b>でOK（そのアイコンは表示されません）。URLは <b>https:// から始まる</b>ものを入力してください。</div>
+  </section>
+
+  <!-- ===== 14. 配色 ===== -->
   <section class="doc" id="theme">
-    <h2><span class="chip">13</span> 配色テーマ</h2>
+    <h2><span class="chip">14</span> 配色テーマ</h2>
     <p class="desc"><span class="pill">🎨 配色テーマ変更</span>：サイト全体の色合いを、用意された10種類のテーマから選んで切り替えます。</p>
     <figure class="fig">
       <svg viewBox="0 0 640 120" role="img" aria-label="配色テーマ">
@@ -741,7 +770,7 @@
 
   <!-- ===== 14. お問い合わせ先の設定 ===== -->
   <section class="doc" id="contact-setup">
-    <h2><span class="chip">14</span> お問い合わせ先の設定</h2>
+    <h2><span class="chip">15</span> お問い合わせ先の設定</h2>
     <p class="desc"><span class="pill">📨 お問い合わせ先設定</span>：ホームページの「お問い合わせ」フォームから届いたメールを、<b>どこ（誰）に届けるか</b>を設定します。サイト構築画面の中にあります。</p>
 
     <div class="tip" style="margin-top:0;">まず<b>送信先メールアドレスを設定するだけ</b>で、お問い合わせフォームが使えるようになります（未設定の府県は「準備中」と表示されます）。</div>
@@ -822,7 +851,7 @@
 
   <!-- ===== 15. 広告バナー ===== -->
   <section class="doc" id="banner">
-    <h2><span class="chip">15</span> 広告バナー</h2>
+    <h2><span class="chip">16</span> 広告バナー</h2>
     <p class="desc"><span class="pill">📣 広告バナー管理</span>：トップページの<b>フッター直前</b>に、画像バナー（クリックでリンク）を最大<b>6枚</b>並べられます。協賛や告知などにお使いください。</p>
     <ol class="steps">
       <li><b>「＋ バナーを追加」</b>で枠を作り、<b>画像をアップロード</b>します（推奨：横長 600×150px 前後）。</li>
@@ -848,7 +877,7 @@
 
   <!-- ===== 15. FAQ ===== -->
   <section class="doc" id="faq">
-    <h2><span class="chip">16</span> よくある質問（Q&amp;A）</h2>
+    <h2><span class="chip">17</span> よくある質問（Q&amp;A）</h2>
     <h3 class="step-h">変更が反映されない</h3>
     <p>保存ボタンを押したか確認してください。それでも変わらない場合は、ブラウザを<b>強制リロード</b>します：パソコンは <span class="kbd">Ctrl + Shift + R</span>、スマホはページを下に引っぱって更新。</p>
     <h3 class="step-h">画像がアップロードできない</h3>
