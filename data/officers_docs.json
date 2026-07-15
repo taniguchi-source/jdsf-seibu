@@ -30,7 +30,7 @@
           "name": "西部ブロック委員会",
           "items": [
             {
-              "date": "第159〜168回",
+              "date": "第159〜169回",
               "title": "JDSF 西部ブロック委員会 AI議事録一覧",
               "url": "docs/meetings/minutes/西部ブロック委員会/index.html"
             }
@@ -53,6 +53,16 @@
               "date": "第1〜5回",
               "title": "グランプリin京都実行委員会 AI議事録一覧",
               "url": "docs/meetings/minutes/2026グランプリ実行委員会/index.html"
+            }
+          ]
+        },
+        {
+          "name": "西部ブロック幹部会",
+          "items": [
+            {
+              "date": "第41〜53回",
+              "title": "西部ブロック幹部会 AI議事録一覧",
+              "url": "docs/meetings/minutes/西部ブロック幹部会/index.html"
             }
           ]
         }
