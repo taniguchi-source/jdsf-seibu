@@ -41,6 +41,10 @@ if (isset($_POST['badge_enabled'])) {
 if (isset($_POST['ticker_enabled'])) {
     $data['ticker_enabled'] = ($_POST['ticker_enabled'] === '1' || $_POST['ticker_enabled'] === 'true' || $_POST['ticker_enabled'] === 1 || $_POST['ticker_enabled'] === true);
 }
+// ニュースティッカーを流す（横スクロール）ON/OFF（指定された場合のみ更新。既定＝流さない）
+if (isset($_POST['ticker_scroll'])) {
+    $data['ticker_scroll'] = ($_POST['ticker_scroll'] === '1' || $_POST['ticker_scroll'] === 'true' || $_POST['ticker_scroll'] === 1 || $_POST['ticker_scroll'] === true);
+}
 if (isset($_POST['ticker_text'])) {
     $data['ticker_text'] = mb_substr(trim((string)$_POST['ticker_text']), 0, 200);
 }

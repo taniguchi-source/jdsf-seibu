@@ -337,6 +337,10 @@
           <input type="checkbox" id="ticker-enabled-toggle" checked style="width:16px;height:16px;cursor:pointer;accent-color:var(--primary);">
           ニュースティッカーを表示する
         </label>
+        <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:.9rem;font-weight:700;color:var(--text-dark);margin-bottom:14px;margin-left:22px;">
+          <input type="checkbox" id="ticker-scroll-toggle" style="width:16px;height:16px;cursor:pointer;accent-color:var(--primary);">
+          横に流す（スクロール表示）
+        </label>
         <div style="font-size:.82rem;font-weight:700;color:var(--text-dark);margin-bottom:4px;">本文</div>
         <textarea id="ticker-text-input" rows="2" maxlength="200" placeholder="例：◯◯県ダンススポーツ連盟の公式サイトをリニューアルしました。各種情報をこちらよりご確認ください。"
           style="width:100%;padding:8px 12px;border:1.5px solid var(--border,#e2e8f0);border-radius:6px;font-size:.875rem;font-family:inherit;resize:vertical;box-sizing:border-box;outline:none;line-height:1.55;"></textarea>
@@ -1114,6 +1118,8 @@
         if (ar) ar.checked = !(data && data.arrows === false); // 既定（未設定）は表示ON
         var te = document.getElementById('ticker-enabled-toggle');
         if (te) te.checked = !(data && data.ticker_enabled === false); // 既定は表示ON
+        var ts = document.getElementById('ticker-scroll-toggle');
+        if (ts) ts.checked = !!(data && data.ticker_scroll === true); // 既定は流さない
         var bd = document.getElementById('hero-badge-toggle');
         if (bd) bd.checked = !(data && data.badge_enabled === false); // 既定は表示ON
         var tt = document.getElementById('ticker-text-input');
@@ -1252,10 +1258,12 @@
   function saveTicker() {
     var msgEl = document.getElementById('ticker-msg');
     var on = document.getElementById('ticker-enabled-toggle').checked;
+    var scrollOn = document.getElementById('ticker-scroll-toggle').checked;
     var txt = document.getElementById('ticker-text-input').value;
     var fd = new FormData();
     fd.append('token', TOKEN);
     fd.append('ticker_enabled', on ? '1' : '0');
+    fd.append('ticker_scroll', scrollOn ? '1' : '0');
     fd.append('ticker_text', txt);
     fetch('api/save_hero.php', {method:'POST', body:fd})
       .then(function(r){

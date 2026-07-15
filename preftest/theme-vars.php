@@ -160,6 +160,17 @@ if (array_key_exists('ticker_enabled', $hsaved) && $hsaved['ticker_enabled'] ===
     echo "\n/* ニュースティッカーを非表示 */\n.news-ticker { display: none !important; }\n";
 }
 
+// ── ニュースティッカーを流す（横スクロール）ON/OFF（data/hero.json ticker_scroll 連動・チラつき防止） ──
+// 既定（キー無し）は流さない（折り返して全文表示）。ticker_scroll===true のときだけ横スクロール。
+if (array_key_exists('ticker_scroll', $hsaved) && $hsaved['ticker_scroll'] === true) {
+    echo "\n/* ニュースティッカーを横スクロール表示 */\n"
+       . ".news-ticker .ticker-inner{flex-wrap:nowrap;}\n"
+       . ".news-ticker .ticker-label{position:relative;z-index:2;}\n"
+       . ".news-ticker .ticker-text{white-space:nowrap;flex-shrink:0;padding-left:100%;animation:ticker-marquee 22s linear infinite;position:relative;z-index:1;}\n"
+       . ".news-ticker:hover .ticker-text{animation-play-state:paused;}\n"
+       . "@keyframes ticker-marquee{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}\n";
+}
+
 // ── 公式サイトバッジの表示ON/OFF（data/hero.json badge_enabled 連動・チラつき防止） ──
 // 既定（キー無し）は表示。badge_enabled===false のときだけ隠す。
 if (array_key_exists('badge_enabled', $hsaved) && $hsaved['badge_enabled'] === false) {
