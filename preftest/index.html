@@ -417,6 +417,26 @@
       テストダンススポーツ連盟は、地域のダンススポーツ競技の発展と<br>
       会員の技術向上を支援する連盟です。
     </p>
+    <!-- 公式SNS（各府県がサイト構築ページで設定。未設定のアイコンは非表示） -->
+    <div id="hero-sns" style="display:none;gap:10px;margin-top:16px;align-items:center;">
+      <span style="font-size:0.8rem;color:rgba(255,255,255,0.75);">公式SNS：</span>
+      <a id="sns-facebook" href="#" target="_blank" rel="noopener" title="Facebook"
+         style="display:none;align-items:center;justify-content:center;width:36px;height:36px;background:#1877F2;color:#fff;border-radius:50%;font-size:1rem;text-decoration:none;">
+        <i class="fa-brands fa-facebook-f"></i>
+      </a>
+      <a id="sns-instagram" href="#" target="_blank" rel="noopener" title="Instagram"
+         style="display:none;align-items:center;justify-content:center;width:36px;height:36px;background:radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);color:#fff;border-radius:50%;font-size:1rem;text-decoration:none;">
+        <i class="fa-brands fa-instagram"></i>
+      </a>
+      <a id="sns-line" href="#" target="_blank" rel="noopener" title="LINE公式"
+         style="display:none;align-items:center;justify-content:center;width:36px;height:36px;background:#06C755;color:#fff;border-radius:50%;font-size:1rem;text-decoration:none;">
+        <i class="fa-brands fa-line"></i>
+      </a>
+      <a id="sns-youtube" href="#" target="_blank" rel="noopener" title="YouTube"
+         style="display:none;align-items:center;justify-content:center;width:36px;height:36px;background:#FF0000;color:#fff;border-radius:50%;font-size:1rem;text-decoration:none;">
+        <i class="fa-brands fa-youtube"></i>
+      </a>
+    </div>
   </div>
 
   <!-- 右：インフォパネル -->
@@ -1185,7 +1205,7 @@
 </script>
 
 <script>
-/* ===== ニュースティッカー本文 動的反映（data/hero.json ticker_text。非表示はtheme-vars.phpが担当） ===== */
+/* ===== ニュースティッカー本文＋公式SNS 動的反映（data/hero.json） ===== */
 (function(){
   fetch('data/hero.json?_=' + Date.now())
     .then(function(r){ return r.ok ? r.json() : null; })
@@ -1194,6 +1214,19 @@
       if (d.ticker_text != null && String(d.ticker_text) !== '') {
         var t = document.querySelector('.ticker-text');
         if (t) t.textContent = String(d.ticker_text);
+      }
+      // 公式SNSリンク（設定した分だけ表示。未設定のアイコンは非表示）
+      if (d.sns) {
+        var anyS = false;
+        ['facebook','instagram','line','youtube'].forEach(function(k){
+          var a = document.getElementById('sns-' + k);
+          if (!a) return;
+          var u = d.sns[k];
+          if (u && String(u).trim() !== '') { a.href = u; a.style.display = 'inline-flex'; anyS = true; }
+          else { a.style.display = 'none'; }
+        });
+        var box = document.getElementById('hero-sns');
+        if (box) box.style.display = anyS ? 'flex' : 'none';
       }
     })
     .catch(function(){});

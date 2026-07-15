@@ -71,6 +71,9 @@
     }
     @media(max-width:640px){ .theme-grid{grid-template-columns:1fr 1fr;} }
     @media(max-width:360px){ .theme-grid{grid-template-columns:1fr;} }
+    .sns-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+    .sns-row span{font-size:.8rem;width:90px;flex-shrink:0;font-weight:700;color:var(--text-dark);}
+    .sns-row input{flex:1;padding:8px 12px;border:1.5px solid var(--border,#e2e8f0);border-radius:6px;font-size:.875rem;font-family:inherit;box-sizing:border-box;outline:none;}
   </style>
   <!-- テーマCSS変数（最後に上書き） -->
   <link rel="stylesheet" href="theme-vars.php">
@@ -339,6 +342,24 @@
           style="width:100%;padding:8px 12px;border:1.5px solid var(--border,#e2e8f0);border-radius:6px;font-size:.875rem;font-family:inherit;resize:vertical;box-sizing:border-box;outline:none;line-height:1.55;"></textarea>
         <div id="ticker-msg" style="display:none;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:10px;"></div>
         <button onclick="saveTicker()" style="margin-top:12px;padding:9px 24px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;">💾 ニュースティッカーを保存</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 公式SNSリンク ===== -->
+  <section style="background:#fff;border-top:1px solid var(--border,#e2e8f0);padding:28px 0;">
+    <div class="container">
+      <div style="margin-bottom:16px;">
+        <h2 style="font-size:1.05rem;font-weight:800;color:var(--primary);margin:0 0 4px;">🔗 公式SNSリンク</h2>
+        <p style="font-size:.8rem;color:var(--text-light);margin:0;">トップページのメインビジュアル（HERO）に表示する公式SNSのURLを設定できます。入力した分だけアイコンが表示され、空欄は非表示になります。</p>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border,#e2e8f0);border-radius:10px;padding:18px 20px;">
+        <div class="sns-row"><span>Facebook</span><input type="url" id="h-facebook" placeholder="https://www.facebook.com/..."></div>
+        <div class="sns-row"><span>Instagram</span><input type="url" id="h-instagram" placeholder="https://www.instagram.com/..."></div>
+        <div class="sns-row"><span>LINE</span><input type="url" id="h-line" placeholder="https://lin.ee/..."></div>
+        <div class="sns-row"><span>YouTube</span><input type="url" id="h-youtube" placeholder="https://www.youtube.com/@..."></div>
+        <div id="sns-msg" style="display:none;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:10px;"></div>
+        <button onclick="saveSns()" style="margin-top:12px;padding:9px 24px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;">💾 SNSリンクを保存</button>
       </div>
     </div>
   </section>
@@ -1097,9 +1118,39 @@
         if (bd) bd.checked = !(data && data.badge_enabled === false); // 既定は表示ON
         var tt = document.getElementById('ticker-text-input');
         if (tt && data && data.ticker_text != null) tt.value = data.ticker_text;
+        // 公式SNS：保存済みURLを各入力欄へ反映
+        if (data && data.sns) {
+          ['facebook','instagram','line','youtube'].forEach(function(k){
+            var el = document.getElementById('h-' + k);
+            if (el && data.sns[k]) el.value = data.sns[k];
+          });
+        }
       })
       .catch(function(){ _carouselWidth = 'standard'; renderWidthOptions(); });
   }
+
+  // 公式SNSリンクを保存（save_hero.php はマージ方式のためSNS4項目だけ送れば他は保持）
+  function saveSns() {
+    var msgEl = document.getElementById('sns-msg');
+    var fd = new FormData();
+    fd.append('token', TOKEN);
+    ['facebook','instagram','line','youtube'].forEach(function(k){
+      var el = document.getElementById('h-' + k);
+      fd.append(k, el ? el.value.trim() : '');
+    });
+    fetch('api/save_hero.php', {method:'POST', body:fd})
+      .then(function(r){
+        if (!r.ok) return r.text().then(function(t){ throw new Error('HTTP ' + r.status + (t ? ': ' + t.substring(0,80) : '')); });
+        return r.json();
+      })
+      .then(function(){
+        if (msgEl){ msgEl.style.display='block'; msgEl.style.background='#dcfce7'; msgEl.style.color='#166534'; msgEl.textContent='✓ 公式SNSリンクを保存しました。'; setTimeout(function(){ if(msgEl) msgEl.style.display='none'; }, 3000); }
+      })
+      .catch(function(e){
+        if (msgEl){ msgEl.style.display='block'; msgEl.style.background='#fee2e2'; msgEl.style.color='#991b1b'; msgEl.textContent='保存に失敗しました: ' + e.message; }
+      });
+  }
+  window.saveSns = saveSns;
 
   function renderWidthOptions() {
     var wrap = document.getElementById('carousel-width-options');

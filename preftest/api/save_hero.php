@@ -50,6 +50,22 @@ if (isset($_POST['news_count'])) {
     $data['news_count'] = ((int)$_POST['news_count'] === 6) ? 6 : 3;
 }
 
+// 公式SNS URL（http(s)以外は空にする。POSTされたキーのみ更新／既存は保持）
+$snsKeys = ['facebook', 'instagram', 'line', 'youtube'];
+$hasSnsPost = false;
+foreach ($snsKeys as $k) { if (isset($_POST[$k])) { $hasSnsPost = true; break; } }
+if ($hasSnsPost || (isset($data['sns']) && is_array($data['sns']))) {
+    $sns = (isset($data['sns']) && is_array($data['sns'])) ? $data['sns'] : [];
+    foreach ($snsKeys as $k) {
+        if (isset($_POST[$k])) {
+            $u = trim((string)$_POST[$k]);
+            if ($u !== '' && !preg_match('/^https?:\/\//i', $u)) $u = '';
+            $sns[$k] = mb_substr($u, 0, 300);
+        }
+    }
+    $data['sns'] = $sns;
+}
+
 // 既定値の保証
 if (!isset($data['height'])) $data['height'] = 'standard';
 if (!isset($data['width']))  $data['width']  = 'standard';
