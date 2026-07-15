@@ -23,7 +23,8 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY_B64 }}" | base64 -d > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p 10022 sv16504.xserver.jp >> ~/.ssh/known_hosts 2>/dev/null
+          # XServer側のSSH一時制限でkeyscanが落ちても配信を止めない（後続はStrictHostKeyChecking=no）
+          for i in 1 2 3; do ssh-keyscan -p 10022 sv16504.xserver.jp >> ~/.ssh/known_hosts 2>/dev/null && break; sleep 5; done; true
 
       - name: Deploy preftest/ via rsync over SSH
         run: |
