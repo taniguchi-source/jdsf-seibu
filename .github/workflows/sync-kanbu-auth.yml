@@ -1,0 +1,30 @@
+# 西部ブロック幹部会 議事録フォルダの Basic認証を、サイトの構築(build)パスワードに自動同期する。
+# 構築PWを GAS経由で取得 → .htpasswd(bcrypt)/.htaccess を生成 → SFTPで幹部会フォルダへ配置。
+# 既存のシークレット AUTH_MASTER_SECRET / SSH_PRIVATE_KEY_B64 を再利用（新規シークレット不要）。
+name: Sync Kanbu Basic Auth
+
+on:
+  schedule:
+    - cron: '15 21 * * *'   # 毎日 06:15 JST（UTC 21:15）
+  workflow_dispatch:         # 手動実行も可能
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install paramiko bcrypt
+
+      - name: Sync Basic auth (build PW -> .htpasswd)
+        env:
+          AUTH_MASTER_SECRET: ${{ secrets.AUTH_MASTER_SECRET }}
+          SSH_PRIVATE_KEY_B64: ${{ secrets.SSH_PRIVATE_KEY_B64 }}
+        run: python scripts/sync_kanbu_auth.py
