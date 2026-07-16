@@ -421,6 +421,26 @@
           <label id="cd-type-label-link" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:6;">
             <input type="radio" name="cd-type" value="link" onchange="switchContentType('link')" style="cursor:pointer;accent-color:var(--primary);"> 🔗 リンク
           </label>
+          <label id="cd-type-label-embed" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.875rem;font-weight:600;order:8;">
+            <input type="radio" name="cd-type" value="embed" onchange="switchContentType('embed')" style="cursor:pointer;accent-color:var(--primary);"> 🪟 サイト埋め込み
+          </label>
+        </div>
+      </div>
+      <!-- サイト埋め込みセクション -->
+      <div id="cd-embed-section" style="display:none;">
+        <div style="display:grid;gap:12px;">
+          <div style="padding:10px 14px;background:#EFF6FF;border:1.5px solid #BFDBFE;border-left:4px solid var(--primary);border-radius:8px;font-size:.8rem;line-height:1.7;color:var(--text-dark);">
+            別のサイトを、このページの中にそのまま表示します。<b>ヒーローと上部のメニューは残ります</b>ので、見ている人が連盟サイトから外に出ません。<br>
+            ※ナビゲーションの「リンク先URL」は <b>page1.html のような自分のページ</b>のままにしてください。そこに外部URLを入れると、外部サイトへ直接移動してしまいます。
+          </div>
+          <div>
+            <label class="form-label">埋め込むサイトのURL <span style="color:#e53e3e;font-size:.75rem;">（必須）</span></label>
+            <input type="url" id="cd-embed-url" class="form-input" placeholder="https://nara.jdsf-seibu.com/nara/">
+          </div>
+          <div>
+            <label class="form-label">表示の高さ <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（px。長いページほど大きく。既定 1200）</span></label>
+            <input type="number" id="cd-embed-height" class="form-input" min="300" max="5000" step="100" value="1200" style="max-width:200px;">
+          </div>
         </div>
       </div>
       <!-- テキストセクション -->
@@ -1355,7 +1375,8 @@
     var isGallery = item.type === 'gallery';
     var isPdf     = item.type === 'pdf';
     var isLink    = item.type === 'link';
-    var typeIcon  = isSheet ? '📊 ' : (isImage ? '🖼️ ' : (isGallery ? '🏞 ' : (isPdf ? '📄 ' : (isLink ? '🔗 ' : '📝 '))));
+    var isEmbed   = item.type === 'embed';
+    var typeIcon  = isSheet ? '📊 ' : (isImage ? '🖼️ ' : (isGallery ? '🏞 ' : (isPdf ? '📄 ' : (isLink ? '🔗 ' : (isEmbed ? '🪟 ' : '📝 ')))));
     var isSub  = item.is_sub === true;
     var bgOn = isSub ? '#FFFBEB' : '#EFF6FF', bgOff = '#F1F5F9';
     var bdOn = isSub ? '#F59E0B' : '#BFDBFE', bdOff = 'var(--border)';
@@ -1634,6 +1655,15 @@
     var linkPrevText= document.getElementById('cd-link-preview-text');
     if (linkUrlEl)   linkUrlEl.value   = item.link_url   || '';
     if (linkLabelEl) linkLabelEl.value = item.link_label || '';
+    // サイト埋め込みフィールド
+    var embedUrlEl = document.getElementById('cd-embed-url');
+    var embedHEl   = document.getElementById('cd-embed-height');
+    if (embedUrlEl) embedUrlEl.value = item.embed_url || '';
+    if (embedHEl) {
+      var eHNum = parseInt(item.embed_height, 10);
+      if (!(eHNum >= 300 && eHNum <= 5000)) eHNum = 1200;
+      embedHEl.value = eHNum;
+    }
     if (linkPrevWrap) {
       var lUrl = item.link_url || '';
       linkPrevWrap.style.display = lUrl ? '' : 'none';
@@ -1675,9 +1705,15 @@
     var fileUrl   = ((document.getElementById('cd-file-url')   || {value:''}).value || '').trim();
     var linkUrl   = ((document.getElementById('cd-link-url')   || {value:''}).value || '').trim();
     var linkLabel = ((document.getElementById('cd-link-label') || {value:''}).value || '').trim();
+    var embedUrl  = ((document.getElementById('cd-embed-url')  || {value:''}).value || '').trim();
     /* タイトルは必須 */
     if (!title) {
       if (msg) { msg.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;border-radius:6px;padding:8px 14px;'; msg.textContent='⚠ タイトルを入力してください'; }
+      return;
+    }
+    /* サイト埋め込みは http(s) のURLが必須 */
+    if (type === 'embed' && !/^https?:\/\//i.test(embedUrl)) {
+      if (msg) { msg.style.cssText='display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;border-radius:6px;padding:8px 14px;'; msg.textContent='⚠ 埋め込むサイトのURLを https:// から入力してください'; }
       return;
     }
     var item = (_contentData[String(siteId)] || [])[idx];
@@ -1693,6 +1729,11 @@
       item.file_url   = fileUrl;
       item.link_url   = linkUrl;
       item.link_label = linkLabel;
+      item.embed_url  = embedUrl;
+      var eHEl = document.getElementById('cd-embed-height');
+      var eHv  = eHEl ? parseInt(eHEl.value, 10) : 1200;
+      if (!(eHv >= 300 && eHv <= 5000)) eHv = 1200;
+      item.embed_height = eHv;
       item.gallery    = (_galleryImages || []).slice();
       var pcwEl2 = document.getElementById('cd-pdf-pcwidth');
       var pcwv = pcwEl2 ? parseInt(pcwEl2.value, 10) : 100;
@@ -1712,10 +1753,11 @@
       text: 'cd-text-section', sheet: 'cd-sheet-section',
       file: 'cd-file-section', image: 'cd-file-section', pdf: 'cd-file-section',
       gallery: 'cd-gallery-section',
-      link: 'cd-link-section'
+      link: 'cd-link-section',
+      embed: 'cd-embed-section'
     };
     var showId = showMap[type] || 'cd-text-section';
-    ['cd-text-section','cd-sheet-section','cd-file-section','cd-gallery-section','cd-link-section'].forEach(function(id) {
+    ['cd-text-section','cd-sheet-section','cd-file-section','cd-gallery-section','cd-link-section','cd-embed-section'].forEach(function(id) {
       var el = document.getElementById(id);
       if (el) el.style.display = (id === showId) ? '' : 'none';
     });
@@ -1754,6 +1796,7 @@
     var lblGallery = document.getElementById('cd-type-label-gallery');
     var lblPdf     = document.getElementById('cd-type-label-pdf');
     var lblLink    = document.getElementById('cd-type-label-link');
+    var lblEmbed   = document.getElementById('cd-type-label-embed');
 
     if (isSub) {
       /* サブコンテンツ: リンク(1)→画像(2)→ギャラリー(3)→PDF(4)→テキスト(5)、スプレッドシート非表示 */
@@ -1763,13 +1806,14 @@
       if (lblPdf)     { lblPdf.style.order     = '4'; lblPdf.style.display     = 'inline-flex'; }
       if (lblText)    { lblText.style.order    = '5'; lblText.style.display    = 'inline-flex'; }
       if (lblSheet) { lblSheet.style.display = 'none'; }
-      /* スプレッドシートが選択中の場合 → リンクに切り替え */
+      if (lblEmbed) { lblEmbed.style.display = 'none'; }
+      /* スプレッドシート・サイト埋め込みが選択中の場合 → リンクに切り替え */
       var radios = document.querySelectorAll('input[name="cd-type"]');
       var current = 'text';
       for (var ri = 0; ri < radios.length; ri++) {
         if (radios[ri].checked) { current = radios[ri].value; break; }
       }
-      if (current === 'sheet') {
+      if (current === 'sheet' || current === 'embed') {
         for (var ri = 0; ri < radios.length; ri++) {
           if (radios[ri].value === 'link') { radios[ri].checked = true; break; }
         }
@@ -1783,6 +1827,7 @@
       if (lblPdf)     { lblPdf.style.order     = '4'; lblPdf.style.display     = 'inline-flex'; }
       if (lblLink)    { lblLink.style.order    = '5'; lblLink.style.display    = 'inline-flex'; }
       if (lblSheet)   { lblSheet.style.order   = '6'; lblSheet.style.display   = 'inline-flex'; }
+      if (lblEmbed)   { lblEmbed.style.order   = '7'; lblEmbed.style.display   = 'inline-flex'; }
     }
   }
 

@@ -50,13 +50,22 @@ foreach ($items as $item) {
     $pdf_pc_width = (int)($item['pdf_pc_width'] ?? 100);
     if ($pdf_pc_width < 20)  $pdf_pc_width = 20;
     if ($pdf_pc_width > 100) $pdf_pc_width = 100;
+    // サイト埋め込み（iframe）。http(s) のみ許可。それ以外は空＝未設定
+    $embed_url = mb_substr(trim((string)($item['embed_url'] ?? '')), 0, 500);
+    if ($embed_url !== '' && !preg_match('#^https?://#i', $embed_url)) {
+        $embed_url = '';
+    }
+    // 埋め込みの高さ(px)。300〜5000。未指定/範囲外は1200
+    $embed_height = (int)($item['embed_height'] ?? 1200);
+    if ($embed_height < 300)  $embed_height = 300;
+    if ($embed_height > 5000) $embed_height = 5000;
     $clean[] = [
         'id'         => preg_replace('/[^a-z0-9_]/i', '', (string)($item['id'] ?? '')),
         'title'      => mb_substr(trim((string)($item['title'] ?? '')), 0, 60),
         'enabled'    => !empty($item['enabled']),
         'is_sub'     => !empty($item['is_sub']),
         'show_title' => array_key_exists('show_title', $item) ? !empty($item['show_title']) : true,
-        'type'       => in_array($type_raw, ['text', 'sheet', 'file', 'image', 'gallery', 'pdf', 'link'], true) ? $type_raw : 'text',
+        'type'       => in_array($type_raw, ['text', 'sheet', 'file', 'image', 'gallery', 'pdf', 'link', 'embed'], true) ? $type_raw : 'text',
         'body'       => mb_substr(trim((string)($item['body'] ?? '')), 0, 5000),
         'sheet_url'    => mb_substr(trim((string)($item['sheet_url']  ?? '')), 0, 500),
         'sheet_name'   => mb_substr(trim((string)($item['sheet_name'] ?? '')), 0, 100),
@@ -67,6 +76,8 @@ foreach ($items as $item) {
         'pdf_pc_width' => $pdf_pc_width,
         'link_url'   => mb_substr(trim((string)($item['link_url']   ?? '')), 0, 500),
         'link_label' => mb_substr(trim((string)($item['link_label'] ?? '')), 0, 100),
+        'embed_url'    => $embed_url,
+        'embed_height' => $embed_height,
         'gallery'    => $gallery,
     ];
 }
