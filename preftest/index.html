@@ -418,7 +418,8 @@
       会員の技術向上を支援する連盟です。
     </p>
     <!-- 公式SNS（各府県がサイト構築ページで設定。未設定のアイコンは非表示） -->
-    <div id="hero-sns" style="display:none;gap:10px;margin-top:16px;align-items:center;">
+    <!-- 親の .carousel-content は pointer-events:none のため、SNS行だけクリックを受け取る -->
+    <div id="hero-sns" style="display:none;gap:10px;margin-top:16px;align-items:center;pointer-events:auto;">
       <span style="font-size:0.8rem;color:rgba(255,255,255,0.75);">公式SNS：</span>
       <a id="sns-facebook" href="#" target="_blank" rel="noopener" title="Facebook"
          style="display:none;align-items:center;justify-content:center;width:36px;height:36px;background:#1877F2;color:#fff;border-radius:50%;font-size:1rem;text-decoration:none;">
