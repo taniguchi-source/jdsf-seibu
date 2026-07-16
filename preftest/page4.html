@@ -496,6 +496,30 @@
         bodyEl.className = 'content-block-body';
         bodyEl.textContent = '（PDFは未設定です）';
       }
+    } else if (item.type === 'embed') {
+      /* サイト埋め込み（iframe）。このページのヒーロー・ナビを残したまま外部サイトを表示する */
+      var eUrl = item.embed_url || '';
+      if (!/^https?:\/\//i.test(eUrl)) eUrl = '';
+      if (eUrl) {
+        var eH = parseInt(item.embed_height, 10);
+        if (!(eH >= 300 && eH <= 5000)) eH = 1200;
+        var eBox = document.createElement('div');
+        eBox.style.cssText = 'border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fff;';
+        var eFrame = document.createElement('iframe');
+        eFrame.src = eUrl;
+        eFrame.loading = 'lazy';
+        eFrame.referrerPolicy = 'no-referrer-when-downgrade';
+        eFrame.style.cssText = 'width:100%;height:' + eH + 'px;border:0;display:block;background:#fff;';
+        eBox.appendChild(eFrame);
+        bodyEl.appendChild(eBox);
+        var eLink = document.createElement('p');
+        eLink.style.cssText = 'text-align:right;margin:6px 0 0;font-size:.8125rem;';
+        eLink.innerHTML = '<a href="' + escHtml(eUrl) + '" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;">🔗 このページを別タブで開く</a>';
+        bodyEl.appendChild(eLink);
+      } else {
+        bodyEl.className = 'content-block-body';
+        bodyEl.textContent = '（埋め込むサイトのURLは未設定です）';
+      }
     } else if (item.type === 'file') {
       var fUrl = item.file_url || '';
       bodyEl.className = 'content-block-body';
@@ -617,7 +641,7 @@
         lNote.textContent = '新しいタブで開きます';
         block.appendChild(lNote);
       } else {
-        var titleIcon = m.type === 'sheet' ? '📊 ' : ((m.type === 'file' || m.type === 'image') ? '🖼️ ' : (m.type === 'gallery' ? '🏞 ' : (m.type === 'pdf' ? '📄 ' : (m.type === 'link' ? '🔗 ' : '📝 '))));
+        var titleIcon = m.type === 'sheet' ? '📊 ' : ((m.type === 'file' || m.type === 'image') ? '🖼️ ' : (m.type === 'gallery' ? '🏞 ' : (m.type === 'pdf' ? '📄 ' : (m.type === 'link' ? '🔗 ' : (m.type === 'embed' ? '🪟 ' : '📝 ')))));
         if (m.title && m.show_title !== false) {
           var titleEl = document.createElement('h2');
           titleEl.className = 'content-block-title';
@@ -655,7 +679,7 @@
             slNote.textContent = '新しいタブで開きます';
             subItem.appendChild(slNote);
           } else {
-            var subIcon = sub.type === 'sheet' ? '📊 ' : ((sub.type === 'file' || sub.type === 'image') ? '🖼️ ' : (sub.type === 'gallery' ? '🏞 ' : (sub.type === 'pdf' ? '📄 ' : (sub.type === 'link' ? '🔗 ' : '📝 '))));
+            var subIcon = sub.type === 'sheet' ? '📊 ' : ((sub.type === 'file' || sub.type === 'image') ? '🖼️ ' : (sub.type === 'gallery' ? '🏞 ' : (sub.type === 'pdf' ? '📄 ' : (sub.type === 'link' ? '🔗 ' : (sub.type === 'embed' ? '🪟 ' : '📝 ')))));
             if (sub.title && sub.show_title !== false) {
               var subTitle = document.createElement('h3');
               subTitle.className = 'sub-content-title';
