@@ -178,16 +178,20 @@
       background: rgba(255,255,255,0.1);
       color: #fff;
     }
-    .hero-info-links a.has-img { padding: 8px 16px; }
-    /* 画像は「幅いっぱい×固定高さの横長枠」にそろえる。縦横比の違う画像を混ぜても
-       行の高さと幅が揃う。width/height が auto だと object-fit が効かないので必ず指定する。
-       枠幅は240px固定・%幅・2列グリッド（theme-vars.php）のいずれにも width:100% で追従する。 */
+    .hero-info-links a.has-img { padding: 8px 12px; }
+    /* 画像は「同じ大きさの白いカード」にそろえる。縦横比の違う画像（縦長ポスターと
+       横長QR等）が混ざっても、カードが同寸で並ぶので見た目が整う。
+       object-fit:contain なので中身は切れない（ポスターの文字・QRが読める）。
+       ※ width/height が auto だと object-fit が効かないため必ず指定する。
+       ※ 枠幅は240px固定・%幅・2列グリッド（theme-vars.php）のいずれにも width:100% で追従する。 */
     .hero-info-links a.has-img img.hero-info-img {
       display: block;
       width: 100%;
-      height: 72px;
-      object-fit: contain;      /* 切らずに全体を収める（ポスターの文字やQRが欠けない） */
+      height: 100px;
+      object-fit: contain;
       object-position: center;
+      background: #fff;         /* 縦長画像の左右の余白を白で埋め、カードとして自然に見せる */
+      border-radius: 6px;
     }
 
     /* ===== セクション ===== */
@@ -320,8 +324,8 @@
       .hero-info-wrapper { width: 100%; }
       /* スマホではクイックリンクの行を低く（縦の占有を削減）。PCは無変更 */
       .hero-info-links a         { padding: 6px 14px; }
-      .hero-info-links a.has-img { padding: 4px 14px; }
-      .hero-info-links a.has-img img.hero-info-img { height: 52px; }
+      .hero-info-links a.has-img { padding: 4px 12px; }
+      .hero-info-links a.has-img img.hero-info-img { height: 72px; }
       .hero-title { font-size: 1.4rem; }
       /* スマホでは常にカルーセル画像へ重ねる（上部のカルーセル領域に配置） */
       .carousel-content {
