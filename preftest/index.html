@@ -178,15 +178,16 @@
       background: rgba(255,255,255,0.1);
       color: #fff;
     }
-    .hero-info-links a.has-img { padding: 8px 16px; text-align: left; }
+    .hero-info-links a.has-img { padding: 8px 16px; }
+    /* 画像は「幅いっぱい×固定高さの横長枠」にそろえる。縦横比の違う画像を混ぜても
+       行の高さと幅が揃う。width/height が auto だと object-fit が効かないので必ず指定する。
+       枠幅は240px固定・%幅・2列グリッド（theme-vars.php）のいずれにも width:100% で追従する。 */
     .hero-info-links a.has-img img.hero-info-img {
-      max-width: 100%;
-      max-height: 90px;
-      width: auto;
-      height: auto;
-      display: inline-block;
-      object-fit: contain;
-      vertical-align: middle;
+      display: block;
+      width: 100%;
+      height: 72px;
+      object-fit: contain;      /* 切らずに全体を収める（ポスターの文字やQRが欠けない） */
+      object-position: center;
     }
 
     /* ===== セクション ===== */
@@ -320,7 +321,7 @@
       /* スマホではクイックリンクの行を低く（縦の占有を削減）。PCは無変更 */
       .hero-info-links a         { padding: 6px 14px; }
       .hero-info-links a.has-img { padding: 4px 14px; }
-      .hero-info-links a.has-img img.hero-info-img { max-height: 52px; }
+      .hero-info-links a.has-img img.hero-info-img { height: 52px; }
       .hero-title { font-size: 1.4rem; }
       /* スマホでは常にカルーセル画像へ重ねる（上部のカルーセル領域に配置） */
       .carousel-content {
@@ -458,7 +459,11 @@
 <div class="news-ticker">
   <div class="container ticker-inner">
     <span class="ticker-label">NEW</span>
-    <span class="ticker-text">テストダンススポーツ連盟の公式サイトをリニューアルしました。各種情報をこちらよりご確認ください。</span>
+    <!-- .ticker-track が文字を切り取る枠（共通CSS: overflow:hidden;flex:1）。
+         これが無いと横スクロール時に文字がNEWバッジの左まで流れてしまう。 -->
+    <span class="ticker-track">
+      <span class="ticker-text">テストダンススポーツ連盟の公式サイトをリニューアルしました。各種情報をこちらよりご確認ください。</span>
+    </span>
   </div>
 </div>
 

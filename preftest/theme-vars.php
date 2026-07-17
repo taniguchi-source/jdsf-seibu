@@ -163,10 +163,12 @@ if (array_key_exists('ticker_enabled', $hsaved) && $hsaved['ticker_enabled'] ===
 // ── ニュースティッカーを流す（横スクロール）ON/OFF（data/hero.json ticker_scroll 連動・チラつき防止） ──
 // 既定（キー無し）は流さない（折り返して全文表示）。ticker_scroll===true のときだけ横スクロール。
 if (array_key_exists('ticker_scroll', $hsaved) && $hsaved['ticker_scroll'] === true) {
+    // 文字は .ticker-track（overflow:hidden）の中だけを流れる → NEWバッジの右端で消える。
+    // padding-left:100% は .ticker-track 幅を基準に解決される（枠の右端から流れ始める）。
     echo "\n/* ニュースティッカーを横スクロール表示 */\n"
-       . ".news-ticker .ticker-inner{flex-wrap:nowrap;}\n"
-       . ".news-ticker .ticker-label{position:relative;z-index:2;}\n"
-       . ".news-ticker .ticker-text{white-space:nowrap;flex-shrink:0;padding-left:100%;animation:ticker-marquee 22s linear infinite;position:relative;z-index:1;}\n"
+       . ".news-ticker .ticker-inner{flex-wrap:nowrap;align-items:center;}\n"
+       . ".news-ticker .ticker-track{overflow:hidden;flex:1;min-width:0;}\n"
+       . ".news-ticker .ticker-text{display:inline-block;white-space:nowrap;padding-left:100%;animation:ticker-marquee 22s linear infinite;}\n"
        . ".news-ticker:hover .ticker-text{animation-play-state:paused;}\n"
        . "@keyframes ticker-marquee{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}\n";
 }

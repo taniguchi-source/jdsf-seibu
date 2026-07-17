@@ -67,6 +67,63 @@ if (!move_uploaded_file($tmpPath, $destPath)) {
     exit;
 }
 
+/* ===== 任意: 長辺を max_px まで縮小（POSTで max_px が来たときだけ） =====
+   クイックリンクの画像は数十pxで表示されるため、巨大な原本をそのまま置くと
+   転送量の無駄になる。呼び出し側が明示したときだけ縮小し、既定は従来どおり無変換。
+   GDが無い・アニメGIF等で失敗した場合は原本のまま残す（アップロードは失敗させない）。 */
+$maxPx = isset($_POST['max_px']) ? (int)$_POST['max_px'] : 0;
+if ($maxPx >= 50 && $maxPx <= 4000
+    && in_array($ext, ['jpg', 'jpeg', 'png'], true)   // gif はアニメを壊さないよう対象外
+    && function_exists('imagecreatetruecolor')) {
+    $shrunk = shrink_image($destPath, $ext, $maxPx);
+    if ($shrunk) {
+        clearstatcache(true, $destPath);
+        $size = (int)filesize($destPath);
+    }
+}
+
+/**
+ * 長辺が $maxPx を超える画像を縮小して上書き保存する。
+ * 成功時 true。縮小不要・失敗時は false（元ファイルは触らない）。
+ */
+function shrink_image(string $path, string $ext, int $maxPx): bool
+{
+    $info = @getimagesize($path);
+    if (!$info) return false;
+    [$w, $h] = $info;
+    if ($w <= 0 || $h <= 0) return false;
+    if (max($w, $h) <= $maxPx) return false;          // 既に十分小さい
+
+    $scale = $maxPx / max($w, $h);
+    $nw = max(1, (int)round($w * $scale));
+    $nh = max(1, (int)round($h * $scale));
+
+    $src = ($ext === 'png') ? @imagecreatefrompng($path) : @imagecreatefromjpeg($path);
+    if (!$src) return false;
+
+    $dst = imagecreatetruecolor($nw, $nh);
+    if (!$dst) { imagedestroy($src); return false; }
+    if ($ext === 'png') {                              // 透過を保つ
+        imagealphablending($dst, false);
+        imagesavealpha($dst, true);
+        $transparent = imagecolorallocatealpha($dst, 0, 0, 0, 127);
+        imagefilledrectangle($dst, 0, 0, $nw, $nh, $transparent);
+    }
+    imagecopyresampled($dst, $src, 0, 0, 0, 0, $nw, $nh, $w, $h);
+
+    // 一時ファイルへ書いてから差し替え（途中で失敗しても原本を壊さない）
+    $tmp = $path . '.tmp';
+    $ok  = ($ext === 'png') ? @imagepng($dst, $tmp, 6) : @imagejpeg($dst, $tmp, 85);
+    imagedestroy($src);
+    imagedestroy($dst);
+
+    if (!$ok || !file_exists($tmp)) { @unlink($tmp); return false; }
+    // 縮小しても軽くならない画像（単色に近い等）は原本のまま残す。目的は転送量の削減なので。
+    if (filesize($tmp) >= filesize($path)) { @unlink($tmp); return false; }
+    if (!@rename($tmp, $path))      { @unlink($tmp); return false; }
+    return true;
+}
+
 echo json_encode([
     'ok'      => true,
     'url'     => 'uploads/' . $safeName,

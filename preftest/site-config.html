@@ -1355,6 +1355,7 @@
     var fd = new FormData();
     fd.append('token', TOKEN);
     fd.append('file', file);
+    fd.append('max_px', '480');   /* クイックリンクは小さく表示されるため長辺480pxへ縮小して保存 */
     fetch('api/upload_file.php', {method:'POST', body:fd})
       .then(function(r){ return r.json(); })
       .then(function(res){
