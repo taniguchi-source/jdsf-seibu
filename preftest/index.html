@@ -179,19 +179,16 @@
       color: #fff;
     }
     .hero-info-links a.has-img { padding: 8px 12px; }
-    /* 画像は「同じ大きさの白いカード」にそろえる。縦横比の違う画像（縦長ポスターと
-       横長QR等）が混ざっても、カードが同寸で並ぶので見た目が整う。
-       object-fit:contain なので中身は切れない（ポスターの文字・QRが読める）。
+    /* 画像は縦横比を無視して枠いっぱいに引き伸ばす（object-fit:fill）。
+       どんな画像でも必ず同じ大きさの横長ボタンになるため、エリアの見た目が乱れない。
+       形の合わない画像は歪んで見えるので、担当者が横長の画像を用意する動機にもなる。
        ※ width/height が auto だと object-fit が効かないため必ず指定する。
        ※ 枠幅は240px固定・%幅・2列グリッド（theme-vars.php）のいずれにも width:100% で追従する。 */
     .hero-info-links a.has-img img.hero-info-img {
       display: block;
       width: 100%;
-      height: 100px;
-      object-fit: contain;
-      object-position: center;
-      background: #fff;         /* 縦長画像の左右の余白を白で埋め、カードとして自然に見せる */
-      border-radius: 6px;
+      height: 72px;
+      object-fit: fill;
     }
 
     /* ===== セクション ===== */
@@ -325,7 +322,7 @@
       /* スマホではクイックリンクの行を低く（縦の占有を削減）。PCは無変更 */
       .hero-info-links a         { padding: 6px 14px; }
       .hero-info-links a.has-img { padding: 4px 12px; }
-      .hero-info-links a.has-img img.hero-info-img { height: 72px; }
+      .hero-info-links a.has-img img.hero-info-img { height: 52px; }
       .hero-title { font-size: 1.4rem; }
       /* スマホでは常にカルーセル画像へ重ねる（上部のカルーセル領域に配置） */
       .carousel-content {
