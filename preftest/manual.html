@@ -169,6 +169,7 @@
       <li><a href="#sns">公式SNSリンク</a></li>
       <li><a href="#theme">配色テーマ</a></li>
       <li><a href="#contact-setup">お問い合わせ先の設定</a></li>
+      <li><a href="#banner">広告バナー</a></li>
 
       <li class="g">▎困ったとき</li>
       <li><a href="#faq">よくある質問（Q&amp;A）</a></li>
@@ -446,28 +447,49 @@
         <rect class="mk-field" x="112" y="84" width="220" height="26" rx="6"/>
         <text class="mk-t" x="124" y="101">大会案内</text>
         <circle class="mk-num" cx="112" cy="86" r="11"/><text class="mk-numt" x="112" y="90" text-anchor="middle" font-size="11">1</text>
-        <rect class="mk-ghost" x="430" y="76" width="90" height="26" rx="6"/>
-        <text x="475" y="93" text-anchor="middle" font-size="12" fill="#2563EB" font-weight="700">📄 中身を編集</text>
-        <circle class="mk-num" cx="430" cy="78" r="11"/><text class="mk-numt" x="430" y="82" text-anchor="middle" font-size="11">3</text>
-        <rect class="mk-btn" x="530" y="76" width="64" height="26" rx="6"/>
-        <text class="mk-tw" x="562" y="93" text-anchor="middle" font-size="12">💾 保存</text>
+        <rect class="mk-btn" x="530" y="76" width="80" height="26" rx="6"/>
+        <text class="mk-tw" x="570" y="93" text-anchor="middle" font-size="11">💾 保存</text>
 
-        <!-- 2枚目（薄い） -->
-        <rect class="mk-card" x="34" y="124" width="576" height="34" rx="8" opacity=".6"/>
-        <text class="mk-tm" x="124" y="145">サイト2　…</text>
-        <rect class="mk-ghost" x="34" y="172" width="150" height="28" rx="6"/>
-        <text x="109" y="190" text-anchor="middle" font-size="12" fill="#2563EB" font-weight="700">＋ ページを追加</text>
-        <circle class="mk-num" cx="34" cy="174" r="11"/><text class="mk-numt" x="34" y="178" text-anchor="middle" font-size="11">4</text>
+        <!-- 表示方法 -->
+        <text class="mk-tm" x="50" y="132">👀 表示方法</text>
+        <circle class="mk-num" cx="50" cy="124" r="11"/><text class="mk-numt" x="50" y="128" text-anchor="middle" font-size="11">3</text>
+        <rect class="mk-ghost" x="112" y="120" width="150" height="22" rx="6"/>
+        <text x="187" y="135" text-anchor="middle" font-size="10">📄 このサイトのページ</text>
+        <rect class="mk-ghost" x="270" y="120" width="160" height="22" rx="6"/>
+        <text x="350" y="135" text-anchor="middle" font-size="10">🪟 別のサイトを埋め込む</text>
+        <rect class="mk-ghost" x="438" y="120" width="140" height="22" rx="6"/>
+        <text x="508" y="135" text-anchor="middle" font-size="10">↗ 別のサイトへ移動</text>
+
+        <!-- コンテンツ管理 -->
+        <text class="mk-tm" x="50" y="172">📄 コンテンツ管理</text>
+        <circle class="mk-num" cx="50" cy="164" r="11"/><text class="mk-numt" x="50" y="168" text-anchor="middle" font-size="11">4</text>
+        <rect class="mk-ghost" x="500" y="158" width="52" height="22" rx="6"/>
+        <text x="526" y="173" text-anchor="middle" font-size="11" fill="#2563EB" font-weight="700">＋ 追加</text>
+        <rect class="mk-ghost" x="34" y="188" width="150" height="22" rx="6"/>
+        <text x="109" y="203" text-anchor="middle" font-size="11" fill="#2563EB" font-weight="700">＋ ページを追加</text>
+        <circle class="mk-num" cx="34" cy="190" r="11"/><text class="mk-numt" x="34" y="194" text-anchor="middle" font-size="11">5</text>
       </svg>
-      <figcaption>ナビゲーション管理（各ページの名前・表示・中身を設定）</figcaption>
+      <figcaption>ナビゲーション管理（名前・表示方法・中身を1か所で設定）</figcaption>
     </figure>
 
     <ol class="steps">
       <li><b>ページ名称</b>を分かりやすい名前に変えます（例：「サイト1」→「大会案内」）。</li>
       <li><b>表示/非表示</b>の切替で、メニューに出すページを選びます。使わないページは非表示に。</li>
-      <li><b>「📄 中身を編集」</b>でそのページの内容を作ります（次の章へ）。</li>
+      <li><b>「👀 表示方法」</b>で、このメニューを押したときの見せ方を選びます（下の表）。</li>
+      <li><b>「📄 コンテンツ管理」の「＋ 追加」</b>でそのページの中身を作ります（次の章へ）。</li>
       <li>ページが足りないときは<b>「＋ ページを追加」</b>（最大15ページまで）。</li>
     </ol>
+
+    <h3 class="step-h">👀 表示方法（別のサイトを見せたいとき）</h3>
+    <p class="desc">連盟がすでに別のホームページ（ワードプレスなど）を持っている場合、そのページをメニューから見せられます。<b>3つから選ぶだけ</b>です。</p>
+    <table class="tbl">
+      <tr><th>表示方法</th><th>どうなるか</th><th>入力するもの</th></tr>
+      <tr><td>📄 このサイトのページ<br><span style="font-size:.8em;color:#64748B;">（ふつうはこれ）</span></td><td>下の「コンテンツ管理」で作った中身が表示されます。</td><td>なし（リンク先は自動）</td></tr>
+      <tr><td>🪟 別のサイトを埋め込む</td><td>別のサイトの中身が、<b>このページの中に</b>そのまま表示されます。<b>ヒーローと上部メニューは残る</b>ので、見ている人が連盟サイトから出ません。</td><td>埋め込むサイトのURL＋高さ</td></tr>
+      <tr><td>↗ 別のサイトへ移動</td><td>押すと<b>そのサイトへ出ていきます</b>。移動先にはヒーローも上部メニューもありません。</td><td>移動先のURL</td></tr>
+    </table>
+    <div class="tip"><b>「🪟 別のサイトを埋め込む」の高さの決め方</b>：まず既定の <code class="path">1200</code> のままにして <b>「👁 見え方を確認」</b>を押すと、その高さでの見え方がその場に出ます。下が切れていたら数字を大きく、余白が多ければ小さくして、ちょうどよくなったら<b>「💾 ページ設定を保存」</b>を押します。</div>
+    <div class="note">埋め込んだページの下には<b>「🔗 このページを別タブで開く」</b>が出ます。スマホなど画面が狭いときに、全画面で見てもらえます。</div>
 
     <h3 class="step-h">🔀 ページの並べ替え（ドラッグ／▲▼）</h3>
     <p class="desc">上部メニューに並ぶ<b>ページの順番</b>も、お知らせと同じように並べ替えられます。各ページカードの左上で—</p>
@@ -495,7 +517,7 @@
   <!-- ===== 6. コンテンツ ===== -->
   <section class="doc" id="contents">
     <h2><span class="chip">6</span> ページの中身をつくる</h2>
-    <p class="desc">「📄 中身を編集」→「＋ 追加」で、ページに置く部品（コンテンツ）を作ります。部品には<b>6種類</b>あり、目的に合わせて選びます。</p>
+    <p class="desc">各ページの <span class="pill">📄 コンテンツ管理</span> にある「＋ 追加」で、ページに置く部品（コンテンツ）を作ります。追加された部品の名前を押すと編集画面が開きます。部品には<b>7種類</b>あり、目的に合わせて選びます。</p>
 
     <figure class="fig">
       <svg viewBox="0 0 640 250" role="img" aria-label="コンテンツの種類選択">
@@ -505,7 +527,7 @@
         <rect class="mk-field" x="34" y="74" width="576" height="28" rx="6"/>
         <text class="mk-t" x="46" y="92">例：2026年度 役員名簿</text>
         <text class="mk-tm" x="34" y="124">種類を選ぶ</text>
-        <!-- 6 types -->
+        <!-- 7 types -->
         <g font-size="12.5" font-weight="700" fill="#0D2347">
           <rect class="mk-soft" x="34"  y="132" width="120" height="30" rx="6"/><text x="48" y="151">📝 テキスト</text>
           <rect class="mk-soft" x="162" y="132" width="190" height="30" rx="6"/><text x="176" y="151">📊 スプレッドシート</text>
@@ -513,11 +535,12 @@
           <rect class="mk-soft" x="468" y="132" width="120" height="30" rx="6"/><text x="482" y="151">🏞 ギャラリー</text>
           <rect class="mk-soft" x="34"  y="170" width="100" height="30" rx="6"/><text x="48" y="189">📄 PDF</text>
           <rect class="mk-soft" x="142" y="170" width="110" height="30" rx="6"/><text x="156" y="189">🔗 リンク</text>
+          <rect class="mk-soft" x="260" y="170" width="170" height="30" rx="6"/><text x="274" y="189">🪟 サイト埋め込み</text>
         </g>
         <rect class="mk-btn" x="500" y="200" width="110" height="28" rx="6"/>
         <text class="mk-tw" x="555" y="219" text-anchor="middle">保存する →</text>
       </svg>
-      <figcaption>コンテンツ詳細：タイトルを入れ、6種類から「種類」を選んで作成</figcaption>
+      <figcaption>コンテンツ詳細：タイトルを入れ、7種類から「種類」を選んで作成</figcaption>
     </figure>
 
     <table class="tbl">
@@ -528,13 +551,16 @@
       <tr><td>🏞 ギャラリー</td><td>写真を複数まとめて</td><td>画像を最大10枚アップロード</td></tr>
       <tr><td>📄 PDF</td><td>要項・申込書などの配布資料</td><td>PDFファイル</td></tr>
       <tr><td>🔗 リンク</td><td>外部サイト・申込フォームへ誘導</td><td>URL（＋ボタンの表示名）</td></tr>
+      <tr><td>🪟 サイト埋め込み</td><td>別のサイトをページの中にそのまま表示（1ページに複数並べたいとき）</td><td>埋め込むサイトのURL＋高さ</td></tr>
     </table>
+
+    <div class="note"><b>「🪟 サイト埋め込み」を1つだけ置きたいときは、こちらより <a href="#nav">メニューの「👀 表示方法」→「🪟 別のサイトを埋め込む」</a> のほうが簡単です</b>（高さの見え方もその場で確認できます）。この種類は、1つのページに埋め込みを複数並べたい場合に使います。</div>
 
     <ol class="steps">
       <li><b>タイトル</b>を入力します（見出しになります）。「このタイトルをサイトに表示する」のチェックを外すと、見出しを隠して中身だけ表示できます。</li>
       <li><b>種類</b>を選びます（上の表を参考に）。</li>
       <li>種類に応じて、文章・URL・ファイルなどを入力／アップロードします。</li>
-      <li><b>「保存する →」</b>で確定。最後にページ側の<b>「💾 コンテンツを保存」</b>も押します。</li>
+      <li><b>「保存する →」</b>を押せば保存は完了です（そのままサイトに反映されます）。</li>
     </ol>
 
     <h3 class="step-h">並べ替え・サブコンテンツ</h3>
@@ -665,7 +691,9 @@
     </ol>
     <div class="tip">「別タブで開く」をオンにすると、外部サイトへのリンクを新しいタブで開けます。</div>
     <h3 class="step-h">🖼 画像をボタンにする</h3>
-    <p class="desc">各リンクは、文字の代わりに<b>画像（バナー）をボタン</b>にできます。行の <b>「画像ボタン」</b> 欄で画像をアップロードすると、その画像がリンクボタンになります（大きさは自動で調整され、左そろえで並びます）。画像を設定しない行は、今まで通り文字ボタンとして表示されます。</p>
+    <p class="desc">各リンクは、文字の代わりに<b>画像（バナー）をボタン</b>にできます。行の <b>「画像ボタン」</b> 欄で画像をアップロードすると、その画像がリンクボタンになります。画像を設定しない行は、今まで通り文字ボタンとして表示されます。</p>
+    <div class="warn"><b>画像は「横長」で用意してください。</b>並びが乱れないよう、画像は<b>すべて同じ大きさの横長ボタンに引き伸ばして</b>表示します（<b>おすすめ：横400×縦140px くらいの比率</b>）。<b>縦長のポスターやチラシをそのまま入れると、横に潰れて見えます</b>ので、必要な部分だけを横長に切り出してからアップロードしてください。</div>
+    <div class="note">アップロードした画像は、表示に十分な大きさへ<b>自動で縮小</b>されます（ページが軽くなります）。元の画像を用意し直す必要はありません。</div>
   </section>
 
   <!-- ===== 11. ヒーロー ===== -->
