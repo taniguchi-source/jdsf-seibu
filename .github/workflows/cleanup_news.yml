@@ -1,0 +1,32 @@
+# 公開お知らせの自動削除（実施日から7日で削除）
+# サーバー上の api/cleanup_news.php を SSH で直接実行する。
+# 公開APIは叩かない（CSRF/セッションが必要なため）。cleanup_news.php は CLI 専用。
+name: Cleanup old news
+
+on:
+  schedule:
+    - cron: '0 19 * * *'   # 毎日 04:00 JST（UTC 19:00）
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    name: 実施日から7日過ぎたお知らせを削除
+    steps:
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY_B64 }}" | base64 -d > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # XServer側のSSH一時制限でkeyscanが落ちても止めない（後続はStrictHostKeyChecking=no）
+          for i in 1 2 3; do ssh-keyscan -p 10022 sv16504.xserver.jp >> ~/.ssh/known_hosts 2>/dev/null && break; sleep 5; done; true
+
+      - name: Run cleanup_news.php on server
+        run: |
+          ssh -i ~/.ssh/deploy_key -p 10022 -o StrictHostKeyChecking=no \
+            jdsfseibu@sv16504.xserver.jp \
+            "php /home/jdsfseibu/jdsf-seibu.com/public_html/api/cleanup_news.php"
+
+      - name: Cleanup
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

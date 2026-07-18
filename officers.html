@@ -510,11 +510,23 @@
               style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;background:#fff;">
           </div>
           <div>
+            <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">
+              添付ファイル <span style="font-size:0.75rem;font-weight:400;color:var(--text-light);">（画像・PDF／最大10件・詳細ページに表示）</span>
+            </label>
+            <div id="news-attach-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;"></div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input type="file" id="news-attach-input" accept=".jpg,.jpeg,.png,.gif,.pdf"
+                style="flex:1;min-width:0;padding:7px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:inherit;background:#fff;">
+              <button type="button" onclick="uploadNewsAttach('news-attach-input','post')"
+                style="padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">⬆ 追加</button>
+            </div>
+          </div>
+          <div>
             <label style="display:inline-flex;align-items:center;gap:8px;font-size:0.875rem;font-weight:600;color:var(--text-dark);cursor:pointer;">
               <input type="checkbox" id="news-always-show" style="width:16px;height:16px;cursor:pointer;">
               常に表示する（期限なし）
             </label>
-            <p style="font-size:0.775rem;color:var(--text-light);margin:4px 0 0 24px;">チェックなしの場合でも削除するまで表示されます。</p>
+            <p style="font-size:0.775rem;color:var(--text-light);margin:4px 0 0 24px;">実施日から1週間で自動的に消えます。ずっと残したいお知らせはチェックしてください（「常に表示」はそのまま残ります）。</p>
           </div>
           <div id="news-form-msg" style="display:none;padding:8px 14px;border-radius:6px;font-size:0.875rem;"></div>
           <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
@@ -810,6 +822,19 @@
         <input type="url" id="edit-news-url" placeholder="https://…"
           style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;
                  font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;background:#fff;">
+      </div>
+
+      <div>
+        <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">
+          添付ファイル <span style="font-size:0.75rem;font-weight:400;color:var(--text-light);">（画像・PDF／最大10件）</span>
+        </label>
+        <div id="edit-attach-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;"></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="file" id="edit-attach-input" accept=".jpg,.jpeg,.png,.gif,.pdf"
+            style="flex:1;min-width:0;padding:7px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:inherit;background:#fff;">
+          <button type="button" onclick="uploadNewsAttach('edit-attach-input','edit')"
+            style="padding:8px 18px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">⬆ 追加</button>
+        </div>
       </div>
 
       <div id="edit-news-msg" style="display:none;padding:8px 14px;border-radius:6px;font-size:0.875rem;"></div>
@@ -1233,6 +1258,57 @@
   // ===== 役員からのお知らせ（手動投稿） =====
   var NOTICE_TOKEN = 'jdsfseibu2026';
 
+  /* ===== お知らせ添付ファイルの管理（投稿フォーム=post／編集モーダル=edit） ===== */
+  var _newsAttach = { post: [], edit: [] };
+
+  function _attListEl(scope) {
+    return document.getElementById(scope === 'edit' ? 'edit-attach-list' : 'news-attach-list');
+  }
+  function renderNewsAttach(scope) {
+    var el = _attListEl(scope);
+    if (!el) return;
+    var arr = _newsAttach[scope] || [];
+    if (!arr.length) { el.innerHTML = ''; return; }
+    el.innerHTML = arr.map(function(a, i) {
+      var thumb = (a.type === 'pdf')
+        ? '<span style="font-size:1.4rem;flex-shrink:0;">📄</span>'
+        : '<img src="' + a.url + '" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0;">';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;">'
+        + thumb
+        + '<span style="flex:1;min-width:0;font-size:0.82rem;color:var(--text-dark);word-break:break-all;">' + (a.name || a.url) + '</span>'
+        + '<button type="button" onclick="removeNewsAttach(\'' + scope + '\',' + i + ')" '
+        + 'style="flex-shrink:0;background:none;border:1px solid #FCA5A5;color:#B91C1C;border-radius:6px;font-size:0.75rem;padding:3px 10px;cursor:pointer;font-family:inherit;">✕ 削除</button>'
+        + '</div>';
+    }).join('');
+  }
+  function removeNewsAttach(scope, idx) {
+    if (_newsAttach[scope]) { _newsAttach[scope].splice(idx, 1); renderNewsAttach(scope); }
+  }
+  function uploadNewsAttach(inputId, scope) {
+    var input = document.getElementById(inputId);
+    var file  = input && input.files && input.files[0];
+    if (!file) { alert('ファイルを選んでください。'); return; }
+    if ((_newsAttach[scope] || []).length >= 10) { alert('添付は最大10件までです。'); return; }
+    var fd = new FormData();
+    fd.append('token', NOTICE_TOKEN);
+    fd.append('file', file);
+    fd.append('max_px', '1600');   // 写真は長辺1600pxへ縮小（PDFは対象外）
+    fetch('api/upload_file.php', { method: 'POST', body: fd })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res && res.ok && res.url) {
+          _newsAttach[scope].push({ url: res.url, name: res.orig || res.url.split('/').pop(), type: res.type || 'image' });
+          renderNewsAttach(scope);
+          if (input) input.value = '';
+        } else {
+          alert('⚠ ' + ((res && res.error) || 'アップロードに失敗しました'));
+        }
+      })
+      .catch(function() { alert('⚠ 通信エラーが発生しました。'); });
+  }
+  window.uploadNewsAttach = uploadNewsAttach;
+  window.removeNewsAttach = removeNewsAttach;
+
   function loadOfficerNotices() {
     fetch('data/officers_notices.json?_=' + Date.now())
       .then(function(r) { return r.json(); })
@@ -1458,6 +1534,7 @@
         + '<span style="font-size:0.8rem;color:var(--text-light);flex-shrink:0;min-width:76px;">📅 ' + leftDate + '</span>'
         + '<span class="tag ' + catCls + '" style="flex-shrink:0;">' + escHtml(n.category || '') + '</span>'
         + '<span style="flex:1;font-size:0.9375rem;font-weight:600;color:var(--text-dark);">' + safeTitle + '</span>'
+        + ((n.attachments && n.attachments.length) ? '<span title="添付あり" style="flex-shrink:0;font-size:0.72rem;font-weight:700;color:#475569;background:#eef2f7;border-radius:100px;padding:2px 8px;">📎' + n.attachments.length + '</span>' : '')
         + pinBadge
         + '<span style="font-size:0.775rem;color:var(--text-light);flex-shrink:0;">公開: ' + pubDate + '</span>'
         + '<button onclick="editPublicNews(\'' + safeId + '\')" '
@@ -1479,6 +1556,11 @@
     var isOpen = wrap.style.display !== 'none';
     wrap.style.display = isOpen ? 'none' : 'block';
     if (btn) btn.textContent = isOpen ? '＋ お知らせを投稿' : '✕ フォームを閉じる';
+    if (!isOpen) {   // 開いたときに前回の添付をリセット
+      _newsAttach.post = [];
+      renderNewsAttach('post');
+      var ai = document.getElementById('news-attach-input'); if (ai) ai.value = '';
+    }
   }
 
   function submitNews() {
@@ -1516,6 +1598,7 @@
     fd.append('url',         url);
     fd.append('event_date',  eventDate);
     fd.append('always_show', alwaysShow ? '1' : '0');
+    fd.append('attachments', JSON.stringify(_newsAttach.post || []));
 
     fetch('api/save_news.php', { method: 'POST', body: fd })
       .then(function(r) { return r.json(); })
@@ -1527,6 +1610,8 @@
           });
           var cb = document.getElementById('news-always-show');
           if (cb) cb.checked = false;
+          _newsAttach.post = [];
+          renderNewsAttach('post');
           if (msgEl) msgEl.style.display = 'none';
           toggleNewsForm();
           loadPublicNews();
@@ -1583,6 +1668,10 @@
     // event_date: 保存形式 "2026.06.02" → input用 "2026-06-02"
     document.getElementById('edit-news-event-date').value   =
       (n.event_date || '').replace(/\./g, '-');
+    // 既存の添付を編集用にコピーして表示
+    _newsAttach.edit = Array.isArray(n.attachments) ? n.attachments.slice() : [];
+    renderNewsAttach('edit');
+    var ei = document.getElementById('edit-attach-input'); if (ei) ei.value = '';
 
     var msg = document.getElementById('edit-news-msg');
     if (msg) { msg.style.display = 'none'; msg.textContent = ''; }
@@ -1629,6 +1718,7 @@
     fd.append('detail',     detail);
     fd.append('url',        url);
     fd.append('event_date', evDate);
+    fd.append('attachments', JSON.stringify(_newsAttach.edit || []));
 
     fetch('api/update_news.php', { method: 'POST', body: fd })
       .then(function(r) { return r.json(); })

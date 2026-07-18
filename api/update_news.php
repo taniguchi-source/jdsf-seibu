@@ -7,6 +7,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
 require __DIR__ . '/_auth.php';
+require __DIR__ . '/_news_util.php';
 require_auth('admin');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -21,6 +22,7 @@ $title      = trim($_POST['title']      ?? '');
 $detail     = trim($_POST['detail']     ?? '');
 $url        = trim($_POST['url']        ?? '');
 $event_date = trim($_POST['event_date'] ?? '');
+$attachments = news_sanitize_attachments($_POST['attachments'] ?? '');
 
 if ($id === '' || !$category || !$title || !$detail) {
     http_response_code(400);
@@ -56,10 +58,19 @@ if (!is_array($existing) || !isset($existing['news'])) {
 $found = false;
 foreach ($existing['news'] as &$item) {
     if (($item['id'] ?? '') === $id) {
+        // 編集で外された添付の実ファイルを掃除（新リストに無い旧ファイルのみ削除）
+        $oldAtt = is_array($item['attachments'] ?? null) ? $item['attachments'] : [];
+        $newUrls = array_map(function ($a) { return $a['url']; }, $attachments);
+        $removed = array_filter($oldAtt, function ($a) use ($newUrls) {
+            return is_array($a) && !in_array($a['url'] ?? '', $newUrls, true);
+        });
+        if ($removed) news_unlink_attachments(array_values($removed));
+
         $item['category']   = $category;
         $item['title']      = $title;
         $item['detail']     = $detail;
         $item['url']        = $url;
+        $item['attachments'] = $attachments;
         if ($event_display !== '') {
             $item['event_date'] = $event_display;
         }

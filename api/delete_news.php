@@ -7,6 +7,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
 require __DIR__ . '/_auth.php';
+require __DIR__ . '/_news_util.php';
 require_auth('admin');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -27,6 +28,13 @@ $json     = file_exists($data_file) ? file_get_contents($data_file) : false;
 $existing = $json ? json_decode($json, true) : null;
 if (!is_array($existing) || !isset($existing['news'])) {
     $existing = ['news' => []];
+}
+
+// 削除対象の添付ファイルを先に物理削除（孤立ファイルを残さない）
+foreach ($existing['news'] as $n) {
+    if (($n['id'] ?? '') === $id && is_array($n['attachments'] ?? null)) {
+        news_unlink_attachments($n['attachments']);
+    }
 }
 
 $existing['news'] = array_values(

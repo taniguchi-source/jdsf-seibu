@@ -239,13 +239,9 @@
       <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-dark);border-left:4px solid var(--primary);padding-left:12px;margin:0;line-height:1.3;">📢 お知らせ・最新情報</h2>
       <a href="news.html" class="btn btn-secondary" style="font-size:0.875rem;padding:8px 18px;white-space:nowrap;">お知らせ一覧を見る →</a>
     </div>
-    <p style="font-size:0.8125rem;color:var(--text-light);margin:0 0 16px 16px;">「常に表示」設定を含む最新6件を掲載しています。過去のお知らせは「お知らせ一覧を見る」からご確認ください。</p>
-    <div class="news-grid" id="news-grid">
-      <article class="news-card">
-        <div class="news-card-body" style="display:flex;align-items:center;justify-content:center;padding:40px;">
-          <span style="color:#A0AEC0;font-size:.9rem;">読み込み中...</span>
-        </div>
-      </article>
+    <p style="font-size:0.8125rem;color:var(--text-light);margin:0 0 16px 16px;">最新のお知らせを掲載しています（実施日から1週間で自動的に消えます。「常に表示」はそのまま残ります）。過去分は「お知らせ一覧を見る」からご確認ください。</p>
+    <div class="news-lines" id="news-grid">
+      <div style="padding:24px;text-align:center;color:#A0AEC0;font-size:.9rem;">読み込み中...</div>
     </div>
   </div>
 </section>
@@ -449,6 +445,12 @@
     'その他':     'tag-notice'
   };
 
+  function escHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
   fetch('data/news.json?_=' + Date.now())
     .then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -465,30 +467,27 @@
         return;
       }
 
-      // 常に表示アイテムを先頭に、合計最大6件まで表示
+      // 常に表示アイテムを先頭に、全件を1行で表示（件数制限なし）
       var pinned  = items.filter(function (n) { return n.always_show; });
       var regular = items.filter(function (n) { return !n.always_show; });
-      var latest  = pinned.concat(regular).slice(0, 6);
+      var ordered = pinned.concat(regular);
 
-      grid.innerHTML = latest.map(function (n) {
+      grid.innerHTML = ordered.map(function (n) {
         var catCls = CAT_CLASS[n.category] || 'tag-info';
         var detailHref = 'news-detail.html?id=' + encodeURIComponent(n.id || '');
         // カテゴリ左横には実施日（event_date）、なければ公開日
         var leftDate = n.event_date || n.date;
-        return '<article class="news-card">'
-          + '<div class="news-card-body">'
-          + '<div class="news-meta">'
-          + '<span class="news-date">' + leftDate + '</span>'
-          + '<span class="tag ' + catCls + '">' + n.category + '</span>'
-          + '</div>'
-          + '<h3 class="news-title">' + n.title + '</h3>'
-          + (n.detail ? '<p class="news-card-detail">' + n.detail + '</p>' : '')
-          + '<div class="news-card-footer">'
-          + (n.id ? '<a href="' + detailHref + '" class="news-more">詳しく読む</a>' : '<span class="news-more" style="opacity:.4;cursor:default;">詳しく読む</span>')
-          + '<span class="news-pub-date">公開: ' + n.date + '</span>'
-          + '</div>'
-          + '</div>'
-          + '</article>';
+        var attaches = (n.attachments && n.attachments.length)
+          ? '<span class="nl-clip" title="添付あり">📎' + n.attachments.length + '</span>' : '';
+        var pin = n.always_show ? '<span class="nl-pin" title="常に表示">📌</span>' : '';
+        var inner = '<span class="nl-date">' + escHtml(leftDate) + '</span>'
+          + '<span class="tag ' + catCls + '">' + escHtml(n.category) + '</span>'
+          + '<span class="nl-title">' + pin + escHtml(n.title) + '</span>'
+          + attaches
+          + (n.id ? '<span class="nl-arrow">→</span>' : '');
+        return n.id
+          ? '<a class="news-line" href="' + detailHref + '">' + inner + '</a>'
+          : '<div class="news-line no-link">' + inner + '</div>';
       }).join('');
 
       // ニュースティッカーを動的更新
@@ -496,8 +495,8 @@
       var ticker = document.querySelector('.news-ticker');
       if (items.length > 0 && tickerList) {
         tickerList.innerHTML = items.slice(0, 5).map(function (n) {
-          var href = n.url || 'news.html';
-          return '<a href="' + href + '">' + n.title + '</a>';
+          var href = (n.url && /^https?:\/\//i.test(n.url)) ? n.url : ('news-detail.html?id=' + encodeURIComponent(n.id || ''));
+          return '<a href="' + escHtml(href) + '">' + escHtml(n.title) + '</a>';
         }).join('');
       } else if (ticker) {
         ticker.style.display = 'none';

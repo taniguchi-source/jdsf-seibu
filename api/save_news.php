@@ -7,6 +7,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
 require __DIR__ . '/_auth.php';
+require __DIR__ . '/_news_util.php';
 require_auth('admin');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -21,6 +22,7 @@ $detail      = trim($_POST['detail']      ?? '');
 $url         = trim($_POST['url']         ?? '');
 $event_date  = trim($_POST['event_date']  ?? '');
 $always_show = (($_POST['always_show'] ?? '') === '1');
+$attachments = news_sanitize_attachments($_POST['attachments'] ?? '');
 
 if (!$category || !$title) {
     http_response_code(400);
@@ -65,6 +67,7 @@ $entry = [
     'detail'      => $detail,
     'url'         => $url,
     'always_show' => $always_show,
+    'attachments' => $attachments,
 ];
 
 array_unshift($existing['news'], $entry);
