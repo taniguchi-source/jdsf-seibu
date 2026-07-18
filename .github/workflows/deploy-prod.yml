@@ -53,6 +53,7 @@ jobs:
             --exclude='lesson.jdsf-seibu.com/' \
             --exclude='docs/meetings/' \
             --exclude='data/news.json' \
+            --exclude='data/news_archive.json' \
             --exclude='data/competitions_seibu.json' \
             --exclude='data/events_seibu.json' \
             --exclude='data/officers_news.json' \

@@ -64,6 +64,29 @@ if (count($removed) === 0) {
     exit(0);
 }
 
+// 削除分は archive へ退避してから消す（誤削除に備える）。添付ファイルは実体ごと消えるが
+// メタ情報（タイトル・URL・添付名）は残るので、必要なら後から状況を把握できる。
+$archive_file = dirname(__DIR__) . '/data/news_archive.json';
+$ajson = is_file($archive_file) ? file_get_contents($archive_file) : false;
+$archive = $ajson ? json_decode($ajson, true) : null;
+if (!is_array($archive) || !isset($archive['news'])) {
+    $archive = ['news' => []];
+}
+$stamp = date('Y-m-d') . 'T' . date('H:i:s');
+foreach ($removed as $n) {
+    if (is_array($n)) { $n['archived_at'] = $stamp; $archive['news'][] = $n; }
+}
+// 肥大化を防ぐため最新500件までに制限
+if (count($archive['news']) > 500) {
+    $archive['news'] = array_slice($archive['news'], -500);
+}
+$archive['updated'] = $stamp;
+file_put_contents(
+    $archive_file,
+    json_encode($archive, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+    LOCK_EX
+);
+
 // 添付ファイルを掃除
 $unlinked = 0;
 foreach ($removed as $n) {
