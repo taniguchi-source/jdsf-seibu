@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20260718">
+  <link rel="stylesheet" href="css/style.css?v=20260718b">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     /* スマホ専用バー：PCでは非表示、スマホで表示 */
@@ -484,7 +484,8 @@
           + '<span class="tag ' + catCls + '">' + escHtml(n.category) + '</span>'
           + '<span class="nl-title">' + pin + escHtml(n.title) + '</span>'
           + attaches
-          + (n.id ? '<span class="nl-arrow">→</span>' : '');
+          + (n.date ? '<span class="nl-pub">公開: ' + escHtml(n.date) + '</span>' : '')
+          + (n.id ? '<span class="nl-arrow">詳細を見る →</span>' : '');
         return n.id
           ? '<a class="news-line" href="' + detailHref + '">' + inner + '</a>'
           : '<div class="news-line no-link">' + inner + '</div>';

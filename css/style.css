@@ -644,15 +644,24 @@ a.news-line:hover {
   border-radius: 100px;
   padding: 1px 8px;
 }
+.news-line .nl-pub {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--text-light, #64748b);
+  white-space: nowrap;
+}
 .news-line .nl-arrow {
   flex-shrink: 0;
   color: var(--primary, #0D2347);
   font-weight: 700;
+  font-size: 0.8125rem;
+  white-space: nowrap;
 }
 @media (max-width: 600px) {
   .news-line { flex-wrap: wrap; gap: 6px 10px; }
   .news-line .nl-title { flex-basis: 100%; white-space: normal; order: 3; }
-  .news-line .nl-arrow { display: none; }
+  .news-line .nl-pub   { order: 4; }
+  .news-line .nl-arrow { order: 5; margin-left: auto; }
 }
 .news-title {
   font-size: 0.9375rem;
