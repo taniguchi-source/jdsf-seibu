@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20260718b">
+  <link rel="stylesheet" href="css/style.css?v=20260719">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     /* ===== ログイン画面 ===== */
@@ -520,6 +520,13 @@
               <button type="button" onclick="uploadNewsAttach('news-attach-input','post')"
                 style="padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">⬆ 追加</button>
             </div>
+          </div>
+          <div>
+            <label style="display:inline-flex;align-items:center;gap:8px;font-size:0.875rem;font-weight:600;color:var(--text-dark);cursor:pointer;">
+              <input type="checkbox" id="news-important" style="width:16px;height:16px;cursor:pointer;accent-color:#dc2626;">
+              🔴 西部ブロック全体の重要なお知らせ（目立たせる）
+            </label>
+            <p style="font-size:0.775rem;color:var(--text-light);margin:4px 0 0 24px;">トップページで赤く強調表示されます。府県のイベント等ではなく、<b>ブロック全体に関わる重要な告知</b>に使ってください。</p>
           </div>
           <div>
             <label style="display:inline-flex;align-items:center;gap:8px;font-size:0.875rem;font-weight:600;color:var(--text-dark);cursor:pointer;">
@@ -1529,12 +1536,20 @@
         : '<button onclick="toggleAlwaysShow(\'' + safeId + '\',1)" title="クリックで常に表示に切り替え"'
           + ' style="font-size:0.7rem;font-weight:600;background:#f5f5f5;color:var(--text-light);'
           + 'border:1px solid var(--border);border-radius:4px;padding:3px 9px;cursor:pointer;font-family:inherit;flex-shrink:0;">一般表示</button>';
+      var impBadge    = n.important
+        ? '<button onclick="toggleImportant(\'' + safeId + '\',0)" title="クリックで重要を解除"'
+          + ' style="font-size:0.7rem;font-weight:700;background:#FEE2E2;color:#B91C1C;'
+          + 'border:1px solid #FCA5A5;border-radius:4px;padding:3px 9px;cursor:pointer;font-family:inherit;flex-shrink:0;">🔴 重要</button>'
+        : '<button onclick="toggleImportant(\'' + safeId + '\',1)" title="クリックで重要にする（トップで強調）"'
+          + ' style="font-size:0.7rem;font-weight:600;background:#f5f5f5;color:var(--text-light);'
+          + 'border:1px solid var(--border);border-radius:4px;padding:3px 9px;cursor:pointer;font-family:inherit;flex-shrink:0;">重要でない</button>';
       return '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;'
         + 'background:#fff;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;">'
         + '<span style="font-size:0.8rem;color:var(--text-light);flex-shrink:0;min-width:76px;">📅 ' + leftDate + '</span>'
         + '<span class="tag ' + catCls + '" style="flex-shrink:0;">' + escHtml(n.category || '') + '</span>'
         + '<span style="flex:1;font-size:0.9375rem;font-weight:600;color:var(--text-dark);">' + safeTitle + '</span>'
         + ((n.attachments && n.attachments.length) ? '<span title="添付あり" style="flex-shrink:0;font-size:0.72rem;font-weight:700;color:#475569;background:#eef2f7;border-radius:100px;padding:2px 8px;">📎' + n.attachments.length + '</span>' : '')
+        + impBadge
         + pinBadge
         + '<span style="font-size:0.775rem;color:var(--text-light);flex-shrink:0;">公開: ' + pubDate + '</span>'
         + '<button onclick="editPublicNews(\'' + safeId + '\')" '
@@ -1570,6 +1585,7 @@
     var url        = (document.getElementById('news-url')         || {value:''}).value.trim();
     var eventDate  = (document.getElementById('news-event-date')  || {value:''}).value.trim();
     var alwaysShow = (document.getElementById('news-always-show') || {checked:false}).checked;
+    var important  = (document.getElementById('news-important')   || {checked:false}).checked;
     var msgEl      = document.getElementById('news-form-msg');
     var btn        = document.getElementById('news-submit-btn');
 
@@ -1598,6 +1614,7 @@
     fd.append('url',         url);
     fd.append('event_date',  eventDate);
     fd.append('always_show', alwaysShow ? '1' : '0');
+    fd.append('important',   important ? '1' : '0');
     fd.append('attachments', JSON.stringify(_newsAttach.post || []));
 
     fetch('api/save_news.php', { method: 'POST', body: fd })
@@ -1610,6 +1627,8 @@
           });
           var cb = document.getElementById('news-always-show');
           if (cb) cb.checked = false;
+          var ib = document.getElementById('news-important');
+          if (ib) ib.checked = false;
           _newsAttach.post = [];
           renderNewsAttach('post');
           if (msgEl) msgEl.style.display = 'none';
@@ -1641,11 +1660,12 @@
       .catch(function() { alert('通信エラーが発生しました。'); });
   }
 
-  function toggleAlwaysShow(id, newVal) {
+  function toggleNewsFlag(id, field, newVal) {
     var fd = new FormData();
-    fd.append('token',       NOTICE_TOKEN);
-    fd.append('id',          id);
-    fd.append('always_show', newVal ? '1' : '0');
+    fd.append('token', NOTICE_TOKEN);
+    fd.append('id',    id);
+    fd.append('field', field);
+    fd.append('value', newVal ? '1' : '0');
     fetch('api/toggle_news.php', { method: 'POST', body: fd })
       .then(function(r) { return r.json(); })
       .then(function(res) {
@@ -1654,6 +1674,8 @@
       })
       .catch(function() { alert('通信エラーが発生しました。'); });
   }
+  function toggleAlwaysShow(id, newVal) { toggleNewsFlag(id, 'always_show', newVal); }
+  function toggleImportant(id, newVal)  { toggleNewsFlag(id, 'important',   newVal); }
 
   function editPublicNews(id) {
     var n = _publicNewsItems.find(function(x) { return x.id === id; });
@@ -1751,6 +1773,7 @@
   window.submitNews            = submitNews;
   window.deletePublicNews      = deletePublicNews;
   window.toggleAlwaysShow      = toggleAlwaysShow;
+  window.toggleImportant       = toggleImportant;
   window.editPublicNews        = editPublicNews;
   window.closeEditModal        = closeEditModal;
   window.saveEditedNews        = saveEditedNews;

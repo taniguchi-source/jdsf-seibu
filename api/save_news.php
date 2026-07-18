@@ -22,6 +22,7 @@ $detail      = trim($_POST['detail']      ?? '');
 $url         = trim($_POST['url']         ?? '');
 $event_date  = trim($_POST['event_date']  ?? '');
 $always_show = (($_POST['always_show'] ?? '') === '1');
+$important   = (($_POST['important']   ?? '') === '1');
 $attachments = news_sanitize_attachments($_POST['attachments'] ?? '');
 
 if (!$category || !$title) {
@@ -64,6 +65,7 @@ $entry = [
     'detail'      => $detail,
     'url'         => $url,
     'always_show' => $always_show,
+    'important'   => $important,
     'attachments' => $attachments,
 ];
 

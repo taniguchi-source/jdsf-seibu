@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20260718b">
+  <link rel="stylesheet" href="css/style.css?v=20260719">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     /* スマホ専用バー：PCでは非表示、スマホで表示 */
@@ -480,15 +480,18 @@
         var attaches = (n.attachments && n.attachments.length)
           ? '<span class="nl-clip" title="添付あり">📎' + n.attachments.length + '</span>' : '';
         var pin = n.always_show ? '<span class="nl-pin" title="常に表示">📌</span>' : '';
+        var impBadge = n.important ? '<span class="nl-important">🔴 重要</span>' : '';
         var inner = '<span class="nl-date">' + escHtml(leftDate) + '</span>'
           + '<span class="tag ' + catCls + '">' + escHtml(n.category) + '</span>'
+          + impBadge
           + '<span class="nl-title">' + pin + escHtml(n.title) + '</span>'
           + attaches
           + (n.date ? '<span class="nl-pub">公開: ' + escHtml(n.date) + '</span>' : '')
           + (n.id ? '<span class="nl-arrow">詳細を見る →</span>' : '');
+        var cls = 'news-line' + (n.important ? ' important' : '');
         return n.id
-          ? '<a class="news-line" href="' + detailHref + '">' + inner + '</a>'
-          : '<div class="news-line no-link">' + inner + '</div>';
+          ? '<a class="' + cls + '" href="' + detailHref + '">' + inner + '</a>'
+          : '<div class="' + cls + ' no-link">' + inner + '</div>';
       }).join('');
 
       // ニュースティッカーを動的更新

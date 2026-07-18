@@ -1,7 +1,8 @@
 <?php
 /**
- * 公開お知らせ always_show トグルAPI
- * POST: token, id, always_show (0 or 1)
+ * 公開お知らせ フラグ トグルAPI
+ * POST: token, id, field(always_show|important・省略時 always_show), value(0 or 1)
+ *   後方互換: field 省略時は POST['always_show'] を value として扱う。
  */
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
@@ -15,8 +16,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$id          = trim($_POST['id'] ?? '');
-$always_show = (($_POST['always_show'] ?? '') === '1');
+$id    = trim($_POST['id'] ?? '');
+$field = (string)($_POST['field'] ?? 'always_show');
+// 切り替え対象のフィールドはホワイトリストで限定
+if (!in_array($field, ['always_show', 'important'], true)) {
+    $field = 'always_show';
+}
+// 値: value を優先、無ければ field名のPOST（後方互換：always_show を直接送る旧UI）
+$value = (($_POST['value'] ?? $_POST[$field] ?? '') === '1');
 
 if ($id === '') {
     http_response_code(400);
@@ -34,7 +41,7 @@ if (!is_array($existing) || !isset($existing['news'])) {
 $found = false;
 foreach ($existing['news'] as &$item) {
     if (($item['id'] ?? '') === $id) {
-        $item['always_show'] = $always_show;
+        $item[$field] = $value;
         $found = true;
         break;
     }
@@ -60,4 +67,4 @@ if ($written === false) {
     exit;
 }
 
-echo json_encode(['ok' => true, 'always_show' => $always_show], JSON_UNESCAPED_UNICODE);
+echo json_encode(['ok' => true, 'field' => $field, 'value' => $value], JSON_UNESCAPED_UNICODE);
