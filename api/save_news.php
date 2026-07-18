@@ -37,16 +37,13 @@ if ($url !== '' && !preg_match('/^https?:\/\//i', $url)) {
 // 今日の日付（表示用）
 $today_display = date('Y.m.d');
 
-// 実施日の処理
+// 実施日の処理（空欄は空のまま保存＝自動削除は公開日+90日で判定）
+$event_display = '';
 if ($event_date) {
     $parts = explode('-', $event_date);
     if (count($parts) === 3) {
         $event_display = sprintf('%s.%02d.%02d', $parts[0], (int)$parts[1], (int)$parts[2]);
-    } else {
-        $event_display = $today_display;
     }
-} else {
-    $event_display = $today_display;
 }
 
 $data_file = dirname(__DIR__) . '/data/news.json';

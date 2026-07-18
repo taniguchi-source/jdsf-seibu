@@ -34,16 +34,13 @@ if ($url !== '' && !preg_match('/^https?:\/\//i', $url)) {
     $url = '';
 }
 
-// 実施日の処理（YYYY-MM-DD → Y.m.d 表示形式）
+// 実施日の処理（YYYY-MM-DD → Y.m.d 表示形式。空欄なら空にする＝公開日+90日で判定）
+$event_display = '';
 if ($event_date) {
     $parts = explode('-', $event_date);
     if (count($parts) === 3) {
         $event_display = sprintf('%s.%02d.%02d', $parts[0], (int)$parts[1], (int)$parts[2]);
-    } else {
-        $event_display = '';
     }
-} else {
-    $event_display = '';
 }
 
 $data_file = dirname(__DIR__) . '/data/news.json';
@@ -71,9 +68,7 @@ foreach ($existing['news'] as &$item) {
         $item['detail']     = $detail;
         $item['url']        = $url;
         $item['attachments'] = $attachments;
-        if ($event_display !== '') {
-            $item['event_date'] = $event_display;
-        }
+        $item['event_date'] = $event_display;   // 空欄なら空にする（実施日を消せる）
         $found = true;
         break;
     }

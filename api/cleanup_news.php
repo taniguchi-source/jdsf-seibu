@@ -1,9 +1,10 @@
 <?php
 /**
  * 公開お知らせ 自動削除（CLI専用）
- * 実施日（event_date）から7日を過ぎたお知らせを news.json から削除する。
  *   - always_show === true（常に表示）は対象外
- *   - event_date が無い/不正なものは対象外（日齢を計算できないため残す）
+ *   - 実施日（event_date）あり → その日から7日を過ぎたら削除
+ *   - 実施日なし（空欄）     → 公開日（date）から90日を過ぎたら削除
+ *   - どちらの日付も不正なものは対象外（日齢を計算できないため残す）
  *   - 削除時は添付ファイル（uploads/ 配下）も物理削除
  *
  * 実行: GitHub Actions の cron から SSH 経由で
@@ -22,8 +23,18 @@ if (PHP_SAPI !== 'cli') {
 date_default_timezone_set('Asia/Tokyo');
 require __DIR__ . '/_news_util.php';
 
-$GRACE_DAYS = 7;
+$GRACE_DAYS    = 7;    // 実施日ありのお知らせ：実施日から何日後に消すか
+$GRACE_NO_EVENT = 90;  // 実施日なしのお知らせ：公開日から何日後に消すか
 $data_file  = dirname(__DIR__) . '/data/news.json';
+
+/** "YYYY.MM.DD" を DateTime(00:00) に。失敗時 null */
+function parse_dot_date($s) {
+    if (!preg_match('/^(\d{4})\.(\d{1,2})\.(\d{1,2})$/', trim((string)$s), $m)) return null;
+    $d = DateTime::createFromFormat('Y-n-j', "{$m[1]}-{$m[2]}-{$m[3]}");
+    if ($d === false) return null;
+    $d->setTime(0, 0, 0);
+    return $d;
+}
 
 $json = is_file($data_file) ? file_get_contents($data_file) : false;
 $data = $json ? json_decode($json, true) : null;
@@ -41,17 +52,18 @@ foreach ($data['news'] as $n) {
     // 常に表示はピン留め＝消さない
     if (!empty($n['always_show'])) { $kept[] = $n; continue; }
 
-    $ev = trim((string)($n['event_date'] ?? ''));
-    // "YYYY.MM.DD" をパース。形式が違えば残す。
-    if (!preg_match('/^(\d{4})\.(\d{1,2})\.(\d{1,2})$/', $ev, $m)) {
-        $kept[] = $n; continue;
+    $eventDate = parse_dot_date($n['event_date'] ?? '');
+    if ($eventDate !== null) {
+        // 実施日あり → 実施日 + GRACE_DAYS
+        $deadline = (clone $eventDate)->modify("+{$GRACE_DAYS} days");
+    } else {
+        // 実施日なし → 公開日 + GRACE_NO_EVENT。公開日も不正なら残す。
+        $pubDate = parse_dot_date($n['date'] ?? '');
+        if ($pubDate === null) { $kept[] = $n; continue; }
+        $deadline = (clone $pubDate)->modify("+{$GRACE_NO_EVENT} days");
     }
-    $eventDate = DateTime::createFromFormat('Y-n-j', "{$m[1]}-{$m[2]}-{$m[3]}");
-    if ($eventDate === false) { $kept[] = $n; continue; }
-    $eventDate->setTime(0, 0, 0);
 
-    // 期限 = 実施日 + GRACE_DAYS。期限を過ぎた（今日 > 期限）ら削除。
-    $deadline = (clone $eventDate)->modify("+{$GRACE_DAYS} days");
+    // 期限を過ぎた（今日 > 期限）ら削除。
     if ($today > $deadline) {
         $removed[] = $n;
     } else {
