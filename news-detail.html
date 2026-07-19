@@ -58,6 +58,13 @@
       padding-top: 20px;
       margin-bottom: 28px;
     }
+    .detail-body a {
+      color: var(--primary);
+      font-weight: 600;
+      text-decoration: underline;
+      word-break: break-all;
+    }
+    .detail-body a:hover { opacity: .8; }
     .detail-url-block {
       border-top: 1px solid var(--border);
       padding-top: 20px;
@@ -344,7 +351,7 @@
         + '<span class="detail-date">' + escHtml(leftDate) + '</span>'
         + '</div>'
         + '<h2 class="detail-title">' + escHtml(item.title) + '</h2>'
-        + (detailText ? '<div class="detail-body">' + escHtml(detailText) + '</div>' : '')
+        + (detailText ? '<div class="detail-body">' + linkify(detailText) + '</div>' : '')
         + attachHtml
         + urlBlock
         + '<p class="detail-pub-date">公開日: ' + escHtml(item.date) + '</p>';
@@ -364,6 +371,21 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
+  }
+
+  /* 本文を安全にエスケープしつつ、http(s) のURLをクリック可能なリンクにする。
+     先にエスケープ → その上でURLパターンを <a> へ置換（XSS安全）。
+     URL末尾の句読点・閉じ括弧はリンクから外す。 */
+  function linkify(text) {
+    var esc = escHtml(text);
+    // エスケープ後のASCII URL文字のみ対象（日本語や全角括弧が来たら自動で終端）。
+    // クエリの & は &amp; になるので明示的に許可。& で始まる他のHTMLエンティティ(&lt;等)では止まる。
+    return esc.replace(/https?:\/\/(?:&amp;|[\x21-\x25\x27-\x3b\x3d\x3f-\x7e])+/g, function (m) {
+      var trail = '';
+      var mm = m.match(/^(.*?)([)\]}.,!?;:]+)$/);   // 末尾の半角句読点・閉じ括弧はリンクから外す
+      if (mm) { m = mm[1]; trail = mm[2]; }
+      return '<a href="' + m + '" target="_blank" rel="noopener">' + m + '</a>' + trail;
+    });
   }
 
   /* 添付URLの安全確認：uploads/ 配下（相対）か http(s) のみ許可 */
