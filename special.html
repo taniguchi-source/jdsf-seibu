@@ -430,7 +430,10 @@
         })
         .catch(function () { notice('内容の読み込みに失敗しました。'); });
     })
-    .catch(function () { notice('設定の読み込みに失敗しました。'); });
+    .catch(function () {
+      /* 特設サイトが未設定のとき、サーバーは data/*.json の代わりにHTMLを返すためここに来る */
+      notice('このページは現在公開されていません。<br><br><a href="index.html" style="color:var(--primary);font-weight:600;">← トップページへ戻る</a>');
+    });
 })();
 </script>
 </body>
