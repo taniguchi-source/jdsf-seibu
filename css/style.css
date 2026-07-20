@@ -641,8 +641,23 @@ a.news-line.important:hover {
   font-size: 0.8rem;
   color: var(--text-light, #64748b);
   flex-shrink: 0;
-  min-width: 84px;
+  min-width: 128px;
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
   font-variant-numeric: tabular-nums;
+}
+/* 実施日。設定が無いお知らせは空欄のまま（幅だけ残して列を揃える） */
+.news-line .nl-date-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-light, #64748b);
+  letter-spacing: .04em;
+  flex-shrink: 0;
+}
+.news-line .nl-date b {
+  font-weight: 800;
+  color: var(--primary-dark, #2E4A8E);
 }
 .news-line .tag { flex-shrink: 0; }
 .news-line .nl-title {

@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20260721">
+  <link rel="stylesheet" href="css/style.css?v=20260722">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     /* ---- ニュース一覧用スタイル ---- */
@@ -41,6 +41,20 @@
       font-size: 0.75rem;
       color: var(--text-light);
       padding-top: 3px;
+    }
+    /* 実施日。設定が無いお知らせは空欄のまま（幅だけ残して列を揃える） */
+    .nli-date-label {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-light);
+      letter-spacing: .04em;
+    }
+    .nli-date b {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      font-variant-numeric: tabular-nums;
     }
     .nli-badge {
       flex-shrink: 0;
@@ -286,10 +300,12 @@
       var detailHref = hasId ? 'news-detail.html?id=' + encodeURIComponent(n.id) : '';
       var attrs = hasId ? ' href="' + escHtml(detailHref) + '"' : '';
       var noLinkCls = hasId ? '' : ' no-link';
-      // カテゴリ左横には実施日（event_date）、なければ公開日
-      var leftDate = n.event_date || n.date;
+      // カテゴリ左横は実施日。設定されていないものは空欄にする（公開日で代用しない）
+      var leftDate = n.event_date
+        ? '<span class="nli-date-label">実施日</span><b>' + escHtml(n.event_date) + '</b>'
+        : '';
       return '<' + tag + ' class="news-list-item' + noLinkCls + '"' + attrs + '>'
-        + '<span class="nli-date">' + escHtml(leftDate) + '</span>'
+        + '<span class="nli-date">' + leftDate + '</span>'
         + '<span class="nli-badge"><span class="tag ' + catCls + '">' + escHtml(n.category) + '</span></span>'
         + '<span class="nli-body">'
         + '<span class="nli-title">' + escHtml(n.title) + '</span>'
