@@ -66,6 +66,17 @@
     }
     .link-btn:hover { background: var(--primary-dark); }
     .link-btn-sub { font-size: .8rem; color: var(--text-light); margin: 6px 0 0; }
+    /* 「見出しと表示ボタン」のときの開閉ボタン */
+    .toggle-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 22px;
+      background: #fff; color: var(--primary);
+      border: 1.5px solid var(--primary); border-radius: 8px;
+      font-size: .9375rem; font-weight: 700; font-family: inherit;
+      cursor: pointer;
+      transition: background .2s, color .2s;
+    }
+    .toggle-btn:hover { background: var(--primary); color: #fff; }
     /* 画像・PDFの「開く」「ダウンロード」 */
     .file-actions {
       display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px;
@@ -314,29 +325,45 @@
     return (item.show_title === false) ? 'body' : 'full';
   }
 
-  /* 「見出しだけ」のときの中身。重いもの（PDF本体・画像・埋め込み・本文）は出さず、
-     ダウンロードや開くための操作だけを置く。 */
-  function buildTitleOnlyEl(item) {
-    var el   = document.createElement('div');
+  var TOGGLE_LABEL = {
+    pdf:   'PDFを表示する',
+    image: '画像を表示する',
+    embed: 'このページを表示する',
+    text:  '本文を表示する'
+  };
+
+  /* 「見出しと表示ボタン」のときの中身。
+     はじめは見出しとボタンだけを置き、押されたときに中身を組み立てて開く。
+     開いた中身には従来どおりダウンロードボタンが付く。 */
+  function buildToggleEl(item) {
     var type = item.type || 'text';
 
-    if (type === 'image' && item.file_url) {
-      el.appendChild(fileActions(item.file_url, item.title, '🔍 画像を開く', '画像をダウンロード'));
-    } else if (type === 'pdf' && item.file_url) {
-      el.appendChild(fileActions(item.file_url, item.title, '🔗 PDFを開く', 'PDFをダウンロード'));
-    } else if (type === 'link') {
-      var lUrl = item.link_url || '';
-      if (/^https?:\/\//i.test(lUrl)) {
-        el.innerHTML = '<a href="' + escHtml(lUrl) + '" target="_blank" rel="noopener" class="link-btn">'
-          + '🔗 ' + escHtml(item.link_label || item.title || lUrl) + '　→</a>';
+    /* リンクボタンはそれ自体が操作なので、たたまずそのまま出す */
+    if (type === 'link') return buildBodyEl(item);
+
+    var el    = document.createElement('div');
+    var label = TOGGLE_LABEL[type] || '内容を表示する';
+    var btn   = document.createElement('button');
+    btn.type      = 'button';
+    btn.className = 'toggle-btn';
+    btn.textContent = '▼ ' + label;
+
+    var body = document.createElement('div');
+    body.style.cssText = 'display:none;margin-top:16px;';
+
+    var built = false;
+    btn.addEventListener('click', function () {
+      var opening = (body.style.display === 'none');
+      if (opening && !built) {          /* 開くときに初めて組み立てる（PDFの読み込みも押すまで走らない） */
+        body.appendChild(buildBodyEl(item));
+        built = true;
       }
-    } else if (type === 'embed') {
-      var eUrl = item.embed_url || '';
-      if (/^https?:\/\//i.test(eUrl)) {
-        el.innerHTML = '<p class="file-actions"><a href="' + escHtml(eUrl) + '" target="_blank" rel="noopener">🔗 このページを開く</a></p>';
-      }
-    }
-    /* text は見出しだけで終わり（中身は出さない） */
+      body.style.display = opening ? '' : 'none';
+      btn.textContent    = opening ? '▲ 閉じる' : ('▼ ' + label);
+    });
+
+    el.appendChild(btn);
+    el.appendChild(body);
     return el;
   }
 
@@ -454,7 +481,7 @@
         titleEl.textContent = (TYPE_ICON[item.type] || '📝 ') + item.title;
         block.appendChild(titleEl);
       }
-      block.appendChild(view === 'title' ? buildTitleOnlyEl(item) : buildBodyEl(item));
+      block.appendChild(view === 'title' ? buildToggleEl(item) : buildBodyEl(item));
       wrap.appendChild(block);
     });
   }
