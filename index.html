@@ -235,22 +235,33 @@
 
 <!-- ===== 特設サイト（サイト構築で編集／data/special_sites.json／未設定時は非表示） ===== -->
 <style>
-  .special-sites { display:flex; flex-wrap:wrap; gap:12px; }
-  .special-sites > a {
-    flex:1 1 calc(20% - 12px); min-width:0;
-    display:flex; align-items:center; justify-content:center; text-align:center;
-    padding:16px 14px; background:var(--primary); color:#fff; text-decoration:none;
-    border-radius:10px; font-size:.9375rem; font-weight:700; line-height:1.4;
-    box-shadow:var(--shadow); transition:background .2s, transform .12s, box-shadow .2s;
+  /* 見出しの右横に小さめのボタンを並べる（3〜4個が1行に収まる大きさ） */
+  .special-sites-row { display:flex; align-items:center; flex-wrap:wrap; gap:10px 14px; }
+  .special-sites-row .sp-heading {
+    font-size:1.05rem; font-weight:800; color:var(--text-dark);
+    border-left:4px solid #F97316; padding-left:10px; margin:0; line-height:1.3;
+    white-space:nowrap; flex-shrink:0;
   }
-  .special-sites > a:hover { background:var(--primary-dark); transform:translateY(-2px); box-shadow:var(--shadow-hover); }
-  @media (max-width:900px){ .special-sites > a { flex:1 1 calc(50% - 12px); } }
-  @media (max-width:520px){ .special-sites > a { flex:1 1 100%; } }
+  .special-sites { display:flex; flex-wrap:wrap; gap:8px; flex:1 1 300px; min-width:0; }
+  .special-sites > a {
+    display:inline-flex; align-items:center; max-width:100%;
+    padding:7px 15px; background:#F97316; color:#fff; text-decoration:none;
+    border-radius:100px; font-size:.8125rem; font-weight:700; line-height:1.35;
+    box-shadow:0 2px 6px rgba(249,115,22,.35);
+    transition:background .2s, transform .12s, box-shadow .2s;
+  }
+  .special-sites > a:hover { background:#EA580C; transform:translateY(-1px); box-shadow:0 4px 12px rgba(249,115,22,.45); }
+  @media (max-width:520px){
+    .special-sites-row { gap:8px; }
+    .special-sites > a { font-size:.78rem; padding:6px 13px; }
+  }
 </style>
-<section id="special-sites-section" class="section" style="display:none;padding-top:24px;padding-bottom:24px;background:#fff;border-bottom:1px solid #d0d9e4;">
+<section id="special-sites-section" class="section" style="display:none;padding-top:16px;padding-bottom:16px;background:#fff;border-bottom:1px solid #d0d9e4;">
   <div class="container">
-    <h2 style="font-size:1.2rem;font-weight:800;color:var(--text-dark);border-left:4px solid var(--primary);padding-left:12px;margin:0 0 16px;line-height:1.3;">🎪 特設サイト</h2>
-    <div class="special-sites" id="special-sites"></div>
+    <div class="special-sites-row">
+      <h2 class="sp-heading">🎪 特設サイト</h2>
+      <div class="special-sites" id="special-sites"></div>
+    </div>
   </div>
 </section>
 
