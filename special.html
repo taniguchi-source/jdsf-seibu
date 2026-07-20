@@ -306,6 +306,40 @@
     return p;
   }
 
+  /* ブロックの見せ方。旧データ（view が無い）は show_title から読み替える。
+     full … 見出しと中身／title … 見出しだけ／body … 中身だけ（見出しなし） */
+  function itemView(item) {
+    var v = item.view;
+    if (v === 'full' || v === 'title' || v === 'body') return v;
+    return (item.show_title === false) ? 'body' : 'full';
+  }
+
+  /* 「見出しだけ」のときの中身。重いもの（PDF本体・画像・埋め込み・本文）は出さず、
+     ダウンロードや開くための操作だけを置く。 */
+  function buildTitleOnlyEl(item) {
+    var el   = document.createElement('div');
+    var type = item.type || 'text';
+
+    if (type === 'image' && item.file_url) {
+      el.appendChild(fileActions(item.file_url, item.title, '🔍 画像を開く', '画像をダウンロード'));
+    } else if (type === 'pdf' && item.file_url) {
+      el.appendChild(fileActions(item.file_url, item.title, '🔗 PDFを開く', 'PDFをダウンロード'));
+    } else if (type === 'link') {
+      var lUrl = item.link_url || '';
+      if (/^https?:\/\//i.test(lUrl)) {
+        el.innerHTML = '<a href="' + escHtml(lUrl) + '" target="_blank" rel="noopener" class="link-btn">'
+          + '🔗 ' + escHtml(item.link_label || item.title || lUrl) + '　→</a>';
+      }
+    } else if (type === 'embed') {
+      var eUrl = item.embed_url || '';
+      if (/^https?:\/\//i.test(eUrl)) {
+        el.innerHTML = '<p class="file-actions"><a href="' + escHtml(eUrl) + '" target="_blank" rel="noopener">🔗 このページを開く</a></p>';
+      }
+    }
+    /* text は見出しだけで終わり（中身は出さない） */
+    return el;
+  }
+
   /* ===== ブロック1つ分の本文を作る（text / image / pdf / link / embed） ===== */
   function buildBodyEl(item) {
     var bodyEl = document.createElement('div');
@@ -411,15 +445,16 @@
       return;
     }
     items.forEach(function (item) {
+      var view  = itemView(item);
       var block = document.createElement('div');
       block.className = 'content-block';
-      if (item.show_title !== false && item.title) {
+      if (view !== 'body' && item.title) {
         var titleEl = document.createElement('h2');
         titleEl.className = 'content-block-title';
         titleEl.textContent = (TYPE_ICON[item.type] || '📝 ') + item.title;
         block.appendChild(titleEl);
       }
-      block.appendChild(buildBodyEl(item));
+      block.appendChild(view === 'title' ? buildTitleOnlyEl(item) : buildBodyEl(item));
       wrap.appendChild(block);
     });
   }

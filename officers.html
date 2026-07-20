@@ -2054,6 +2054,36 @@ function spClearPassword(n){
 /* --- ページの内容（ブロック） --- */
 function spcOf(n){ var k=String(n); if(!Array.isArray(_spc[k])) _spc[k]=[]; return _spc[k]; }
 
+/* ===== 項目の見せ方 =====
+   すべて表示 … 見出しと中身の両方
+   見出しだけ … 見出しと「ダウンロード／開く」だけ（PDF本体・画像・埋め込みは出さない）
+   中身だけ   … 見出しを出さずに中身だけ
+   表示しない … ページに出さない                                        */
+var SP_VIEWS = [
+  {v:'full',  t:'📄 すべて表示'},
+  {v:'title', t:'🏷 見出しだけ（ダウンロードのみ）'},
+  {v:'body',  t:'🖼 中身だけ（見出しなし）'},
+  {v:'off',   t:'🚫 表示しない'}
+];
+function spcViewOf(it){
+  if(it.enabled===false) return 'off';
+  var v=it.view;
+  if(v==='full'||v==='title'||v==='body') return v;
+  return (it.show_title===false) ? 'body' : 'full';   /* 旧データの読み替え */
+}
+function spcViewOptions(it){
+  var cur=spcViewOf(it);
+  return SP_VIEWS.map(function(o){
+    return '<option value="'+o.v+'"'+(cur===o.v?' selected':'')+'>'+o.t+'</option>';
+  }).join('');
+}
+function spcSetView(n,i,v){
+  var it=spcOf(n)[i];
+  if(v==='off'){ it.enabled=false; }
+  else { it.enabled=true; it.view=v; it.show_title=(v!=='body'); }
+  spcRender(n);
+}
+
 function spcRender(n){
   var box=document.getElementById('spc-list-'+n);
   if(!box) return;
@@ -2066,8 +2096,9 @@ function spcRender(n){
           + SP_TYPES.map(function(t){ return '<option value="'+t.v+'"'+(it.type===t.v?' selected':'')+'>'+t.t+'</option>'; }).join('')
         + '</select>'
         + '<input type="text" value="'+spEsc(it.title||'')+'" placeholder="見出し（任意）" oninput="_spc[\''+n+'\']['+i+'].title=this.value" style="flex:1 1 160px;min-width:120px;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:.8rem;font-family:inherit;">'
-        + '<label class="ck"><input type="checkbox" '+(it.enabled!==false?'checked':'')+' onchange="_spc[\''+n+'\']['+i+'].enabled=this.checked"> 表示</label>'
-        + '<label class="ck"><input type="checkbox" '+(it.show_title!==false?'checked':'')+' onchange="_spc[\''+n+'\']['+i+'].show_title=this.checked"> 見出しを出す</label>'
+        + '<select onchange="spcSetView('+n+','+i+',this.value)" title="この項目の見せ方" style="padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:.78rem;font-family:inherit;background:#fff;">'
+          + spcViewOptions(it)
+        + '</select>'
         + '<button class="btn btn-sm btn-sec" onclick="spcMove('+n+','+i+',-1)">↑</button>'
         + '<button class="btn btn-sm btn-sec" onclick="spcMove('+n+','+i+',1)">↓</button>'
         + '<button class="btn btn-sm btn-del" onclick="spcDel('+n+','+i+')">×</button>'
@@ -2147,7 +2178,7 @@ function spcThumb(n,i,url,kind){
 function spcAdd(n){
   var list=spcOf(n);
   if(list.length>=30){ alert('1ページの上限は30ブロックです'); return; }
-  list.push({id:'b'+Date.now().toString(36), title:'', enabled:true, show_title:true, type:'text',
+  list.push({id:'b'+Date.now().toString(36), title:'', enabled:true, view:'full', show_title:true, type:'text',
              body:'', file_url:'', pdf_pc_width:100, link_url:'', link_label:'', embed_url:'', embed_height:1200});
   spcRender(n);
 }

@@ -47,6 +47,16 @@ foreach ($items as $item) {
     $type = (string)($item['type'] ?? 'text');
     if (!in_array($type, ['text', 'image', 'pdf', 'link', 'embed'], true)) $type = 'text';
 
+    /* 見せ方
+       full  … 見出しと中身の両方
+       title … 見出しだけ（PDFや画像は本体を出さず、ダウンロードボタンのみ）
+       body  … 中身だけ（見出しを出さない）
+       旧データ（view が無い）は show_title から読み替える。 */
+    $view = (string)($item['view'] ?? '');
+    if (!in_array($view, ['full', 'title', 'body'], true)) {
+        $view = (array_key_exists('show_title', $item) && empty($item['show_title'])) ? 'body' : 'full';
+    }
+
     // PDFのPC表示幅（%）。20〜100。範囲外は100（＝全幅）
     $pdf_pc_width = (int)($item['pdf_pc_width'] ?? 100);
     if ($pdf_pc_width < 20)  $pdf_pc_width = 20;
@@ -61,7 +71,9 @@ foreach ($items as $item) {
         'id'           => preg_replace('/[^a-z0-9_]/i', '', (string)($item['id'] ?? '')),
         'title'        => mb_substr(trim((string)($item['title'] ?? '')), 0, 60),
         'enabled'      => !empty($item['enabled']),
-        'show_title'   => array_key_exists('show_title', $item) ? !empty($item['show_title']) : true,
+        'view'         => $view,
+        /* 旧項目。view と矛盾しないよう合わせて書いておく */
+        'show_title'   => ($view !== 'body'),
         'type'         => $type,
         'body'         => mb_substr(trim((string)($item['body'] ?? '')), 0, 5000),
         'file_url'     => sc_safe_file_url($item['file_url'] ?? ''),
