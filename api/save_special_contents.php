@@ -6,12 +6,12 @@
  * スプレッドシート連携・ギャラリーは扱わない。
  *
  * POST: site_id（1〜5）, items（JSON配列）
- * 認証: _auth.php（POST + 同一オリジン + CSRF + build セッション）
+ * 認証: _auth.php（POST + 同一オリジン + CSRF + admin または build セッション）
  */
 header('Content-Type: application/json; charset=utf-8');
 
 require __DIR__ . '/_auth.php';
-require_auth('build');
+require_auth_any(['admin', 'build']);
 
 /** http(s) のURLだけを通す */
 function sc_safe_url($v, $max = 500) {
