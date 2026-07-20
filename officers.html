@@ -1841,11 +1841,17 @@
 <!-- ===== 特設サイト制作（役員用パスワードで操作。保存APIは admin / build 両方を受け付ける） ===== -->
 <script>
 'use strict';
+/* 保存APIに付ける従来からの合言葉（実際の認可はセッション＋CSRFで行う）。
+   このスクリプトは officers.html 本体のIIFEとは別なので、ここで定義しておく。 */
+var TOKEN = 'jdsfseibu2026';
+
 function spEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function spSetMsg(id, text, ok){
   var el=document.getElementById(id); if(!el) return;
   el.className='msg '+(ok?'ok':'ng'); el.textContent=text; el.style.display='block';
   if(ok) setTimeout(function(){ el.style.display='none'; }, 3500);
+  /* メッセージ欄は節の一番下にあるので、押した場所から見えるように寄せる */
+  try { el.scrollIntoView({block:'nearest'}); } catch(e){}
 }
 
 /* ===== ⑥ 特設サイト（最大5つ・ページ本文は special.html?id=N で表示） ===== */
