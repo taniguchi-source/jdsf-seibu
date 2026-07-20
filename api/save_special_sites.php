@@ -22,6 +22,19 @@ $items_raw = $_POST['sites'] ?? '[]';
 $items = @json_decode($items_raw, true);
 if (!is_array($items)) $items = [];
 
+$file = dirname(__DIR__) . '/data/special_sites.json';
+
+/* has_password はパスワードAPI（save_special_password.php）が管理する印なので、
+   画面からの保存では上書きせず、いまの値を引き継ぐ。 */
+$prev_raw = @file_get_contents($file);
+$prev     = $prev_raw ? @json_decode($prev_raw, true) : [];
+$had_pw   = [];
+if (is_array($prev) && isset($prev['sites']) && is_array($prev['sites'])) {
+    foreach ($prev['sites'] as $p) {
+        if (isset($p['id'])) $had_pw[(string)$p['id']] = !empty($p['has_password']);
+    }
+}
+
 $clean = [];
 $i = 0;
 foreach ($items as $item) {
@@ -46,6 +59,7 @@ foreach ($items as $item) {
         'hero_label'   => mb_substr(trim((string)($item['hero_label'] ?? '')), 0, 40),
         'hero_title'   => mb_substr(trim((string)($item['hero_title'] ?? '')), 0, 80),
         'hero_desc'    => mb_substr(trim((string)($item['hero_desc']  ?? '')), 0, 200),
+        'has_password' => !empty($had_pw[(string)$i]),
     ];
 }
 
@@ -55,10 +69,10 @@ for ($n = count($clean) + 1; $n <= 5; $n++) {
         'id' => $n, 'enabled' => false, 'label' => '', 'mode' => 'page',
         'url' => '', 'embed_url' => '', 'embed_height' => 1200,
         'hero_label' => '', 'hero_title' => '', 'hero_desc' => '',
+        'has_password' => !empty($had_pw[(string)$n]),
     ];
 }
 
-$file = dirname(__DIR__) . '/data/special_sites.json';
 $data = ['sites' => $clean, 'updated' => date('Y-m-d') . 'T' . date('H:i:s')];
 
 if (file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) === false) {

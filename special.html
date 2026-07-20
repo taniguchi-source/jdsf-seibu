@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20260720">
+  <link rel="stylesheet" href="css/style.css?v=20260721">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     /* ===== 特設サイトの本文ブロック（府県連盟のページと同じ見た目） ===== */
@@ -84,6 +84,17 @@
       transition: background .2s, color .2s;
     }
     .file-actions a:hover { background: var(--primary); color: #fff; }
+    /* ヒーローの「編集」ボタン（担当者向け・控えめに） */
+    .hero-edit-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 15px;
+      border: 1.5px solid rgba(255,255,255,.7);
+      border-radius: 100px;
+      color: #fff; background: rgba(255,255,255,.12);
+      font-size: .8rem; font-weight: 700; text-decoration: none;
+      transition: background .2s, color .2s;
+    }
+    .hero-edit-btn:hover { background: #fff; color: var(--primary-dark); }
     /* 全幅で埋め込むとき（表示方法＝別サイトを埋め込む）は枠を最小限に */
     .special-embed-wrap { border:1px solid var(--border); border-radius:12px; overflow:hidden; background:#fff; box-shadow:var(--shadow); }
     @media (max-width:768px) {
@@ -113,7 +124,6 @@
       <a href="guidance.html"     class="nav-link">指導員情報</a>
       <a href="contact.html"      class="nav-link nav-cta">お問い合わせ</a>
       <a href="officers.html"     class="nav-link">役員用</a>
-      <a href="officers.html#special-admin" class="nav-link nav-admin">特設サイト制作</a>
     </nav>
   </div>
 </header>
@@ -124,6 +134,10 @@
     <div class="page-hero-label" id="page-label">Special</div>
     <h1 class="page-hero-title" id="page-title">特設サイト</h1>
     <p class="page-hero-desc" id="page-desc"></p>
+    <!-- 担当者用。パスワードが設定されている特設サイトにだけ出す -->
+    <p id="hero-edit-wrap" style="display:none;margin:14px 0 0;">
+      <a id="hero-edit-link" href="#" class="hero-edit-btn">✏ このページを編集する</a>
+    </p>
   </div>
 </div>
 
@@ -169,7 +183,6 @@
         <li><a href="guidance.html">指導員情報</a></li>
         <li><a href="contact.html">お問い合わせ</a></li>
         <li><a href="officers.html">役員用</a></li>
-        <li><a href="officers.html#special-admin">特設サイト制作</a></li>
         <li><a href="privacy.html">プライバシーポリシー</a></li>
       </ul>
     </div>
@@ -437,6 +450,15 @@
       if (me.hero_desc && me.hero_desc.trim()) descEl.textContent = me.hero_desc;
       else descEl.style.display = 'none';
       document.title = title + '｜JDSF 近畿中四国ブロック委員会';
+
+      /* 担当者用の編集ボタン。パスワードが設定されている特設サイトにだけ出す。
+         has_password はパスワードの有無だけを示す印で、パスワードそのものは
+         サーバー側の data/special_auth.php にしか無い。 */
+      if (me.has_password) {
+        var ew = document.getElementById('hero-edit-wrap');
+        var el = document.getElementById('hero-edit-link');
+        if (ew && el) { el.href = 'special-edit.html?id=' + ID; ew.style.display = ''; }
+      }
 
       /* 表示方法 */
       if (me.mode === 'external') {

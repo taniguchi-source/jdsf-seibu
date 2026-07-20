@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>特設サイトの編集｜JDSF 近畿中四国ブロック委員会</title>
+<style>
+  :root{ --primary:#1B3A6B; --primary-dark:#0D2347; --accent:#9F1239; --border:#e2e8f0; --text-dark:#1a202c; --text-light:#718096; --bg:#f1f5f9; }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif;background:var(--bg);color:var(--text-dark);line-height:1.6;}
+  .hidden{display:none !important;}
+  .wrap{max-width:880px;margin:0 auto;padding:24px 16px 80px;}
+  #login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .login-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:36px 28px;max-width:400px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.08);text-align:center;}
+  .login-card h1{font-size:1.1rem;margin:0 0 4px;color:var(--primary-dark);}
+  .login-card p{font-size:.8rem;color:var(--text-light);margin:0 0 20px;}
+  input[type=text],input[type=password],input[type=url],input[type=number],textarea,select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.9rem;font-family:inherit;background:#fff;}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--primary);}
+  .btn{display:inline-flex;align-items:center;gap:6px;justify-content:center;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:.875rem;font-weight:700;cursor:pointer;font-family:inherit;}
+  .btn:hover{background:var(--primary-dark);}
+  .btn-sec{background:#fff;color:var(--primary);border:1.5px solid var(--primary);}
+  .btn-sm{padding:5px 10px;font-size:.78rem;}
+  .btn-del{background:#fff;color:#b91c1c;border:1px solid #fecaca;padding:5px 10px;font-size:.78rem;}
+  .topbar{background:var(--accent);color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .topbar h1{font-size:1rem;margin:0;}
+  .topbar a{color:#fde8ef;font-size:.8rem;text-decoration:none;}
+  .topbar a:hover{color:#fff;text-decoration:underline;}
+  .card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:20px;}
+  .card h2{font-size:1rem;margin:0 0 4px;border-left:4px solid var(--accent);padding-left:10px;color:var(--primary-dark);}
+  .card .hint,.hint{font-size:.78rem;color:var(--text-light);margin:0 0 16px 14px;line-height:1.7;}
+  label.fl{display:block;font-size:.78rem;font-weight:700;color:var(--text-dark);margin:12px 0 4px;}
+  .ck{display:inline-flex;align-items:center;gap:5px;font-size:.75rem;color:var(--text-light);white-space:nowrap;}
+  .msg{display:none;margin-top:12px;font-size:.82rem;padding:9px 13px;border-radius:6px;}
+  .msg.ok{display:block;background:#F0FFF4;color:#166534;border:1px solid #86EFAC;}
+  .msg.ng{display:block;background:#FFF5F5;color:#B91C1C;border:1px solid #FECACA;}
+</style>
+</head>
+<body>
+
+<!-- ===== ログイン ===== -->
+<div id="login-screen">
+  <div class="login-card">
+    <h1>🎪 特設サイトの編集</h1>
+    <p id="login-site" style="font-weight:700;color:var(--accent);"></p>
+    <input type="password" id="pw-input" placeholder="この特設サイトのパスワード">
+    <div id="login-error" class="msg ng" style="margin-bottom:8px;">⚠ パスワードが違います</div>
+    <button class="btn" style="width:100%;margin-top:12px;" onclick="doLogin()">ログイン</button>
+    <p style="margin-top:16px;"><a id="back-link" href="index.html" style="color:var(--text-light);font-size:.8rem;">← 特設サイトに戻る</a></p>
+  </div>
+</div>
+
+<!-- ===== 本体 ===== -->
+<div id="content-screen" class="hidden">
+  <div class="topbar">
+    <h1>🎪 <span id="head-name">特設サイト</span> の編集</h1>
+    <div>
+      <a id="view-link" href="#" target="_blank">ページを見る ↗</a>
+      &nbsp;|&nbsp;
+      <a href="#" onclick="doLogout();return false;">ログアウト</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="card">
+      <h2>① 基本の設定</h2>
+      <p class="hint">
+        トップページに出るボタンの文字と、このページの見せ方を決めます。
+        <strong>公開するかどうか（表示のオン・オフ）は役員側の設定</strong>なので、ここでは変えられません。
+      </p>
+
+      <label class="fl">トップページに出るボタンの文字</label>
+      <input type="text" id="se-label" placeholder="例：第14回プレミアダンス大会 特設サイト">
+
+      <label class="fl">👀 表示方法（このボタンを押したとき、どうなるか）</label>
+      <div style="display:flex;flex-wrap:wrap;gap:14px;padding:9px 12px;background:#f8fafc;border:1.5px solid var(--border);border-radius:8px;" id="se-modes"></div>
+
+      <div id="se-box-embed" style="display:none;margin-top:10px;">
+        <p class="hint" style="margin:0 0 6px 0;">別のサイトを、このページの中にそのまま表示します。ヘッダー・フッターは残ります。</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
+          <div style="flex:2;min-width:200px;"><label class="fl" style="margin-top:0;">埋め込むサイトのURL</label>
+            <input type="url" id="se-embed-url" placeholder="https://example.com/"></div>
+          <div style="flex:0 0 110px;"><label class="fl" style="margin-top:0;">高さ(px)</label>
+            <input type="number" id="se-embed-height" value="1200" min="300" max="5000" step="100"></div>
+          <button class="btn btn-sm btn-sec" onclick="sePreviewEmbed()">👁 見え方を確認</button>
+        </div>
+        <div id="se-embed-preview"></div>
+      </div>
+
+      <div id="se-box-external" style="display:none;margin-top:10px;">
+        <label class="fl" style="margin-top:0;">移動先URL（トップのボタンから直接ここへ飛びます）</label>
+        <input type="url" id="se-url" placeholder="https://example.com/">
+      </div>
+
+      <div id="se-box-hero" style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);">
+        <p class="hint" style="margin:0 0 6px 0;">ページ上部の見出し（空欄ならボタンの文字を使います）</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <div style="flex:1 1 140px;"><label class="fl" style="margin-top:0;">小見出し（英字）</label>
+            <input type="text" id="se-hero-label" placeholder="Special"></div>
+          <div style="flex:2 1 220px;"><label class="fl" style="margin-top:0;">タイトル</label>
+            <input type="text" id="se-hero-title" placeholder="（空欄ならボタンの文字）"></div>
+        </div>
+        <label class="fl">説明文</label>
+        <input type="text" id="se-hero-desc" placeholder="（任意）">
+      </div>
+
+      <div style="margin-top:16px;">
+        <button class="btn" onclick="seSaveSite()">💾 基本の設定を保存</button>
+      </div>
+    </div>
+
+    <div class="card" id="se-card-contents">
+      <h2>② ページの内容</h2>
+      <p class="hint">文章・画像・PDF・リンクボタン・サイト埋め込みを、上から順に並べられます。<strong>変更したら「内容を保存」を押してください。</strong></p>
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <button class="btn btn-sec btn-sm" onclick="spcAdd(SITE_ID)">＋ ブロックを追加</button>
+        <button class="btn btn-sm" onclick="spcSave(SITE_ID)">💾 内容を保存</button>
+      </div>
+      <div id="spc-list" style="display:grid;gap:8px;"></div>
+    </div>
+
+    <div id="sp-msg" class="msg"></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+var TOKEN = 'jdsfseibu2026';
+
+/* ?id=1〜5。範囲外は 1 とみなす */
+var _m = /[?&]id=(\d+)/.exec(location.search);
+var SITE_ID = _m ? parseInt(_m[1], 10) : 1;
+if (!(SITE_ID >= 1 && SITE_ID <= 5)) SITE_ID = 1;
+
+var _spc = {};     /* ブロック（キーは SITE_ID） */
+
+/* ブロック一覧の受け皿は spcRender() が spc-list-<id> を探すので、IDをここで合わせる */
+(function(){
+  var box = document.getElementById('spc-list');
+  if (box) box.id = 'spc-list-' + SITE_ID;
+})();
+var SP_TYPES = [
+  {v:'text',  t:'📝 文章'},
+  {v:'image', t:'🖼️ 画像'},
+  {v:'pdf',   t:'📄 PDF'},
+  {v:'link',  t:'🔗 リンクボタン'},
+  {v:'embed', t:'🪟 サイト埋め込み'}
+];
+
+function spEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function spSetMsg(id, text, ok){
+  var el=document.getElementById(id); if(!el) return;
+  el.className='msg '+(ok?'ok':'ng'); el.textContent=text; el.style.display='block';
+  if(ok) setTimeout(function(){ el.style.display='none'; }, 3500);
+}
+
+/* ===== CSRFヘッダの自動付与（他の管理画面と同じ） ===== */
+window.__CSRF = '';
+(function(){
+  var _f = window.fetch;
+  window.fetch = function(url, opts){
+    opts = opts || {};
+    try {
+      if (typeof url === 'string' && url.indexOf('api/') !== -1 && String(opts.method||'').toUpperCase() === 'POST') {
+        opts.headers = opts.headers || {};
+        if (!('X-CSRF-Token' in opts.headers) && !('x-csrf-token' in opts.headers)) opts.headers['X-CSRF-Token'] = window.__CSRF || '';
+      }
+    } catch(e){}
+    return _f.call(this, url, opts);
+  };
+})();
+
+/* ===== 認証 ===== */
+function doLogin(){
+  var fd = new FormData();
+  fd.append('site_id', String(SITE_ID));
+  fd.append('password', document.getElementById('pw-input').value);
+  fetch('api/special_login.php', {method:'POST', body:fd})
+    .then(function(r){ return r.json().then(function(j){ return {status:r.status, j:j}; }); })
+    .then(function(res){
+      var err = document.getElementById('login-error');
+      if (res.j && res.j.ok) { window.__CSRF = res.j.csrf || ''; err.style.display='none'; showApp(); }
+      else if (res.j && res.j.error === 'locked') {
+        err.textContent = '試行回数が多すぎます。約' + Math.ceil((res.j.retry||300)/60) + '分後にお試しください。';
+        err.className='msg ng'; err.style.display='block';
+      } else {
+        err.textContent = 'パスワードが正しくありません。';
+        err.className='msg ng'; err.style.display='block';
+      }
+    })
+    .catch(function(){
+      var err=document.getElementById('login-error');
+      err.textContent='通信エラーが発生しました。'; err.className='msg ng'; err.style.display='block';
+    });
+}
+function doLogout(){
+  var fd=new FormData(); fd.append('role','special'); fd.append('site_id', String(SITE_ID));
+  fetch('api/logout.php',{method:'POST',body:fd}).catch(function(){});
+  window.__CSRF=''; location.reload();
+}
+function showApp(){
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('content-screen').classList.remove('hidden');
+  seLoad();
+}
+document.getElementById('pw-input').addEventListener('keydown',function(e){ if(e.key==='Enter') doLogin(); });
+
+/* 役員（admin）でログイン済み、またはこのサイトに既にログイン済みならそのまま入る */
+fetch('api/session-status.php')
+  .then(function(r){return r.json();})
+  .then(function(d){
+    window.__CSRF = (d && d.csrf) || '';
+    var mine = d && Array.isArray(d.special) && d.special.indexOf(String(SITE_ID)) !== -1;
+    if (d && (d.admin || d.build || mine)) showApp();
+  })
+  .catch(function(){});
+
+/* ===== 画面の組み立て ===== */
+function seModeRadio(value,label,current){
+  return '<label class="ck" style="font-size:.8rem;font-weight:600;color:var(--text-dark);">'
+    + '<input type="radio" name="se-mode" value="'+value+'"'+(current===value?' checked':'')
+    + ' onchange="seSetMode(\'' + value + '\')"> '+label+'</label>';
+}
+function seSetMode(mode){
+  document.getElementById('se-box-embed').style.display     = (mode==='embed')    ? '' : 'none';
+  document.getElementById('se-box-external').style.display  = (mode==='external') ? '' : 'none';
+  document.getElementById('se-box-hero').style.display      = (mode==='external') ? 'none' : '';
+  document.getElementById('se-card-contents').style.display = (mode==='page')     ? '' : 'none';
+}
+function seCurrentMode(){
+  var el=document.querySelector('input[name="se-mode"]:checked');
+  return el ? el.value : 'page';
+}
+function sePreviewEmbed(){
+  var u=document.getElementById('se-embed-url').value.trim();
+  var box=document.getElementById('se-embed-preview');
+  if(!/^https?:\/\//i.test(u)){ box.innerHTML='<p class="hint" style="color:#B91C1C;margin:6px 0 0;">⚠ 埋め込むURLを https:// から入力してください</p>'; return; }
+  var h=parseInt(document.getElementById('se-embed-height').value,10);
+  if(!(h>=300&&h<=5000)) h=1200;
+  box.innerHTML='<p class="hint" style="margin:6px 0 4px;">▼ 高さ '+h+'px の見え方</p>'
+    + '<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden;background:#fff;">'
+    + '<iframe src="'+spEsc(u)+'" style="width:100%;height:'+h+'px;border:0;display:block;"></iframe></div>';
+}
+
+function seFill(site){
+  document.getElementById('se-label').value        = site.label || '';
+  document.getElementById('se-url').value          = site.url || '';
+  document.getElementById('se-embed-url').value    = site.embed_url || '';
+  document.getElementById('se-embed-height').value = parseInt(site.embed_height,10) || 1200;
+  document.getElementById('se-hero-label').value   = site.hero_label || '';
+  document.getElementById('se-hero-title').value   = site.hero_title || '';
+  document.getElementById('se-hero-desc').value    = site.hero_desc || '';
+  var mode = (site.mode==='embed'||site.mode==='external') ? site.mode : 'page';
+  document.getElementById('se-modes').innerHTML =
+      seModeRadio('page','📄 このサイトにページを作る',mode)
+    + seModeRadio('embed','🪟 別のサイトを埋め込む',mode)
+    + seModeRadio('external','↗ 別のサイトへ移動',mode);
+  seSetMode(mode);
+  document.getElementById('head-name').textContent = site.label || ('特設サイト' + SITE_ID);
+  document.getElementById('view-link').href = 'special.html?id=' + SITE_ID;
+}
+
+function seSaveSite(){
+  var fd=new FormData();
+  fd.append('token',TOKEN);
+  fd.append('site_id', String(SITE_ID));
+  fd.append('label',        document.getElementById('se-label').value);
+  fd.append('mode',         seCurrentMode());
+  fd.append('url',          document.getElementById('se-url').value);
+  fd.append('embed_url',    document.getElementById('se-embed-url').value);
+  fd.append('embed_height', document.getElementById('se-embed-height').value);
+  fd.append('hero_label',   document.getElementById('se-hero-label').value);
+  fd.append('hero_title',   document.getElementById('se-hero-title').value);
+  fd.append('hero_desc',    document.getElementById('se-hero-desc').value);
+  fetch('api/save_special_site.php',{method:'POST',body:fd})
+    .then(function(r){return r.json();})
+    .then(function(res){
+      spSetMsg('sp-msg', res.ok?'✅ 基本の設定を保存しました':('⚠ '+(res.error||'保存に失敗しました')), !!res.ok);
+      if(res.ok) document.getElementById('head-name').textContent = document.getElementById('se-label').value || ('特設サイト'+SITE_ID);
+    })
+    .catch(function(){ spSetMsg('sp-msg','⚠ 通信エラー',false); });
+}
+
+function seLoad(){
+  Promise.all([
+    fetch('data/special_sites.json?_='+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}),
+    fetch('data/special_contents.json?_='+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;})
+  ]).then(function(res){
+    var sites=(res[0] && Array.isArray(res[0].sites)) ? res[0].sites : [];
+    var me=null;
+    for(var i=0;i<sites.length;i++){ if(parseInt(sites[i].id,10)===SITE_ID){ me=sites[i]; break; } }
+    seFill(me || {});
+    _spc = (res[1] && typeof res[1]==='object') ? res[1] : {};
+    spcRender(SITE_ID);
+  });
+}
+
+/* ログイン画面にサイト名を出す（公開情報のみ） */
+fetch('data/special_sites.json?_='+Date.now())
+  .then(function(r){return r.ok?r.json():null;})
+  .then(function(d){
+    var sites=(d && Array.isArray(d.sites)) ? d.sites : [];
+    for(var i=0;i<sites.length;i++){
+      if(parseInt(sites[i].id,10)===SITE_ID){
+        var el=document.getElementById('login-site');
+        if(el) el.textContent = sites[i].label || ('特設サイト'+SITE_ID);
+        var bl=document.getElementById('back-link');
+        if(bl) bl.href='special.html?id='+SITE_ID;
+        break;
+      }
+    }
+  })
+  .catch(function(){});
+
+/* --- ページの内容（ブロック） --- */
+function spcOf(n){ var k=String(n); if(!Array.isArray(_spc[k])) _spc[k]=[]; return _spc[k]; }
+
+function spcRender(n){
+  var box=document.getElementById('spc-list-'+n);
+  if(!box) return;
+  var list=spcOf(n);
+  if(!list.length){ box.innerHTML='<p class="hint" style="margin:0;">まだ内容がありません。「＋ ブロックを追加」で作成してください。</p>'; return; }
+  box.innerHTML = list.map(function(it,i){
+    return '<div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px;">'
+      + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px;">'
+        + '<select onchange="spcSetType('+n+','+i+',this.value)" style="padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:.8rem;font-family:inherit;">'
+          + SP_TYPES.map(function(t){ return '<option value="'+t.v+'"'+(it.type===t.v?' selected':'')+'>'+t.t+'</option>'; }).join('')
+        + '</select>'
+        + '<input type="text" value="'+spEsc(it.title||'')+'" placeholder="見出し（任意）" oninput="_spc[\''+n+'\']['+i+'].title=this.value" style="flex:1 1 160px;min-width:120px;padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:.8rem;font-family:inherit;">'
+        + '<label class="ck"><input type="checkbox" '+(it.enabled!==false?'checked':'')+' onchange="_spc[\''+n+'\']['+i+'].enabled=this.checked"> 表示</label>'
+        + '<label class="ck"><input type="checkbox" '+(it.show_title!==false?'checked':'')+' onchange="_spc[\''+n+'\']['+i+'].show_title=this.checked"> 見出しを出す</label>'
+        + '<button class="btn btn-sm btn-sec" onclick="spcMove('+n+','+i+',-1)">↑</button>'
+        + '<button class="btn btn-sm btn-sec" onclick="spcMove('+n+','+i+',1)">↓</button>'
+        + '<button class="btn btn-sm btn-del" onclick="spcDel('+n+','+i+')">×</button>'
+      + '</div>'
+      + spcFields(n,i,it)
+    + '</div>';
+  }).join('');
+}
+
+function spcFields(n,i,it){
+  var ref='_spc[\''+n+'\']['+i+']';
+  var inp='style="width:100%;padding:7px 9px;border:1.5px solid var(--border);border-radius:6px;font-size:.82rem;font-family:inherit;box-sizing:border-box;"';
+  if(it.type==='text'){
+    return '<textarea rows="4" placeholder="本文（URLは自動でリンクになります）" oninput="'+ref+'.body=this.value" '+inp+'>'+spEsc(it.body||'')+'</textarea>';
+  }
+  if(it.type==='image'){
+    return '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'
+      + '<div id="spc-thumb-'+n+'-'+i+'">'+spcThumb(n,i,it.file_url||'','image')+'</div>'
+      + '<input type="file" accept="image/*" onchange="if(this.files[0])spcUpload('+n+','+i+',this.files[0])" style="font-size:.72rem;">'
+      + '</div>';
+  }
+  if(it.type==='pdf'){
+    return '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'
+      + '<div id="spc-thumb-'+n+'-'+i+'">'+spcThumb(n,i,it.file_url||'','pdf')+'</div>'
+      + '<input type="file" accept="application/pdf" onchange="if(this.files[0])spcUpload('+n+','+i+',this.files[0])" style="font-size:.72rem;">'
+      + '<label class="ck">PC表示幅 <input type="number" value="'+(parseInt(it.pdf_pc_width,10)||100)+'" min="20" max="100" step="5" oninput="'+ref+'.pdf_pc_width=parseInt(this.value,10)||100" style="width:64px;padding:5px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:.78rem;font-family:inherit;"> %</label>'
+      + '</div>';
+  }
+  if(it.type==='link'){
+    return '<input type="url" value="'+spEsc(it.link_url||'')+'" placeholder="リンク先URL（https://...）" oninput="'+ref+'.link_url=this.value" '+inp+'>'
+      + '<input type="text" value="'+spEsc(it.link_label||'')+'" placeholder="ボタンの文字（空なら見出しを使用）" oninput="'+ref+'.link_label=this.value" style="margin-top:5px;width:100%;padding:7px 9px;border:1.5px solid var(--border);border-radius:6px;font-size:.82rem;font-family:inherit;box-sizing:border-box;">';
+  }
+  /* embed */
+  return '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">'
+    + '<input type="url" value="'+spEsc(it.embed_url||'')+'" placeholder="埋め込むURL（https://...）" oninput="'+ref+'.embed_url=this.value" style="flex:1 1 220px;min-width:180px;padding:7px 9px;border:1.5px solid var(--border);border-radius:6px;font-size:.82rem;font-family:inherit;box-sizing:border-box;">'
+    + '<label class="ck">高さ <input type="number" value="'+(parseInt(it.embed_height,10)||1200)+'" min="300" max="5000" step="100" oninput="'+ref+'.embed_height=parseInt(this.value,10)||1200" style="width:80px;padding:5px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:.78rem;font-family:inherit;"> px</label>'
+    + '</div>';
+}
+
+function spcThumb(n,i,url,kind){
+  if(!url) return '<span style="font-size:.72rem;color:#888;">未設定</span>';
+  var view = (kind==='image')
+    ? '<img src="'+spEsc(url)+'" alt="" style="max-height:48px;max-width:120px;border:1px solid #ddd;border-radius:4px;background:#fff;display:block;">'
+    : '<a href="'+spEsc(url)+'" target="_blank" style="font-size:.72rem;color:var(--primary);">📄 '+spEsc(url.replace(/^uploads\//,''))+'</a>';
+  return view + '<button class="btn btn-sm btn-sec" style="display:block;margin-top:4px;" onclick="spcClearFile('+n+','+i+')">✕ 削除</button>';
+}
+
+function spcAdd(n){
+  var list=spcOf(n);
+  if(list.length>=30){ alert('1ページの上限は30ブロックです'); return; }
+  list.push({id:'b'+Date.now().toString(36), title:'', enabled:true, show_title:true, type:'text',
+             body:'', file_url:'', pdf_pc_width:100, link_url:'', link_label:'', embed_url:'', embed_height:1200});
+  spcRender(n);
+}
+function spcDel(n,i){ spcOf(n).splice(i,1); spcRender(n); }
+function spcMove(n,i,d){ var l=spcOf(n); var j=i+d; if(j<0||j>=l.length) return; var t=l[i]; l[i]=l[j]; l[j]=t; spcRender(n); }
+function spcSetType(n,i,v){ spcOf(n)[i].type=v; spcRender(n); }
+function spcClearFile(n,i){ spcOf(n)[i].file_url=''; spcRender(n); }
+
+function spcUpload(n,i,file){
+  var thumb=document.getElementById('spc-thumb-'+n+'-'+i);
+  if(thumb) thumb.innerHTML='<span style="font-size:.72rem;color:var(--primary);">⏳ アップロード中...</span>';
+  var fd=new FormData(); fd.append('file',file);
+  if(spcOf(n)[i].type==='image') fd.append('max_px','1600');
+  fetch('api/upload_file.php',{method:'POST',body:fd})
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(res && res.ok && res.url){ spcOf(n)[i].file_url=res.url; spcRender(n); spSetMsg('sp-msg','✅ アップロードしました（最後に「💾 内容を保存」を押してください）',true); }
+      else { spcRender(n); spSetMsg('sp-msg','⚠ '+((res&&res.error)||'アップロードに失敗しました'),false); }
+    })
+    .catch(function(){ spcRender(n); spSetMsg('sp-msg','⚠ 通信エラー',false); });
+}
+
+function spcSave(n){
+  var fd=new FormData(); fd.append('token',TOKEN); fd.append('site_id',String(n)); fd.append('items',JSON.stringify(spcOf(n)));
+  fetch('api/save_special_contents.php',{method:'POST',body:fd})
+    .then(function(r){return r.json();})
+    .then(function(res){ spSetMsg('sp-msg', res.ok?('✅ 特設サイト'+n+'の内容を保存しました'):('⚠ '+(res.error||'失敗')), !!res.ok); })
+    .catch(function(){ spSetMsg('sp-msg','⚠ 通信エラー',false); });
+}
+
+/* data/special_*.json は公開ファイルなので、ログイン前に読んでも問題ない。
+   保存だけがサーバー側のセッション（admin / build）で守られている。 */
+</script>
+</body>
+</html>

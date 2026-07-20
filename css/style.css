@@ -192,24 +192,6 @@ ul { list-style: none; }
   color: #fff !important;
   transform: translateY(-1px);
 }
-/* 管理用リンク（特設サイト制作）。閲覧者向けの項目より控えめ・省スペースに */
-.nav-admin {
-  font-size: 0.78rem;
-  padding: 7px 10px;
-  color: var(--text-light);
-  border: 1px solid var(--border);
-}
-.nav-admin:hover, .nav-admin.active {
-  color: var(--primary);
-  background: var(--bg-blue);
-  border-color: var(--primary-light);
-}
-/* 中間幅（ノートPC）でメニューが2段に折り返さないよう詰める */
-@media (min-width: 769px) and (max-width: 1320px) {
-  .nav-link  { padding: 8px 9px; font-size: 0.83rem; }
-  .nav-cta   { padding: 8px 14px !important; margin-left: 4px; }
-  .nav-admin { padding: 7px 8px; font-size: 0.75rem; }
-}
 
 .hamburger {
   display: none;
