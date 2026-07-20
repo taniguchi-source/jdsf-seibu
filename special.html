@@ -278,13 +278,15 @@
     return ext ? base + '.' + ext.toLowerCase() : base;
   }
 
-  function fileActions(url, title, openLabel) {
-    /* download 属性は同一ドメインのファイルにしか効かない（外部URLはブラウザが無視する） */
-    var isLocal = /^uploads\//.test(url);
-    var dn = downloadName(title, url);
-    var html = '<a href="' + escHtml(url) + '" target="_blank" rel="noopener">' + openLabel + '</a>';
-    if (isLocal) {
-      html += '<a href="' + escHtml(url) + '" download' + (dn ? '="' + escHtml(dn) + '"' : '') + '>⬇ ダウンロード</a>';
+  /* 自サイトにアップロードしたファイル → ダウンロードボタン。
+     外部サイトのURL → 開くボタン（download 属性は他ドメインでは効かないため）。 */
+  function fileActions(url, title, openLabel, downloadLabel) {
+    var html;
+    if (/^uploads\//.test(url)) {
+      var dn = downloadName(title, url);
+      html = '<a href="' + escHtml(url) + '" download' + (dn ? '="' + escHtml(dn) + '"' : '') + '>⬇ ' + downloadLabel + '</a>';
+    } else {
+      html = '<a href="' + escHtml(url) + '" target="_blank" rel="noopener">' + openLabel + '</a>';
     }
     var p = document.createElement('p');
     p.className = 'file-actions';
@@ -306,7 +308,7 @@
         img.loading = 'lazy';
         img.style.cssText = 'max-width:100%;height:auto;border-radius:8px;display:block;';
         bodyEl.appendChild(img);
-        bodyEl.appendChild(fileActions(iUrl, item.title, '🔍 原寸で開く'));
+        bodyEl.appendChild(fileActions(iUrl, item.title, '🔍 画像を開く', '画像をダウンロード'));
       } else {
         bodyEl.className = 'content-block-body';
         bodyEl.textContent = '（画像は未設定です）';
@@ -332,7 +334,7 @@
         pdfBox.innerHTML = '<p style="text-align:center;color:var(--text-light);font-size:.85rem;padding:24px 0;margin:0;">⏳ PDFを読み込み中...</p>';
         scaleWrap.appendChild(pdfBox);
         bodyEl.appendChild(scaleWrap);
-        bodyEl.appendChild(fileActions(fUrl, item.title, '🔗 PDFを別タブで開く'));
+        bodyEl.appendChild(fileActions(fUrl, item.title, '🔗 PDFを開く', 'PDFをダウンロード'));
         setTimeout(function () { renderPdfInline(pdfBox, fUrl); }, 0);
       } else {
         bodyEl.className = 'content-block-body';
