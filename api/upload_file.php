@@ -3,13 +3,14 @@
  * 汎用ファイルアップロードAPI（主サイト）
  * お知らせの添付（画像・PDF）等で使用。
  * POST: file（multipart）, 任意 max_px（画像を長辺 max_px まで縮小）
- * 認証: _auth.php（POST + 同一オリジン + CSRF + admin セッション）
+ * 認証: _auth.php（POST + 同一オリジン + CSRF + admin または build セッション）
+ *       admin=お知らせの添付／build=サイト構築の特設サイト。扱うファイル種別は同じ。
  * 返り値: { ok, url:'uploads/xxx', orig, size, ext, type:'image'|'pdf' }
  */
 header('Content-Type: application/json; charset=utf-8');
 
 require __DIR__ . '/_auth.php';
-require_auth('admin');
+require_auth_any(['admin', 'build']);
 
 /* ===== ファイル確認 ===== */
 if (empty($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VBRCC3NXE8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VBRCC3NXE8');
+  </script>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>特設サイト｜JDSF 近畿中四国ブロック委員会</title>
+  <meta name="description" content="JDSF 近畿中四国ブロック委員会（西部ブロック）の特設サイトです。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20260719">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* ===== 特設サイトの本文ブロック（府県連盟のページと同じ見た目） ===== */
+    .content-block {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    .content-block-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin: 0 0 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #BFDBFE;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .content-block-body {
+      font-size: .9375rem;
+      color: var(--text-medium);
+      line-height: 1.8;
+      white-space: pre-wrap;
+    }
+    .content-block-body a { color: var(--primary); font-weight: 600; text-decoration: underline; word-break: break-all; }
+    .content-block-body a:hover { opacity: .8; }
+    .loading-text { color: var(--text-light); font-size: .875rem; padding: 8px 0; }
+    .link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 24px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: .9375rem;
+      font-weight: 700;
+      transition: background .2s;
+    }
+    .link-btn:hover { background: var(--primary-dark); }
+    .link-btn-sub { font-size: .8rem; color: var(--text-light); margin: 6px 0 0; }
+    /* 全幅で埋め込むとき（表示方法＝別サイトを埋め込む）は枠を最小限に */
+    .special-embed-wrap { border:1px solid var(--border); border-radius:12px; overflow:hidden; background:#fff; box-shadow:var(--shadow); }
+    @media (max-width:768px) {
+      .content-block { padding: 20px 18px; }
+      .link-btn { padding: 12px 18px; font-size: .875rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="header-logo">
+      <img src="images/jdsf-mark.png" alt="JDSFマーク" class="header-logo-img">
+      <div class="header-logo-text">
+        <div class="org">公益社団法人日本ダンススポーツ連盟</div>
+        <div class="name">近畿中四国ブロック委員会<span style="font-size:0.7em;font-weight:500;color:var(--text-light);">（通称 西部ブロック）</span></div>
+      </div>
+    </a>
+    <button class="hamburger" aria-label="メニュー" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-nav" aria-label="メインナビゲーション">
+      <a href="index.html"        class="nav-link">ホーム</a>
+      <a href="about.html"        class="nav-link">西部ブロックについて</a>
+      <a href="competitions.html" class="nav-link">競技会情報</a>
+      <a href="guidance.html"     class="nav-link">指導員情報</a>
+      <a href="contact.html"      class="nav-link nav-cta">お問い合わせ</a>
+      <a href="officers.html"     class="nav-link">役員用</a>
+    </nav>
+  </div>
+</header>
+
+
+<div class="page-hero">
+  <div class="container">
+    <div class="page-hero-label" id="page-label">Special</div>
+    <h1 class="page-hero-title" id="page-title">特設サイト</h1>
+    <p class="page-hero-desc" id="page-desc"></p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div id="special-wrap">
+      <p class="loading-text">⏳ 読み込み中...</p>
+    </div>
+  </div>
+</section>
+
+
+<footer class="site-footer">
+  <div class="container footer-top">
+    <div>
+      <div class="footer-logo">
+        <img src="images/jdsf-sakura-mark.png" alt="JDSF" class="footer-logo-mark-img" style="height:50px;width:auto;">
+        <div class="footer-logo-name">JDSF 近畿中四国ブロック委員会</div>
+      </div>
+      <p class="footer-desc">JDSF近畿中四国ブロック委員会（西部ブロック）</p>
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="footer-jdsf">🔗 JDSF本部サイト</a>
+      <div style="display:flex;gap:8px;margin-top:14px;">
+        <a href="https://www.facebook.com/profile.php?id=61573910649655" target="_blank" rel="noopener" title="Facebook"
+           style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;background:#1877F2;color:#fff;border-radius:50%;font-size:0.95rem;text-decoration:none;">
+          <i class="fa-brands fa-facebook-f"></i>
+        </a>
+        <a href="https://lin.ee/PHZJcSf" target="_blank" rel="noopener" title="LINE公式"
+           style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;background:#06C755;color:#fff;border-radius:50%;font-size:0.95rem;text-decoration:none;">
+          <i class="fa-brands fa-line"></i>
+        </a>
+        <a href="https://www.youtube.com/@dancesport3598" target="_blank" rel="noopener" title="YouTube"
+           style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;background:#FF0000;color:#fff;border-radius:50%;font-size:0.95rem;text-decoration:none;">
+          <i class="fa-brands fa-youtube"></i>
+        </a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>サイトマップ</h4>
+      <ul class="footer-links">
+        <li><a href="index.html">ホーム</a></li>
+        <li><a href="about.html">西部ブロックについて</a></li>
+        <li><a href="competitions.html">競技会情報</a></li>
+        <li><a href="guidance.html">指導員情報</a></li>
+        <li><a href="contact.html">お問い合わせ</a></li>
+        <li><a href="officers.html">役員用</a></li>
+        <li><a href="privacy.html">プライバシーポリシー</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© 2026 JDSF 近畿中四国ブロック委員会. All rights reserved.</span>
+    <div class="footer-bottom-links">
+      <a href="privacy.html">プライバシーポリシー</a>
+      <a href="contact.html">お問い合わせ</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+
+<!-- ===== 特設サイト 描画（data/special_sites.json ＋ data/special_contents.json） ===== -->
+<script>
+(function () {
+  'use strict';
+
+  var wrap = document.getElementById('special-wrap');
+  if (!wrap) return;
+
+  /* ?id=1〜5。範囲外は 1 とみなす */
+  var m  = /[?&]id=(\d+)/.exec(location.search);
+  var ID = m ? parseInt(m[1], 10) : 1;
+  if (!(ID >= 1 && ID <= 5)) ID = 1;
+
+  function escHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  /* 本文中の http(s) URL をリンクにする（お知らせ詳細と同じ考え方） */
+  function linkify(text) {
+    var esc = escHtml(text);
+    return esc.replace(/https?:\/\/(?:&amp;|[\x21-\x25\x27-\x3b\x3d\x3f-\x7e])+/g, function (mm) {
+      var trail = '';
+      var t = mm.match(/^(.*?)([)\]}.,!?;:]+)$/);
+      if (t) { mm = t[1]; trail = t[2]; }
+      return '<a href="' + mm + '" target="_blank" rel="noopener">' + mm + '</a>' + trail;
+    });
+  }
+
+  function notice(html) {
+    wrap.innerHTML = '<div class="content-block"><div class="content-block-body">' + html + '</div></div>';
+  }
+
+  /* ===== PDF.js（お知らせ詳細ページと同じCDN・同じ描画方式） ===== */
+  var _pdfjsPromise = null;
+  function ensurePdfJs() {
+    if (_pdfjsPromise) return _pdfjsPromise;
+    _pdfjsPromise = new Promise(function (resolve, reject) {
+      if (window.pdfjsLib) { resolve(window.pdfjsLib); return; }
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s.onload = function () {
+        try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; } catch (e) {}
+        resolve(window.pdfjsLib);
+      };
+      s.onerror = function () { reject(new Error('pdfjs load failed')); };
+      document.head.appendChild(s);
+    });
+    return _pdfjsPromise;
+  }
+  function renderPdfInline(container, url) {
+    ensurePdfJs()
+      .then(function (pdfjsLib) { return pdfjsLib.getDocument(url).promise; })
+      .then(function (pdf) {
+        container.innerHTML = '';
+        var width = container.clientWidth || 800;
+        var dpr   = window.devicePixelRatio || 1;
+        var chain = Promise.resolve();
+        for (var p = 1; p <= pdf.numPages; p++) {
+          (function (pageNum) {
+            chain = chain.then(function () {
+              return pdf.getPage(pageNum).then(function (page) {
+                var base   = page.getViewport({ scale: 1 });
+                var vp     = page.getViewport({ scale: (width / base.width) * dpr });
+                var canvas = document.createElement('canvas');
+                canvas.width  = Math.floor(vp.width);
+                canvas.height = Math.floor(vp.height);
+                canvas.style.cssText = 'width:100%;height:auto;display:block;' + (pageNum > 1 ? 'margin-top:8px;' : '');
+                container.appendChild(canvas);
+                return page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+              });
+            });
+          })(p);
+        }
+        return chain;
+      })
+      .catch(function () {
+        container.innerHTML = '<iframe src="' + url + '#toolbar=0&navpanes=0&view=FitH" style="width:100%;height:80vh;border:0;display:block;background:#fff;"></iframe>';
+      });
+  }
+
+  /* ===== ブロック1つ分の本文を作る（text / image / pdf / link / embed） ===== */
+  function buildBodyEl(item) {
+    var bodyEl = document.createElement('div');
+    var type   = item.type || 'text';
+
+    if (type === 'image') {
+      var iUrl = item.file_url || '';
+      if (iUrl) {
+        var img = document.createElement('img');
+        img.src = iUrl;
+        img.alt = item.title || '';
+        img.loading = 'lazy';
+        img.style.cssText = 'max-width:100%;height:auto;border-radius:8px;display:block;';
+        bodyEl.appendChild(img);
+      } else {
+        bodyEl.className = 'content-block-body';
+        bodyEl.textContent = '（画像は未設定です）';
+      }
+
+    } else if (type === 'pdf') {
+      var fUrl = item.file_url || '';
+      if (fUrl) {
+        /* PC表示幅（%）。スマホは常に全幅 */
+        var pcw = parseInt(item.pdf_pc_width, 10);
+        if (!(pcw >= 20 && pcw <= 100)) pcw = 100;
+        if (!document.getElementById('pdf-scale-style')) {
+          var st = document.createElement('style');
+          st.id = 'pdf-scale-style';
+          st.textContent = '@media (min-width:769px){ .pdf-scale-wrap{ max-width: var(--pdf-pc-width, 100%); margin-left:auto; margin-right:auto; } }';
+          document.head.appendChild(st);
+        }
+        var scaleWrap = document.createElement('div');
+        scaleWrap.className = 'pdf-scale-wrap';
+        scaleWrap.style.setProperty('--pdf-pc-width', pcw + '%');
+        var pdfBox = document.createElement('div');
+        pdfBox.style.cssText = 'border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fff;';
+        pdfBox.innerHTML = '<p style="text-align:center;color:var(--text-light);font-size:.85rem;padding:24px 0;margin:0;">⏳ PDFを読み込み中...</p>';
+        scaleWrap.appendChild(pdfBox);
+        bodyEl.appendChild(scaleWrap);
+        var pdfLink = document.createElement('p');
+        pdfLink.style.cssText = 'text-align:right;margin:6px 0 0;font-size:.8125rem;';
+        pdfLink.innerHTML = '<a href="' + escHtml(fUrl) + '" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;">🔗 PDFを別タブで開く</a>'
+          + '　<a href="' + escHtml(fUrl) + '" download style="color:var(--primary);font-weight:600;">⬇ ダウンロード</a>';
+        bodyEl.appendChild(pdfLink);
+        setTimeout(function () { renderPdfInline(pdfBox, fUrl); }, 0);
+      } else {
+        bodyEl.className = 'content-block-body';
+        bodyEl.textContent = '（PDFは未設定です）';
+      }
+
+    } else if (type === 'embed') {
+      var eUrl = item.embed_url || '';
+      if (!/^https?:\/\//i.test(eUrl)) eUrl = '';
+      if (eUrl) {
+        var eH = parseInt(item.embed_height, 10);
+        if (!(eH >= 300 && eH <= 5000)) eH = 1200;
+        var eBox = document.createElement('div');
+        eBox.style.cssText = 'border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fff;';
+        var eFrame = document.createElement('iframe');
+        eFrame.src = eUrl;
+        eFrame.loading = 'lazy';
+        eFrame.referrerPolicy = 'no-referrer-when-downgrade';
+        eFrame.style.cssText = 'width:100%;height:' + eH + 'px;border:0;display:block;background:#fff;';
+        eBox.appendChild(eFrame);
+        bodyEl.appendChild(eBox);
+        var eLink = document.createElement('p');
+        eLink.style.cssText = 'text-align:right;margin:6px 0 0;font-size:.8125rem;';
+        eLink.innerHTML = '<a href="' + escHtml(eUrl) + '" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;">🔗 このページを別タブで開く</a>';
+        bodyEl.appendChild(eLink);
+      } else {
+        bodyEl.className = 'content-block-body';
+        bodyEl.textContent = '（埋め込むサイトのURLは未設定です）';
+      }
+
+    } else if (type === 'link') {
+      var lUrl = item.link_url || '';
+      if (!/^https?:\/\//i.test(lUrl)) lUrl = '';
+      var lLabel = item.link_label || item.title || '';
+      if (lUrl) {
+        bodyEl.innerHTML =
+          '<a href="' + escHtml(lUrl) + '" target="_blank" rel="noopener" class="link-btn">'
+          + '🔗 ' + escHtml(lLabel || lUrl) + '　→</a>'
+          + '<p class="link-btn-sub">新しいタブで開きます</p>';
+      } else {
+        bodyEl.className = 'content-block-body';
+        bodyEl.textContent = '（リンクURLは未設定です）';
+      }
+
+    } else {
+      /* text */
+      bodyEl.className = 'content-block-body';
+      var txt = item.body || '';
+      if (txt) bodyEl.innerHTML = linkify(txt);
+      else     bodyEl.textContent = '（本文は未入力です）';
+    }
+
+    return bodyEl;
+  }
+
+  var TYPE_ICON = { text: '📝 ', image: '🖼️ ', pdf: '📄 ', link: '🔗 ', embed: '🪟 ' };
+
+  function renderContents(items) {
+    wrap.innerHTML = '';
+    if (!items.length) {
+      notice('このページにはまだ内容が登録されていません。');
+      return;
+    }
+    items.forEach(function (item) {
+      var block = document.createElement('div');
+      block.className = 'content-block';
+      if (item.show_title !== false && item.title) {
+        var titleEl = document.createElement('h2');
+        titleEl.className = 'content-block-title';
+        titleEl.textContent = (TYPE_ICON[item.type] || '📝 ') + item.title;
+        block.appendChild(titleEl);
+      }
+      block.appendChild(buildBodyEl(item));
+      wrap.appendChild(block);
+    });
+  }
+
+  /* ===== スロット設定を読む ===== */
+  fetch('data/special_sites.json?_=' + Date.now())
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) {
+      var sites = (d && Array.isArray(d.sites)) ? d.sites : [];
+      var me = null;
+      for (var i = 0; i < sites.length; i++) {
+        if (parseInt(sites[i].id, 10) === ID) { me = sites[i]; break; }
+      }
+
+      if (!me || me.enabled === false) {
+        document.getElementById('page-title').textContent = '特設サイト';
+        notice('このページは現在公開されていません。<br><br><a href="index.html" style="color:var(--primary);font-weight:600;">← トップページへ戻る</a>');
+        return;
+      }
+
+      /* ヒーローの文言 */
+      var title = (me.hero_title && me.hero_title.trim()) ? me.hero_title : (me.label || ('特設サイト' + ID));
+      var label = (me.hero_label && me.hero_label.trim()) ? me.hero_label : ('Special ' + ID);
+      document.getElementById('page-title').textContent = title;
+      document.getElementById('page-label').textContent = label;
+      var descEl = document.getElementById('page-desc');
+      if (me.hero_desc && me.hero_desc.trim()) descEl.textContent = me.hero_desc;
+      else descEl.style.display = 'none';
+      document.title = title + '｜JDSF 近畿中四国ブロック委員会';
+
+      /* 表示方法 */
+      if (me.mode === 'external') {
+        var xUrl = me.url || '';
+        if (/^https?:\/\//i.test(xUrl)) {
+          notice('この特設サイトは別のサイトで公開しています。<br><br>'
+            + '<a href="' + escHtml(xUrl) + '" target="_blank" rel="noopener" class="link-btn">🔗 ' + escHtml(title) + ' を開く　→</a>');
+        } else {
+          notice('移動先のURLが設定されていません。');
+        }
+        return;
+      }
+
+      if (me.mode === 'embed') {
+        var eUrl = me.embed_url || '';
+        if (!/^https?:\/\//i.test(eUrl)) { notice('埋め込むサイトのURLが設定されていません。'); return; }
+        var eH = parseInt(me.embed_height, 10);
+        if (!(eH >= 300 && eH <= 5000)) eH = 1200;
+        wrap.innerHTML =
+          '<div class="special-embed-wrap">'
+          + '<iframe src="' + escHtml(eUrl) + '" loading="lazy" referrerpolicy="no-referrer-when-downgrade" '
+          + 'style="width:100%;height:' + eH + 'px;border:0;display:block;background:#fff;"></iframe>'
+          + '</div>'
+          + '<p style="text-align:right;margin:8px 0 0;font-size:.8125rem;">'
+          + '<a href="' + escHtml(eUrl) + '" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;">🔗 このページを別タブで開く</a></p>';
+        return;
+      }
+
+      /* mode === 'page'：本文ブロックを読んで描画 */
+      fetch('data/special_contents.json?_=' + Date.now())
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (c) {
+          var items = (c && Array.isArray(c[String(ID)])) ? c[String(ID)] : [];
+          renderContents(items.filter(function (it) { return it && it.enabled !== false; }));
+        })
+        .catch(function () { notice('内容の読み込みに失敗しました。'); });
+    })
+    .catch(function () { notice('設定の読み込みに失敗しました。'); });
+})();
+</script>
+</body>
+</html>

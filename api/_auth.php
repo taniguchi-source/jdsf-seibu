@@ -64,12 +64,18 @@ function same_origin_ok() {
     return true;
 }
 
-/* 書き込みAPIの入口：POST + 同一オリジン + CSRF + セッションロール */
-function require_auth($role = 'admin') {
+/* 書き込みAPIの入口：POST + 同一オリジン + CSRF + セッションロール（いずれか1つ） */
+function require_auth_any(array $roles) {
     if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') json_out(['error' => 'Method Not Allowed'], 405);
     if (!same_origin_ok())                              json_out(['error' => 'Bad Origin'], 403);
     $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? ($_POST['csrf'] ?? '');
     if (empty($_SESSION['csrf']) || !hash_equals($_SESSION['csrf'], (string)$csrf)) json_out(['error' => 'CSRF'], 403);
-    if (empty($_SESSION['auth'][$role]))               json_out(['error' => 'Forbidden'], 403);
-    return true;
+    foreach ($roles as $r) {
+        if (!empty($_SESSION['auth'][$r])) return true;
+    }
+    json_out(['error' => 'Forbidden'], 403);
+}
+
+function require_auth($role = 'admin') {
+    return require_auth_any([$role]);
 }

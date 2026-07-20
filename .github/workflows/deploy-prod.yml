@@ -62,6 +62,8 @@ jobs:
             --exclude='data/home_quicklinks.json' \
             --exclude='data/home_hero.json' \
             --exclude='data/home_banner.json' \
+            --exclude='data/special_sites.json' \
+            --exclude='data/special_contents.json' \
             --exclude='data/gemini_key.php' \
             --exclude='data/auth.php' \
             --exclude='data/auth_secret.php' \
