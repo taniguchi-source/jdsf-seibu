@@ -206,8 +206,28 @@
           + d.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
       }
 
-      var today = new Date().toISOString().slice(0, 10);
-      var evs   = data.events || [];
+      /* 日本時間の日付で判定する（toISOString はUTC基準のため朝9時前に1日ずれる） */
+      function isoOf(d) {
+        return d.getFullYear() + '-'
+          + ('0' + (d.getMonth() + 1)).slice(-2) + '-'
+          + ('0' + d.getDate()).slice(-2);
+      }
+
+      var now   = new Date();
+      var today = isoOf(now);
+
+      /* 開催日から1か月以上経ったイベントは表示しない */
+      var cut = new Date(now.getTime());
+      cut.setDate(1);                                   // 月末日の繰り上がりを避ける
+      cut.setMonth(cut.getMonth() - 1);
+      var daysInCutMonth = new Date(cut.getFullYear(), cut.getMonth() + 1, 0).getDate();
+      cut.setDate(Math.min(now.getDate(), daysInCutMonth));
+      var cutoff = isoOf(cut);
+
+      var evs = (data.events || []).filter(function (ev) {
+        if (!ev.date_iso) return true;                  // 日付が分からないものは残す
+        return ev.date_iso >= cutoff;
+      });
 
       if (evs.length === 0) {
         wrap.innerHTML = '<p style="text-align:center;padding:32px;color:var(--text-light);">現在、対象イベントはありません。</p>';
