@@ -66,6 +66,24 @@
     }
     .link-btn:hover { background: var(--primary-dark); }
     .link-btn-sub { font-size: .8rem; color: var(--text-light); margin: 6px 0 0; }
+    /* 画像・PDFの「開く」「ダウンロード」 */
+    .file-actions {
+      display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px;
+      margin: 10px 0 0;
+    }
+    .file-actions a {
+      display: inline-flex; align-items: center;
+      padding: 7px 14px;
+      border: 1.5px solid var(--primary);
+      border-radius: 100px;
+      color: var(--primary);
+      background: #fff;
+      font-size: .8125rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background .2s, color .2s;
+    }
+    .file-actions a:hover { background: var(--primary); color: #fff; }
     /* 全幅で埋め込むとき（表示方法＝別サイトを埋め込む）は枠を最小限に */
     .special-embed-wrap { border:1px solid var(--border); border-radius:12px; overflow:hidden; background:#fff; box-shadow:var(--shadow); }
     @media (max-width:768px) {
@@ -249,6 +267,31 @@
       });
   }
 
+  /* ===== ファイルの「開く」「ダウンロード」ボタン ===== */
+
+  /* 保存されるファイル名。見出しがあればそれを使い、無ければ元のファイル名のまま */
+  function downloadName(title, url) {
+    var ext  = (String(url).match(/\.([a-z0-9]+)(?:[?#]|$)/i) || [])[1] || '';
+    /* ファイル名に使えない文字は _ に置き換える（日付の 2026/8/8 → 2026_8_8） */
+    var base = String(title || '').replace(/[\\\/:*?"<>|]/g, '_').replace(/_{2,}/g, '_').replace(/^_|_$/g, '').trim();
+    if (!base) return '';
+    return ext ? base + '.' + ext.toLowerCase() : base;
+  }
+
+  function fileActions(url, title, openLabel) {
+    /* download 属性は同一ドメインのファイルにしか効かない（外部URLはブラウザが無視する） */
+    var isLocal = /^uploads\//.test(url);
+    var dn = downloadName(title, url);
+    var html = '<a href="' + escHtml(url) + '" target="_blank" rel="noopener">' + openLabel + '</a>';
+    if (isLocal) {
+      html += '<a href="' + escHtml(url) + '" download' + (dn ? '="' + escHtml(dn) + '"' : '') + '>⬇ ダウンロード</a>';
+    }
+    var p = document.createElement('p');
+    p.className = 'file-actions';
+    p.innerHTML = html;
+    return p;
+  }
+
   /* ===== ブロック1つ分の本文を作る（text / image / pdf / link / embed） ===== */
   function buildBodyEl(item) {
     var bodyEl = document.createElement('div');
@@ -263,6 +306,7 @@
         img.loading = 'lazy';
         img.style.cssText = 'max-width:100%;height:auto;border-radius:8px;display:block;';
         bodyEl.appendChild(img);
+        bodyEl.appendChild(fileActions(iUrl, item.title, '🔍 原寸で開く'));
       } else {
         bodyEl.className = 'content-block-body';
         bodyEl.textContent = '（画像は未設定です）';
@@ -288,11 +332,7 @@
         pdfBox.innerHTML = '<p style="text-align:center;color:var(--text-light);font-size:.85rem;padding:24px 0;margin:0;">⏳ PDFを読み込み中...</p>';
         scaleWrap.appendChild(pdfBox);
         bodyEl.appendChild(scaleWrap);
-        var pdfLink = document.createElement('p');
-        pdfLink.style.cssText = 'text-align:right;margin:6px 0 0;font-size:.8125rem;';
-        pdfLink.innerHTML = '<a href="' + escHtml(fUrl) + '" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;">🔗 PDFを別タブで開く</a>'
-          + '　<a href="' + escHtml(fUrl) + '" download style="color:var(--primary);font-weight:600;">⬇ ダウンロード</a>';
-        bodyEl.appendChild(pdfLink);
+        bodyEl.appendChild(fileActions(fUrl, item.title, '🔗 PDFを別タブで開く'));
         setTimeout(function () { renderPdfInline(pdfBox, fUrl); }, 0);
       } else {
         bodyEl.className = 'content-block-body';
