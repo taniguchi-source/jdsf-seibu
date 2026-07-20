@@ -1965,11 +1965,14 @@ function spRender(){
         + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px;">'
           + '<strong style="font-size:.8rem;color:var(--text-light);">📄 ページの内容</strong>'
           + '<div style="display:flex;gap:6px;">'
-            + '<button class="btn btn-sm btn-sec" onclick="spcAdd('+n+')">＋ ブロックを追加</button>'
             + '<button class="btn btn-sm" onclick="spcSave('+n+')">💾 内容を保存</button>'
           + '</div>'
         + '</div>'
         + '<div id="spc-list-'+n+'" style="display:grid;gap:8px;"></div>'
+        /* 追加ボタンはブロックの外・右下に置く（追加であることが分かりやすいように） */
+        + '<div style="display:flex;justify-content:flex-end;margin-top:10px;">'
+          + '<button class="btn btn-sm btn-sec" onclick="spcAdd('+n+')">＋ ブロックを追加</button>'
+        + '</div>'
       + '</div>'
     + '</div>';
   }).join('');

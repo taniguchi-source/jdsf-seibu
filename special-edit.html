@@ -113,10 +113,13 @@
       <h2>② ページの内容</h2>
       <p class="hint">文章・画像・PDF・リンクボタン・サイト埋め込みを、上から順に並べられます。<strong>変更したら「内容を保存」を押してください。</strong></p>
       <div style="display:flex;gap:8px;margin-bottom:10px;">
-        <button class="btn btn-sec btn-sm" onclick="spcAdd(SITE_ID)">＋ ブロックを追加</button>
         <button class="btn btn-sm" onclick="spcSave(SITE_ID)">💾 内容を保存</button>
       </div>
       <div id="spc-list" style="display:grid;gap:8px;"></div>
+      <!-- 追加ボタンはブロックの外・右下に置く（追加であることが分かりやすいように） -->
+      <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+        <button class="btn btn-sec btn-sm" onclick="spcAdd(SITE_ID)">＋ ブロックを追加</button>
+      </div>
     </div>
 
     <div id="sp-msg" class="msg"></div>
