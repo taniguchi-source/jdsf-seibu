@@ -1,6 +1,5 @@
 {
   "updated": "2026-06-03",
-
   "spreadsheets": [
     {
       "title": "西部ブロック委員会",
@@ -21,7 +20,6 @@
       "icon": "📊"
     }
   ],
-
   "minutes": [
     {
       "year": "2026",
@@ -43,6 +41,11 @@
               "date": "第1回〜",
               "title": "2026西部ブロック戦実行委員会 AI議事録一覧",
               "url": "docs/meetings/minutes/2026西部ブロック戦実行委員会/index.html"
+            },
+            {
+              "date": "2025年8〜10月",
+              "title": "2025西部ブロック戦実行委員会 AI議事録一覧",
+              "url": "docs/meetings/minutes/2025西部ブロック戦実行委員会/index.html"
             }
           ]
         },
@@ -69,7 +72,6 @@
       ]
     }
   ],
-
   "materials": [
     {
       "year": "2026",
@@ -77,5 +79,4 @@
       "items": []
     }
   ]
-
 }
