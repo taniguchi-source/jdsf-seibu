@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20260722">
+  <link rel="stylesheet" href="css/style.css?v=20260723">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     /* ---- ニュース一覧用スタイル ---- */
@@ -41,6 +41,7 @@
       font-size: 0.75rem;
       color: var(--text-light);
       padding-top: 3px;
+      display: flex;
     }
     /* 実施日。設定が無いお知らせは空欄のまま（幅だけ残して列を揃える） */
     .nli-date-label {
@@ -300,10 +301,8 @@
       var detailHref = hasId ? 'news-detail.html?id=' + encodeURIComponent(n.id) : '';
       var attrs = hasId ? ' href="' + escHtml(detailHref) + '"' : '';
       var noLinkCls = hasId ? '' : ' no-link';
-      // カテゴリ左横は実施日。設定されていないものは空欄にする（公開日で代用しない）
-      var leftDate = n.event_date
-        ? '<span class="nli-date-label">実施日</span><b>' + escHtml(n.event_date) + '</b>'
-        : '';
+      // カテゴリ左横は実施日（枠付き・曜日入り）。設定されていないものは空欄にする（公開日で代用しない）
+      var leftDate = eventBadge(n.event_date);
       return '<' + tag + ' class="news-list-item' + noLinkCls + '"' + attrs + '>'
         + '<span class="nli-date">' + leftDate + '</span>'
         + '<span class="nli-badge"><span class="tag ' + catCls + '">' + escHtml(n.category) + '</span></span>'
@@ -330,6 +329,21 @@
 
   function escHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  var WEEKDAYS = ['日','月','火','水','木','金','土'];
+  /* 実施日を「実施日／M.D（曜）」の枠付きバッジにする。未設定なら空文字。 */
+  function eventBadge(ds) {
+    if (!ds) return '';
+    var m = String(ds).match(/(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/);
+    if (!m) return '<span class="ev-badge"><span class="ev-badge-date">' + escHtml(ds) + '</span></span>';
+    var d = new Date(+m[1], +m[2]-1, +m[3]);
+    var wd = WEEKDAYS[d.getDay()] || '';
+    return '<span class="ev-badge">'
+      + '<span class="ev-badge-label">実施日</span>'
+      + '<span class="ev-badge-date">' + (+m[2]) + '.' + (+m[3])
+      + '<span class="ev-badge-wd">（' + wd + '）</span></span>'
+      + '</span>';
   }
 }());
 </script>

@@ -638,27 +638,40 @@ a.news-line.important:hover {
   white-space: nowrap;
 }
 .news-line .nl-date {
-  font-size: 0.8rem;
-  color: var(--text-light, #64748b);
   flex-shrink: 0;
-  min-width: 128px;
+  min-width: 110px;
   display: flex;
-  align-items: baseline;
-  gap: 5px;
-  font-variant-numeric: tabular-nums;
+  align-items: center;
 }
-/* 実施日。設定が無いお知らせは空欄のまま（幅だけ残して列を揃える） */
-.news-line .nl-date-label {
-  font-size: 0.68rem;
+
+/* 実施日バッジ（枠付き・曜日入り）。お知らせ一覧でも共通で使う。
+   設定が無いお知らせは空欄のまま（列幅は残して行を揃える）。 */
+.ev-badge {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  border: 1px solid #E4D19A;
+  border-radius: 8px;
+  background: #FFFCF3;
+  padding: 5px 12px;
+  line-height: 1.2;
+}
+.ev-badge-label {
+  font-size: 0.62rem;
   font-weight: 700;
-  color: var(--text-light, #64748b);
-  letter-spacing: .04em;
-  flex-shrink: 0;
+  color: #B0812B;
+  letter-spacing: .06em;
 }
-.news-line .nl-date b {
+.ev-badge-date {
+  font-size: 0.9rem;
   font-weight: 800;
   color: var(--primary-dark, #2E4A8E);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
+.ev-badge-wd { font-size: 0.72rem; font-weight: 700; }
 .news-line .tag { flex-shrink: 0; }
 .news-line .nl-title {
   font-size: 0.9rem;
