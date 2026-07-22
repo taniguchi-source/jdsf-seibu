@@ -6,3 +6,6 @@ scripts/.master_secret
 # 開発用ローカル設定（公開領域に配信しない）
 .claude/
 scripts/__pycache__/
+
+# 議事録アップロード用SSH秘密鍵（絶対にコミットしない・ローカルのみ）
+scripts/.minutes_ssh_key
