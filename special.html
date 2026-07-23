@@ -25,22 +25,30 @@
     /* ===== 特設サイトの本文ブロック（府県連盟のページと同じ見た目） ===== */
     .content-block {
       background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 28px 32px;
-      margin-bottom: 24px;
-      box-shadow: var(--shadow);
+      border: 1px solid #E5E7EB;
+      border-radius: 10px;
+      padding: 26px 30px;
+      margin-bottom: 22px;
+      box-shadow: 0 1px 3px rgba(15,23,42,.05);
     }
+    /* 見出し＝広島県ページ風（濃い下線でセクションを区切る） */
     .content-block-title {
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       font-weight: 800;
-      color: var(--primary);
-      margin: 0 0 16px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid #BFDBFE;
+      color: var(--text-dark);
+      margin: 0 0 18px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--primary-dark);
       display: flex;
       align-items: center;
       gap: 8px;
+      letter-spacing: .01em;
+    }
+    .content-block-title::before {
+      content: "\25C6";           /* ◆ 広島県ページ風のセクションマーカー */
+      color: var(--primary);
+      font-size: .78em;
+      line-height: 1;
     }
     .content-block-body {
       font-size: .9375rem;
@@ -478,7 +486,7 @@
       if (view !== 'body' && item.title) {
         var titleEl = document.createElement('h2');
         titleEl.className = 'content-block-title';
-        titleEl.textContent = (TYPE_ICON[item.type] || '📝 ') + item.title;
+        titleEl.textContent = item.title;   /* 種別の絵文字は付けず、◆マーカー（CSS）で見出しを示す */
         block.appendChild(titleEl);
       }
       block.appendChild(view === 'title' ? buildToggleEl(item) : buildBodyEl(item));
