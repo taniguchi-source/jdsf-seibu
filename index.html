@@ -556,9 +556,24 @@
         return;
       }
 
-      // 常に表示アイテムを先頭に、全件を1行で表示（件数制限なし）
+      // 並び順：①「常に表示」を先頭に固定
+      //         ②残りは開催日が近い順（昇順）。開催日が入っていないものは一番上
+      function evTime(n) {
+        if (!n.event_date) return null;
+        var mm = String(n.event_date).match(/(\d{4})[.\/-](\d{1,2})[.\/-](\d{1,2})/);
+        return mm ? new Date(+mm[1], +mm[2] - 1, +mm[3]).getTime() : null;
+      }
       var pinned  = items.filter(function (n) { return n.always_show; });
-      var regular = items.filter(function (n) { return !n.always_show; });
+      var regular = items.filter(function (n) { return !n.always_show; })
+        .map(function (n, i) { return { n: n, i: i, t: evTime(n) }; })
+        .sort(function (a, b) {
+          if (a.t === null && b.t === null) return a.i - b.i;   // 開催日なし同士は元の順
+          if (a.t === null) return -1;                          // 開催日なしを上に
+          if (b.t === null) return 1;
+          if (a.t !== b.t) return a.t - b.t;                    // 開催日が近い順
+          return a.i - b.i;
+        })
+        .map(function (o) { return o.n; });
       var ordered = pinned.concat(regular);
 
       grid.innerHTML = ordered.map(function (n) {
