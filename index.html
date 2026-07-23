@@ -52,12 +52,7 @@
     .comp-row:hover { background: var(--bg-blue); }
     .comp-row-date {
       flex-shrink: 0;
-      width: 60px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--primary-dark);
-      line-height: 1.4;
-      padding-top: 2px;
+      padding-top: 1px;
     }
     .comp-row-body { flex: 1; min-width: 0; }
     .comp-row-name {
@@ -378,6 +373,62 @@
   var grid = document.getElementById('home-comp-grid');
   if (!grid) return;
 
+  var WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
+
+  /* 日本の祝日判定（振替休日・国民の休日・春分秋分を含む。1980〜2099年で有効） */
+  var _holCache = {};
+  function holidaySet(year) {
+    if (_holCache[year]) return _holCache[year];
+    var base = {};
+    function add(m, d) { base[m + '-' + d] = true; }
+    function nthMonday(month, nth) {
+      var first = new Date(year, month - 1, 1).getDay();
+      return 1 + ((1 - first + 7) % 7) + (nth - 1) * 7;
+    }
+    add(1, 1); add(1, nthMonday(1, 2)); add(2, 11); add(2, 23);
+    add(3, Math.floor(20.8431 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4)));
+    add(4, 29); add(5, 3); add(5, 4); add(5, 5);
+    add(7, nthMonday(7, 3)); add(8, 11); add(9, nthMonday(9, 3));
+    add(9, Math.floor(23.2488 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4)));
+    add(10, nthMonday(10, 2)); add(11, 3); add(11, 23);
+
+    var key = function (m, d) { return m + '-' + d; };
+    var isBase = function (m, d) { return !!base[key(m, d)]; };
+    var result = {};
+    for (var k in base) result[k] = true;
+    var end = new Date(year + 1, 0, 1), t;
+    for (t = new Date(year, 0, 1); t < end; t.setDate(t.getDate() + 1)) {   // 国民の休日
+      var m = t.getMonth() + 1, d = t.getDate();
+      if (isBase(m, d) || t.getDay() === 0) continue;
+      var pv = new Date(t); pv.setDate(d - 1);
+      var nx = new Date(t); nx.setDate(d + 1);
+      if (isBase(pv.getMonth() + 1, pv.getDate()) && isBase(nx.getMonth() + 1, nx.getDate())) result[key(m, d)] = true;
+    }
+    for (t = new Date(year, 0, 1); t < end; t.setDate(t.getDate() + 1)) {   // 振替休日
+      if (!isBase(t.getMonth() + 1, t.getDate()) || t.getDay() !== 0) continue;
+      var s = new Date(t);
+      do { s.setDate(s.getDate() + 1); } while (isBase(s.getMonth() + 1, s.getDate()));
+      result[key(s.getMonth() + 1, s.getDate())] = true;
+    }
+    _holCache[year] = result;
+    return result;
+  }
+  function isJpHoliday(d) { return !!holidaySet(d.getFullYear())[(d.getMonth() + 1) + '-' + d.getDate()]; }
+
+  /* 開催日を「開催日／M.D（曜）」の枠付きバッジにする。祝日は「（火・祝）」。 */
+  function compDateBadge(iso, fallback) {
+    var m = String(iso || '').match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (!m) return '<span class="ev-badge"><span class="ev-badge-date">' + (fallback || '') + '</span></span>';
+    var d = new Date(+m[1], +m[2] - 1, +m[3]);
+    var wd = WEEKDAYS[d.getDay()] || '';
+    var holiday = isJpHoliday(d) ? '・祝' : '';
+    return '<span class="ev-badge">'
+      + '<span class="ev-badge-label">開催日</span>'
+      + '<span class="ev-badge-date">' + (+m[2]) + '.' + (+m[3])
+      + '<span class="ev-badge-wd">（' + wd + holiday + '）</span></span>'
+      + '</span>';
+  }
+
   fetch('data/competitions_seibu.json?_=' + Date.now())
     .then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -446,7 +497,7 @@
         var venueHtml = c.venue ? '<span class="comp-row-venue">📍 ' + c.venue + '</span>' : '';
 
         return '<div class="comp-row' + (isPast ? ' comp-row-past' : '') + '">'
-          + '<div class="comp-row-date">' + (c.date || '') + '</div>'
+          + '<div class="comp-row-date">' + compDateBadge(c.date_iso, c.date || '') + '</div>'
           + '<div class="comp-row-body">'
           + '<div class="comp-row-name">' + (c.name || '') + '</div>'
           + '<div class="comp-row-meta">' + venueHtml + badge + links.join('') + '</div>'
