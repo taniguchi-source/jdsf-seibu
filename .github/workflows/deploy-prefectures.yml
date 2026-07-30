@@ -51,7 +51,7 @@ jobs:
           - ehime
           - kyoto
           - lesson
-          - naraken
+          - nara
     steps:
       - name: Checkout
         uses: actions/checkout@v5
