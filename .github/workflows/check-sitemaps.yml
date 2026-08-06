@@ -1,0 +1,49 @@
+# 府県サイトマップ 定期ヘルスチェック（月1回）
+#
+# 全15府県の https://<府県>.jdsf-seibu.com/sitemap.xml を巡回し、
+#   ・HTTP 200 で返るか
+#   ・有効な <urlset> XML か
+#   ・URL(<loc>)が1件以上あるか
+# を点検する。1件でも異常なら job を失敗させる → GitHub が管理者へ失敗メールを自動送信。
+#
+# ※サイトマップ自体は sitemap.php による動的生成で常に最新（本チェックは「壊れていないか」の監視）。
+# 手動実行も可（Actions →「Check prefecture sitemaps」→ Run workflow）。
+
+name: Check prefecture sitemaps
+
+on:
+  schedule:
+    - cron: '0 0 1 * *'   # 毎月1日 00:00 UTC（＝日本時間 09:00）
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check all prefecture sitemaps
+        run: |
+          set -u
+          SUBS="hiroshima hyogo kagawa kochi okayama osaka shiga shimane tokushima tottori wakayama ehime kyoto lesson nara"
+          FAILS=0
+          printf '%-12s %-5s %-5s %s\n' "site" "HTTP" "urls" "status"
+          echo "------------------------------------------"
+          for s in $SUBS; do
+            url="https://$s.jdsf-seibu.com/sitemap.xml"
+            body=$(curl -s --max-time 30 -w '\n%{http_code}' "$url" || true)
+            code=$(printf '%s' "$body" | tail -n1)
+            xml=$(printf '%s' "$body" | sed '$d')
+            locs=$(printf '%s' "$xml" | grep -c '<loc>' || true)
+            if [ "$code" = "200" ] && printf '%s' "$xml" | grep -q '<urlset' && [ "${locs:-0}" -ge 1 ]; then
+              st="OK"
+            else
+              st="NG"
+              FAILS=$((FAILS+1))
+            fi
+            printf '%-12s %-5s %-5s %s\n' "$s" "$code" "${locs:-0}" "$st"
+          done
+          echo "------------------------------------------"
+          if [ "$FAILS" -gt 0 ]; then
+            echo "::error::サイトマップに異常が $FAILS 件あります（上記 NG の府県）。"
+            exit 1
+          fi
+          echo "✅ 全15府県のサイトマップは正常です。"
