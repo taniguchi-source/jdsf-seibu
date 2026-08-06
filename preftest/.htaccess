@@ -1,0 +1,6 @@
+# 府県サイト共通の .htaccess
+# /sitemap.xml を動的生成の sitemap.php で返す（各府県のホスト名でURLを生成）。
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^sitemap\.xml$ sitemap.php [L]
+</IfModule>
