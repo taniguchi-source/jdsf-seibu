@@ -147,8 +147,12 @@
     <!-- ⑤ 広告バナー管理 -->
     <div class="card">
       <h2>📣 広告バナー管理</h2>
-      <p class="hint">トップページの<strong>フッター直前</strong>に表示される広告バナー（画像＋リンク）です。最大6枚。PCは横並び・スマホは縦積み。推奨：横長 600×150px 前後・8MB以内（JPG/PNG/WebP/GIF）。<strong>画像が未設定の行・「表示」オフの行は出ません</strong>（全部オフ/0枚ならバナー帯ごと非表示）。</p>
-      <div id="banner-list" style="display:grid;gap:10px;"></div>
+      <p class="hint">トップページの<strong>フッター直前</strong>に表示される広告バナー（画像＋リンク）です。最大6枚。PCは横並び・スマホは縦積み。推奨：横長 600×150px 前後・8MB以内（JPG/PNG/WebP/GIF）。<strong>画像あり＋「表示する」ONのバナーだけ</strong>が下のプレビューとトップに出ます（0枚ならバナー帯ごと非表示）。並び順は各バナーの <strong>↑↓</strong> で入れ替えできます。</p>
+      <div style="margin:0 0 14px;">
+        <div style="font-size:.72rem;font-weight:700;color:var(--text-light);margin-bottom:6px;">🖥 トップページでの表示プレビュー（左から順に並びます）</div>
+        <div id="banner-preview" style="background:#fff;border:1px dashed var(--border);border-radius:8px;padding:14px;display:flex;flex-wrap:wrap;gap:16px;justify-content:center;align-items:center;min-height:74px;"></div>
+      </div>
+      <div id="banner-list" style="display:grid;gap:12px;"></div>
       <div style="display:flex;gap:8px;margin-top:10px;">
         <button class="btn btn-sec btn-sm" onclick="bannerAdd()">＋ バナーを追加</button>
         <button class="btn btn-sm" onclick="bannerSave()">💾 広告バナーを保存</button>
@@ -358,35 +362,59 @@ function slUpload(n){
 /* ===== ⑤ 広告バナー（フッター直前・最大6枚） ===== */
 var _bn = [];
 function bnRender(){
+  bnPreview();
   var box=document.getElementById('banner-list');
   if(!box) return;
-  if(!_bn.length){ box.innerHTML='<p class="hint" style="margin:0;">バナーはまだありません。「＋ バナーを追加」で作成してください。</p>'; return; }
+  if(!_bn.length){ box.innerHTML='<p class="hint" style="margin:0;">バナーはまだありません。下の「＋ バナーを追加」で作成してください。</p>'; return; }
   box.innerHTML = _bn.map(function(it,i){
-    return '<div class="row" style="flex-wrap:wrap;">'
-      + '<div style="display:flex;flex-direction:column;gap:6px;align-items:center;min-width:150px;">'
-        + '<div id="bn-thumb-'+i+'">'+bnThumbHtml(i, it.image||'')+'</div>'
-        + '<input type="file" accept="image/*" id="bn-file-'+i+'" onchange="if(this.files[0])bnUpload('+i+',this.files[0])" style="font-size:.72rem;max-width:160px;">'
+    var on=it.enabled!==false, hasImg=!!it.image;
+    var badge = (!hasImg) ? ['画像なし','#f0f0f0','#999']
+              : (on ? ['表示中','#e6f4ea','#1a7a3a'] : ['非表示','#fdecea','#b3261e']);
+    return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:12px;background:#fff;">'
+      + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">'
+        + '<span style="font-weight:700;font-size:.92rem;color:var(--primary);">バナー'+(i+1)+'</span>'
+        + '<span style="font-size:.66rem;font-weight:700;padding:2px 9px;border-radius:10px;background:'+badge[1]+';color:'+badge[2]+';">'+badge[0]+'</span>'
+        + '<span style="flex:1;"></span>'
+        + '<button class="btn btn-sm btn-sec" title="上へ移動" onclick="bnMove('+i+',-1)"'+(i===0?' disabled':'')+'>↑</button>'
+        + '<button class="btn btn-sm btn-sec" title="下へ移動" onclick="bnMove('+i+',1)"'+(i===_bn.length-1?' disabled':'')+'>↓</button>'
+        + '<button class="btn btn-sm btn-del" title="このバナーを削除" onclick="bnDel('+i+')">🗑 削除</button>'
       + '</div>'
-      + '<div style="flex:1 1 220px;min-width:200px;">'
-        + '<label style="display:block;font-size:.68rem;font-weight:700;color:var(--text-light);margin-bottom:3px;">リンク先URL（クリックで開くページ・任意）</label>'
-        + '<input type="text" value="'+esc(it.url||'')+'" placeholder="例：https://...（空ならリンクなし画像のみ）" oninput="_bn['+i+'].url=this.value" style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.85rem;box-sizing:border-box;font-family:inherit;">'
+      + '<div class="row" style="flex-wrap:wrap;align-items:flex-start;">'
+        + '<div style="display:flex;flex-direction:column;gap:7px;align-items:center;min-width:180px;">'
+          + '<div id="bn-thumb-'+i+'">'+bnThumbHtml(i, it.image||'')+'</div>'
+          + '<input type="file" accept="image/*" id="bn-file-'+i+'" onchange="if(this.files[0])bnUpload('+i+',this.files[0])" style="display:none;">'
+          + '<button class="btn btn-sm btn-sec" onclick="document.getElementById(\'bn-file-'+i+'\').click()">'+(hasImg?'📷 画像を変更':'📷 画像を選ぶ')+'</button>'
+        + '</div>'
+        + '<div style="flex:1 1 220px;min-width:200px;">'
+          + '<label style="display:block;font-size:.68rem;font-weight:700;color:var(--text-light);margin-bottom:3px;">リンク先URL（クリックで開くページ・任意）</label>'
+          + '<input type="text" value="'+esc(it.url||'')+'" placeholder="例：https://...（空ならリンクなし画像のみ）" oninput="_bn['+i+'].url=this.value" style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.85rem;box-sizing:border-box;font-family:inherit;">'
+          + '<div style="display:flex;gap:16px;margin-top:9px;">'
+            + '<label class="ck"><input type="checkbox" '+(on?'checked':'')+' onchange="_bn['+i+'].enabled=this.checked;bnRender()"> 表示する</label>'
+            + '<label class="ck"><input type="checkbox" '+(it.newtab?'checked':'')+' onchange="_bn['+i+'].newtab=this.checked"> 別タブで開く</label>'
+          + '</div>'
+        + '</div>'
       + '</div>'
-      + '<div style="display:flex;flex-direction:column;gap:4px;">'
-        + '<label class="ck"><input type="checkbox" '+(it.enabled!==false?'checked':'')+' onchange="_bn['+i+'].enabled=this.checked"> 表示</label>'
-        + '<label class="ck"><input type="checkbox" '+(it.newtab?'checked':'')+' onchange="_bn['+i+'].newtab=this.checked"> 別タブ</label>'
-      + '</div>'
-      + '<button class="btn btn-sm btn-del" onclick="bnDel('+i+')">×</button>'
     + '</div>';
   }).join('');
 }
 function bnThumbHtml(i, url){
-  if(!url) return '<span style="font-size:.72rem;color:#888;">画像なし</span>';
-  return '<img src="'+esc(url)+'?_='+Date.now()+'" alt="" style="max-height:48px;max-width:160px;border:1px solid #ddd;border-radius:4px;background:#fff;">'
-    + '<button class="btn btn-sm btn-sec" style="display:block;margin-top:4px;" onclick="bnClearImg('+i+')">✕ 画像を削除</button>';
+  if(!url) return '<div style="width:172px;height:66px;display:flex;align-items:center;justify-content:center;border:1px dashed #ccc;border-radius:6px;font-size:.72rem;color:#999;background:#fafafa;">画像なし</div>';
+  return '<img src="'+esc(url)+'?_='+Date.now()+'" alt="" style="max-height:66px;max-width:172px;border:1px solid #ddd;border-radius:6px;background:#fff;display:block;">';
 }
-function bannerAdd(){ if(_bn.length>=6){ alert('上限6枚です'); return; } _bn.push({image:'',url:'',enabled:true,newtab:true}); bnRender(); }
-function bnDel(i){ _bn.splice(i,1); bnRender(); }
-function bnClearImg(i){ _bn[i].image=''; bnRender(); }
+function bnPreview(){
+  var pv=document.getElementById('banner-preview');
+  if(!pv) return;
+  var shown=_bn.filter(function(b){return b.enabled!==false && b.image;});
+  if(!shown.length){ pv.innerHTML='<span style="font-size:.75rem;color:#999;">表示できるバナーがありません（画像あり＋「表示する」ONのバナーがここに出ます）</span>'; return; }
+  pv.innerHTML=shown.map(function(b){
+    return '<div style="flex:0 1 240px;max-width:240px;line-height:0;">'
+      + '<img src="'+esc(b.image)+'?_='+Date.now()+'" alt="" style="width:100%;height:auto;max-height:100px;object-fit:contain;border:1px solid #d0d9e4;border-radius:8px;background:#fff;display:block;">'
+      + '</div>';
+  }).join('');
+}
+function bnMove(i,dir){ var j=i+dir; if(j<0||j>=_bn.length) return; var t=_bn[i]; _bn[i]=_bn[j]; _bn[j]=t; bnRender(); }
+function bannerAdd(){ if(_bn.length>=6){ alert('上限6枚です'); return; } _bn.push({image:'',url:'',enabled:true,newtab:true}); bnRender(); setMsg('banner-msg','空のバナー枠を1つ追加しました。画像を選び、URLを入れて、最後に「💾 広告バナーを保存」を押してください。',true); }
+function bnDel(i){ if(!confirm('バナー'+(i+1)+'を削除します。よろしいですか？\n（「保存」を押すまで実際のサイトには反映されません）')) return; _bn.splice(i,1); bnRender(); }
 function bnUpload(i, file){
   var thumb=document.getElementById('bn-thumb-'+i);
   if(thumb) thumb.innerHTML='<span style="font-size:.72rem;color:var(--primary);">⏳ アップロード中...</span>';
