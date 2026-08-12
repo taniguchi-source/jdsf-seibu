@@ -15,6 +15,11 @@
 #
 # 前提: 各サブドメインが XServer で作成済み（DNS反映済み）であること。
 #       未作成/未反映の府県はそのジョブだけ失敗する（他府県には影響しない）。
+#
+# ■ rsync は --delete で完全同期する。サーバー側にしか無いディレクトリを
+#   消さないためには --exclude への追加が必須（data/ uploads/ photos/）。
+#   photos/ は写真ギャラリー（例: kyoto.jdsf-seibu.com/photos/）。
+#   リポジトリ外で生成しSFTPで直接置いているため、除外が無いと削除される。
 
 name: Deploy prefectures to XServer
 
@@ -108,6 +113,7 @@ jobs:
             --exclude='data/' \
             --exclude='uploads/' \
             --exclude='google*.html' \
+            --exclude='photos/' \
             preftest/ \
             jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/${{ matrix.sub }}.jdsf-seibu.com/
 
