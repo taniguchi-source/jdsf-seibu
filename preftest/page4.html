@@ -88,11 +88,19 @@
       font-size: .875rem;
       padding: 8px 0;
     }
+    /* テキスト項目：見出しと本文を同じ行に（入らなければ折り返し） */
+    .content-block.text-inline .content-block-title,
+    .sub-content-item.text-inline .sub-content-title { display: inline; border-bottom: none; padding-bottom: 0; margin: 0 8px 0 0; }
+    .content-block.text-inline .content-block-body,
+    .sub-content-item.text-inline .content-block-body { display: inline; }
+    /* 見出しの大きさ（テキスト・3段階） */
+    .content-block-title.tsize-lg, .sub-content-title.tsize-lg { font-size: 1.2rem; }
+    .content-block-title.tsize-xl, .sub-content-title.tsize-xl { font-size: 1.5rem; }
     .link-btn {
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      padding: 14px 24px;
+      padding: 8px 24px;
       background: var(--primary);
       color: #fff;
       border-radius: 8px;
@@ -140,7 +148,7 @@
       border-top: 1px dashed #BFDBFE;
       display: flex;
       flex-direction: column;
-      gap: 7px;
+      gap: 4px;
     }
     .sub-content-item {
       background: #F0F7FF;
@@ -177,7 +185,7 @@
     .glb-counter { position:absolute; top:22px; left:50%; transform:translateX(-50%); color:rgba(255,255,255,.85); font-size:.85rem; letter-spacing:.05em; }
     @media (max-width: 600px) {
       .content-block { padding: 20px 18px; }
-      .link-btn { padding: 12px 18px; font-size: .875rem; }
+      .link-btn { padding: 7px 18px; font-size: .875rem; }
       .sub-content-item { padding: 7px 16px; }
       .gallery-grid { grid-template-columns:repeat(auto-fill,minmax(95px,1fr)); }
       .glb-prev,.glb-next { width:42px; height:42px; font-size:1.5rem; }
@@ -643,9 +651,10 @@
         block.appendChild(lNote);
       } else {
         var titleIcon = m.type === 'sheet' ? '📊 ' : ((m.type === 'file' || m.type === 'image') ? '🖼️ ' : (m.type === 'gallery' ? '🏞 ' : (m.type === 'pdf' ? '📄 ' : (m.type === 'link' ? '🔗 ' : (m.type === 'embed' ? '🪟 ' : '📝 ')))));
+        if (m.type === 'text') block.className += ' text-inline';   /* テキストは見出しと本文を同じ行に */
         if (m.title && m.show_title !== false) {
           var titleEl = document.createElement('h2');
-          titleEl.className = 'content-block-title';
+          titleEl.className = 'content-block-title' + (m.title_size === 'xl' ? ' tsize-xl' : (m.title_size === 'lg' ? ' tsize-lg' : ''));
           titleEl.textContent = titleIcon + m.title;
           block.appendChild(titleEl);
         }
@@ -681,9 +690,10 @@
             subItem.appendChild(slNote);
           } else {
             var subIcon = sub.type === 'sheet' ? '📊 ' : ((sub.type === 'file' || sub.type === 'image') ? '🖼️ ' : (sub.type === 'gallery' ? '🏞 ' : (sub.type === 'pdf' ? '📄 ' : (sub.type === 'link' ? '🔗 ' : (sub.type === 'embed' ? '🪟 ' : '📝 ')))));
+            if (sub.type === 'text') subItem.className += ' text-inline';   /* テキストは見出しと本文を同じ行に */
             if (sub.title && sub.show_title !== false) {
               var subTitle = document.createElement('h3');
-              subTitle.className = 'sub-content-title';
+              subTitle.className = 'sub-content-title' + (sub.title_size === 'xl' ? ' tsize-xl' : (sub.title_size === 'lg' ? ' tsize-lg' : ''));
               subTitle.textContent = subIcon + sub.title;
               subItem.appendChild(subTitle);
             }

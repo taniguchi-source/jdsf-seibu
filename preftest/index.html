@@ -265,16 +265,22 @@
     .sheet-table .sheet-row-odd td { background:#f7f9fc; }
     .sheet-table .sheet-section-row td { background:#EFF6FF; color:#1e3a8a; font-weight:800; font-size:.875rem; padding:9px 16px; border-top:2px solid #BFDBFE; border-left:4px solid #3B5EA6; }
     .loading-text { color:var(--text-light); font-size:.875rem; padding:8px 0; }
-    .link-btn { display:inline-flex; align-items:center; gap:10px; padding:14px 24px; background:var(--primary); color:#fff; border-radius:8px; text-decoration:none; font-size:.9375rem; font-weight:700; transition:background .2s; vertical-align:middle; }
+    .link-btn { display:inline-flex; align-items:center; gap:10px; padding:8px 24px; background:var(--primary); color:#fff; border-radius:8px; text-decoration:none; font-size:.9375rem; font-weight:700; transition:background .2s; vertical-align:middle; }
     .link-btn:hover { background:var(--primary-dark,#0D2347); }
     .link-btn-sub { font-size:.8rem; color:var(--text-light); margin:0 0 0 12px; display:inline-block; vertical-align:middle; }
     .link-title-btn { display:inline-flex; align-items:center; gap:10px; padding:14px 28px; background:var(--primary); color:#fff; border-radius:10px; text-decoration:none; font-size:1rem; font-weight:700; transition:background .2s, transform .15s; }
     .link-title-btn:hover { background:var(--primary-dark,#0D2347); transform:translateY(-1px); }
     .link-sub-title-btn { display:inline-flex; align-items:center; gap:8px; padding:10px 20px; background:#3B5EA6; color:#fff; border-radius:8px; text-decoration:none; font-size:.875rem; font-weight:700; transition:background .2s; margin-bottom:6px; }
     .link-sub-title-btn:hover { background:#1e3a8a; }
-    .sub-content-list { margin-top:20px; margin-left:24px; padding-top:16px; border-top:1px dashed #BFDBFE; display:flex; flex-direction:column; gap:7px; }
+    .sub-content-list { margin-top:20px; margin-left:24px; padding-top:16px; border-top:1px dashed #BFDBFE; display:flex; flex-direction:column; gap:4px; }
     .sub-content-item { background:#F0F7FF; border:1px solid #BFDBFE; border-left:4px solid #3B5EA6; border-radius:8px; padding:8px 20px; }
     .sub-content-title { font-size:.9375rem; font-weight:700; color:#1e3a8a; margin:0 0 12px; padding-bottom:8px; border-bottom:1px solid #DBEAFE; display:flex; align-items:center; gap:6px; }
+    /* テキスト項目：見出しと本文を同じ行に（入らなければ折り返し） */
+    .content-block.text-inline .content-block-title, .sub-content-item.text-inline .sub-content-title { display:inline; border-bottom:none; padding-bottom:0; margin:0 8px 0 0; }
+    .content-block.text-inline .content-block-body, .sub-content-item.text-inline .content-block-body { display:inline; }
+    /* 見出しの大きさ（テキスト・3段階） */
+    .content-block-title.tsize-lg, .sub-content-title.tsize-lg { font-size:1.2rem; }
+    .content-block-title.tsize-xl, .sub-content-title.tsize-xl { font-size:1.5rem; }
 
     /* ===== 直近競技会情報（本番と同一スタイル） ===== */
     .comp-status { display:inline-block; margin-top:8px; font-size:0.7rem; font-weight:700; padding:2px 10px; border-radius:100px; }
@@ -1137,7 +1143,8 @@
         var lNote = document.createElement('p'); lNote.className = 'link-btn-sub'; lNote.textContent = '新しいタブで開きます'; block.appendChild(lNote);
       } else {
         var titleIcon = m.type === 'sheet' ? '📊 ' : ((m.type === 'file' || m.type === 'image') ? '🖼️ ' : (m.type === 'gallery' ? '🏞 ' : (m.type === 'pdf' ? '📄 ' : (m.type === 'link' ? '🔗 ' : '📝 '))));
-        if (m.title && m.show_title !== false) { var titleEl = document.createElement('h2'); titleEl.className = 'content-block-title'; titleEl.textContent = titleIcon + m.title; block.appendChild(titleEl); }
+        if (m.type === 'text') block.className += ' text-inline';
+        if (m.title && m.show_title !== false) { var titleEl = document.createElement('h2'); titleEl.className = 'content-block-title' + (m.title_size === 'xl' ? ' tsize-xl' : (m.title_size === 'lg' ? ' tsize-lg' : '')); titleEl.textContent = titleIcon + m.title; block.appendChild(titleEl); }
         appendWithFetch(m, buildBodyEl(m), block);
       }
       if (group.subs.length > 0) {
@@ -1150,7 +1157,8 @@
             var slNote = document.createElement('p'); slNote.className = 'link-btn-sub'; slNote.textContent = '新しいタブで開きます'; subItem.appendChild(slNote);
           } else {
             var subIcon = sub.type === 'sheet' ? '📊 ' : ((sub.type === 'file' || sub.type === 'image') ? '🖼️ ' : (sub.type === 'gallery' ? '🏞 ' : (sub.type === 'pdf' ? '📄 ' : (sub.type === 'link' ? '🔗 ' : '📝 '))));
-            if (sub.title && sub.show_title !== false) { var subTitle = document.createElement('h3'); subTitle.className = 'sub-content-title'; subTitle.textContent = subIcon + sub.title; subItem.appendChild(subTitle); }
+            if (sub.type === 'text') subItem.className += ' text-inline';
+            if (sub.title && sub.show_title !== false) { var subTitle = document.createElement('h3'); subTitle.className = 'sub-content-title' + (sub.title_size === 'xl' ? ' tsize-xl' : (sub.title_size === 'lg' ? ' tsize-lg' : '')); subTitle.textContent = subIcon + sub.title; subItem.appendChild(subTitle); }
             appendWithFetch(sub, buildBodyEl(sub), subItem);
           }
           subList.appendChild(subItem);

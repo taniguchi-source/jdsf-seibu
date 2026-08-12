@@ -67,6 +67,7 @@ foreach ($items as $item) {
         'show_title' => array_key_exists('show_title', $item) ? !empty($item['show_title']) : true,
         'type'       => in_array($type_raw, ['text', 'sheet', 'file', 'image', 'gallery', 'pdf', 'link', 'embed'], true) ? $type_raw : 'text',
         'body'       => mb_substr(trim((string)($item['body'] ?? '')), 0, 5000),
+        'title_size' => in_array(($item['title_size'] ?? ''), ['lg', 'xl'], true) ? (string)$item['title_size'] : '',
         'sheet_url'    => mb_substr(trim((string)($item['sheet_url']  ?? '')), 0, 500),
         'sheet_name'   => mb_substr(trim((string)($item['sheet_name'] ?? '')), 0, 100),
         'sheet_range'  => $sheet_range,

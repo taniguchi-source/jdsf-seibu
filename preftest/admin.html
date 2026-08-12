@@ -445,6 +445,12 @@
       </div>
       <!-- テキストセクション -->
       <div id="cd-text-section">
+        <label class="form-label">見出しの大きさ <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（タイトルの表示サイズ）</span></label>
+        <select id="cd-title-size" class="form-input" style="margin-bottom:14px;">
+          <option value="">標準</option>
+          <option value="lg">大きめ</option>
+          <option value="xl">特大</option>
+        </select>
         <label class="form-label">内容 <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（任意）</span></label>
         <textarea id="cd-body" rows="6" class="form-input" style="resize:vertical;line-height:1.7;" placeholder="ここにコンテンツの内容を入力してください..."></textarea>
       </div>
@@ -1707,6 +1713,8 @@
     if (showTitleEl) showTitleEl.checked = (item.show_title !== false); // 既定は表示
     document.getElementById('cd-title').value   = item.title || '';
     document.getElementById('cd-body').value    = item.body  || '';
+    var tsSel = document.getElementById('cd-title-size');
+    if (tsSel) tsSel.value = (item.title_size === 'lg' || item.title_size === 'xl') ? item.title_size : '';
     // 種類ラジオボタン（旧 file タイプは image として扱う）
     var type   = item.type || 'text';
     if (type === 'file') type = 'image';
@@ -1832,6 +1840,8 @@
       item.show_title = showTitle;
       item.body       = body;
       item.type       = type;
+      var tsEl = document.getElementById('cd-title-size');
+      item.title_size = (tsEl && (tsEl.value === 'lg' || tsEl.value === 'xl')) ? tsEl.value : '';
       item.sheet_url    = sheetUrl;
       item.sheet_name   = sheetName;
       item.sheet_range  = sheetRange;
