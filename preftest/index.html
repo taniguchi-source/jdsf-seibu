@@ -823,6 +823,7 @@
       var comps = (data.competitions || []).filter(function (c) {
         if (!c.date_iso || c.date_iso < fromISO) return false;
         if (c.name && c.name.slice(0,10).indexOf('PD') !== -1) return false;
+        if (c.name && c.name.indexOf('奈良県ダンス連盟') !== -1) return false;
         return true;
       });
       if (comps.length === 0) {

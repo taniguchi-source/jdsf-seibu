@@ -400,6 +400,8 @@
     var comps = allComps.filter(function (c) {
       // 先頭10文字にPDが含まれる競技会は非表示
       if ((c.name || '').slice(0, 10).indexOf('PD') !== -1) return false;
+      // 大会名に「奈良県ダンス連盟」を含む競技会は非表示
+      if ((c.name || '').indexOf('奈良県ダンス連盟') !== -1) return false;
       return c.date_iso && c.date_iso.slice(0, 4) === yearStr;
     });
     if (comps.length === 0) {
