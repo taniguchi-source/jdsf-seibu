@@ -1088,28 +1088,11 @@
   }
   function navModeOf(link) {
     var n = link.id || 0;
-    if (/^https?:\/\//i.test(String(link.url || ''))) return 'external';
+    /* 表示方法は「埋め込み(URLあり)」か「このサイトのページ(URLなし)」の2択。外部リンク移動は廃止。 */
     return findNavEmbed(n) ? 'embed' : 'page';
   }
 
-  /* 表示方法の切り替え＝該当する入力欄だけを出す */
-  function setNavMode(n, mode) {
-    ['page','embed','external'].forEach(function(m){
-      var el = document.getElementById('nav-mode-box-' + m + '-' + n);
-      if (el) el.style.display = (m === mode) ? '' : 'none';
-    });
-    var chips = document.getElementById('nav-contents-area-' + n);
-    /* 「移動」はこのサイトのページを使わない＝コンテンツ管理は無関係なので隠す */
-    if (chips) chips.style.display = (mode === 'external') ? 'none' : '';
-  }
-  window.setNavMode = setNavMode;
-
-  function navModeRadio(n, value, label, current) {
-    return '<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:.8rem;font-weight:600;">'
-      + '<input type="radio" name="nav-mode-' + n + '" value="' + value + '"' + (current === value ? ' checked' : '')
-      + ' onchange="setNavMode(' + n + ',\'' + value + '\')" style="cursor:pointer;accent-color:var(--primary);">'
-      + label + '</label>';
-  }
+  /* （表示方法は「外部ページURLの有無」で自動判定するため、旧・3択ラジオ setNavMode/navModeRadio は廃止） */
 
   /* 指定の高さで埋め込みを試し描きする */
   function previewNavEmbed(n) {
@@ -1141,7 +1124,9 @@
       /* 表示方法と、埋め込みの現在値（保存済みデータから導出） */
       var mode        = navModeOf(link);
       var embedItem   = findNavEmbed(n);
-      var embedUrl    = embedItem ? (embedItem.embed_url || '') : '';
+      /* URL欄の初期値：埋め込み設定があればそのURL。無くても旧「別サイトへ移動」のURL(link.url)を引き継ぐ（保存で埋め込みに移行） */
+      var embedUrl    = embedItem ? (embedItem.embed_url || '')
+                        : (/^https?:\/\//i.test(link.url || '') ? (link.url || '') : '');
       var embedHeight = embedItem ? (parseInt(embedItem.embed_height, 10) || 1200) : 1200;
 
       return '<div class="nav-card" data-idx="' + idx + '" style="background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:12px 18px;box-shadow:var(--shadow);">'
@@ -1175,46 +1160,7 @@
         +   '<button onclick="saveNavSlot(' + n + ')" '
         +     'style="padding:7px 20px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">💾 ページ設定を保存</button>'
         + '</div>'
-        /* 3行目：表示方法（このメニューを押したときどうなるか） */
-        + '<div style="border-top:1px dashed #e2e8f0;margin-top:10px;padding-top:10px;">'
-        +   '<div style="font-size:.72rem;font-weight:700;color:var(--text-light);margin-bottom:6px;">👀 表示方法 <span style="font-weight:400;">（このメニューを押したとき、どう見せるか）</span></div>'
-        +   '<div style="display:flex;flex-wrap:wrap;gap:14px;padding:8px 12px;background:#f8fafc;border:1.5px solid var(--border);border-radius:8px;">'
-        +     navModeRadio(n, 'page',     '📄 このサイトのページ', mode)
-        +     + navModeRadio(n, 'embed',    '🪟 別のサイトを埋め込む', mode)
-        +     + navModeRadio(n, 'external', '↗ 別のサイトへ移動', mode)
-        +   '</div>'
-        /* --- 📄 このサイトのページ --- */
-        +   '<div id="nav-mode-box-page-' + n + '" style="' + (mode === 'page' ? '' : 'display:none;') + 'margin-top:8px;">'
-        +     '<p style="font-size:.7rem;color:var(--text-light);margin:0;">このページの中身は、下の「📄 コンテンツ管理」で作ります。リンク先は自動（<code>' + escHtml(navDefaultUrl(n)) + '</code>）です。</p>'
-        +   '</div>'
-        /* --- 🪟 別のサイトを埋め込む --- */
-        +   '<div id="nav-mode-box-embed-' + n + '" style="' + (mode === 'embed' ? '' : 'display:none;') + 'margin-top:8px;">'
-        +     '<p style="font-size:.7rem;color:var(--text-light);margin:0 0 6px;">別のサイトを、このページの中にそのまま表示します。<b>ヒーローと上部のメニューは残ります</b>ので、見ている人が連盟サイトから出ません。</p>'
-        +     '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">'
-        +       '<div style="flex:2;min-width:200px;">'
-        +         '<label style="font-size:.7rem;color:var(--text-light);display:block;margin-bottom:3px;">埋め込むサイトのURL</label>'
-        +         '<input type="url" id="nav-embed-url-' + n + '" value="' + escHtml(embedUrl) + '" placeholder="https://example.com/page/" '
-        +           'style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-family:inherit;box-sizing:border-box;outline:none;">'
-        +       '</div>'
-        +       '<div style="flex:0 0 120px;">'
-        +         '<label style="font-size:.7rem;color:var(--text-light);display:block;margin-bottom:3px;">高さ(px)</label>'
-        +         '<input type="number" id="nav-embed-height-' + n + '" value="' + embedHeight + '" min="300" max="5000" step="100" '
-        +           'style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-family:inherit;box-sizing:border-box;outline:none;">'
-        +       '</div>'
-        +       '<button onclick="previewNavEmbed(' + n + ')" '
-        +         'style="padding:7px 14px;background:#fff;border:1.5px solid var(--primary);color:var(--primary);border-radius:6px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">👁 見え方を確認</button>'
-        +     '</div>'
-        +     '<div id="nav-embed-preview-' + n + '"></div>'
-        +   '</div>'
-        /* --- ↗ 別のサイトへ移動 --- */
-        +   '<div id="nav-mode-box-external-' + n + '" style="' + (mode === 'external' ? '' : 'display:none;') + 'margin-top:8px;">'
-        +     '<label style="font-size:.7rem;color:var(--text-light);display:block;margin-bottom:3px;">移動先のURL</label>'
-        +     '<input type="text" id="nav-url-' + n + '" value="' + (mode === 'external' ? url : '') + '" placeholder="https://example.com/" '
-        +       'style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-family:inherit;box-sizing:border-box;outline:none;">'
-        +     '<p style="font-size:.7rem;color:#92400E;background:#FFFBEB;border:1px solid #FDE68A;border-radius:5px;padding:5px 9px;margin:6px 0 0;">⚠ 押すとそのサイトへ出ていくため、<b>ヒーローと上部のメニューは表示されません</b>。残したいときは「🪟 別のサイトを埋め込む」を選んでください。</p>'
-        +   '</div>'
-        + '</div>'
-        /* ヒーロー（ページ上部）の表示文字 */
+        /* 3行目：ページ上部（ヒーロー）の表示文字（ページ名称の直下に配置） */
         + '<div style="border-top:1px dashed #e2e8f0;margin-top:10px;padding-top:10px;">'
         +   '<div style="font-size:.72rem;font-weight:700;color:var(--text-light);margin-bottom:6px;">🎯 ページ上部（ヒーロー）の表示文字 <span style="font-weight:400;">（空欄なら自動表示）</span></div>'
         +   '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">'
@@ -1233,10 +1179,30 @@
         +   '</div>'
         +   '<p style="font-size:.68rem;color:var(--text-light);margin:6px 0 0;">※ 上の「💾 ページ設定を保存」で一緒に保存されます。</p>'
         + '</div>'
+        /* 4行目：表示方法（外部ページのURLを入れると、そのページを埋め込み表示。空ならコンテンツ管理で作成） */
+        + '<div style="border-top:1px dashed #e2e8f0;margin-top:10px;padding-top:10px;">'
+        +   '<div style="font-size:.72rem;font-weight:700;color:var(--text-light);margin-bottom:6px;">👀 表示方法 <span style="font-weight:400;">（このメニューを押したとき、どう見せるか）</span></div>'
+        +   '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;padding:8px 12px;background:#f8fafc;border:1.5px solid var(--border);border-radius:8px;">'
+        +     '<div style="flex:2;min-width:220px;">'
+        +       '<label style="font-size:.72rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:3px;">🔗 外部ページのURL <span style="font-weight:400;color:var(--text-light);">（入れるとそのページを表示／空ならコンテンツ管理で作成）</span></label>'
+        +       '<input type="url" id="nav-embed-url-' + n + '" value="' + escHtml(embedUrl) + '" placeholder="https://example.com/page/（空欄でOK）" '
+        +         'style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-family:inherit;box-sizing:border-box;outline:none;">'
+        +     '</div>'
+        +     '<div style="flex:0 0 110px;">'
+        +       '<label style="font-size:.7rem;color:var(--text-light);display:block;margin-bottom:3px;">高さ(px)</label>'
+        +       '<input type="number" id="nav-embed-height-' + n + '" value="' + embedHeight + '" min="300" max="5000" step="100" '
+        +         'style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.8125rem;font-family:inherit;box-sizing:border-box;outline:none;">'
+        +     '</div>'
+        +     '<button onclick="previewNavEmbed(' + n + ')" '
+        +       'style="padding:7px 14px;background:#fff;border:1.5px solid var(--primary);color:var(--primary);border-radius:6px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">👁 見え方を確認</button>'
+        +   '</div>'
+        +   '<p style="font-size:.7rem;color:var(--text-light);margin:6px 0 0;">URLを入れると、そのページを<b>この中に埋め込み表示</b>します（ヘッダー・ヒーローは残ります）。空欄なら、下の「📄 コンテンツ管理」で中身を作ります。</p>'
+        +   '<div id="nav-embed-preview-' + n + '"></div>'
+        + '</div>'
         /* メッセージ行 */
         + '<div id="nav-msg-' + n + '" style="display:none;font-size:.775rem;padding:4px 10px;border-radius:5px;margin-top:8px;"></div>'
-        /* コンテンツ管理エリア（「別のサイトへ移動」のときは使わないので隠す） */
-        + '<div id="nav-contents-area-' + n + '" style="border-top:1px dashed #e2e8f0;margin-top:12px;padding-top:10px;' + (mode === 'external' ? 'display:none;' : '') + '">'
+        /* コンテンツ管理エリア（URL未入力＝このサイトのページのとき、ここで中身を作る） */
+        + '<div id="nav-contents-area-' + n + '" style="border-top:1px dashed #e2e8f0;margin-top:12px;padding-top:10px;">'
         +   '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
         +     '<span style="font-size:.72rem;font-weight:700;color:var(--text-light);">📄 コンテンツ管理 <span style="font-weight:400;">（⠿ を掴んで並べ替え）</span></span>'
         +     '<div style="display:flex;gap:6px;">'
@@ -1355,23 +1321,16 @@
   function saveNavSlot(n) {
     var enabledEl = document.getElementById('nav-enabled-' + n);
     var nameEl    = document.getElementById('nav-name-'    + n);
-    var urlEl     = document.getElementById('nav-url-'     + n);
     var enabled   = enabledEl ? enabledEl.checked : false;
     var name      = nameEl    ? nameEl.value.trim()  : '';
-    /* 表示方法でリンク先を決める。ページ／埋め込みは自前のページなのでURLは自動 */
-    var modeEl = document.querySelector('input[name="nav-mode-' + n + '"]:checked');
-    var mode   = modeEl ? modeEl.value : 'page';
-    var url;
-    if (mode === 'external') {
-      url = urlEl ? urlEl.value.trim() : '';
-      if (!/^https?:\/\//i.test(url)) { navError(n, '移動先のURLを https:// から入力してください'); return; }
-    } else {
-      url = navDefaultUrl(n);
-      if (mode === 'embed') {
-        var eu = (document.getElementById('nav-embed-url-' + n) || {value:''}).value.trim();
-        if (!/^https?:\/\//i.test(eu)) { navError(n, '埋め込むサイトのURLを https:// から入力してください'); return; }
-      }
+    /* 表示方法＝外部ページURLの有無で決まる。URLがあれば埋め込み表示、無ければコンテンツ管理。 */
+    var eu   = (document.getElementById('nav-embed-url-' + n) || {value:''}).value.trim();
+    var mode = eu ? 'embed' : 'page';
+    if (mode === 'embed' && !/^https?:\/\//i.test(eu)) {
+      navError(n, '外部ページのURLは https:// から入力してください（不要ならURL欄を空にしてください）');
+      return;
     }
+    var url = navDefaultUrl(n);   /* メニューのリンク先は常にこのサイトのページ（外部移動は廃止） */
     var heroLabel = (document.getElementById('hero-label-' + n) || {value:''}).value.trim();
     var heroTitle = (document.getElementById('hero-title-' + n) || {value:''}).value.trim();
     var heroDesc  = (document.getElementById('hero-desc-'  + n) || {value:''}).value.trim();
