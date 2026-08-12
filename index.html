@@ -290,16 +290,14 @@
 <!-- ===== 広告バナー（フッター直前・サイト構築で編集／data/home_banner.json／未設定時は非表示） ===== -->
 <style>
   .ad-banners { display:flex; flex-wrap:wrap; justify-content:center; gap:16px; }
-  .ad-banners > a, .ad-banners > span { flex:0 1 360px; max-width:360px; line-height:0; display:block; }
-  .ad-banners img { width:100%; height:auto; max-height:140px; object-fit:contain; border:1px solid var(--border); border-radius:8px; background:#fff; }
+  .ad-banners > a, .ad-banners > span { flex:0 1 260px; max-width:260px; line-height:0; display:block; }
+  .ad-banners img { width:100%; height:auto; max-height:100px; object-fit:contain; border:1px solid var(--border); border-radius:8px; background:#fff; }
   @media (max-width:768px){
-    .ad-banners > a, .ad-banners > span { flex:1 1 100%; max-width:100%; }
-    .ad-banners img { max-height:none; }
+    .ad-banners > a, .ad-banners > span { flex:0 1 240px; max-width:240px; }
   }
 </style>
 <section id="ad-banner-section" class="section" style="display:none;padding:20px 0;background:#fff;border-top:1px solid var(--border);">
   <div class="container">
-    <p style="font-size:.7rem;color:var(--text-light);text-align:center;margin:0 0 10px;letter-spacing:.08em;">広告</p>
     <div class="ad-banners" id="ad-banners"></div>
   </div>
 </section>
