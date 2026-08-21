@@ -79,14 +79,15 @@
     <div style="background:#fff;border-radius:12px;padding:24px;max-width:420px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.3);position:relative;">
       <button onclick="closePwModal()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:1.1rem;cursor:pointer;color:#94A3B8;">✕</button>
       <h3 style="font-size:1rem;font-weight:700;margin:0 0 6px;">🔑 パスワードの変更</h3>
-      <p style="font-size:.8rem;color:#64748b;margin:0 0 12px;">主サイトのパスワードを変更します。まず<b>変更するパスワード</b>を選び、その<b>現在の値</b>と新しい値を入力してください。</p>
+      <p style="font-size:.8rem;color:#64748b;margin:0 0 12px;">主サイトのパスワードを変更します。まず<b>変更するパスワード</b>を選び、その<b>現在の値</b>と新しい値を入力してください。<br><span style="color:#9F1239;">※「担当者用（競技予定）」を初めて設定するときは、現在のパスワードは空欄のままでOKです。</span></p>
       <div style="margin:0 0 14px;padding:10px 12px;background:#f4f6fa;border-radius:8px;">
         <div style="font-size:.8rem;font-weight:700;margin-bottom:6px;">変更するパスワード</div>
         <label style="display:inline-flex;align-items:center;gap:5px;font-size:.85rem;margin-right:16px;cursor:pointer;"><input type="radio" name="cpw-role" value="admin"> 役員用</label>
-        <label style="display:inline-flex;align-items:center;gap:5px;font-size:.85rem;cursor:pointer;"><input type="radio" name="cpw-role" value="build" checked> サイト構築ページ用</label>
+        <label style="display:inline-flex;align-items:center;gap:5px;font-size:.85rem;margin-right:16px;cursor:pointer;"><input type="radio" name="cpw-role" value="build" checked> サイト構築ページ用</label>
+        <label style="display:inline-flex;align-items:center;gap:5px;font-size:.85rem;cursor:pointer;"><input type="radio" name="cpw-role" value="schedule"> 担当者用（競技予定）</label>
       </div>
       <div style="display:grid;gap:12px;">
-        <div><label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;">現在のパスワード（上で選んだ方）</label>
+        <div><label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;">現在のパスワード（上で選んだ方／担当者用の初回は空欄可）</label>
           <input type="password" id="cpw-current" autocomplete="current-password" style="width:100%;padding:9px 12px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:.9rem;box-sizing:border-box;"></div>
         <div><label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;">新しいパスワード（8文字以上）</label>
           <input type="password" id="cpw-new" autocomplete="new-password" style="width:100%;padding:9px 12px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:.9rem;box-sizing:border-box;"></div>

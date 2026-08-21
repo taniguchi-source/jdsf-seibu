@@ -105,17 +105,12 @@
       <div id="save-msg" class="msg"></div>
     </div>
 
-    <!-- 役員用：担当者パスワード設定 -->
+    <!-- 役員向け案内：担当者パスワードはサイト構築ページで設定 -->
     <div id="admin-pw" class="card hidden">
       <h3 style="font-size:.95rem;margin:0 0 6px;color:var(--text-dark);"><i class="fa-solid fa-key"></i> 担当者共通パスワードの設定</h3>
-      <p style="font-size:.8rem;color:var(--text-light);margin:0 0 10px;line-height:1.6;">
-        府県連盟の担当者に配布する共通パスワードを設定します（8文字以上）。設定・変更すると、これまでのパスワードは使えなくなります。
+      <p style="font-size:.82rem;color:var(--text-light);margin:0;line-height:1.7;">
+        担当者に配布する共通パスワードは、<strong>サイト構築ページ →「🔑 パスワード変更」→「担当者用（競技予定）」</strong>で設定・変更します（初回は現在のパスワード欄は空欄でOK）。
       </p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-        <input type="password" id="sched-pw" class="se-in" style="max-width:280px;" placeholder="新しい担当者パスワード" autocomplete="new-password">
-        <button class="btn btn-secondary" onclick="savePw()" style="font-size:.82rem;">設定する</button>
-      </div>
-      <div id="pw-msg" class="msg"></div>
     </div>
   </div>
 </div>
@@ -326,18 +321,6 @@ function saveAll(){
     .catch(function(){ setMsg('save-msg','⚠ 通信エラーが発生しました',false); });
 }
 
-function savePw(){
-  var pw=document.getElementById('sched-pw').value;
-  if((pw||'').length<8){ setMsg('pw-msg','パスワードは8文字以上にしてください。',false); return; }
-  var fd=new FormData(); fd.append('password',pw);
-  fetch('api/save_schedule_password.php',{method:'POST',body:fd})
-    .then(function(r){ return r.json().then(function(j){return {status:r.status,j:j};}); })
-    .then(function(res){
-      if(res.j&&res.j.ok){ document.getElementById('sched-pw').value=''; setMsg('pw-msg','✅ 担当者パスワードを設定しました。',true); }
-      else { setMsg('pw-msg','⚠ '+((res.j&&res.j.error)||'設定に失敗しました'),false); }
-    })
-    .catch(function(){ setMsg('pw-msg','⚠ 通信エラーが発生しました',false); });
-}
 </script>
 </body>
 </html>
