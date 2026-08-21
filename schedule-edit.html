@@ -223,7 +223,7 @@ function loadData(){
     window.__ROWS = Array.isArray(d.rows) ? d.rows.map(function(r){ return {
       id:String(r.id||''), month:parseInt(r.month,10)||'', day:parseInt(r.day,10)||'',
       pref:String(r.pref||''), event:String(r.event||''), venue:String(r.venue||''),
-      remark:String(r.remark||''), updated_at:String(r.updated_at||'')
+      remark:String(r.remark||''), ranking:!!r.ranking, updated_at:String(r.updated_at||'')
     }; }) : [];
     document.getElementById('edit-title').textContent = window.__TITLE;
     if(window.__ROLE==='admin'){ document.getElementById('meta-year').value=window.__YEAR; document.getElementById('meta-title').value=window.__TITLE; }
@@ -246,11 +246,11 @@ function sortRows(){
 function render(){
   sortRows();
   var admin=(window.__ROLE==='admin'), y=window.__YEAR, rows=window.__ROWS;
-  var cols=6;
+  var cols=7;
   var h='<div class="se-scroll"><table class="se"><thead><tr>';
   h+='<th style="width:'+(admin?116:86)+'px;">操作</th>';
   h+='<th style="width:118px;">開催日</th>';
-  h+='<th style="width:92px;">府県</th><th>大会名</th><th style="width:22%;">会場</th><th style="width:20%;">備考</th></tr></thead><tbody>';
+  h+='<th style="width:92px;">府県</th><th style="width:32px;font-size:.58rem;line-height:1.1;text-align:center;padding:3px 1px;">ランキング</th><th>大会名</th><th style="width:22%;">会場</th><th style="width:20%;">備考</th></tr></thead><tbody>';
 
   if(!rows.length){ h+='<tr><td colspan="'+cols+'" style="text-align:center;color:var(--text-light);padding:24px;">'+(admin?'行がありません。＋（開催日をコピー）や↑（前日の土曜）、下の「新しい開催日を追加」で作成できます。':'まだ日程が登録されていません。西部ブロックの設定をお待ちください。')+'</td></tr>'; }
 
@@ -265,6 +265,7 @@ function render(){
       + '</td>';
     h+='<td class="se-date se-locked '+b.cls+'">'+(b.html||'—')+'</td>';
     h+='<td><input type="text" class="se-in" maxlength="20" value="'+esc(r.pref)+'" oninput="upd('+i+',\'pref\',this.value);fitInput(this)"></td>'
+      + '<td style="text-align:center;"><input type="checkbox"'+(r.ranking?' checked':'')+' onchange="if(window.__ROWS['+i+'])window.__ROWS['+i+'].ranking=this.checked" style="width:16px;height:16px;cursor:pointer;" title="ランキング対象"></td>'
       + '<td><input type="text" class="se-in" maxlength="120" value="'+esc(r.event)+'" oninput="upd('+i+',\'event\',this.value);fitInput(this)"></td>'
       + '<td><input type="text" class="se-in" maxlength="120" value="'+esc(r.venue)+'" oninput="upd('+i+',\'venue\',this.value);fitInput(this)"></td>'
       + '<td><input type="text" class="se-in" maxlength="200" value="'+esc(r.remark)+'" oninput="upd('+i+',\'remark\',this.value);fitInput(this)"></td>';
@@ -276,13 +277,13 @@ function render(){
 }
 
 function upd(i,field,val){ if(window.__ROWS[i]) window.__ROWS[i][field]= (field==='month'||field==='day') ? (parseInt(val,10)||'') : val; }
-function copyRow(i){ var r=window.__ROWS[i]; if(!r) return; window.__ROWS.splice(i+1,0,{id:'',month:r.month,day:r.day,pref:'',event:'',venue:'',remark:'',updated_at:''}); render(); }
+function copyRow(i){ var r=window.__ROWS[i]; if(!r) return; window.__ROWS.splice(i+1,0,{id:'',month:r.month,day:r.day,pref:'',event:'',venue:'',remark:'',ranking:false,updated_at:''}); render(); }
 /* 日曜行の前日（土曜）を上に挿入 */
 function satRow(i){
   var r=window.__ROWS[i]; if(!r) return;
   var mm=parseInt(r.month,10)||0, dd=parseInt(r.day,10)||0; if(!isSunday(window.__YEAR,mm,dd)) return;
   var pv=new Date(window.__YEAR, mm-1, dd-1);
-  window.__ROWS.splice(i,0,{id:'',month:pv.getMonth()+1,day:pv.getDate(),pref:'',event:'',venue:'',remark:'',updated_at:''});
+  window.__ROWS.splice(i,0,{id:'',month:pv.getMonth()+1,day:pv.getDate(),pref:'',event:'',venue:'',remark:'',ranking:false,updated_at:''});
   render();
 }
 function delRow(i){
@@ -298,14 +299,14 @@ function addRow(){
   if(s===null) return;
   var mm=String(s).match(/(\d{1,2})\s*[\/／.\-月]\s*(\d{1,2})/);
   if(!mm){ alert('「月/日」の形式で入力してください（例：6/14）'); return; }
-  window.__ROWS.push({id:'',month:parseInt(mm[1],10),day:parseInt(mm[2],10),pref:'',event:'',venue:'',remark:'',updated_at:''});
+  window.__ROWS.push({id:'',month:parseInt(mm[1],10),day:parseInt(mm[2],10),pref:'',event:'',venue:'',remark:'',ranking:false,updated_at:''});
   render();
 }
 
 /* ===== 保存 ===== */
 function saveAll(){
   var fd=new FormData();
-  var payload=window.__ROWS.map(function(r){ return {id:r.id, month:r.month, day:r.day, pref:r.pref, event:r.event, venue:r.venue, remark:r.remark}; });
+  var payload=window.__ROWS.map(function(r){ return {id:r.id, month:r.month, day:r.day, pref:r.pref, event:r.event, venue:r.venue, remark:r.remark, ranking:r.ranking}; });
   fd.append('rows', JSON.stringify(payload));
   if(window.__ROLE==='admin'){
     fd.append('year', document.getElementById('meta-year').value||window.__YEAR);

@@ -65,16 +65,18 @@ if ($role === 'admin') {
         $event  = sch_str($r['event']  ?? '', 120);
         $venue  = sch_str($r['venue']  ?? '', 120);
         $remark = sch_str($r['remark'] ?? '', 200);
+        $ranking = !empty($r['ranking']);
 
         $p = $prev[$id] ?? null;
         $changed = !$p
             || ($p['pref'] ?? '')   !== $pref
             || ($p['event'] ?? '')  !== $event
             || ($p['venue'] ?? '')  !== $venue
-            || ($p['remark'] ?? '') !== $remark;
+            || ($p['remark'] ?? '') !== $remark
+            || (!empty($p['ranking'])) !== $ranking;
         $updated_at = $changed ? $now : (string)($p['updated_at'] ?? '');
 
-        $rows[] = compact('id', 'month', 'day', 'pref', 'event', 'venue', 'remark') + ['updated_at' => $updated_at];
+        $rows[] = compact('id', 'month', 'day', 'pref', 'event', 'venue', 'remark', 'ranking') + ['updated_at' => $updated_at];
     }
     sch_sort($rows);
     $out = ['year' => $year, 'title' => $title, 'rows' => $rows, 'updated' => date('c')];
@@ -104,13 +106,15 @@ if ($role === 'admin') {
         $event  = sch_str($r['event']  ?? '', 120);
         $venue  = sch_str($r['venue']  ?? '', 120);
         $remark = sch_str($r['remark'] ?? '', 200);
+        $ranking = !empty($r['ranking']);
 
         if ($id !== '' && isset($existing[$id])) {
             $base = $existing[$id];
             if (!array_key_exists('remark', $base)) $base['remark'] = '';
             $changed = ($base['pref'] ?? '') !== $pref || ($base['event'] ?? '') !== $event
-                    || ($base['venue'] ?? '') !== $venue || ($base['remark'] ?? '') !== $remark;
-            $base['pref'] = $pref; $base['event'] = $event; $base['venue'] = $venue; $base['remark'] = $remark;
+                    || ($base['venue'] ?? '') !== $venue || ($base['remark'] ?? '') !== $remark
+                    || (!empty($base['ranking'])) !== $ranking;
+            $base['pref'] = $pref; $base['event'] = $event; $base['venue'] = $venue; $base['remark'] = $remark; $base['ranking'] = $ranking;
             if ($changed) $base['updated_at'] = $now;
             $rows[] = $base;
             $placed[$id] = true;
@@ -118,9 +122,9 @@ if ($role === 'admin') {
             $month = (int)($r['month'] ?? 0); $day = (int)($r['day'] ?? 0);
             if (empty($allowed[$month . '-' . $day])) continue;   // 任意日付の新規作成は不可
             $nid = 'd' . sprintf('%02d%02d', $month, $day) . '_' . substr(md5(uniqid('', true)), 0, 6);
-            $has = ($pref !== '' || $event !== '' || $venue !== '' || $remark !== '');
+            $has = ($pref !== '' || $event !== '' || $venue !== '' || $remark !== '' || $ranking);
             $rows[] = ['id' => $nid, 'month' => $month, 'day' => $day,
-                       'pref' => $pref, 'event' => $event, 'venue' => $venue, 'remark' => $remark,
+                       'pref' => $pref, 'event' => $event, 'venue' => $venue, 'remark' => $remark, 'ranking' => $ranking,
                        'updated_at' => $has ? $now : ''];
         }
     }
