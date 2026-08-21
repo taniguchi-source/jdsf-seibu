@@ -206,8 +206,8 @@ function showApp(){
   document.getElementById('rolechip').className='rolechip '+(admin?'admin':'staff');
   document.getElementById('rolechip').textContent= admin?'役員（全編集）':'担当者';
   document.getElementById('role-note').innerHTML = admin
-    ? '府県・大会名・会場・備考の記入と担当者パスワードの設定ができます。行は日付順に自動整列。<strong>＋</strong>＝同じ開催日の行を追加、日曜行の<strong>土</strong>＝前日（土曜）の行を追加。役員のみ <strong>🗑</strong>＝行の削除、下の「新しい開催日を追加」で任意の日付を追加できます。'
-    : '<strong>府県・大会名・会場・備考</strong>を記入・修正できます。<strong>＋</strong>＝同じ開催日の行を追加、日曜行の<strong>土</strong>＝前日（土曜）の行を追加できます。行の削除・任意日付の追加は西部ブロック（役員）が行います。';
+    ? '府県・大会名・会場・備考の記入と担当者パスワードの設定ができます。行は日付順に自動整列。<strong>＋</strong>＝同じ開催日の行を追加、日曜行の<strong>↑</strong>＝前日（土曜）の行を追加。役員のみ <strong>🗑</strong>＝行の削除、下の「新しい開催日を追加」で任意の日付を追加できます。'
+    : '<strong>府県・大会名・会場・備考</strong>を記入・修正できます。<strong>＋</strong>＝同じ開催日の行を追加、日曜行の<strong>↑</strong>＝前日（土曜）の行を追加できます。行の削除・任意日付の追加は西部ブロック（役員）が行います。';
   document.getElementById('admin-meta').classList.toggle('hidden', !admin);
   document.getElementById('admin-add').classList.toggle('hidden', !admin);
   document.getElementById('admin-pw').classList.toggle('hidden', !admin);
@@ -252,7 +252,7 @@ function render(){
   h+='<th style="width:118px;">開催日</th>';
   h+='<th style="width:92px;">府県</th><th>大会名</th><th style="width:22%;">会場</th><th style="width:20%;">備考</th></tr></thead><tbody>';
 
-  if(!rows.length){ h+='<tr><td colspan="'+cols+'" style="text-align:center;color:var(--text-light);padding:24px;">'+(admin?'行がありません。＋（開催日をコピー）や土（前日の土曜）、下の「新しい開催日を追加」で作成できます。':'まだ日程が登録されていません。西部ブロックの設定をお待ちください。')+'</td></tr>'; }
+  if(!rows.length){ h+='<tr><td colspan="'+cols+'" style="text-align:center;color:var(--text-light);padding:24px;">'+(admin?'行がありません。＋（開催日をコピー）や↑（前日の土曜）、下の「新しい開催日を追加」で作成できます。':'まだ日程が登録されていません。西部ブロックの設定をお待ちください。')+'</td></tr>'; }
 
   rows.forEach(function(r,i){
     var mm=parseInt(r.month,10)||0, dd=parseInt(r.day,10)||0;
@@ -260,7 +260,7 @@ function render(){
     h+='<tr>';
     h+='<td class="row-tools" style="white-space:nowrap;">'
       + '<button class="add" onclick="copyRow('+i+')" title="この開催日をコピーして下に追加">＋</button>'
-      + (sun ? ' <button class="sat" onclick="satRow('+i+')" title="前日（土曜）の行を上に追加">土</button>' : '')
+      + (sun ? ' <button class="sat" onclick="satRow('+i+')" title="前日（土曜）の行を上に追加">↑</button>' : '')
       + (admin ? ' <button class="del" onclick="delRow('+i+')" title="この行を削除（役員のみ）">🗑</button>' : '')
       + '</td>';
     h+='<td class="se-date se-locked '+b.cls+'">'+(b.html||'—')+'</td>';
