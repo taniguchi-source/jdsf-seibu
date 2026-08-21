@@ -23,8 +23,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     .sched-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--border); border-radius:8px; }
-    table.sched { width:100%; border-collapse:collapse; font-size:0.9rem; min-width:640px; }
-    .sched th, .sched td { border-bottom:1px solid var(--border); padding:9px 12px; text-align:left; vertical-align:middle; }
+    table.sched { width:100%; border-collapse:collapse; font-size:0.9rem; min-width:760px; }
+    .sched th, .sched td { border-bottom:1px solid var(--border); padding:4px 10px; text-align:left; vertical-align:middle; line-height:1.35; }
     .sched thead th { background:var(--primary); color:#fff; font-weight:700; white-space:nowrap; font-size:0.82rem; letter-spacing:.03em; }
     .sched tbody tr:hover { background:var(--bg-blue); }
     .sched td.date { white-space:nowrap; font-weight:700; color:var(--text-dark); }
@@ -33,6 +33,7 @@
     .sched td.pref { font-weight:700; white-space:nowrap; color:var(--primary); }
     .sched td.event { font-weight:600; color:var(--text-dark); }
     .sched td.venue { color:var(--text-dark); font-size:0.85rem; }
+    .sched td.remark { color:var(--text-light); font-size:0.82rem; }
     .sched tr.empty td.event, .sched tr.empty td.pref, .sched tr.empty td.venue { color:#9aa4b2; font-weight:500; }
     .sched tr.empty { background:#fafbfc; }
     .month-head td { background:var(--bg-blue); color:var(--primary); font-weight:800; font-size:0.9rem; letter-spacing:.02em; }
@@ -194,14 +195,14 @@
       });
 
       var html = '<div class="sched-wrap"><table class="sched"><thead><tr>'
-        + '<th style="width:130px;">開催日</th><th style="width:90px;">府県</th><th>大会名</th><th style="width:26%;">会場</th>'
+        + '<th style="width:120px;">開催日</th><th style="width:80px;">府県</th><th>大会名</th><th style="width:22%;">会場</th><th style="width:16%;">備考</th>'
         + '</tr></thead><tbody>';
 
       var lastMonth = null;
       rows.forEach(function (r) {
         var m = parseInt(r.month, 10) || 0, day = parseInt(r.day, 10) || 0;
         if (m && m !== lastMonth) {
-          html += '<tr class="month-head"><td colspan="4">' + year + '年 ' + m + '月</td></tr>';
+          html += '<tr class="month-head"><td colspan="5">' + year + '年 ' + m + '月</td></tr>';
           lastMonth = m;
         }
         var dateCell = '', cls = '';
@@ -219,6 +220,7 @@
           + '<td class="pref">' + (esc(r.pref) || '—') + '</td>'
           + '<td class="event">' + (esc(r.event) || '（募集中）') + '</td>'
           + '<td class="venue">' + (esc(r.venue) || '—') + '</td>'
+          + '<td class="remark">' + esc(r.remark) + '</td>'
           + '</tr>';
       });
       html += '</tbody></table></div>';

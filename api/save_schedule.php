@@ -3,9 +3,12 @@
  * 競技予定表を保存 → data/schedule.json
  *
  * 認証: _auth.php の require_schedule_auth()（戻り値 'admin' | 'staff'）
- *   - admin / build（役員）: 全編集（年・タイトル・行の追加削除・月日・府県/大会名/会場）
- *   - schedule（担当者）    : 既存行の 府県／大会名／会場（E/F/G）のみ。
- *                             月日・行構成はサーバーの現状を維持（ロックはサーバー側でも強制）。
+ *   - admin / build（役員）: 全編集（年・タイトル・行の追加削除・月日・府県/大会名/会場/備考）
+ *   - schedule（担当者）    : 既存行の 府県／大会名／会場／備考（E/F/G/H）のみ。
+ *                             ・日付（月日）は変更不可（サーバー側で現状を維持）
+ *                             ・既存の開催日（行）は削除不可
+ *                             ・「同じ開催日の追加行」は、既存の日付に一致する場合のみ許可
+ *   いずれも保存時に日付順へ整列（同一日は入力順を維持）。
  *
  * POST: rows（JSON配列）／admin時は year, title も
  */
@@ -14,6 +17,22 @@ $role = require_schedule_auth();   // 'admin' or 'staff'
 
 function sch_str($v, $max) { return mb_substr(trim((string)$v), 0, $max); }
 function sch_int($v, $min, $max) { $n = (int)$v; if ($n < $min) $n = $min; if ($n > $max) $n = $max; return $n; }
+
+/* 日付順に安定ソート（同一日は元の並び順を維持） */
+function sch_sort(&$rows) {
+    $i = 0;
+    foreach ($rows as &$r) { $r['__i'] = $i++; }
+    unset($r);
+    usort($rows, function ($a, $b) {
+        $am = (int)$a['month'] ?: 99; $bm = (int)$b['month'] ?: 99;
+        if ($am !== $bm) return $am - $bm;
+        $ad = (int)$a['day'] ?: 99; $bd = (int)$b['day'] ?: 99;
+        if ($ad !== $bd) return $ad - $bd;
+        return $a['__i'] - $b['__i'];
+    });
+    foreach ($rows as &$r) { unset($r['__i']); }
+    unset($r);
+}
 
 $file = dirname(__DIR__) . '/data/schedule.json';
 $raw  = @file_get_contents($file);
@@ -37,53 +56,83 @@ if ($role === 'admin') {
     $rows = [];
     foreach ($payload as $r) {
         if (!is_array($r)) continue;
-        if (count($rows) >= 300) break;
+        if (count($rows) >= 400) break;
         $id = preg_replace('/[^a-z0-9_]/i', '', (string)($r['id'] ?? ''));
         if ($id === '') $id = 'r' . substr(md5(uniqid('', true)), 0, 10);
-        $month = sch_int($r['month'] ?? 0, 0, 12);
-        $day   = sch_int($r['day']   ?? 0, 0, 31);
-        $pref  = sch_str($r['pref']  ?? '', 20);
-        $event = sch_str($r['event'] ?? '', 120);
-        $venue = sch_str($r['venue'] ?? '', 120);
+        $month  = sch_int($r['month']  ?? 0, 0, 12);
+        $day    = sch_int($r['day']    ?? 0, 0, 31);
+        $pref   = sch_str($r['pref']   ?? '', 20);
+        $event  = sch_str($r['event']  ?? '', 120);
+        $venue  = sch_str($r['venue']  ?? '', 120);
+        $remark = sch_str($r['remark'] ?? '', 200);
 
         $p = $prev[$id] ?? null;
         $changed = !$p
-            || ($p['pref'] ?? '')  !== $pref
-            || ($p['event'] ?? '') !== $event
-            || ($p['venue'] ?? '') !== $venue;
+            || ($p['pref'] ?? '')   !== $pref
+            || ($p['event'] ?? '')  !== $event
+            || ($p['venue'] ?? '')  !== $venue
+            || ($p['remark'] ?? '') !== $remark;
         $updated_at = $changed ? $now : (string)($p['updated_at'] ?? '');
 
-        $rows[] = [
-            'id' => $id, 'month' => $month, 'day' => $day,
-            'pref' => $pref, 'event' => $event, 'venue' => $venue,
-            'updated_at' => $updated_at,
-        ];
+        $rows[] = compact('id', 'month', 'day', 'pref', 'event', 'venue', 'remark') + ['updated_at' => $updated_at];
     }
+    sch_sort($rows);
     $out = ['year' => $year, 'title' => $title, 'rows' => $rows, 'updated' => date('c')];
+
 } else {
-    /* 担当者：既存行の E/F/G のみ反映。月日・行構成は現状維持 */
-    $edits = [];
+    /* 担当者：E/F/G/H のみ。日付は現状維持・既存行は削除不可・同一日の追加のみ許可 */
+    $allowed = [];   // "m-d" => true（既存の開催日）
+    foreach ($cur_rows as $r) { $allowed[((int)($r['month'] ?? 0)) . '-' . ((int)($r['day'] ?? 0))] = true; }
+
+    $existing = [];  // id => row
+    foreach ($cur_rows as $r) { if (isset($r['id'])) $existing[(string)$r['id']] = $r; }
+
+    $rows = [];
+    $placed = [];
     foreach ($payload as $r) {
         if (!is_array($r)) continue;
+        if (count($rows) >= 400) break;
         $id = (string)($r['id'] ?? '');
-        if ($id !== '') $edits[$id] = $r;
+        $pref   = sch_str($r['pref']   ?? '', 20);
+        $event  = sch_str($r['event']  ?? '', 120);
+        $venue  = sch_str($r['venue']  ?? '', 120);
+        $remark = sch_str($r['remark'] ?? '', 200);
+
+        if ($id !== '' && isset($existing[$id])) {
+            /* 既存行：日付はロック、E/F/G/H のみ更新 */
+            $base = $existing[$id];
+            $changed = ($base['pref'] ?? '')   !== $pref
+                    || ($base['event'] ?? '')  !== $event
+                    || ($base['venue'] ?? '')  !== $venue
+                    || ($base['remark'] ?? '') !== $remark;
+            $base['pref'] = $pref; $base['event'] = $event; $base['venue'] = $venue; $base['remark'] = $remark;
+            if (!array_key_exists('remark', $base)) $base['remark'] = $remark;
+            if ($changed) $base['updated_at'] = $now;
+            $rows[] = $base;
+            $placed[$id] = true;
+        } else {
+            /* 追加行：既存の開催日に一致する場合のみ許可（日付の新規作成は不可） */
+            $month = (int)($r['month'] ?? 0);
+            $day   = (int)($r['day'] ?? 0);
+            if (empty($allowed[$month . '-' . $day])) continue;
+            $nid = 'd' . sprintf('%02d%02d', $month, $day) . '_' . substr(md5(uniqid('', true)), 0, 6);
+            $has = ($pref !== '' || $event !== '' || $venue !== '' || $remark !== '');
+            $rows[] = [
+                'id' => $nid, 'month' => $month, 'day' => $day,
+                'pref' => $pref, 'event' => $event, 'venue' => $venue, 'remark' => $remark,
+                'updated_at' => $has ? $now : '',
+            ];
+        }
     }
-    $rows = [];
+    /* 送信に含まれなかった既存行は削除させない（安全側で温存） */
     foreach ($cur_rows as $r) {
         $id = (string)($r['id'] ?? '');
-        if (isset($edits[$id])) {
-            $e = $edits[$id];
-            $pref  = sch_str($e['pref']  ?? ($r['pref']  ?? ''), 20);
-            $event = sch_str($e['event'] ?? ($r['event'] ?? ''), 120);
-            $venue = sch_str($e['venue'] ?? ($r['venue'] ?? ''), 120);
-            $changed = ($r['pref'] ?? '') !== $pref
-                    || ($r['event'] ?? '') !== $event
-                    || ($r['venue'] ?? '') !== $venue;
-            $r['pref'] = $pref; $r['event'] = $event; $r['venue'] = $venue;
-            if ($changed) $r['updated_at'] = $now;
+        if ($id !== '' && empty($placed[$id])) {
+            if (!array_key_exists('remark', $r)) $r['remark'] = '';
+            $rows[] = $r;
         }
-        $rows[] = $r;
     }
+    sch_sort($rows);
     $out = $cur;
     $out['rows']    = $rows;
     $out['updated'] = date('c');

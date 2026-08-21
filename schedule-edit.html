@@ -23,20 +23,22 @@
     .se-in { width:100%; padding:6px 8px; border:1.5px solid var(--border); border-radius:5px; font-size:.85rem; box-sizing:border-box; font-family:inherit; }
     .se-num { width:56px; text-align:center; padding:6px 4px; border:1.5px solid var(--border); border-radius:5px; font-size:.85rem; box-sizing:border-box; }
     table.se { width:100%; border-collapse:collapse; font-size:.85rem; }
-    table.se th, table.se td { border-bottom:1px solid var(--border); padding:7px 8px; text-align:left; vertical-align:middle; }
+    table.se th, table.se td { border-bottom:1px solid var(--border); padding:3px 6px; text-align:left; vertical-align:middle; line-height:1.3; }
     table.se thead th { background:var(--primary); color:#fff; font-weight:700; font-size:.78rem; white-space:nowrap; }
     .se-date { white-space:nowrap; font-weight:700; color:var(--text-dark); }
     .se-date .wd { font-size:.78rem; font-weight:600; margin-left:2px; color:var(--text-light); }
     .se-date.sun .wd { color:#c0392b; } .se-date.sat .wd { color:#2563eb; }
     .se-locked { background:#f6f8fb; }
-    .row-tools button { border:1px solid var(--border); background:#fff; border-radius:5px; cursor:pointer; padding:3px 6px; font-size:.8rem; }
+    .row-tools button { border:1px solid var(--border); background:#fff; border-radius:5px; cursor:pointer; padding:2px 7px; font-size:.85rem; line-height:1.2; }
+    .row-tools .add { color:#1a7a3a; border-color:#bfe3c9; font-weight:800; }
     .row-tools .del { color:#b3261e; border-color:#f1c9c4; }
     .barbtns { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
     .rolechip { font-size:.72rem; font-weight:700; padding:3px 10px; border-radius:12px; }
     .rolechip.staff { background:#e8f0fe; color:#1a56db; }
     .rolechip.admin { background:#fef3c7; color:#92400e; }
     .se-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--border); border-radius:8px; }
-    table.se.staff { min-width:560px; } table.se.admin { min-width:760px; }
+    table.se.staff { min-width:660px; } table.se.admin { min-width:860px; }
+    .se-in.remark { }
   </style>
 </head>
 <body style="background:var(--bg-blue,#f2f6fc);">
@@ -192,8 +194,8 @@ function showApp(){
   document.getElementById('rolechip').className='rolechip '+(admin?'admin':'staff');
   document.getElementById('rolechip').textContent= admin?'役員（全編集）':'担当者';
   document.getElementById('role-note').innerHTML = admin
-    ? '日程（月・日）の追加・削除・編集、府県・大会名・会場の記入、担当者パスワードの設定ができます。'
-    : '<strong>府県・大会名・会場</strong>を記入・修正できます。日付は西部ブロックが設定しているため変更できません。';
+    ? '日程（月・日）の追加・削除・編集、府県・大会名・会場・備考の記入、担当者パスワードの設定ができます。行は日付順に自動整列されます。「＋」で同じ開催日の空行を下に追加できます。'
+    : '<strong>府県・大会名・会場・備考</strong>を記入・修正できます。日付は西部ブロックが設定しているため変更できません。同じ開催日に複数の大会がある場合は「＋」でその開催日の空行を下に追加できます。';
   document.getElementById('admin-meta').classList.toggle('hidden', !admin);
   document.getElementById('admin-add').classList.toggle('hidden', !admin);
   document.getElementById('admin-pw').classList.toggle('hidden', !admin);
@@ -208,7 +210,8 @@ function loadData(){
     window.__TITLE = d.title || (window.__YEAR+'年 競技予定');
     window.__ROWS = Array.isArray(d.rows) ? d.rows.map(function(r){ return {
       id:String(r.id||''), month:parseInt(r.month,10)||'', day:parseInt(r.day,10)||'',
-      pref:String(r.pref||''), event:String(r.event||''), venue:String(r.venue||''), updated_at:String(r.updated_at||'')
+      pref:String(r.pref||''), event:String(r.event||''), venue:String(r.venue||''),
+      remark:String(r.remark||''), updated_at:String(r.updated_at||'')
     }; }) : [];
     document.getElementById('edit-title').textContent = window.__TITLE;
     if(window.__ROLE==='admin'){ document.getElementById('meta-year').value=window.__YEAR; document.getElementById('meta-title').value=window.__TITLE; }
@@ -216,25 +219,41 @@ function loadData(){
   }).catch(function(){ setMsg('save-msg','データの読み込みに失敗しました。',false); });
 }
 
-function render(){
-  var admin=(window.__ROLE==='admin'), y=window.__YEAR;
+function sortRows(){
   var rows=window.__ROWS;
+  rows.forEach(function(r,i){ r.__i=i; });
+  rows.sort(function(a,b){
+    var am=parseInt(a.month,10)||99, bm=parseInt(b.month,10)||99;
+    if(am!==bm) return am-bm;
+    var ad=parseInt(a.day,10)||99, bd=parseInt(b.day,10)||99;
+    if(ad!==bd) return ad-bd;
+    return a.__i-b.__i;
+  });
+  rows.forEach(function(r){ delete r.__i; });
+}
+function render(){
+  sortRows();
+  var admin=(window.__ROLE==='admin'), y=window.__YEAR, rows=window.__ROWS;
+  var cols=admin?8:6;
   var h='<div class="se-scroll"><table class="se '+(admin?'admin':'staff')+'"><thead><tr>';
-  if(admin) h+='<th style="width:70px;">操作</th><th style="width:56px;">月</th><th style="width:56px;">日</th><th style="width:70px;">曜日</th>';
-  else h+='<th style="width:130px;">開催日</th>';
-  h+='<th style="width:90px;">府県</th><th>大会名</th><th style="width:24%;">会場</th></tr></thead><tbody>';
+  h+='<th style="width:78px;">操作</th>';
+  if(admin) h+='<th style="width:50px;">月</th><th style="width:50px;">日</th><th style="width:66px;">曜日</th>';
+  else h+='<th style="width:120px;">開催日</th>';
+  h+='<th style="width:84px;">府県</th><th>大会名</th><th style="width:20%;">会場</th><th style="width:18%;">備考</th></tr></thead><tbody>';
 
-  if(!rows.length){ h+='<tr><td colspan="'+(admin?7:4)+'" style="text-align:center;color:var(--text-light);padding:24px;">'+(admin?'「日程（行）を追加」から作成してください。':'まだ日程が登録されていません。西部ブロックの設定をお待ちください。')+'</td></tr>'; }
+  if(!rows.length){ h+='<tr><td colspan="'+cols+'" style="text-align:center;color:var(--text-light);padding:24px;">'+(admin?'「日程（行）を追加」から作成してください。':'まだ日程が登録されていません。西部ブロックの設定をお待ちください。')+'</td></tr>'; }
 
   rows.forEach(function(r,i){
     var b=dateBadge(y, parseInt(r.month,10)||0, parseInt(r.day,10)||0);
+    var isNew=!String(r.id||'');
+    var canDel=admin||isNew;
     h+='<tr>';
+    h+='<td class="row-tools" style="white-space:nowrap;">'
+      + '<button class="add" onclick="copyRow('+i+')" title="この開催日をコピーして下に追加">＋</button>'
+      + (canDel ? ' <button class="del" onclick="delRow('+i+')" title="削除">🗑</button>' : '')
+      + '</td>';
     if(admin){
-      h+='<td class="row-tools" style="white-space:nowrap;">'
-        + '<button onclick="moveRow('+i+',-1)" title="上へ"'+(i===0?' disabled':'')+'>↑</button> '
-        + '<button onclick="moveRow('+i+',1)" title="下へ"'+(i===rows.length-1?' disabled':'')+'>↓</button> '
-        + '<button class="del" onclick="delRow('+i+')" title="削除">🗑</button></td>'
-        + '<td><input type="number" class="se-num" min="1" max="12" value="'+(r.month||'')+'" oninput="upd('+i+',\'month\',this.value)" onchange="render()"></td>'
+      h+='<td><input type="number" class="se-num" min="1" max="12" value="'+(r.month||'')+'" oninput="upd('+i+',\'month\',this.value)" onchange="render()"></td>'
         + '<td><input type="number" class="se-num" min="1" max="31" value="'+(r.day||'')+'" oninput="upd('+i+',\'day\',this.value)" onchange="render()"></td>'
         + '<td class="se-date '+b.cls+'">'+(b.html||'—')+'</td>';
     } else {
@@ -242,7 +261,8 @@ function render(){
     }
     h+='<td><input type="text" class="se-in" maxlength="20" value="'+esc(r.pref)+'" placeholder="府県" oninput="upd('+i+',\'pref\',this.value)"></td>'
       + '<td><input type="text" class="se-in" maxlength="120" value="'+esc(r.event)+'" placeholder="大会名" oninput="upd('+i+',\'event\',this.value)"></td>'
-      + '<td><input type="text" class="se-in" maxlength="120" value="'+esc(r.venue)+'" placeholder="会場" oninput="upd('+i+',\'venue\',this.value)"></td>';
+      + '<td><input type="text" class="se-in" maxlength="120" value="'+esc(r.venue)+'" placeholder="会場" oninput="upd('+i+',\'venue\',this.value)"></td>'
+      + '<td><input type="text" class="se-in" maxlength="200" value="'+esc(r.remark)+'" placeholder="備考" oninput="upd('+i+',\'remark\',this.value)"></td>';
     h+='</tr>';
   });
   h+='</tbody></table></div>';
@@ -250,14 +270,14 @@ function render(){
 }
 
 function upd(i,field,val){ if(window.__ROWS[i]) window.__ROWS[i][field]= (field==='month'||field==='day') ? (parseInt(val,10)||'') : val; }
-function moveRow(i,dir){ var j=i+dir; if(j<0||j>=window.__ROWS.length) return; var t=window.__ROWS[i]; window.__ROWS[i]=window.__ROWS[j]; window.__ROWS[j]=t; render(); }
-function delRow(i){ var r=window.__ROWS[i]; var label=(r.event||r.pref||((r.month||'?')+'/'+(r.day||'?'))); if(!confirm('この行を削除します：'+label+'\nよろしいですか？（保存するまで反映されません）')) return; window.__ROWS.splice(i,1); render(); }
-function addRow(){ window.__ROWS.push({id:'',month:'',day:'',pref:'',event:'',venue:'',updated_at:''}); render(); }
+function copyRow(i){ var r=window.__ROWS[i]; if(!r) return; window.__ROWS.splice(i+1,0,{id:'',month:r.month,day:r.day,pref:'',event:'',venue:'',remark:'',updated_at:''}); render(); }
+function delRow(i){ var r=window.__ROWS[i]; if(!r) return; if(window.__ROLE!=='admin' && String(r.id||'')){ return; } var label=(r.event||r.pref||((r.month||'?')+'/'+(r.day||'?'))); if(!confirm('この行を削除します：'+label+'\nよろしいですか？（保存するまで反映されません）')) return; window.__ROWS.splice(i,1); render(); }
+function addRow(){ window.__ROWS.push({id:'',month:'',day:'',pref:'',event:'',venue:'',remark:'',updated_at:''}); render(); }
 
 /* ===== 保存 ===== */
 function saveAll(){
   var fd=new FormData();
-  var payload=window.__ROWS.map(function(r){ return {id:r.id, month:r.month, day:r.day, pref:r.pref, event:r.event, venue:r.venue}; });
+  var payload=window.__ROWS.map(function(r){ return {id:r.id, month:r.month, day:r.day, pref:r.pref, event:r.event, venue:r.venue, remark:r.remark}; });
   fd.append('rows', JSON.stringify(payload));
   if(window.__ROLE==='admin'){
     fd.append('year', document.getElementById('meta-year').value||window.__YEAR);
