@@ -32,12 +32,14 @@
     .row-tools button { border:1px solid var(--border); background:#fff; border-radius:5px; cursor:pointer; padding:2px 7px; font-size:.85rem; line-height:1.2; }
     .row-tools .add { color:#1a7a3a; border-color:#bfe3c9; font-weight:800; }
     .row-tools .sat { color:#2563eb; border-color:#bcd3f5; font-weight:800; }
+    .row-tools .del { color:#b3261e; border-color:#f1c9c4; }
     .barbtns { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
     .rolechip { font-size:.72rem; font-weight:700; padding:3px 10px; border-radius:12px; }
     .rolechip.staff { background:#e8f0fe; color:#1a56db; }
     .rolechip.admin { background:#fef3c7; color:#92400e; }
     .se-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--border); border-radius:8px; }
-    table.se { min-width:720px; }
+    table.se { min-width:720px; table-layout:fixed; }
+    table.se td .se-in { max-width:100%; }
   </style>
 </head>
 <body style="background:var(--bg-blue,#f2f6fc);">
@@ -95,7 +97,7 @@
     <div class="card">
       <div id="table-area"></div>
       <div id="admin-add" class="hidden" style="margin-top:12px;">
-        <button class="btn btn-secondary" onclick="addRow()" style="font-size:.82rem;"><i class="fa-solid fa-plus"></i> 日程（行）を追加</button>
+        <button class="btn btn-secondary" onclick="addRow()" style="font-size:.82rem;"><i class="fa-solid fa-plus"></i> 新しい開催日を追加（役員のみ）</button>
       </div>
       <div class="barbtns" style="justify-content:flex-end;border-top:1px solid var(--border);margin-top:14px;padding-top:14px;">
         <button class="btn" onclick="saveAll()"><i class="fa-solid fa-floppy-disk"></i> 保存する</button>
@@ -169,7 +171,7 @@ function fitInput(el){
   var fs=13, guard=0; el.style.fontSize=fs+'px';
   while(el.scrollWidth>el.clientWidth+1 && fs>11 && guard<6){ fs--; el.style.fontSize=fs+'px'; guard++; }
 }
-function fitAll(){ var els=document.querySelectorAll('#table-area .se-in'); for(var i=0;i<els.length;i++) fitInput(els[i]); }
+function fitAll(){ requestAnimationFrame(function(){ var els=document.querySelectorAll('#table-area .se-in'); for(var i=0;i<els.length;i++) fitInput(els[i]); }); }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function setMsg(id,text,ok){ var el=document.getElementById(id); if(!el) return; el.className='msg '+(ok?'ok':'ng'); el.textContent=text; el.style.display='block'; if(ok) setTimeout(function(){el.style.display='none';},3500); }
 
@@ -209,8 +211,8 @@ function showApp(){
   document.getElementById('rolechip').className='rolechip '+(admin?'admin':'staff');
   document.getElementById('rolechip').textContent= admin?'役員（全編集）':'担当者';
   document.getElementById('role-note').innerHTML = admin
-    ? '府県・大会名・会場・備考の記入と、担当者パスワードの設定ができます。行は日付順に自動整列。「日程（行）を追加」で新しい開催日を追加。<strong>＋</strong>＝同じ開催日の空行を追加、日曜行の<strong>土</strong>＝前日（土曜）の空行を追加。'
-    : '<strong>府県・大会名・会場・備考</strong>を記入・修正できます。日付は西部ブロックが設定しているため変更できません。<strong>＋</strong>＝同じ開催日の空行を追加、日曜行の<strong>土</strong>＝前日（土曜）の空行を追加。';
+    ? '府県・大会名・会場・備考の記入と担当者パスワードの設定ができます。行は日付順に自動整列。<strong>＋</strong>＝同じ開催日の行を追加、日曜行の<strong>土</strong>＝前日（土曜）の行を追加。役員のみ <strong>🗑</strong>＝行の削除、下の「新しい開催日を追加」で任意の日付を追加できます。'
+    : '<strong>府県・大会名・会場・備考</strong>を記入・修正できます。<strong>＋</strong>＝同じ開催日の行を追加、日曜行の<strong>土</strong>＝前日（土曜）の行を追加できます。行の削除・任意日付の追加は西部ブロック（役員）が行います。';
   document.getElementById('admin-meta').classList.toggle('hidden', !admin);
   document.getElementById('admin-add').classList.toggle('hidden', !admin);
   document.getElementById('admin-pw').classList.toggle('hidden', !admin);
@@ -249,11 +251,13 @@ function sortRows(){
 function render(){
   sortRows();
   var admin=(window.__ROLE==='admin'), y=window.__YEAR, rows=window.__ROWS;
+  var cols=6;
   var h='<div class="se-scroll"><table class="se"><thead><tr>';
-  h+='<th style="width:84px;">操作</th><th style="width:118px;">開催日</th>';
+  h+='<th style="width:'+(admin?116:86)+'px;">操作</th>';
+  h+='<th style="width:118px;">開催日</th>';
   h+='<th style="width:92px;">府県</th><th>大会名</th><th style="width:22%;">会場</th><th style="width:20%;">備考</th></tr></thead><tbody>';
 
-  if(!rows.length){ h+='<tr><td colspan="6" style="text-align:center;color:var(--text-light);padding:24px;">'+(admin?'「日程（行）を追加」から作成してください。':'まだ日程が登録されていません。西部ブロックの設定をお待ちください。')+'</td></tr>'; }
+  if(!rows.length){ h+='<tr><td colspan="'+cols+'" style="text-align:center;color:var(--text-light);padding:24px;">'+(admin?'行がありません。＋（開催日をコピー）や土（前日の土曜）、下の「新しい開催日を追加」で作成できます。':'まだ日程が登録されていません。西部ブロックの設定をお待ちください。')+'</td></tr>'; }
 
   rows.forEach(function(r,i){
     var mm=parseInt(r.month,10)||0, dd=parseInt(r.day,10)||0;
@@ -262,6 +266,7 @@ function render(){
     h+='<td class="row-tools" style="white-space:nowrap;">'
       + '<button class="add" onclick="copyRow('+i+')" title="この開催日をコピーして下に追加">＋</button>'
       + (sun ? ' <button class="sat" onclick="satRow('+i+')" title="前日（土曜）の行を上に追加">土</button>' : '')
+      + (admin ? ' <button class="del" onclick="delRow('+i+')" title="この行を削除（役員のみ）">🗑</button>' : '')
       + '</td>';
     h+='<td class="se-date se-locked '+b.cls+'">'+(b.html||'—')+'</td>';
     h+='<td><input type="text" class="se-in" maxlength="20" value="'+esc(r.pref)+'" oninput="upd('+i+',\'pref\',this.value);fitInput(this)"></td>'
@@ -285,7 +290,15 @@ function satRow(i){
   window.__ROWS.splice(i,0,{id:'',month:pv.getMonth()+1,day:pv.getDate(),pref:'',event:'',venue:'',remark:'',updated_at:''});
   render();
 }
+function delRow(i){
+  if(window.__ROLE!=='admin') return;
+  var r=window.__ROWS[i]; if(!r) return;
+  var label=((r.month||'?')+'/'+(r.day||'?'))+(r.event?(' '+r.event):'');
+  if(!confirm('この行を削除します：'+label+'\nよろしいですか？（保存するまで反映されません）')) return;
+  window.__ROWS.splice(i,1); render();
+}
 function addRow(){
+  if(window.__ROLE!=='admin') return;
   var s=prompt('追加する開催日を「月/日」で入力してください（例：6/14）');
   if(s===null) return;
   var mm=String(s).match(/(\d{1,2})\s*[\/／.\-月]\s*(\d{1,2})/);

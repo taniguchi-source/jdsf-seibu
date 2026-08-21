@@ -80,22 +80,18 @@ if ($role === 'admin') {
     $out = ['year' => $year, 'title' => $title, 'rows' => $rows, 'updated' => date('c')];
 
 } else {
-    /* 担当者：E/F/G/H のみ。日付は現状維持・既存行は削除不可。
-       追加できる日付は「既存の開催日」と「既存の日曜の前日（土曜）」のみ。 */
+    /* 担当者：E/F/G/H のみ更新。既存行の削除は不可（温存）。
+       行の追加は「既存の開催日」または「既存の日曜の前日（土曜）」のみ許可（＋/土ボタン用）。 */
     $yr = (int)($cur['year'] ?? 2027);
-    $allowed = [];   // "m-d" => true
+    $allowed = [];
     foreach ($cur_rows as $r) {
         $mm = (int)($r['month'] ?? 0); $dd = (int)($r['day'] ?? 0);
         if ($mm < 1 || $dd < 1) continue;
         $allowed[$mm . '-' . $dd] = true;
         $ts = mktime(0, 0, 0, $mm, $dd, $yr);
-        if ((int)date('w', $ts) === 0) {                 // 日曜 → 前日（土曜）も許可
-            $pv = $ts - 86400;
-            $allowed[((int)date('n', $pv)) . '-' . ((int)date('j', $pv))] = true;
-        }
+        if ((int)date('w', $ts) === 0) { $pv = $ts - 86400; $allowed[((int)date('n', $pv)) . '-' . ((int)date('j', $pv))] = true; }
     }
-
-    $existing = [];  // id => row
+    $existing = [];
     foreach ($cur_rows as $r) { if (isset($r['id'])) $existing[(string)$r['id']] = $r; }
 
     $rows = [];
@@ -110,38 +106,28 @@ if ($role === 'admin') {
         $remark = sch_str($r['remark'] ?? '', 200);
 
         if ($id !== '' && isset($existing[$id])) {
-            /* 既存行：日付はロック、E/F/G/H のみ更新 */
             $base = $existing[$id];
-            $changed = ($base['pref'] ?? '')   !== $pref
-                    || ($base['event'] ?? '')  !== $event
-                    || ($base['venue'] ?? '')  !== $venue
-                    || ($base['remark'] ?? '') !== $remark;
+            if (!array_key_exists('remark', $base)) $base['remark'] = '';
+            $changed = ($base['pref'] ?? '') !== $pref || ($base['event'] ?? '') !== $event
+                    || ($base['venue'] ?? '') !== $venue || ($base['remark'] ?? '') !== $remark;
             $base['pref'] = $pref; $base['event'] = $event; $base['venue'] = $venue; $base['remark'] = $remark;
-            if (!array_key_exists('remark', $base)) $base['remark'] = $remark;
             if ($changed) $base['updated_at'] = $now;
             $rows[] = $base;
             $placed[$id] = true;
         } else {
-            /* 追加行：既存の開催日に一致する場合のみ許可（日付の新規作成は不可） */
-            $month = (int)($r['month'] ?? 0);
-            $day   = (int)($r['day'] ?? 0);
-            if (empty($allowed[$month . '-' . $day])) continue;
+            $month = (int)($r['month'] ?? 0); $day = (int)($r['day'] ?? 0);
+            if (empty($allowed[$month . '-' . $day])) continue;   // 任意日付の新規作成は不可
             $nid = 'd' . sprintf('%02d%02d', $month, $day) . '_' . substr(md5(uniqid('', true)), 0, 6);
             $has = ($pref !== '' || $event !== '' || $venue !== '' || $remark !== '');
-            $rows[] = [
-                'id' => $nid, 'month' => $month, 'day' => $day,
-                'pref' => $pref, 'event' => $event, 'venue' => $venue, 'remark' => $remark,
-                'updated_at' => $has ? $now : '',
-            ];
+            $rows[] = ['id' => $nid, 'month' => $month, 'day' => $day,
+                       'pref' => $pref, 'event' => $event, 'venue' => $venue, 'remark' => $remark,
+                       'updated_at' => $has ? $now : ''];
         }
     }
-    /* 送信に含まれなかった既存行は削除させない（安全側で温存） */
+    /* 送信に含まれなかった既存行は削除させない（温存） */
     foreach ($cur_rows as $r) {
         $id = (string)($r['id'] ?? '');
-        if ($id !== '' && empty($placed[$id])) {
-            if (!array_key_exists('remark', $r)) $r['remark'] = '';
-            $rows[] = $r;
-        }
+        if ($id !== '' && empty($placed[$id])) { if (!array_key_exists('remark', $r)) $r['remark'] = ''; $rows[] = $r; }
     }
     sch_sort($rows);
     $out = $cur;
