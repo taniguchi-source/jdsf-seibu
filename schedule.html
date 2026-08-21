@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VBRCC3NXE8"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VBRCC3NXE8');
+  </script>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>競技予定｜JDSF 近畿中四国ブロック委員会</title>
+  <meta name="description" content="JDSF 近畿中四国ブロック委員会（西部ブロック）の年間競技会開催予定の一覧です。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20260723">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .sched-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--border); border-radius:8px; }
+    table.sched { width:100%; border-collapse:collapse; font-size:0.9rem; min-width:640px; }
+    .sched th, .sched td { border-bottom:1px solid var(--border); padding:9px 12px; text-align:left; vertical-align:middle; }
+    .sched thead th { background:var(--primary); color:#fff; font-weight:700; white-space:nowrap; font-size:0.82rem; letter-spacing:.03em; }
+    .sched tbody tr:hover { background:var(--bg-blue); }
+    .sched td.date { white-space:nowrap; font-weight:700; color:var(--text-dark); }
+    .sched td.date .wd { font-size:0.8rem; font-weight:600; margin-left:3px; color:var(--text-light); }
+    .sched td.date.sun .wd { color:#c0392b; } .sched td.date.sat .wd { color:#2563eb; }
+    .sched td.pref { font-weight:700; white-space:nowrap; color:var(--primary); }
+    .sched td.event { font-weight:600; color:var(--text-dark); }
+    .sched td.venue { color:var(--text-dark); font-size:0.85rem; }
+    .sched tr.empty td.event, .sched tr.empty td.pref, .sched tr.empty td.venue { color:#9aa4b2; font-weight:500; }
+    .sched tr.empty { background:#fafbfc; }
+    .month-head td { background:var(--bg-blue); color:var(--primary); font-weight:800; font-size:0.9rem; letter-spacing:.02em; }
+    .sched-legend { display:flex; gap:16px; flex-wrap:wrap; font-size:0.8rem; color:var(--text-light); margin:10px 2px 0; }
+    .sched-legend .chip { display:inline-flex; align-items:center; gap:6px; }
+    .sched-legend .dot { width:12px; height:12px; border-radius:3px; border:1px solid var(--border); }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="header-logo">
+      <img src="images/jdsf-mark.png" alt="JDSFマーク" class="header-logo-img">
+      <div class="header-logo-text">
+        <div class="org">公益社団法人日本ダンススポーツ連盟</div>
+        <div class="name">近畿中四国ブロック委員会<span style="font-size:0.7em;font-weight:500;color:var(--text-light);">（通称 西部ブロック）</span></div>
+      </div>
+    </a>
+    <button class="hamburger" aria-label="メニュー" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-nav" aria-label="メインナビゲーション">
+      <a href="index.html"        class="nav-link">ホーム</a>
+      <a href="about.html"        class="nav-link">西部ブロックについて</a>
+      <a href="competitions.html" class="nav-link">競技会情報</a>
+      <a href="guidance.html"     class="nav-link">指導員情報</a>
+      <a href="contact.html"      class="nav-link nav-cta">お問い合わせ</a>
+      <a href="officers.html"     class="nav-link">役員用</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page-hero">
+  <div class="container">
+    <div class="page-hero-label">Schedule</div>
+    <h1 class="page-hero-title">競技予定</h1>
+    <p class="page-hero-desc">近畿中四国ブロック 競技会開催予定</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+      <h2 id="sched-title" style="font-size:1.2rem;font-weight:800;color:var(--text-dark);border-left:4px solid var(--primary);padding-left:12px;margin:0;line-height:1.3;">📅 競技予定</h2>
+      <a href="schedule-edit.html" class="btn btn-secondary" style="font-size:0.82rem;">
+        <i class="fa-solid fa-pen-to-square"></i> 担当者の方（記入・修正）
+      </a>
+    </div>
+
+    <div id="sched-body">
+      <p style="text-align:center;padding:40px 24px;color:var(--text-light);">
+        <span style="font-size:1.5rem;">⏳</span><br>競技予定を読み込み中...
+      </p>
+    </div>
+
+    <div class="sched-legend">
+      <span class="chip"><span class="dot" style="background:#fff;"></span>予定あり</span>
+      <span class="chip"><span class="dot" style="background:#fafbfc;"></span>募集中／未定</span>
+      <span class="chip">日付は西部ブロックが設定、府県・大会名・会場は各府県連盟の担当者が記入します。</span>
+    </div>
+    <p style="text-align:right;margin-top:8px;">
+      <small id="sched-updated" style="color:var(--text-light);font-size:0.8125rem;"></small>
+    </p>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-top">
+    <div>
+      <div class="footer-logo">
+        <img src="images/jdsf-sakura-mark.png" alt="JDSF" class="footer-logo-mark-img" style="height:50px;width:auto;">
+        <div class="footer-logo-name">JDSF 近畿中四国ブロック委員会</div>
+      </div>
+      <p class="footer-desc">JDSF近畿中四国ブロック委員会（西部ブロック）</p>
+      <a href="https://www.jdsf.or.jp/" target="_blank" rel="noopener" class="footer-jdsf">🔗 JDSF本部サイト</a>
+    </div>
+    <div class="footer-col">
+      <h4>サイトマップ</h4>
+      <ul class="footer-links">
+        <li><a href="index.html">ホーム</a></li>
+        <li><a href="about.html">西部ブロックについて</a></li>
+        <li><a href="competitions.html">競技会情報</a></li>
+        <li><a href="schedule.html">競技予定</a></li>
+        <li><a href="guidance.html">指導員情報</a></li>
+        <li><a href="contact.html">お問い合わせ</a></li>
+        <li><a href="officers.html">役員用</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© 2026 JDSF 近畿中四国ブロック委員会. All rights reserved.</span>
+    <div class="footer-bottom-links">
+      <a href="privacy.html">プライバシーポリシー</a>
+      <a href="contact.html">お問い合わせ</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+
+<script>
+(function () {
+  'use strict';
+  var WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
+  var _holCache = {};
+  function holidaySet(year) {
+    if (_holCache[year]) return _holCache[year];
+    var base = {};
+    function add(m, d) { base[m + '-' + d] = true; }
+    function nthMonday(month, nth) {
+      var first = new Date(year, month - 1, 1).getDay();
+      return 1 + ((1 - first + 7) % 7) + (nth - 1) * 7;
+    }
+    add(1, 1); add(1, nthMonday(1, 2)); add(2, 11); add(2, 23);
+    add(3, Math.floor(20.8431 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4)));
+    add(4, 29); add(5, 3); add(5, 4); add(5, 5);
+    add(7, nthMonday(7, 3)); add(8, 11); add(9, nthMonday(9, 3));
+    add(9, Math.floor(23.2488 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4)));
+    add(10, nthMonday(10, 2)); add(11, 3); add(11, 23);
+    var key = function (m, d) { return m + '-' + d; };
+    var isBase = function (m, d) { return !!base[key(m, d)]; };
+    var result = {};
+    for (var k in base) result[k] = true;
+    var end = new Date(year + 1, 0, 1), t;
+    for (t = new Date(year, 0, 1); t < end; t.setDate(t.getDate() + 1)) {
+      var m = t.getMonth() + 1, d = t.getDate();
+      if (isBase(m, d) || t.getDay() === 0) continue;
+      var pv = new Date(t); pv.setDate(d - 1);
+      var nx = new Date(t); nx.setDate(d + 1);
+      if (isBase(pv.getMonth() + 1, pv.getDate()) && isBase(nx.getMonth() + 1, nx.getDate())) result[key(m, d)] = true;
+    }
+    for (t = new Date(year, 0, 1); t < end; t.setDate(t.getDate() + 1)) {
+      if (!isBase(t.getMonth() + 1, t.getDate()) || t.getDay() !== 0) continue;
+      var s = new Date(t);
+      do { s.setDate(s.getDate() + 1); } while (isBase(s.getMonth() + 1, s.getDate()));
+      result[key(s.getMonth() + 1, s.getDate())] = true;
+    }
+    _holCache[year] = result;
+    return result;
+  }
+  function isJpHoliday(y, m, d) { return !!holidaySet(y)[m + '-' + d]; }
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  var box = document.getElementById('sched-body');
+
+  fetch('data/schedule.json?_=' + Date.now())
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) {
+      if (!d || !Array.isArray(d.rows)) {
+        box.innerHTML = '<p style="text-align:center;padding:40px 24px;color:var(--text-light);">競技予定はまだ登録されていません。</p>';
+        return;
+      }
+      var year = parseInt(d.year, 10) || (new Date()).getFullYear();
+      if (d.title) document.getElementById('sched-title').textContent = '📅 ' + d.title;
+
+      var rows = d.rows.slice().sort(function (a, b) {
+        return (a.month - b.month) || (a.day - b.day);
+      });
+
+      var html = '<div class="sched-wrap"><table class="sched"><thead><tr>'
+        + '<th style="width:130px;">開催日</th><th style="width:90px;">府県</th><th>大会名</th><th style="width:26%;">会場</th>'
+        + '</tr></thead><tbody>';
+
+      var lastMonth = null;
+      rows.forEach(function (r) {
+        var m = parseInt(r.month, 10) || 0, day = parseInt(r.day, 10) || 0;
+        if (m && m !== lastMonth) {
+          html += '<tr class="month-head"><td colspan="4">' + year + '年 ' + m + '月</td></tr>';
+          lastMonth = m;
+        }
+        var dateCell = '', cls = '';
+        if (m && day) {
+          var dt = new Date(year, m - 1, day);
+          var wd = WEEKDAYS[dt.getDay()] || '';
+          var hol = isJpHoliday(year, m, day);
+          if (dt.getDay() === 0 || hol) cls = 'sun';
+          else if (dt.getDay() === 6) cls = 'sat';
+          dateCell = m + '/' + day + '<span class="wd">（' + wd + (hol ? '・祝' : '') + '）</span>';
+        }
+        var empty = !(String(r.event || '').trim() || String(r.pref || '').trim());
+        html += '<tr class="' + (empty ? 'empty' : '') + '">'
+          + '<td class="date ' + cls + '">' + dateCell + '</td>'
+          + '<td class="pref">' + (esc(r.pref) || '—') + '</td>'
+          + '<td class="event">' + (esc(r.event) || '（募集中）') + '</td>'
+          + '<td class="venue">' + (esc(r.venue) || '—') + '</td>'
+          + '</tr>';
+      });
+      html += '</tbody></table></div>';
+      box.innerHTML = html;
+
+      if (d.updated) {
+        var u = new Date(d.updated);
+        if (!isNaN(u)) document.getElementById('sched-updated').textContent =
+          '最終更新：' + u.getFullYear() + '/' + (u.getMonth() + 1) + '/' + u.getDate();
+      }
+    })
+    .catch(function () {
+      box.innerHTML = '<p style="text-align:center;padding:40px 24px;color:var(--text-light);">競技予定を読み込めませんでした。</p>';
+    });
+})();
+</script>
+</body>
+</html>

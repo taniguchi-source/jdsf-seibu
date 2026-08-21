@@ -143,6 +143,37 @@ function require_upload_auth() {
 }
 
 /* =====================================================================
+   競技予定表 担当者パスワード（府県連盟の担当者共通・1つ）
+   - data/schedule_auth.php : <?php return '<bcrypt>';
+     .php なので data/auth.php と同じくブラウザから中身は読めない。
+   - セッションは $_SESSION['auth']['schedule'] = true
+   ===================================================================== */
+
+function schedule_auth_file() { return auth_data_dir() . '/schedule_auth.php'; }
+
+function load_schedule_auth() {
+    $f = schedule_auth_file();
+    if (is_file($f)) { $h = include $f; if (is_string($h) && $h !== '') return $h; }
+    return '';
+}
+function save_schedule_auth($hash) {
+    $php = "<?php\nreturn " . var_export((string)$hash, true) . ";\n";
+    return file_put_contents(schedule_auth_file(), $php, LOCK_EX) !== false;
+}
+
+/* 競技予定の書き込み入口：POST + 同一オリジン + CSRF を満たしたうえで、
+   admin / build なら 'admin'（全編集）、担当者(schedule)なら 'staff'（E/F/Gのみ）を返す。 */
+function require_schedule_auth() {
+    if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') json_out(['error' => 'Method Not Allowed'], 405);
+    if (!same_origin_ok())                              json_out(['error' => 'Bad Origin'], 403);
+    $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? ($_POST['csrf'] ?? '');
+    if (empty($_SESSION['csrf']) || !hash_equals($_SESSION['csrf'], (string)$csrf)) json_out(['error' => 'CSRF'], 403);
+    if (!empty($_SESSION['auth']['admin']) || !empty($_SESSION['auth']['build'])) return 'admin';
+    if (!empty($_SESSION['auth']['schedule'])) return 'staff';
+    json_out(['error' => 'Forbidden'], 403);
+}
+
+/* =====================================================================
    ログイン試行のレート制限（data/login_attempts.php を共用）
    api/login.php は従来どおり自前で処理している。ここは新しいログイン
    （特設サイト）用のヘルパー。

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>競技予定の記入・修正｜JDSF 近畿中四国ブロック委員会</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20260723">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .wrap { max-width:1000px; margin:0 auto; padding:24px 16px 60px; }
+    .hidden { display:none !important; }
+    .card { background:#fff; border:1px solid var(--border); border-radius:10px; padding:18px; margin-bottom:16px; }
+    .msg { display:none; padding:9px 12px; border-radius:6px; font-size:.85rem; margin-top:10px; }
+    .msg.ok { display:block; background:#e6f4ea; color:#1a7a3a; }
+    .msg.ng { display:block; background:#fdecea; color:#b3261e; }
+    .login-box { max-width:420px; margin:8vh auto; }
+    .login-box input[type=password]{ width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:6px; font-size:1rem; box-sizing:border-box; }
+    .se-in { width:100%; padding:6px 8px; border:1.5px solid var(--border); border-radius:5px; font-size:.85rem; box-sizing:border-box; font-family:inherit; }
+    .se-num { width:56px; text-align:center; padding:6px 4px; border:1.5px solid var(--border); border-radius:5px; font-size:.85rem; box-sizing:border-box; }
+    table.se { width:100%; border-collapse:collapse; font-size:.85rem; }
+    table.se th, table.se td { border-bottom:1px solid var(--border); padding:7px 8px; text-align:left; vertical-align:middle; }
+    table.se thead th { background:var(--primary); color:#fff; font-weight:700; font-size:.78rem; white-space:nowrap; }
+    .se-date { white-space:nowrap; font-weight:700; color:var(--text-dark); }
+    .se-date .wd { font-size:.78rem; font-weight:600; margin-left:2px; color:var(--text-light); }
+    .se-date.sun .wd { color:#c0392b; } .se-date.sat .wd { color:#2563eb; }
+    .se-locked { background:#f6f8fb; }
+    .row-tools button { border:1px solid var(--border); background:#fff; border-radius:5px; cursor:pointer; padding:3px 6px; font-size:.8rem; }
+    .row-tools .del { color:#b3261e; border-color:#f1c9c4; }
+    .barbtns { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
+    .rolechip { font-size:.72rem; font-weight:700; padding:3px 10px; border-radius:12px; }
+    .rolechip.staff { background:#e8f0fe; color:#1a56db; }
+    .rolechip.admin { background:#fef3c7; color:#92400e; }
+    .se-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--border); border-radius:8px; }
+    table.se.staff { min-width:560px; } table.se.admin { min-width:760px; }
+  </style>
+</head>
+<body style="background:var(--bg-blue,#f2f6fc);">
+
+<div class="wrap">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px;">
+    <a href="index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
+      <img src="images/jdsf-mark.png" alt="JDSF" style="height:40px;width:auto;">
+      <strong style="color:var(--text-dark);font-size:1rem;">競技予定の記入・修正</strong>
+    </a>
+    <a href="schedule.html" style="font-size:.82rem;color:var(--primary);text-decoration:none;">← 公開ページを見る</a>
+  </div>
+
+  <!-- ===== ログイン ===== -->
+  <div id="login-screen" class="card login-box">
+    <h2 style="font-size:1.05rem;margin:0 0 6px;color:var(--text-dark);">担当者ログイン</h2>
+    <p style="font-size:.82rem;color:var(--text-light);margin:0 0 14px;line-height:1.6;">
+      府県連盟の担当者に配布された<strong>共通パスワード</strong>を入力してください。<br>
+      ※役員の方は「役員用」からログイン済みであれば、そのまま全編集できます。
+    </p>
+    <input type="password" id="pw-input" placeholder="パスワード" autocomplete="current-password">
+    <div class="barbtns">
+      <button class="btn" onclick="doLogin()"><i class="fa-solid fa-right-to-bracket"></i> ログイン</button>
+    </div>
+    <div id="login-error" class="msg"></div>
+  </div>
+
+  <!-- ===== 編集 ===== -->
+  <div id="content-screen" class="hidden">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <h2 id="edit-title" style="font-size:1.1rem;margin:0;color:var(--text-dark);">競技予定</h2>
+          <span id="rolechip" class="rolechip staff">担当者</span>
+        </div>
+        <button class="btn btn-secondary" onclick="doLogout()" style="font-size:.8rem;"><i class="fa-solid fa-right-from-bracket"></i> ログアウト</button>
+      </div>
+      <p id="role-note" style="font-size:.82rem;color:var(--text-light);margin:10px 0 0;line-height:1.6;"></p>
+    </div>
+
+    <!-- 役員用：年・タイトル -->
+    <div id="admin-meta" class="card hidden">
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;">
+        <div>
+          <label style="display:block;font-size:.72rem;font-weight:700;color:var(--text-light);margin-bottom:3px;">年（西暦）</label>
+          <input type="number" id="meta-year" class="se-num" style="width:90px;" min="2000" max="2100">
+        </div>
+        <div style="flex:1 1 240px;min-width:200px;">
+          <label style="display:block;font-size:.72rem;font-weight:700;color:var(--text-light);margin-bottom:3px;">見出し（例：2027年 競技予定）</label>
+          <input type="text" id="meta-title" class="se-in" maxlength="60">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div id="table-area"></div>
+      <div id="admin-add" class="hidden" style="margin-top:12px;">
+        <button class="btn btn-secondary" onclick="addRow()" style="font-size:.82rem;"><i class="fa-solid fa-plus"></i> 日程（行）を追加</button>
+      </div>
+      <div class="barbtns" style="justify-content:flex-end;border-top:1px solid var(--border);margin-top:14px;padding-top:14px;">
+        <button class="btn" onclick="saveAll()"><i class="fa-solid fa-floppy-disk"></i> 保存する</button>
+      </div>
+      <div id="save-msg" class="msg"></div>
+    </div>
+
+    <!-- 役員用：担当者パスワード設定 -->
+    <div id="admin-pw" class="card hidden">
+      <h3 style="font-size:.95rem;margin:0 0 6px;color:var(--text-dark);"><i class="fa-solid fa-key"></i> 担当者共通パスワードの設定</h3>
+      <p style="font-size:.8rem;color:var(--text-light);margin:0 0 10px;line-height:1.6;">
+        府県連盟の担当者に配布する共通パスワードを設定します（8文字以上）。設定・変更すると、これまでのパスワードは使えなくなります。
+      </p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <input type="password" id="sched-pw" class="se-in" style="max-width:280px;" placeholder="新しい担当者パスワード" autocomplete="new-password">
+        <button class="btn btn-secondary" onclick="savePw()" style="font-size:.82rem;">設定する</button>
+      </div>
+      <div id="pw-msg" class="msg"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+var WEEKDAYS = ['日','月','火','水','木','金','土'];
+var _holCache = {};
+function holidaySet(year){
+  if(_holCache[year]) return _holCache[year];
+  var base={}; function add(m,d){ base[m+'-'+d]=true; }
+  function nthMonday(month,nth){ var first=new Date(year,month-1,1).getDay(); return 1+((1-first+7)%7)+(nth-1)*7; }
+  add(1,1); add(1,nthMonday(1,2)); add(2,11); add(2,23);
+  add(3,Math.floor(20.8431+0.242194*(year-1980)-Math.floor((year-1980)/4)));
+  add(4,29); add(5,3); add(5,4); add(5,5);
+  add(7,nthMonday(7,3)); add(8,11); add(9,nthMonday(9,3));
+  add(9,Math.floor(23.2488+0.242194*(year-1980)-Math.floor((year-1980)/4)));
+  add(10,nthMonday(10,2)); add(11,3); add(11,23);
+  var key=function(m,d){return m+'-'+d;}, isBase=function(m,d){return !!base[key(m,d)];};
+  var result={}; for(var k in base) result[k]=true;
+  var end=new Date(year+1,0,1), t;
+  for(t=new Date(year,0,1);t<end;t.setDate(t.getDate()+1)){
+    var m=t.getMonth()+1, d=t.getDate();
+    if(isBase(m,d)||t.getDay()===0) continue;
+    var pv=new Date(t); pv.setDate(d-1); var nx=new Date(t); nx.setDate(d+1);
+    if(isBase(pv.getMonth()+1,pv.getDate())&&isBase(nx.getMonth()+1,nx.getDate())) result[key(m,d)]=true;
+  }
+  for(t=new Date(year,0,1);t<end;t.setDate(t.getDate()+1)){
+    if(!isBase(t.getMonth()+1,t.getDate())||t.getDay()!==0) continue;
+    var s=new Date(t); do{ s.setDate(s.getDate()+1);}while(isBase(s.getMonth()+1,s.getDate()));
+    result[key(s.getMonth()+1,s.getDate())]=true;
+  }
+  _holCache[year]=result; return result;
+}
+function dateBadge(year,m,d){
+  if(!m||!d) return {html:'', cls:''};
+  var dt=new Date(year,m-1,d), wd=WEEKDAYS[dt.getDay()]||'', hol=!!holidaySet(year)[m+'-'+d];
+  var cls = (dt.getDay()===0||hol)?'sun':(dt.getDay()===6?'sat':'');
+  return { html: m+'/'+d+'<span class="wd">（'+wd+(hol?'・祝':'')+'）</span>', cls: cls };
+}
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function setMsg(id,text,ok){ var el=document.getElementById(id); if(!el) return; el.className='msg '+(ok?'ok':'ng'); el.textContent=text; el.style.display='block'; if(ok) setTimeout(function(){el.style.display='none';},3500); }
+
+/* CSRFヘッダ自動付与（他の管理画面と同じ） */
+window.__CSRF=''; window.__ROLE='staff'; window.__ROWS=[]; window.__YEAR=2027; window.__TITLE='';
+(function(){ var _f=window.fetch; window.fetch=function(url,opts){ opts=opts||{};
+  try{ if(typeof url==='string'&&url.indexOf('api/')!==-1&&String(opts.method||'').toUpperCase()==='POST'){ opts.headers=opts.headers||{}; if(!('X-CSRF-Token' in opts.headers)&&!('x-csrf-token' in opts.headers)) opts.headers['X-CSRF-Token']=window.__CSRF||''; } }catch(e){}
+  return _f.call(this,url,opts); }; })();
+
+/* ===== 認証 ===== */
+function doLogin(){
+  var fd=new FormData(); fd.append('password', document.getElementById('pw-input').value);
+  fetch('api/schedule_login.php',{method:'POST',body:fd})
+    .then(function(r){ return r.json().then(function(j){ return {status:r.status,j:j}; }); })
+    .then(function(res){
+      var err=document.getElementById('login-error');
+      if(res.j&&res.j.ok){ window.__CSRF=res.j.csrf||''; window.__ROLE='staff'; err.style.display='none'; showApp(); }
+      else if(res.j&&res.j.error==='locked'){ err.textContent='試行回数が多すぎます。約'+Math.ceil((res.j.retry||300)/60)+'分後にお試しください。'; err.className='msg ng'; err.style.display='block'; }
+      else { err.textContent='パスワードが正しくありません。'; err.className='msg ng'; err.style.display='block'; }
+    })
+    .catch(function(){ var err=document.getElementById('login-error'); err.textContent='通信エラーが発生しました。'; err.className='msg ng'; err.style.display='block'; });
+}
+function doLogout(){ var fd=new FormData(); fd.append('role','schedule'); fetch('api/logout.php',{method:'POST',body:fd}).catch(function(){}); window.__CSRF=''; location.reload(); }
+document.getElementById('pw-input').addEventListener('keydown',function(e){ if(e.key==='Enter') doLogin(); });
+
+/* 既にログイン済み（役員 or 担当者）ならそのまま入る */
+fetch('api/session-status.php').then(function(r){return r.json();}).then(function(d){
+  window.__CSRF=(d&&d.csrf)||'';
+  if(d&&(d.admin||d.build)){ window.__ROLE='admin'; showApp(); }
+  else if(d&&d.schedule){ window.__ROLE='staff'; showApp(); }
+}).catch(function(){});
+
+function showApp(){
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('content-screen').classList.remove('hidden');
+  var admin = (window.__ROLE==='admin');
+  document.getElementById('rolechip').className='rolechip '+(admin?'admin':'staff');
+  document.getElementById('rolechip').textContent= admin?'役員（全編集）':'担当者';
+  document.getElementById('role-note').innerHTML = admin
+    ? '日程（月・日）の追加・削除・編集、府県・大会名・会場の記入、担当者パスワードの設定ができます。'
+    : '<strong>府県・大会名・会場</strong>を記入・修正できます。日付は西部ブロックが設定しているため変更できません。';
+  document.getElementById('admin-meta').classList.toggle('hidden', !admin);
+  document.getElementById('admin-add').classList.toggle('hidden', !admin);
+  document.getElementById('admin-pw').classList.toggle('hidden', !admin);
+  loadData();
+}
+
+/* ===== データ ===== */
+function loadData(){
+  fetch('data/schedule.json?_='+Date.now()).then(function(r){return r.ok?r.json():null;}).then(function(d){
+    d = d || {};
+    window.__YEAR = parseInt(d.year,10) || 2027;
+    window.__TITLE = d.title || (window.__YEAR+'年 競技予定');
+    window.__ROWS = Array.isArray(d.rows) ? d.rows.map(function(r){ return {
+      id:String(r.id||''), month:parseInt(r.month,10)||'', day:parseInt(r.day,10)||'',
+      pref:String(r.pref||''), event:String(r.event||''), venue:String(r.venue||''), updated_at:String(r.updated_at||'')
+    }; }) : [];
+    document.getElementById('edit-title').textContent = window.__TITLE;
+    if(window.__ROLE==='admin'){ document.getElementById('meta-year').value=window.__YEAR; document.getElementById('meta-title').value=window.__TITLE; }
+    render();
+  }).catch(function(){ setMsg('save-msg','データの読み込みに失敗しました。',false); });
+}
+
+function render(){
+  var admin=(window.__ROLE==='admin'), y=window.__YEAR;
+  var rows=window.__ROWS;
+  var h='<div class="se-scroll"><table class="se '+(admin?'admin':'staff')+'"><thead><tr>';
+  if(admin) h+='<th style="width:70px;">操作</th><th style="width:56px;">月</th><th style="width:56px;">日</th><th style="width:70px;">曜日</th>';
+  else h+='<th style="width:130px;">開催日</th>';
+  h+='<th style="width:90px;">府県</th><th>大会名</th><th style="width:24%;">会場</th></tr></thead><tbody>';
+
+  if(!rows.length){ h+='<tr><td colspan="'+(admin?7:4)+'" style="text-align:center;color:var(--text-light);padding:24px;">'+(admin?'「日程（行）を追加」から作成してください。':'まだ日程が登録されていません。西部ブロックの設定をお待ちください。')+'</td></tr>'; }
+
+  rows.forEach(function(r,i){
+    var b=dateBadge(y, parseInt(r.month,10)||0, parseInt(r.day,10)||0);
+    h+='<tr>';
+    if(admin){
+      h+='<td class="row-tools" style="white-space:nowrap;">'
+        + '<button onclick="moveRow('+i+',-1)" title="上へ"'+(i===0?' disabled':'')+'>↑</button> '
+        + '<button onclick="moveRow('+i+',1)" title="下へ"'+(i===rows.length-1?' disabled':'')+'>↓</button> '
+        + '<button class="del" onclick="delRow('+i+')" title="削除">🗑</button></td>'
+        + '<td><input type="number" class="se-num" min="1" max="12" value="'+(r.month||'')+'" oninput="upd('+i+',\'month\',this.value)" onchange="render()"></td>'
+        + '<td><input type="number" class="se-num" min="1" max="31" value="'+(r.day||'')+'" oninput="upd('+i+',\'day\',this.value)" onchange="render()"></td>'
+        + '<td class="se-date '+b.cls+'">'+(b.html||'—')+'</td>';
+    } else {
+      h+='<td class="se-date se-locked '+b.cls+'">'+(b.html||'—')+'</td>';
+    }
+    h+='<td><input type="text" class="se-in" maxlength="20" value="'+esc(r.pref)+'" placeholder="府県" oninput="upd('+i+',\'pref\',this.value)"></td>'
+      + '<td><input type="text" class="se-in" maxlength="120" value="'+esc(r.event)+'" placeholder="大会名" oninput="upd('+i+',\'event\',this.value)"></td>'
+      + '<td><input type="text" class="se-in" maxlength="120" value="'+esc(r.venue)+'" placeholder="会場" oninput="upd('+i+',\'venue\',this.value)"></td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  document.getElementById('table-area').innerHTML=h;
+}
+
+function upd(i,field,val){ if(window.__ROWS[i]) window.__ROWS[i][field]= (field==='month'||field==='day') ? (parseInt(val,10)||'') : val; }
+function moveRow(i,dir){ var j=i+dir; if(j<0||j>=window.__ROWS.length) return; var t=window.__ROWS[i]; window.__ROWS[i]=window.__ROWS[j]; window.__ROWS[j]=t; render(); }
+function delRow(i){ var r=window.__ROWS[i]; var label=(r.event||r.pref||((r.month||'?')+'/'+(r.day||'?'))); if(!confirm('この行を削除します：'+label+'\nよろしいですか？（保存するまで反映されません）')) return; window.__ROWS.splice(i,1); render(); }
+function addRow(){ window.__ROWS.push({id:'',month:'',day:'',pref:'',event:'',venue:'',updated_at:''}); render(); }
+
+/* ===== 保存 ===== */
+function saveAll(){
+  var fd=new FormData();
+  var payload=window.__ROWS.map(function(r){ return {id:r.id, month:r.month, day:r.day, pref:r.pref, event:r.event, venue:r.venue}; });
+  fd.append('rows', JSON.stringify(payload));
+  if(window.__ROLE==='admin'){
+    fd.append('year', document.getElementById('meta-year').value||window.__YEAR);
+    fd.append('title', document.getElementById('meta-title').value||'');
+  }
+  fetch('api/save_schedule.php',{method:'POST',body:fd})
+    .then(function(r){ return r.json().then(function(j){return {status:r.status,j:j};}); })
+    .then(function(res){
+      if(res.j&&res.j.ok){ setMsg('save-msg','✅ 保存しました（公開ページに反映されます）',true); loadData(); }
+      else if(res.status===403){ setMsg('save-msg','権限がありません。再度ログインしてください。',false); }
+      else { setMsg('save-msg','⚠ '+((res.j&&res.j.error)||'保存に失敗しました'),false); }
+    })
+    .catch(function(){ setMsg('save-msg','⚠ 通信エラーが発生しました',false); });
+}
+
+function savePw(){
+  var pw=document.getElementById('sched-pw').value;
+  if((pw||'').length<8){ setMsg('pw-msg','パスワードは8文字以上にしてください。',false); return; }
+  var fd=new FormData(); fd.append('password',pw);
+  fetch('api/save_schedule_password.php',{method:'POST',body:fd})
+    .then(function(r){ return r.json().then(function(j){return {status:r.status,j:j};}); })
+    .then(function(res){
+      if(res.j&&res.j.ok){ document.getElementById('sched-pw').value=''; setMsg('pw-msg','✅ 担当者パスワードを設定しました。',true); }
+      else { setMsg('pw-msg','⚠ '+((res.j&&res.j.error)||'設定に失敗しました'),false); }
+    })
+    .catch(function(){ setMsg('pw-msg','⚠ 通信エラーが発生しました',false); });
+}
+</script>
+</body>
+</html>

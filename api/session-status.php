@@ -10,9 +10,10 @@ if (isset($auth['special']) && is_array($auth['special'])) {
 }
 
 json_out([
-    'admin'   => !empty($auth['admin']),
-    'build'   => !empty($auth['build']),
-    'special' => $special,
-    'csrf'    => issue_csrf(),
-    'has_pw'  => $has_pw,
+    'admin'    => !empty($auth['admin']),
+    'build'    => !empty($auth['build']),
+    'special'  => $special,
+    'schedule' => !empty($auth['schedule']),
+    'csrf'     => issue_csrf(),
+    'has_pw'   => $has_pw,
 ]);

@@ -67,6 +67,8 @@ jobs:
             --exclude='data/gemini_key.php' \
             --exclude='data/auth.php' \
             --exclude='data/special_auth.php' \
+            --exclude='data/schedule.json' \
+            --exclude='data/schedule_auth.php' \
             --exclude='data/auth_secret.php' \
             --exclude='data/login_attempts.php' \
             --exclude='uploads/' \
