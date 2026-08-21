@@ -37,8 +37,7 @@
     .rolechip.staff { background:#e8f0fe; color:#1a56db; }
     .rolechip.admin { background:#fef3c7; color:#92400e; }
     .se-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--border); border-radius:8px; }
-    table.se.staff { min-width:660px; } table.se.admin { min-width:860px; }
-    .se-in.remark { }
+    table.se { min-width:720px; }
   </style>
 </head>
 <body style="background:var(--bg-blue,#f2f6fc);">
@@ -168,7 +167,7 @@ function fitInput(el){
   if(!el) return;
   if(!el.value){ el.style.fontSize=''; return; }
   var fs=13, guard=0; el.style.fontSize=fs+'px';
-  while(el.scrollWidth>el.clientWidth+1 && fs>9 && guard<12){ fs--; el.style.fontSize=fs+'px'; guard++; }
+  while(el.scrollWidth>el.clientWidth+1 && fs>11 && guard<6){ fs--; el.style.fontSize=fs+'px'; guard++; }
 }
 function fitAll(){ var els=document.querySelectorAll('#table-area .se-in'); for(var i=0;i<els.length;i++) fitInput(els[i]); }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -210,8 +209,8 @@ function showApp(){
   document.getElementById('rolechip').className='rolechip '+(admin?'admin':'staff');
   document.getElementById('rolechip').textContent= admin?'役員（全編集）':'担当者';
   document.getElementById('role-note').innerHTML = admin
-    ? '日程（月・日）の追加・編集、府県・大会名・会場・備考の記入、担当者パスワードの設定ができます。行は日付順に自動整列。<strong>＋</strong>＝同じ開催日の空行を下に追加、日曜行の<strong>土</strong>＝前日（土曜）の空行を上に追加。'
-    : '<strong>府県・大会名・会場・備考</strong>を記入・修正できます。日付は西部ブロックが設定しているため変更できません。<strong>＋</strong>＝同じ開催日の空行を下に追加、日曜行の<strong>土</strong>＝前日（土曜）の空行を上に追加。';
+    ? '府県・大会名・会場・備考の記入と、担当者パスワードの設定ができます。行は日付順に自動整列。「日程（行）を追加」で新しい開催日を追加。<strong>＋</strong>＝同じ開催日の空行を追加、日曜行の<strong>土</strong>＝前日（土曜）の空行を追加。'
+    : '<strong>府県・大会名・会場・備考</strong>を記入・修正できます。日付は西部ブロックが設定しているため変更できません。<strong>＋</strong>＝同じ開催日の空行を追加、日曜行の<strong>土</strong>＝前日（土曜）の空行を追加。';
   document.getElementById('admin-meta').classList.toggle('hidden', !admin);
   document.getElementById('admin-add').classList.toggle('hidden', !admin);
   document.getElementById('admin-pw').classList.toggle('hidden', !admin);
@@ -250,32 +249,21 @@ function sortRows(){
 function render(){
   sortRows();
   var admin=(window.__ROLE==='admin'), y=window.__YEAR, rows=window.__ROWS;
-  var cols=admin?8:6;
-  var h='<div class="se-scroll"><table class="se '+(admin?'admin':'staff')+'"><thead><tr>';
-  h+='<th style="width:86px;">操作</th>';
-  if(admin) h+='<th style="width:40px;">月</th><th style="width:40px;">日</th><th style="width:46px;">曜</th>';
-  else h+='<th style="width:104px;">開催日</th>';
-  h+='<th style="width:78px;">府県</th><th>大会名</th><th style="width:20%;">会場</th><th style="width:18%;">備考</th></tr></thead><tbody>';
+  var h='<div class="se-scroll"><table class="se"><thead><tr>';
+  h+='<th style="width:84px;">操作</th><th style="width:118px;">開催日</th>';
+  h+='<th style="width:92px;">府県</th><th>大会名</th><th style="width:22%;">会場</th><th style="width:20%;">備考</th></tr></thead><tbody>';
 
-  if(!rows.length){ h+='<tr><td colspan="'+cols+'" style="text-align:center;color:var(--text-light);padding:24px;">'+(admin?'「日程（行）を追加」から作成してください。':'まだ日程が登録されていません。西部ブロックの設定をお待ちください。')+'</td></tr>'; }
+  if(!rows.length){ h+='<tr><td colspan="6" style="text-align:center;color:var(--text-light);padding:24px;">'+(admin?'「日程（行）を追加」から作成してください。':'まだ日程が登録されていません。西部ブロックの設定をお待ちください。')+'</td></tr>'; }
 
   rows.forEach(function(r,i){
     var mm=parseInt(r.month,10)||0, dd=parseInt(r.day,10)||0;
-    var sun=isSunday(y,mm,dd);
+    var b=dateBadge(y,mm,dd), sun=isSunday(y,mm,dd);
     h+='<tr>';
     h+='<td class="row-tools" style="white-space:nowrap;">'
       + '<button class="add" onclick="copyRow('+i+')" title="この開催日をコピーして下に追加">＋</button>'
       + (sun ? ' <button class="sat" onclick="satRow('+i+')" title="前日（土曜）の行を上に追加">土</button>' : '')
       + '</td>';
-    if(admin){
-      var wl=wdLabel(y,mm,dd);
-      h+='<td><input type="number" class="se-num" min="1" max="12" value="'+(r.month||'')+'" oninput="upd('+i+',\'month\',this.value)" onchange="render()"></td>'
-        + '<td><input type="number" class="se-num" min="1" max="31" value="'+(r.day||'')+'" oninput="upd('+i+',\'day\',this.value)" onchange="render()"></td>'
-        + '<td class="se-date '+wl.cls+'" style="text-align:center;">'+(wl.txt||'—')+'</td>';
-    } else {
-      var b=dateBadge(y,mm,dd);
-      h+='<td class="se-date se-locked '+b.cls+'">'+(b.html||'—')+'</td>';
-    }
+    h+='<td class="se-date se-locked '+b.cls+'">'+(b.html||'—')+'</td>';
     h+='<td><input type="text" class="se-in" maxlength="20" value="'+esc(r.pref)+'" oninput="upd('+i+',\'pref\',this.value);fitInput(this)"></td>'
       + '<td><input type="text" class="se-in" maxlength="120" value="'+esc(r.event)+'" oninput="upd('+i+',\'event\',this.value);fitInput(this)"></td>'
       + '<td><input type="text" class="se-in" maxlength="120" value="'+esc(r.venue)+'" oninput="upd('+i+',\'venue\',this.value);fitInput(this)"></td>'
@@ -297,7 +285,14 @@ function satRow(i){
   window.__ROWS.splice(i,0,{id:'',month:pv.getMonth()+1,day:pv.getDate(),pref:'',event:'',venue:'',remark:'',updated_at:''});
   render();
 }
-function addRow(){ window.__ROWS.push({id:'',month:'',day:'',pref:'',event:'',venue:'',remark:'',updated_at:''}); render(); }
+function addRow(){
+  var s=prompt('追加する開催日を「月/日」で入力してください（例：6/14）');
+  if(s===null) return;
+  var mm=String(s).match(/(\d{1,2})\s*[\/／.\-月]\s*(\d{1,2})/);
+  if(!mm){ alert('「月/日」の形式で入力してください（例：6/14）'); return; }
+  window.__ROWS.push({id:'',month:parseInt(mm[1],10),day:parseInt(mm[2],10),pref:'',event:'',venue:'',remark:'',updated_at:''});
+  render();
+}
 
 /* ===== 保存 ===== */
 function saveAll(){
