@@ -21,6 +21,7 @@
     .login-box { max-width:420px; margin:8vh auto; }
     .login-box input[type=password]{ width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:6px; font-size:1rem; box-sizing:border-box; }
     .se-in { width:100%; padding:6px 8px; border:1.5px solid var(--border); border-radius:5px; font-size:.85rem; box-sizing:border-box; font-family:inherit; }
+    .se-in.rank-on { background:#faf3df; }
     .se-num { width:42px; text-align:center; padding:5px 2px; border:1.5px solid var(--border); border-radius:5px; font-size:.85rem; box-sizing:border-box; }
     table.se { width:100%; border-collapse:collapse; font-size:.85rem; }
     table.se th, table.se td { border-bottom:1px solid var(--border); padding:3px 1px; text-align:left; vertical-align:middle; line-height:1.3; }
@@ -264,10 +265,11 @@ function render(){
       + (admin ? ' <button class="del" onclick="delRow('+i+')" title="この行を削除（役員のみ）">🗑</button>' : '')
       + '</td>';
     h+='<td class="se-date se-locked '+b.cls+'">'+(b.html||'—')+'</td>';
-    h+='<td><input type="text" class="se-in" maxlength="20" value="'+esc(r.pref)+'" oninput="upd('+i+',\'pref\',this.value);fitInput(this)"></td>'
-      + '<td style="text-align:center;"><input type="checkbox"'+(r.ranking?' checked':'')+' onchange="if(window.__ROWS['+i+'])window.__ROWS['+i+'].ranking=this.checked" style="width:16px;height:16px;cursor:pointer;" title="ランキング対象"></td>'
-      + '<td><input type="text" class="se-in" maxlength="120" value="'+esc(r.event)+'" oninput="upd('+i+',\'event\',this.value);fitInput(this)"></td>'
-      + '<td><input type="text" class="se-in" maxlength="120" value="'+esc(r.venue)+'" oninput="upd('+i+',\'venue\',this.value);fitInput(this)"></td>'
+    var rk=r.ranking?' rank-on':'';
+    h+='<td><input type="text" class="se-in'+rk+'" maxlength="20" value="'+esc(r.pref)+'" oninput="upd('+i+',\'pref\',this.value);fitInput(this)"></td>'
+      + '<td style="text-align:center;"><input type="checkbox"'+(r.ranking?' checked':'')+' onchange="if(window.__ROWS['+i+']){window.__ROWS['+i+'].ranking=this.checked;render();}" style="width:16px;height:16px;cursor:pointer;" title="ランキング対象"></td>'
+      + '<td><input type="text" class="se-in'+rk+'" maxlength="120" value="'+esc(r.event)+'" oninput="upd('+i+',\'event\',this.value);fitInput(this)"></td>'
+      + '<td><input type="text" class="se-in'+rk+'" maxlength="120" value="'+esc(r.venue)+'" oninput="upd('+i+',\'venue\',this.value);fitInput(this)"></td>'
       + '<td><input type="text" class="se-in" maxlength="200" value="'+esc(r.remark)+'" oninput="upd('+i+',\'remark\',this.value);fitInput(this)"></td>';
     h+='</tr>';
   });

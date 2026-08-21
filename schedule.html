@@ -25,6 +25,7 @@
     .sched-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--border); border-radius:8px; }
     table.sched { width:100%; border-collapse:collapse; font-size:0.9rem; min-width:820px; }
     .sched td.rank { text-align:center; color:#1a7a3a; font-weight:700; }
+    .sched td.rank-on { background:#faf3df; }
     .sched th.rank-h { font-size:0.62rem; line-height:1.15; text-align:center; white-space:normal; }
     .sched th, .sched td { border-bottom:1px solid var(--border); padding:4px 3px; text-align:left; vertical-align:middle; line-height:1.35; }
     .sched thead th { background:var(--primary); color:#fff; font-weight:700; white-space:nowrap; font-size:0.82rem; letter-spacing:.03em; text-align:center; }
@@ -231,12 +232,13 @@ function renderTable() {
           dateCell = m + '/' + day + '<span class="wd">（' + wd + (hol ? '・祝' : '') + '）</span>';
         }
         var empty = !(String(r.event || '').trim() || String(r.pref || '').trim());
+        var rk = r.ranking ? ' rank-on' : '';
         html += '<tr class="' + (empty ? 'empty' : '') + '">'
           + '<td class="date ' + cls + '">' + dateCell + '</td>'
-          + '<td class="pref">' + esc(r.pref) + '</td>'
+          + '<td class="pref' + rk + '">' + esc(r.pref) + '</td>'
           + '<td class="rank">' + (r.ranking ? '✓' : '') + '</td>'
-          + '<td class="event">' + esc(r.event) + '</td>'
-          + '<td class="venue">' + esc(r.venue) + '</td>'
+          + '<td class="event' + rk + '">' + esc(r.event) + '</td>'
+          + '<td class="venue' + rk + '">' + esc(r.venue) + '</td>'
           + '<td class="remark">' + esc(r.remark) + '</td>'
           + '</tr>';
       });
