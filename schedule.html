@@ -25,9 +25,9 @@
     .sched-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--border); border-radius:8px; }
     table.sched { width:100%; border-collapse:collapse; font-size:0.9rem; min-width:820px; }
     .sched td.rank { text-align:center; color:#1a7a3a; font-weight:700; }
-    .sched th.rank-h { font-size:0.6rem; line-height:1.1; text-align:center; }
-    .sched th, .sched td { border-bottom:1px solid var(--border); padding:4px 10px; text-align:left; vertical-align:middle; line-height:1.35; }
-    .sched thead th { background:var(--primary); color:#fff; font-weight:700; white-space:nowrap; font-size:0.82rem; letter-spacing:.03em; }
+    .sched th.rank-h { font-size:0.62rem; line-height:1.15; text-align:center; white-space:normal; }
+    .sched th, .sched td { border-bottom:1px solid var(--border); padding:4px 3px; text-align:left; vertical-align:middle; line-height:1.35; }
+    .sched thead th { background:var(--primary); color:#fff; font-weight:700; white-space:nowrap; font-size:0.82rem; letter-spacing:.03em; text-align:center; }
     .sched tbody tr:hover { background:var(--bg-blue); }
     .sched td.date { white-space:nowrap; font-weight:700; color:var(--text-dark); }
     .sched td.date .wd { font-size:0.8rem; font-weight:600; margin-left:3px; color:var(--text-light); }
@@ -211,7 +211,7 @@ function renderTable() {
       });
 
       var html = '<div class="sched-wrap"><table class="sched"><thead><tr>'
-        + '<th style="width:120px;">開催日</th><th style="width:80px;">府県</th><th class="rank-h" style="width:38px;">ランキング</th><th>大会名</th><th style="width:22%;">会場</th><th style="width:16%;">備考</th>'
+        + '<th style="width:120px;">開催日</th><th style="width:80px;">府県</th><th class="rank-h" style="width:38px;">ランキ<br>ング</th><th>大会名</th><th style="width:22%;">会場</th><th style="width:16%;">備考</th>'
         + '</tr></thead><tbody>';
 
       var lastMonth = null;
