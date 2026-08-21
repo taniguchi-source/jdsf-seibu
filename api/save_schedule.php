@@ -80,9 +80,20 @@ if ($role === 'admin') {
     $out = ['year' => $year, 'title' => $title, 'rows' => $rows, 'updated' => date('c')];
 
 } else {
-    /* 担当者：E/F/G/H のみ。日付は現状維持・既存行は削除不可・同一日の追加のみ許可 */
-    $allowed = [];   // "m-d" => true（既存の開催日）
-    foreach ($cur_rows as $r) { $allowed[((int)($r['month'] ?? 0)) . '-' . ((int)($r['day'] ?? 0))] = true; }
+    /* 担当者：E/F/G/H のみ。日付は現状維持・既存行は削除不可。
+       追加できる日付は「既存の開催日」と「既存の日曜の前日（土曜）」のみ。 */
+    $yr = (int)($cur['year'] ?? 2027);
+    $allowed = [];   // "m-d" => true
+    foreach ($cur_rows as $r) {
+        $mm = (int)($r['month'] ?? 0); $dd = (int)($r['day'] ?? 0);
+        if ($mm < 1 || $dd < 1) continue;
+        $allowed[$mm . '-' . $dd] = true;
+        $ts = mktime(0, 0, 0, $mm, $dd, $yr);
+        if ((int)date('w', $ts) === 0) {                 // 日曜 → 前日（土曜）も許可
+            $pv = $ts - 86400;
+            $allowed[((int)date('n', $pv)) . '-' . ((int)date('j', $pv))] = true;
+        }
+    }
 
     $existing = [];  // id => row
     foreach ($cur_rows as $r) { if (isset($r['id'])) $existing[(string)$r['id']] = $r; }

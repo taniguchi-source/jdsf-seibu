@@ -217,9 +217,9 @@
         var empty = !(String(r.event || '').trim() || String(r.pref || '').trim());
         html += '<tr class="' + (empty ? 'empty' : '') + '">'
           + '<td class="date ' + cls + '">' + dateCell + '</td>'
-          + '<td class="pref">' + (esc(r.pref) || '—') + '</td>'
-          + '<td class="event">' + (esc(r.event) || '（募集中）') + '</td>'
-          + '<td class="venue">' + (esc(r.venue) || '—') + '</td>'
+          + '<td class="pref">' + esc(r.pref) + '</td>'
+          + '<td class="event">' + esc(r.event) + '</td>'
+          + '<td class="venue">' + esc(r.venue) + '</td>'
           + '<td class="remark">' + esc(r.remark) + '</td>'
           + '</tr>';
       });

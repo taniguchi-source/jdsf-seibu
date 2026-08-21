@@ -21,7 +21,7 @@
     .login-box { max-width:420px; margin:8vh auto; }
     .login-box input[type=password]{ width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:6px; font-size:1rem; box-sizing:border-box; }
     .se-in { width:100%; padding:6px 8px; border:1.5px solid var(--border); border-radius:5px; font-size:.85rem; box-sizing:border-box; font-family:inherit; }
-    .se-num { width:56px; text-align:center; padding:6px 4px; border:1.5px solid var(--border); border-radius:5px; font-size:.85rem; box-sizing:border-box; }
+    .se-num { width:42px; text-align:center; padding:5px 2px; border:1.5px solid var(--border); border-radius:5px; font-size:.85rem; box-sizing:border-box; }
     table.se { width:100%; border-collapse:collapse; font-size:.85rem; }
     table.se th, table.se td { border-bottom:1px solid var(--border); padding:3px 6px; text-align:left; vertical-align:middle; line-height:1.3; }
     table.se thead th { background:var(--primary); color:#fff; font-weight:700; font-size:.78rem; white-space:nowrap; }
@@ -31,7 +31,7 @@
     .se-locked { background:#f6f8fb; }
     .row-tools button { border:1px solid var(--border); background:#fff; border-radius:5px; cursor:pointer; padding:2px 7px; font-size:.85rem; line-height:1.2; }
     .row-tools .add { color:#1a7a3a; border-color:#bfe3c9; font-weight:800; }
-    .row-tools .del { color:#b3261e; border-color:#f1c9c4; }
+    .row-tools .sat { color:#2563eb; border-color:#bcd3f5; font-weight:800; }
     .barbtns { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
     .rolechip { font-size:.72rem; font-weight:700; padding:3px 10px; border-radius:12px; }
     .rolechip.staff { background:#e8f0fe; color:#1a56db; }
@@ -155,6 +155,22 @@ function dateBadge(year,m,d){
   var cls = (dt.getDay()===0||hol)?'sun':(dt.getDay()===6?'sat':'');
   return { html: m+'/'+d+'<span class="wd">（'+wd+(hol?'・祝':'')+'）</span>', cls: cls };
 }
+/* 曜日だけ（例「月・祝」）。カッコ・日付は付けない */
+function wdLabel(year,m,d){
+  if(!m||!d) return {txt:'', cls:''};
+  var dt=new Date(year,m-1,d), hol=!!holidaySet(year)[m+'-'+d];
+  var cls=(dt.getDay()===0||hol)?'sun':(dt.getDay()===6?'sat':'');
+  return { txt:(WEEKDAYS[dt.getDay()]||'')+(hol?'・祝':''), cls:cls };
+}
+function isSunday(year,m,d){ return !!(m&&d) && new Date(year,m-1,d).getDay()===0; }
+/* 入力の値が枠に収まらない場合はフォントを段階的に縮小 */
+function fitInput(el){
+  if(!el) return;
+  if(!el.value){ el.style.fontSize=''; return; }
+  var fs=13, guard=0; el.style.fontSize=fs+'px';
+  while(el.scrollWidth>el.clientWidth+1 && fs>9 && guard<12){ fs--; el.style.fontSize=fs+'px'; guard++; }
+}
+function fitAll(){ var els=document.querySelectorAll('#table-area .se-in'); for(var i=0;i<els.length;i++) fitInput(els[i]); }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function setMsg(id,text,ok){ var el=document.getElementById(id); if(!el) return; el.className='msg '+(ok?'ok':'ng'); el.textContent=text; el.style.display='block'; if(ok) setTimeout(function(){el.style.display='none';},3500); }
 
@@ -194,8 +210,8 @@ function showApp(){
   document.getElementById('rolechip').className='rolechip '+(admin?'admin':'staff');
   document.getElementById('rolechip').textContent= admin?'役員（全編集）':'担当者';
   document.getElementById('role-note').innerHTML = admin
-    ? '日程（月・日）の追加・削除・編集、府県・大会名・会場・備考の記入、担当者パスワードの設定ができます。行は日付順に自動整列されます。「＋」で同じ開催日の空行を下に追加できます。'
-    : '<strong>府県・大会名・会場・備考</strong>を記入・修正できます。日付は西部ブロックが設定しているため変更できません。同じ開催日に複数の大会がある場合は「＋」でその開催日の空行を下に追加できます。';
+    ? '日程（月・日）の追加・編集、府県・大会名・会場・備考の記入、担当者パスワードの設定ができます。行は日付順に自動整列。<strong>＋</strong>＝同じ開催日の空行を下に追加、日曜行の<strong>土</strong>＝前日（土曜）の空行を上に追加。'
+    : '<strong>府県・大会名・会場・備考</strong>を記入・修正できます。日付は西部ブロックが設定しているため変更できません。<strong>＋</strong>＝同じ開催日の空行を下に追加、日曜行の<strong>土</strong>＝前日（土曜）の空行を上に追加。';
   document.getElementById('admin-meta').classList.toggle('hidden', !admin);
   document.getElementById('admin-add').classList.toggle('hidden', !admin);
   document.getElementById('admin-pw').classList.toggle('hidden', !admin);
@@ -236,42 +252,51 @@ function render(){
   var admin=(window.__ROLE==='admin'), y=window.__YEAR, rows=window.__ROWS;
   var cols=admin?8:6;
   var h='<div class="se-scroll"><table class="se '+(admin?'admin':'staff')+'"><thead><tr>';
-  h+='<th style="width:78px;">操作</th>';
-  if(admin) h+='<th style="width:50px;">月</th><th style="width:50px;">日</th><th style="width:66px;">曜日</th>';
-  else h+='<th style="width:120px;">開催日</th>';
-  h+='<th style="width:84px;">府県</th><th>大会名</th><th style="width:20%;">会場</th><th style="width:18%;">備考</th></tr></thead><tbody>';
+  h+='<th style="width:86px;">操作</th>';
+  if(admin) h+='<th style="width:40px;">月</th><th style="width:40px;">日</th><th style="width:46px;">曜</th>';
+  else h+='<th style="width:104px;">開催日</th>';
+  h+='<th style="width:78px;">府県</th><th>大会名</th><th style="width:20%;">会場</th><th style="width:18%;">備考</th></tr></thead><tbody>';
 
   if(!rows.length){ h+='<tr><td colspan="'+cols+'" style="text-align:center;color:var(--text-light);padding:24px;">'+(admin?'「日程（行）を追加」から作成してください。':'まだ日程が登録されていません。西部ブロックの設定をお待ちください。')+'</td></tr>'; }
 
   rows.forEach(function(r,i){
-    var b=dateBadge(y, parseInt(r.month,10)||0, parseInt(r.day,10)||0);
-    var isNew=!String(r.id||'');
-    var canDel=admin||isNew;
+    var mm=parseInt(r.month,10)||0, dd=parseInt(r.day,10)||0;
+    var sun=isSunday(y,mm,dd);
     h+='<tr>';
     h+='<td class="row-tools" style="white-space:nowrap;">'
       + '<button class="add" onclick="copyRow('+i+')" title="この開催日をコピーして下に追加">＋</button>'
-      + (canDel ? ' <button class="del" onclick="delRow('+i+')" title="削除">🗑</button>' : '')
+      + (sun ? ' <button class="sat" onclick="satRow('+i+')" title="前日（土曜）の行を上に追加">土</button>' : '')
       + '</td>';
     if(admin){
+      var wl=wdLabel(y,mm,dd);
       h+='<td><input type="number" class="se-num" min="1" max="12" value="'+(r.month||'')+'" oninput="upd('+i+',\'month\',this.value)" onchange="render()"></td>'
         + '<td><input type="number" class="se-num" min="1" max="31" value="'+(r.day||'')+'" oninput="upd('+i+',\'day\',this.value)" onchange="render()"></td>'
-        + '<td class="se-date '+b.cls+'">'+(b.html||'—')+'</td>';
+        + '<td class="se-date '+wl.cls+'" style="text-align:center;">'+(wl.txt||'—')+'</td>';
     } else {
+      var b=dateBadge(y,mm,dd);
       h+='<td class="se-date se-locked '+b.cls+'">'+(b.html||'—')+'</td>';
     }
-    h+='<td><input type="text" class="se-in" maxlength="20" value="'+esc(r.pref)+'" placeholder="府県" oninput="upd('+i+',\'pref\',this.value)"></td>'
-      + '<td><input type="text" class="se-in" maxlength="120" value="'+esc(r.event)+'" placeholder="大会名" oninput="upd('+i+',\'event\',this.value)"></td>'
-      + '<td><input type="text" class="se-in" maxlength="120" value="'+esc(r.venue)+'" placeholder="会場" oninput="upd('+i+',\'venue\',this.value)"></td>'
-      + '<td><input type="text" class="se-in" maxlength="200" value="'+esc(r.remark)+'" placeholder="備考" oninput="upd('+i+',\'remark\',this.value)"></td>';
+    h+='<td><input type="text" class="se-in" maxlength="20" value="'+esc(r.pref)+'" oninput="upd('+i+',\'pref\',this.value);fitInput(this)"></td>'
+      + '<td><input type="text" class="se-in" maxlength="120" value="'+esc(r.event)+'" oninput="upd('+i+',\'event\',this.value);fitInput(this)"></td>'
+      + '<td><input type="text" class="se-in" maxlength="120" value="'+esc(r.venue)+'" oninput="upd('+i+',\'venue\',this.value);fitInput(this)"></td>'
+      + '<td><input type="text" class="se-in" maxlength="200" value="'+esc(r.remark)+'" oninput="upd('+i+',\'remark\',this.value);fitInput(this)"></td>';
     h+='</tr>';
   });
   h+='</tbody></table></div>';
   document.getElementById('table-area').innerHTML=h;
+  fitAll();
 }
 
 function upd(i,field,val){ if(window.__ROWS[i]) window.__ROWS[i][field]= (field==='month'||field==='day') ? (parseInt(val,10)||'') : val; }
 function copyRow(i){ var r=window.__ROWS[i]; if(!r) return; window.__ROWS.splice(i+1,0,{id:'',month:r.month,day:r.day,pref:'',event:'',venue:'',remark:'',updated_at:''}); render(); }
-function delRow(i){ var r=window.__ROWS[i]; if(!r) return; if(window.__ROLE!=='admin' && String(r.id||'')){ return; } var label=(r.event||r.pref||((r.month||'?')+'/'+(r.day||'?'))); if(!confirm('この行を削除します：'+label+'\nよろしいですか？（保存するまで反映されません）')) return; window.__ROWS.splice(i,1); render(); }
+/* 日曜行の前日（土曜）を上に挿入 */
+function satRow(i){
+  var r=window.__ROWS[i]; if(!r) return;
+  var mm=parseInt(r.month,10)||0, dd=parseInt(r.day,10)||0; if(!isSunday(window.__YEAR,mm,dd)) return;
+  var pv=new Date(window.__YEAR, mm-1, dd-1);
+  window.__ROWS.splice(i,0,{id:'',month:pv.getMonth()+1,day:pv.getDate(),pref:'',event:'',venue:'',remark:'',updated_at:''});
+  render();
+}
 function addRow(){ window.__ROWS.push({id:'',month:'',day:'',pref:'',event:'',venue:'',remark:'',updated_at:''}); render(); }
 
 /* ===== 保存 ===== */
