@@ -506,6 +506,18 @@
               <span id="cd-pdf-pcwidth-val" style="min-width:52px;text-align:right;font-weight:800;color:var(--primary);font-size:.95rem;">100%</span>
             </div>
           </div>
+          <!-- 画像専用: PCで表示する幅（%）。スマホは常に全幅 -->
+          <div id="cd-img-pcwidth-wrap" style="display:none;">
+            <label class="form-label">PCで表示する幅（%）
+              <span style="font-size:.75rem;font-weight:400;color:var(--text-light);">（スマホは常に全幅。小さくすると縮小表示されます）</span>
+            </label>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <input type="range" id="cd-img-pcwidth" min="20" max="100" step="5" value="100"
+                oninput="var v=document.getElementById('cd-img-pcwidth-val'); if(v) v.textContent=this.value+'%';"
+                style="flex:1;accent-color:var(--primary);cursor:pointer;">
+              <span id="cd-img-pcwidth-val" style="min-width:52px;text-align:right;font-weight:800;color:var(--primary);font-size:.95rem;">100%</span>
+            </div>
+          </div>
           <!-- 保存URL（隠しフィールド） -->
           <input type="hidden" id="cd-file-url">
         </div>
@@ -1316,7 +1328,7 @@
         show_title: false,          /* ヒーローに同じページ名が出るため見出しは重複させない */
         type: 'embed', body: '',
         sheet_url: '', sheet_name: '', sheet_range: '', sheet_html: '', sheet_format: '',
-        file_url: '', pdf_pc_width: 100, link_url: '', link_label: '',
+        file_url: '', pdf_pc_width: 100, img_pc_width: 100, link_url: '', link_label: '',
         embed_url: url, embed_height: h, gallery: []
       });
     }
@@ -1760,6 +1772,13 @@
     if (!(pcwNum >= 20 && pcwNum <= 100)) pcwNum = 100;
     if (pcwEl)  pcwEl.value = pcwNum;
     if (pcwVal) pcwVal.textContent = pcwNum + '%';
+    // 画像: PC表示幅（%）
+    var iwEl  = document.getElementById('cd-img-pcwidth');
+    var iwVal = document.getElementById('cd-img-pcwidth-val');
+    var iwNum = parseInt(item.img_pc_width, 10);
+    if (!(iwNum >= 20 && iwNum <= 100)) iwNum = 100;
+    if (iwEl)  iwEl.value = iwNum;
+    if (iwVal) iwVal.textContent = iwNum + '%';
     // ギャラリーフィールド
     _galleryImages = Array.isArray(item.gallery) ? item.gallery.slice() : [];
     renderGalleryThumbs();
@@ -1858,6 +1877,10 @@
       var pcwv = pcwEl2 ? parseInt(pcwEl2.value, 10) : 100;
       if (!(pcwv >= 20 && pcwv <= 100)) pcwv = 100;
       item.pdf_pc_width = pcwv;
+      var iwEl2 = document.getElementById('cd-img-pcwidth');
+      var iwv = iwEl2 ? parseInt(iwEl2.value, 10) : 100;
+      if (!(iwv >= 20 && iwv <= 100)) iwv = 100;
+      item.img_pc_width = iwv;
     }
     var chipsEl = document.getElementById('content-chips-' + siteId);
     if (chipsEl) chipsEl.innerHTML = renderContentChips(siteId);
@@ -1885,17 +1908,20 @@
     var hint = document.getElementById('cd-file-type-hint');
     var inp  = document.getElementById('cd-file-input');
     var pcwWrap = document.getElementById('cd-pdf-pcwidth-wrap');
+    var imgWrap = document.getElementById('cd-img-pcwidth-wrap');
     if (type === 'pdf') {
       if (lbl)  lbl.textContent  = 'PDFファイルを選択';
       if (hint) hint.textContent = '（pdf　最大10MB）';
       if (inp)  inp.accept = '.pdf';
       if (pcwWrap) pcwWrap.style.display = '';
+      if (imgWrap) imgWrap.style.display = 'none';
     } else {
       /* image / file(旧) */
       if (lbl)  lbl.textContent  = '画像ファイルを選択';
       if (hint) hint.textContent = '（jpg / png / gif　最大10MB）';
       if (inp)  inp.accept = '.jpg,.jpeg,.png,.gif';
       if (pcwWrap) pcwWrap.style.display = 'none';
+      if (imgWrap) imgWrap.style.display = (type === 'image' || type === 'file') ? '' : 'none';
     }
   }
 

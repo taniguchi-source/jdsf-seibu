@@ -50,6 +50,10 @@ foreach ($items as $item) {
     $pdf_pc_width = (int)($item['pdf_pc_width'] ?? 100);
     if ($pdf_pc_width < 20)  $pdf_pc_width = 20;
     if ($pdf_pc_width > 100) $pdf_pc_width = 100;
+    // 画像のPC表示幅（%）。20〜100の整数。未指定/範囲外は100（＝全幅）
+    $img_pc_width = (int)($item['img_pc_width'] ?? 100);
+    if ($img_pc_width < 20)  $img_pc_width = 20;
+    if ($img_pc_width > 100) $img_pc_width = 100;
     // サイト埋め込み（iframe）。http(s) のみ許可。それ以外は空＝未設定
     $embed_url = mb_substr(trim((string)($item['embed_url'] ?? '')), 0, 500);
     if ($embed_url !== '' && !preg_match('#^https?://#i', $embed_url)) {
@@ -75,6 +79,7 @@ foreach ($items as $item) {
         'sheet_format' => $sheet_format,
         'file_url'   => mb_substr(trim((string)($item['file_url']   ?? '')), 0, 500),
         'pdf_pc_width' => $pdf_pc_width,
+        'img_pc_width' => $img_pc_width,
         'link_url'   => mb_substr(trim((string)($item['link_url']   ?? '')), 0, 500),
         'link_label' => mb_substr(trim((string)($item['link_label'] ?? '')), 0, 100),
         'embed_url'    => $embed_url,

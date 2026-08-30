@@ -385,6 +385,7 @@ function spcFields(n,i,it){
     return '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'
       + '<div id="spc-thumb-'+n+'-'+i+'">'+spcThumb(n,i,it.file_url||'','image')+'</div>'
       + '<input type="file" accept="image/*" onchange="if(this.files[0])spcUpload('+n+','+i+',this.files[0])" style="font-size:.72rem;">'
+      + '<label class="ck">PC表示幅 <input type="number" value="'+(parseInt(it.img_pc_width,10)||100)+'" min="20" max="100" step="5" oninput="'+ref+'.img_pc_width=parseInt(this.value,10)||100" style="width:64px;padding:5px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:.78rem;font-family:inherit;"> %</label>'
       + '</div>';
   }
   if(it.type==='pdf'){
@@ -446,7 +447,7 @@ function spcAdd(n){
   var list=spcOf(n);
   if(list.length>=30){ alert('1ページの上限は30ブロックです'); return; }
   list.push({id:'b'+Date.now().toString(36), title:'', enabled:true, view:'full', show_title:true, type:'text',
-             body:'', file_url:'', pdf_pc_width:100, link_url:'', link_label:'', embed_url:'', embed_height:1200});
+             body:'', file_url:'', pdf_pc_width:100, img_pc_width:100, link_url:'', link_label:'', embed_url:'', embed_height:1200});
   spcRender(n);
 }
 function spcDel(n,i){ spcOf(n).splice(i,1); spcRender(n); }

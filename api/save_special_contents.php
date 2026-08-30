@@ -61,6 +61,9 @@ foreach ($items as $item) {
     $pdf_pc_width = (int)($item['pdf_pc_width'] ?? 100);
     if ($pdf_pc_width < 20)  $pdf_pc_width = 20;
     if ($pdf_pc_width > 100) $pdf_pc_width = 100;
+    $img_pc_width = (int)($item['img_pc_width'] ?? 100);
+    if ($img_pc_width < 20)  $img_pc_width = 20;
+    if ($img_pc_width > 100) $img_pc_width = 100;
 
     // 埋め込みの高さ(px)。300〜5000。範囲外は1200
     $embed_height = (int)($item['embed_height'] ?? 1200);
@@ -78,6 +81,7 @@ foreach ($items as $item) {
         'body'         => mb_substr(trim((string)($item['body'] ?? '')), 0, 5000),
         'file_url'     => sc_safe_file_url($item['file_url'] ?? ''),
         'pdf_pc_width' => $pdf_pc_width,
+        'img_pc_width' => $img_pc_width,
         'link_url'     => sc_safe_url($item['link_url'] ?? ''),
         'link_label'   => mb_substr(trim((string)($item['link_label'] ?? '')), 0, 100),
         'embed_url'    => sc_safe_url($item['embed_url'] ?? ''),

@@ -451,11 +451,23 @@
       /* 画像 */
       var fUrl = item.file_url || '';
       if (fUrl) {
+        var ipcw = parseInt(item.img_pc_width, 10);
+        if (!(ipcw >= 20 && ipcw <= 100)) ipcw = 100;
+        if (!document.getElementById('img-scale-style')) {
+          var ist = document.createElement('style');
+          ist.id = 'img-scale-style';
+          ist.textContent = '@media (min-width:769px){ .img-scale-wrap{ max-width: var(--img-pc-width, 100%); } }';
+          document.head.appendChild(ist);
+        }
+        var iwrap = document.createElement('div');
+        iwrap.className = 'img-scale-wrap';
+        iwrap.style.setProperty('--img-pc-width', ipcw + '%');
         var img = document.createElement('img');
         img.src   = fUrl;
         img.alt   = item.title || '';
         img.style.cssText = 'max-width:100%;height:auto;border-radius:8px;display:block;';
-        bodyEl.appendChild(img);
+        iwrap.appendChild(img);
+        bodyEl.appendChild(iwrap);
       } else {
         bodyEl.className = 'content-block-body';
         bodyEl.textContent = '（画像は未設定です）';
