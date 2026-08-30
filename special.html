@@ -388,7 +388,7 @@
         if (!document.getElementById('img-scale-style')) {
           var ist = document.createElement('style');
           ist.id = 'img-scale-style';
-          ist.textContent = '@media (min-width:769px){ .img-scale-wrap{ max-width: var(--img-pc-width, 100%); } }';
+          ist.textContent = '@media (min-width:769px){ .img-scale-wrap{ max-width: var(--img-pc-width, 100%); margin-left:auto; margin-right:auto; } }';
           document.head.appendChild(ist);
         }
         var iwrap = document.createElement('div');
