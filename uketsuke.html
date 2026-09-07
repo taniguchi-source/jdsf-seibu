@@ -259,9 +259,10 @@
 
       <h2>まとめて入力</h2>
       <div class="card">
-        <p class="muted">タイムテーブルを見ながら、<b>コード,種目名,開始時刻</b> を1行ずつ貼り付けて「まとめて反映」を押すと、上の表に反映して保存します。
-          既にあるコードは名称・時刻を上書きし、無いコードは追加します。</p>
-        <textarea id="ev-bulk" rows="6" placeholder="JAS,JDSF A級戦S,13:03&#10;JAL,JDSF Ａ級戦L,10:30&#10;MAS,シニアⅡA級戦S,14:01"
+        <p class="muted">現在の内容を <b>コード,種目名,開始時刻</b> の形で表示しています。ここを直接書き換えるか、
+          タイムテーブルからコピーした内容を貼り付けて「まとめて反映」を押すと、上の表に反映して保存します。
+          既にあるコードは名称・時刻を上書きし、無いコードは追加します（Excelからのタブ区切りの貼り付けも可）。</p>
+        <textarea id="ev-bulk" rows="8"
           style="width:100%;font-size:14px;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:inherit"></textarea>
         <div style="height:10px"></div>
         <button id="ev-bulk-apply">まとめて反映</button>
@@ -841,6 +842,13 @@ function renderEvents(){
   el('ev-list').querySelectorAll('button[data-i]').forEach(function(b){
     b.addEventListener('click', function(){ EV.splice(Number(b.dataset.i), 1); DATA.events = EV; renderEvents(); });
   });
+
+  /* まとめて入力欄に現在の内容を実際の文字として入れておく。
+     見本をプレースホルダ（グレー表示）にすると、入力済みに見えて
+     そのままボタンを押してしまうため。 */
+  el('ev-bulk').value = EV.map(function(e){
+    return [e.code, e.name || '', e.start_time || ''].join(',');
+  }).join('\n');
 }
 el('ev-add').addEventListener('click', function(){
   var c = el('ev-code').value.trim();
@@ -886,7 +894,7 @@ el('ev-bulk-apply').addEventListener('click', function(){
     }
   });
 
-  if (!updated && !added) { alert('反映できる行がありませんでした。「コード,種目名,開始時刻」の形式で入力してください。'); return; }
+  if (!updated && !added) { alert('反映できる行がありませんでした。欄が空になっていないか確認し、「コード,種目名,開始時刻」を1行ずつ入力してください。'); return; }
 
   post('api/uketsuke_save_events.php', {id:COMP.id, events:JSON.stringify(EV)})
     .then(function(){
