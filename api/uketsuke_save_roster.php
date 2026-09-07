@@ -85,6 +85,14 @@ foreach ($wanted as $c) {
 }
 if ($added) uk_write_json(uk_events_file($id), $events);
 
+/* 次回の取込で初期表示するため、指定された種目コードの並びを記憶する */
+$explicit = [];
+foreach (json_decode($_POST['event_codes'] ?? '[]', true) ?: [] as $c) {
+    $c = mb_substr(preg_replace('/[^A-Za-z0-9_-]/', '', (string)$c), 0, 20);
+    if ($c !== '') $explicit[] = $c;
+}
+if ($explicit) uk_save_last_event_codes($explicit);
+
 json_out([
     'ok'                 => true,
     'count'              => count($merged),

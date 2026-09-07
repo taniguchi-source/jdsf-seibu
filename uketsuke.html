@@ -711,6 +711,11 @@ function autoDetect(){
 
   EV_START = evStart;   /* 「まとめて入力」で使う */
 
+  /* まとめて入力欄に、この大会の種目マスタ（無ければ前回取込時の並び）を初期表示しておく。
+     毎回コードを打ち直さずに「割り当てる」を押すだけで済むように。 */
+  var known = codes.length ? codes : (PREV.event_codes || []);
+  if (known.length && !el('bulk-codes').value) el('bulk-codes').value = known.join(',');
+
   /* 判定結果を知らせる（間違っていれば手で直せる） */
   var msg = [];
   msg.push('自動判定しました → 背番号=' + (bib >= 0 ? '列' + (bib+1) : '不明')
@@ -720,8 +725,10 @@ function autoDetect(){
   if (evStart >= 0 && assigned > 0) {
     msg.push('競技参加区分は列' + (evStart+1) + '以降と判断し、種目マスタの並び順で ' + assigned + '種目を割り当てました（' + codes.slice(0, assigned).join(', ') + '）。');
     msg.push('※この順番はDCSの「競技内容設定」の並び順と一致している必要があります。');
+  } else if (evStart >= 0 && (PREV.event_codes || []).length) {
+    msg.push('競技参加区分は列' + (evStart+1) + '以降と判断しました。下の「種目コードをまとめて入力」欄に前回の並びを入れてありますので、確認して <b>「割り当てる」</b> を押してください。');
   } else if (evStart >= 0) {
-    msg.push('競技参加区分は列' + (evStart+1) + '以降と判断しました。種目マスタが未登録のため、下の「種目コードをまとめて入力」欄に、DCSの競技内容設定の順でコードを入れて「割り当てる」を押してください（取り込み時に種目マスタへ自動登録されます）。');
+    msg.push('競技参加区分は列' + (evStart+1) + '以降と判断しました。下の「種目コードをまとめて入力」欄に、DCSの競技内容設定の順でコードを入れて <b>「割り当てる」</b> を押してください（取り込み時に種目マスタへ自動登録されます）。');
   } else {
     msg.push('競技参加区分の列を判定できませんでした。手動でチェックしてください。');
   }

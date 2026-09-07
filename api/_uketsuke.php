@@ -67,6 +67,21 @@ function uk_write_json($file, $data) {
     return true;
 }
 
+/* ---- 前回使った種目コードの記憶 ----
+   競技会ごとに種目構成はほぼ同じなので、前回の並びを覚えておいて次回の取込時に初期表示する。 */
+function uk_config_file() { return uk_ensure_root() . '/config.json'; }
+function uk_last_event_codes() {
+    $c = uk_read_json(uk_config_file(), []);
+    $v = isset($c['last_event_codes']) && is_array($c['last_event_codes']) ? $c['last_event_codes'] : [];
+    return array_values($v);
+}
+function uk_save_last_event_codes($codes) {
+    $c = uk_read_json(uk_config_file(), []);
+    $c['last_event_codes'] = array_values($codes);
+    $c['updated_at'] = uk_now();
+    return uk_write_json(uk_config_file(), $c);
+}
+
 /* ---- 大会一覧 ---- */
 function uk_list_file() { return uk_ensure_root() . '/index.json'; }
 function uk_load_list() { return uk_read_json(uk_list_file(), []); }

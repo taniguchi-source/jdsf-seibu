@@ -48,8 +48,20 @@ while (($cols = fgetcsv($fh)) !== false) {
 fclose($fh);
 if (!$rows) json_out(['error' => 'CSVにデータがありません'], 400);
 
+/* 画面で「種目コードをまとめて入力」欄に初期表示する候補
+   （この大会の種目マスタ → 無ければ前回の取込で使った並び） */
+$id_for_events = $_POST['id'] ?? '';
+$codes = [];
+if (uk_valid_id($id_for_events)) {
+    foreach (uk_load_events($id_for_events) as $e) {
+        if (!empty($e['code'])) $codes[] = $e['code'];
+    }
+}
+if (!$codes) $codes = uk_last_event_codes();
+
 json_out([
     'ok'                => true,
+    'event_codes'       => $codes,
     'rows'              => $rows,
     'encoding'          => $enc,
     'dcs_signature'     => $dcs_signature,
