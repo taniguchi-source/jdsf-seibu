@@ -397,6 +397,7 @@ function loadCompCandidates(){
       items = items.filter(function(x){ return x && x.date_iso && x.date_iso >= from; })
                    .sort(function(a, b){ return (a.date_iso || '').localeCompare(b.date_iso || ''); });
       var sel = el('nc-pick');
+      sel.innerHTML = '<option value="">選択して入力する…</option>';   /* 二重に積まないよう作り直す */
       items.forEach(function(x){
         var o = document.createElement('option');
         o.value = JSON.stringify({n: cleanCompName(x.name), d: x.date_iso, c: x.comp_no || ''});
