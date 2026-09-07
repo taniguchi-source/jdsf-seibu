@@ -23,6 +23,8 @@
   table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
   th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--border)}
   th{background:#fafafa;color:var(--muted)}
+  /* 背番号は点呼で最も重要なので、印刷しても一目で読めるようにする */
+  #report td:first-child{font-size:18px;font-weight:800;width:1%;white-space:nowrap}
   .event-block{margin-bottom:26px}
   .event-block h2{font-size:17px;margin:0 0 2px}
   .event-block h3{font-size:14px;margin:12px 0 4px;color:var(--muted)}
@@ -110,19 +112,19 @@ function render(){
       return '<div class="event-block">'
         + '<h2>' + evLabel(e) + '</h2>'
         + '<div class="muted">' + (e.start_time ? '開始 ' + esc(e.start_time) + '　' : '')
-        + '出場 ' + present.length + ' / 欠場 ' + absent.length + '　'
+        + '欠場 ' + absent.length + ' / 出場 ' + present.length + '　'
         + esc(DATA.name) + (DATA.date ? '（' + esc(DATA.date) + '）' : '') + '</div>'
-        + '<h3>出場（チェックイン済み）</h3>'
-        + '<table><thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>受付時刻</th></tr></thead><tbody>'
-        + (present.map(function(r){ return '<tr><td>' + esc(r.bib) + '</td><td>' + esc(r.leader) + '</td><td>'
-            + esc(r.partner) + '</td><td>' + esc(r.affiliation) + '</td><td>' + esc(fmtTime(done[r.bib])) + '</td></tr>'; }).join('')
-           || '<tr><td colspan="5" class="muted">なし</td></tr>')
-        + '</tbody></table>'
         + '<h3>欠場（未チェックイン）</h3>'
         + '<table><thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th></tr></thead><tbody>'
         + (absent.map(function(r){ return '<tr><td>' + esc(r.bib) + '</td><td>' + esc(r.leader) + '</td><td>'
             + esc(r.partner) + '</td><td>' + esc(r.affiliation) + '</td></tr>'; }).join('')
            || '<tr><td colspan="4" class="muted">なし</td></tr>')
+        + '</tbody></table>'
+        + '<h3>出場（チェックイン済み）</h3>'
+        + '<table><thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>受付時刻</th></tr></thead><tbody>'
+        + (present.map(function(r){ return '<tr><td>' + esc(r.bib) + '</td><td>' + esc(r.leader) + '</td><td>'
+            + esc(r.partner) + '</td><td>' + esc(r.affiliation) + '</td><td>' + esc(fmtTime(done[r.bib])) + '</td></tr>'; }).join('')
+           || '<tr><td colspan="5" class="muted">なし</td></tr>')
         + '</tbody></table></div>';
     }).join('') || '<p class="muted">種目を選択してください</p>';
 }

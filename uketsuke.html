@@ -48,6 +48,11 @@
   table{width:100%;border-collapse:collapse;font-size:14px;background:var(--card)}
   th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)}
   th{color:var(--muted);font-weight:600;background:#fafafa}
+  /* 背番号は受付で最も重要な情報なので、どの一覧でも大きく太字にする */
+  #ci-recent td:first-child, #rc-present td:first-child,
+  #rc-absent td:first-child, #rs-list td:first-child{
+    font-size:22px;font-weight:800;color:var(--primary);width:1%;white-space:nowrap}
+  .bib-big{font-size:30px;font-weight:800;vertical-align:-2px}
   .banner{padding:14px;border-radius:10px;margin:12px 0;font-size:17px;font-weight:700;text-align:center}
   .b-ok{background:var(--ok-bg);color:var(--ok)} .b-warn{background:var(--warn-bg);color:var(--warn)}
   .b-danger{background:var(--danger-bg);color:var(--danger)}
@@ -155,18 +160,18 @@
         <a class="btn secondary" id="rc-print" href="uketsuke-print.html" style="display:inline-block;text-decoration:none">印刷ページを開く</a>
       </div>
       <div class="row wrap">
-        <span class="pill pill-ok" id="rc-p-count">出場 0</span>
         <span class="pill" id="rc-a-count">欠場 0</span>
+        <span class="pill pill-ok" id="rc-p-count">出場 0</span>
       </div>
-      <h2>出場（チェックイン済み）</h2>
-      <table>
-        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>時刻</th></tr></thead>
-        <tbody id="rc-present"></tbody>
-      </table>
       <h2>欠場（未チェックイン）</h2>
       <table>
         <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th></tr></thead>
         <tbody id="rc-absent"></tbody>
+      </table>
+      <h2>出場（チェックイン済み）</h2>
+      <table>
+        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>時刻</th></tr></thead>
+        <tbody id="rc-present"></tbody>
       </table>
     </section>
 
@@ -337,7 +342,8 @@ function switchView(v){
   document.querySelectorAll('nav.tabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.view === v); });
   views.forEach(function(x){ el('v-' + x).classList.toggle('hidden', x !== v); });
   if (v !== 'comp' && !COMP) { alert('先に大会を選んでください'); switchView('comp'); return; }
-  if (v === 'checkin') { el('bib').focus(); }
+  /* 画面を開いた時点で描画する（ポーリング待ちで数秒空欄になるのを防ぐ） */
+  if (v === 'checkin') { renderRecent(); el('bib').focus(); }
   if (v === 'rollcall') renderRollcall();
   if (v === 'roster') { renderRoster(); renderEventChecks(); }
   if (v === 'events') renderEvents();
@@ -412,7 +418,7 @@ el('ci-form').addEventListener('submit', function(e){
   if (!bib) return;
   post('api/uketsuke_checkin.php', {id:COMP.id, bib:bib, by:el('by').value})
     .then(function(r){
-      var who = esc(r.bib) + ' ' + esc(r.leader) + ' / ' + esc(r.partner)
+      var who = '<span class="bib-big">' + esc(r.bib) + '</span> ' + esc(r.leader) + ' / ' + esc(r.partner)
         + (r.affiliation ? '（' + esc(r.affiliation) + '）' : '');
       banner(r.already ? 'warn' : 'ok',
         who + '<br>' + (r.already ? '既にチェックイン済み（' + esc(fmtTime(r.checked_in_at)) + '）' : 'チェックインしました'));
