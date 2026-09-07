@@ -9,3 +9,13 @@ scripts/__pycache__/
 
 # 議事録アップロード用SSH秘密鍵（絶対にコミットしない・ローカルのみ）
 scripts/.minutes_ssh_key
+
+# 受付システムのローカル動作確認用データ（選手の氏名・所属を含むため絶対にコミットしない）
+data/uketsuke/
+
+# サーバー側/ローカルにのみ置く認証ファイル（パスワードハッシュ。コミットしない）
+data/auth.php
+data/auth_secret.php
+data/login_attempts.php
+data/schedule_auth.php
+data/special_auth.php
