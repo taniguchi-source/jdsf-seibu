@@ -10,6 +10,7 @@ if (!uk_valid_id($id)) json_out(['error' => '大会IDが不正です'], 400);
 $events   = uk_load_events($id);
 $roster   = uk_load_roster($id);
 $checkins = uk_load_checkins($id);
+$stock    = uk_load_stock($id);
 
 /* 一覧から大会名を引く */
 $name = '';
@@ -26,5 +27,6 @@ json_out([
     'events'     => $events,
     'roster'     => $roster,
     'checkins'   => array_values($checkins),
+    'stock'      => array_values($stock),
     'updated_at' => uk_now(),
 ]);

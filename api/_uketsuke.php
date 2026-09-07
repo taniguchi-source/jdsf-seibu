@@ -128,13 +128,40 @@ function uk_load_checkins($id) {
         if ($line === '') continue;
         $rec = json_decode($line, true);
         if (!is_array($rec)) continue;
-        if (($rec['action'] ?? '') === 'clear') { $map = []; continue; }
-        if (($rec['action'] ?? '') === 'remove') {          /* 1件だけ取り消し（打ち間違いの訂正） */
+        $action = (string)($rec['action'] ?? '');
+        if ($action === 'clear') { $map = []; continue; }
+        if ($action === 'remove') {                     /* 1件だけ取り消し（打ち間違いの訂正） */
             unset($map[(int)($rec['bib'] ?? 0)]);
             continue;
         }
+        if ($action !== '' && $action !== 'checkin') continue;   /* 在庫チェック等、他の記録は無視する */
         $bib = isset($rec['bib']) ? (int)$rec['bib'] : 0;
         if ($bib <= 0) continue;
+        $map[$bib] = ['bib' => $bib, 'at' => (string)($rec['at'] ?? ''), 'by' => (string)($rec['by'] ?? '')];
+    }
+    fclose($fh);
+    return $map;
+}
+
+/* 欠場者の背番号が受付に残っているかの確認記録。
+   チェックインと同じ追記ファイルに action=stock として書く（全員解除で一緒に消えるように）。 */
+function uk_load_stock($id) {
+    $file = uk_checkins_file($id);
+    if (!is_file($file)) return [];
+    $fh = @fopen($file, 'r');
+    if (!$fh) return [];
+    $map = [];
+    while (($line = fgets($fh)) !== false) {
+        $line = trim($line);
+        if ($line === '') continue;
+        $rec = json_decode($line, true);
+        if (!is_array($rec)) continue;
+        $action = (string)($rec['action'] ?? '');
+        if ($action === 'clear') { $map = []; continue; }
+        if ($action !== 'stock') continue;
+        $bib = isset($rec['bib']) ? (int)$rec['bib'] : 0;
+        if ($bib <= 0) continue;
+        if (empty($rec['on'])) { unset($map[$bib]); continue; }   /* チェックを外した */
         $map[$bib] = ['bib' => $bib, 'at' => (string)($rec['at'] ?? ''), 'by' => (string)($rec['by'] ?? '')];
     }
     fclose($fh);

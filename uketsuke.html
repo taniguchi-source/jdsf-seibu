@@ -166,8 +166,9 @@
         <span class="pill pill-ok" id="rc-p-count">出場 0</span>
       </div>
       <h2>欠場（未チェックイン）</h2>
+      <p class="muted">「背番号在庫」は、その背番号が受付に残っている（本当に来ていない）ことを確認したときにチェックします。</p>
       <table>
-        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th></tr></thead>
+        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>背番号在庫</th></tr></thead>
         <tbody id="rc-absent"></tbody>
       </table>
       <h2>出場（チェックイン済み）</h2>
@@ -500,10 +501,27 @@ function renderRollcall(){
       + '</td><td>' + esc(p[0].affiliation) + '</td><td class="muted">' + esc(p[1].by || '') + '</td>'
       + '<td>' + esc(fmtTime(p[1].at)) + '</td></tr>';
   }).join('') || '<tr><td colspan="6" class="muted">なし</td></tr>';
+  var stock = {};
+  (DATA.stock || []).forEach(function(s){ stock[s.bib] = s; });
   el('rc-absent').innerHTML = absent.map(function(r){
+    var s = stock[r.bib];
     return '<tr><td>' + esc(r.bib) + '</td><td>' + esc(r.leader) + '</td><td>' + esc(r.partner)
-      + '</td><td>' + esc(r.affiliation) + '</td></tr>';
-  }).join('') || '<tr><td colspan="4" class="muted">なし</td></tr>';
+      + '</td><td>' + esc(r.affiliation) + '</td>'
+      + '<td><label class="checkbox-row"><input type="checkbox" class="stock-check" data-bib="' + esc(r.bib) + '"'
+      + (s ? ' checked' : '') + '>'
+      + (s && s.by ? '<span class="muted">' + esc(s.by) + '</span>' : '') + '</label></td></tr>';
+  }).join('') || '<tr><td colspan="5" class="muted">なし</td></tr>';
+
+  /* 背番号が受付に残っているかの確認。複数端末で共有するのでサーバーに記録する */
+  el('rc-absent').querySelectorAll('.stock-check').forEach(function(cb){
+    cb.addEventListener('change', function(){
+      var bib = cb.dataset.bib, on = cb.checked;
+      cb.disabled = true;
+      post('api/uketsuke_stock.php', {id:COMP.id, bib:bib, on:on ? '1' : '0', by:el('by').value})
+        .then(function(){ return refresh().then(renderRollcall); })
+        .catch(function(e){ cb.checked = !on; cb.disabled = false; alert(e.message); });
+    });
+  });
 }
 el('rc-event').addEventListener('change', renderRollcall);
 
