@@ -253,7 +253,10 @@
           <button id="ev-add" class="small">追加</button>
         </div>
         <div style="height:12px"></div>
-        <button id="ev-save">種目マスタを保存</button>
+        <div class="row wrap">
+          <button id="ev-save">種目マスタを保存</button>
+          <button id="ev-guess" class="secondary">コードから種目名を補う</button>
+        </div>
         <span class="muted" id="ev-saved"></span>
       </div>
 
@@ -850,6 +853,38 @@ function renderEvents(){
     return [e.code, e.name || '', e.start_time || ''].join(',');
   }).join('\n');
 }
+/* 種目コードから種目名を推定する（api/_uketsuke.php の uk_guess_event_name と同じ規則）
+   級別戦: [J:一般/M:シニアII/G:シニアIII/R:シニアIV] + [級] + [S:スタンダード/L:ラテン]
+   市民総体: FK + [W/T/C/R] + [1:一般/2:シニア] */
+function guessEventName(code){
+  var c = String(code || '').toUpperCase().trim();
+  var m = c.match(/^([JMGR])([ABCDE])([SL])$/);
+  if (m) {
+    var age = {J:'', M:'シニアⅡ', G:'シニアⅢ', R:'シニアⅣ'};
+    var dance = {S:'スタンダード', L:'ラテン'};
+    return age[m[1]] + m[2] + '級' + dance[m[3]];
+  }
+  m = c.match(/^FK([WTCRVFQJPS])([12])$/);
+  if (m) return '市民総体' + (m[2] === '2' ? 'シニア' : '') + m[1];
+  return c;
+}
+
+/* 種目名が未設定（コードのまま）の行だけ、推定した名前で埋める */
+el('ev-guess').addEventListener('click', function(){
+  var filled = 0;
+  document.querySelectorAll('.ev-n').forEach(function(inp){
+    var i = Number(inp.dataset.i);
+    var code = EV[i].code;
+    if (!inp.value.trim() || inp.value.trim() === code) {
+      var g = guessEventName(code);
+      if (g !== code) { inp.value = g; EV[i].name = g; filled++; }
+    }
+  });
+  if (!filled) { alert('補える種目名がありませんでした（既に名称が入っているか、規則に当てはまらないコードです）。'); return; }
+  el('ev-save').click();
+  el('ev-saved').textContent = filled + '件の種目名を補いました';
+});
+
 el('ev-add').addEventListener('click', function(){
   var c = el('ev-code').value.trim();
   if (!c) { alert('種目コードを入力してください'); return; }

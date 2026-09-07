@@ -67,6 +67,25 @@ function uk_write_json($file, $data) {
     return true;
 }
 
+/* ---- 種目コードから種目名を推定する ----
+   CSVには種目名が入っていないため、取込時の仮の名前がコードのままになってしまう。
+   JDSFの種目コードは規則的なので、そこから読める名前を作る（違えば画面で直せる）。
+     級別戦   : [J:一般 / M:シニアII / G:シニアIII / R:シニアIV] + [A-D級] + [S:スタンダード / L:ラテン]
+     市民総体 : FK + [W/T/C/R] + [1:一般 / 2:シニア] */
+function uk_guess_event_name($code) {
+    $c = strtoupper(trim((string)$code));
+
+    if (preg_match('/^([JMGR])([ABCDE])([SL])$/', $c, $m)) {
+        $age   = ['J' => '', 'M' => 'シニアⅡ', 'G' => 'シニアⅢ', 'R' => 'シニアⅣ'];
+        $dance = ['S' => 'スタンダード', 'L' => 'ラテン'];
+        return $age[$m[1]] . $m[2] . '級' . $dance[$m[3]];
+    }
+    if (preg_match('/^FK([WTCRVFQJPS])([12])$/', $c, $m)) {
+        return '市民総体' . ($m[2] === '2' ? 'シニア' : '') . $m[1];
+    }
+    return $c;   /* 規則に当てはまらないコードはそのまま */
+}
+
 /* ---- 前回使った種目コードの記憶 ----
    競技会ごとに種目構成はほぼ同じなので、前回の並びを覚えておいて次回の取込時に初期表示する。 */
 function uk_config_file() { return uk_ensure_root() . '/config.json'; }
