@@ -10,6 +10,9 @@
 require __DIR__ . '/_uketsuke.php';
 require_auth('admin');
 
+$id_for_check = $_POST['id'] ?? '';
+if (uk_valid_id($id_for_check)) uk_require_comp($id_for_check);   /* 公認番号で開いた大会のみ */
+
 if (!isset($_FILES['file']) || ($_FILES['file']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
     json_out(['error' => 'CSVファイルを選択してください'], 400);
 }

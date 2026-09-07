@@ -12,4 +12,8 @@ if ($role === 'admin' || $role === 'build') {
 } else {
     $_SESSION['auth'] = [];
 }
+/* 受付システムで開いた大会のロック解除状態も破棄する
+   （同じ端末で別の担当者がログインしたときに、他府県の大会が開けたままにならないように） */
+unset($_SESSION['uk_unlocked']);
+
 json_out(['ok' => true]);

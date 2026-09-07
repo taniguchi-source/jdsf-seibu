@@ -6,8 +6,12 @@ uk_require_read();
 $list = uk_load_list();
 /* 各大会の件数も添えて、選択画面でそのまま表示できるようにする */
 foreach ($list as &$c) {
+    $has_code = !empty($c['code_hash']);
+    unset($c['code_hash']);          /* 公認番号のハッシュは画面へ返さない */
     $id = $c['id'] ?? '';
     if (!uk_valid_id($id)) { $c['roster_count'] = 0; $c['checkin_count'] = 0; continue; }
+    /* 公認番号が設定されていて、まだこのセッションで開いていない大会だけ入力を求める */
+    $c['need_code']     = $has_code && !uk_comp_unlocked($id);
     $c['roster_count']  = count(uk_load_roster($id));
     $c['checkin_count'] = count(uk_load_checkins($id));
 }

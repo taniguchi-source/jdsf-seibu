@@ -7,6 +7,7 @@ require_auth('admin');
 
 $id = $_POST['id'] ?? '';
 if (!uk_valid_id($id)) json_out(['error' => '大会IDが不正です'], 400);
+uk_require_comp($id);   /* 公認番号で開いた大会のみ操作できる */
 
 $before = count(uk_load_checkins($id));
 uk_append_checkin($id, ['action' => 'clear', 'at' => uk_now(), 'by' => uk_str($_POST['by'] ?? '', 20)]);

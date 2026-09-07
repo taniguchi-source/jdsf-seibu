@@ -119,6 +119,16 @@
           <div style="width:170px"><label class="muted">開催日</label>
             <input type="date" id="nc-date"></div>
         </div>
+        <div style="margin-top:8px">
+          <label class="muted">公認番号（この大会を開くときの合言葉になります）</label>
+          <input type="text" id="nc-code" placeholder="大会の公認番号">
+        </div>
+        <div style="margin-top:8px">
+          <label class="muted">種目（1行に1種目。<b>コード</b> だけでも可。「コード,種目名,開始時刻」の順）</label>
+          <textarea id="nc-events" rows="6"
+            style="width:100%;font-size:14px;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:inherit"></textarea>
+          <div class="muted">種目名を省略するとコードから自動で付けます（JAS→A級スタンダード）。あとから種目タブで直せます。</div>
+        </div>
         <div style="height:10px"></div>
         <button id="nc-btn">作成する</button>
       </div>
@@ -361,12 +371,13 @@ function loadComps(){
     box.innerHTML = d.competitions.map(function(c){
       return '<div class="comp-item">'
         + '<div class="grow"><div class="nm">' + esc(c.name) + '</div>'
-        + '<div class="muted">' + esc(c.date || '') + '　選手 ' + (c.roster_count||0) + '組／受付済 ' + (c.checkin_count||0) + '組</div></div>'
-        + '<button class="small" data-open="' + esc(c.id) + '">開く</button>'
+        + '<div class="muted">' + esc(c.date || '') + '　選手 ' + (c.roster_count||0) + '組／受付済 ' + (c.checkin_count||0) + '組'
+        + (c.need_code ? '　🔒 公認番号が必要' : '') + '</div></div>'
+        + '<button class="small" data-open="' + esc(c.id) + '" data-need="' + (c.need_code ? '1' : '') + '">開く</button>'
         + '<button class="small danger" data-del="' + esc(c.id) + '">削除</button></div>';
     }).join('');
     box.querySelectorAll('[data-open]').forEach(function(b){
-      b.addEventListener('click', function(){ openComp(b.dataset.open); });
+      b.addEventListener('click', function(){ openComp(b.dataset.open, b.dataset.need === '1'); });
     });
     box.querySelectorAll('[data-del]').forEach(function(b){
       b.addEventListener('click', function(){
@@ -380,17 +391,35 @@ function loadComps(){
 }
 
 el('nc-btn').addEventListener('click', function(){
-  post('api/uketsuke_save_competition.php', {action:'create', name:el('nc-name').value, date:el('nc-date').value})
-    .then(function(d){ el('nc-name').value=''; return loadComps().then(function(){ openComp(d.id); }); })
+  if (!el('nc-code').value.trim() &&
+      !confirm('公認番号が空です。この大会は誰でも開ける状態になります。よろしいですか？')) return;
+  post('api/uketsuke_save_competition.php', {
+    action: 'create', name: el('nc-name').value, date: el('nc-date').value,
+    code: el('nc-code').value, events: el('nc-events').value
+  })
+    .then(function(d){
+      el('nc-name').value = ''; el('nc-code').value = ''; el('nc-events').value = '';
+      return loadComps().then(function(){ openComp(d.id); });
+    })
     .catch(function(e){ alert(e.message); });
 });
 
-function openComp(id){
-  return refresh(id).then(function(){
-    COMP = {id:id, name:DATA.name, date:DATA.date};
-    el('hd-comp').textContent = DATA.name + (DATA.date ? '（' + DATA.date + '）' : '');
-    switchView('checkin');
-  }).catch(function(e){ alert(e.message); });
+/* 大会を開く。公認番号が設定されていれば、まずそれを照合する（サーバー側で確認する）。 */
+function openComp(id, needCode){
+  var step = Promise.resolve();
+  if (needCode) {
+    var code = prompt('この大会の公認番号を入力してください');
+    if (code === null) return Promise.resolve();
+    step = post('api/uketsuke_open.php', {id:id, code:code});
+  }
+  return step
+    .then(function(){ return refresh(id); })
+    .then(function(){
+      COMP = {id:id, name:DATA.name, date:DATA.date};
+      el('hd-comp').textContent = DATA.name + (DATA.date ? '（' + DATA.date + '）' : '');
+      switchView('checkin');
+    })
+    .catch(function(e){ alert(e.message); return loadComps(); });
 }
 
 /* ---------- データ取得（ポーリング） ---------- */

@@ -101,6 +101,33 @@ function uk_save_last_event_codes($codes) {
     return uk_write_json(uk_config_file(), $c);
 }
 
+/* ---- 大会ごとの公認番号（パスコード） ----
+   役員ページのログインは全府県で共通のため、大会のデータを開くときに
+   その大会の公認番号を入力させ、担当外の大会を誤って触らないようにする。
+   照合はサーバー側で行い、通った大会だけをセッションに記録する。 */
+function uk_norm_code($s) {
+    $s = mb_convert_kana((string)$s, 'as');          /* 全角英数・全角空白を半角に */
+    $s = preg_replace('/\s+/u', '', $s);             /* 空白は無視する */
+    return strtoupper(trim($s));
+}
+function uk_comp_unlocked($id) {
+    return !empty($_SESSION['uk_unlocked'][$id]);
+}
+function uk_unlock_comp($id) {
+    if (!isset($_SESSION['uk_unlocked']) || !is_array($_SESSION['uk_unlocked'])) $_SESSION['uk_unlocked'] = [];
+    $_SESSION['uk_unlocked'][$id] = true;
+}
+/* 公認番号が設定されている大会は、開いていなければ拒否する */
+function uk_require_comp($id) {
+    foreach (uk_load_list() as $c) {
+        if (($c['id'] ?? '') !== $id) continue;
+        if (empty($c['code_hash'])) return true;      /* 未設定の大会は誰でも開ける */
+        if (uk_comp_unlocked($id)) return true;
+        json_out(['error' => 'locked', 'message' => 'この大会の公認番号を入力してください'], 403);
+    }
+    json_out(['error' => '大会が見つかりません'], 404);
+}
+
 /* ---- 大会一覧 ---- */
 function uk_list_file() { return uk_ensure_root() . '/index.json'; }
 function uk_load_list() { return uk_read_json(uk_list_file(), []); }

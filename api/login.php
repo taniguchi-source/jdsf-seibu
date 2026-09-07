@@ -34,6 +34,7 @@ unset($attempts[$ip]);
 file_put_contents($af, "<?php\nreturn " . var_export($attempts, true) . ";\n", LOCK_EX);
 
 session_regenerate_id(true);
+unset($_SESSION['uk_unlocked']);   /* 受付システム：前の利用者が開いた大会を引き継がない */
 if (!isset($_SESSION['auth']) || !is_array($_SESSION['auth'])) $_SESSION['auth'] = [];
 $_SESSION['auth'][$role] = true;
 json_out(['ok' => true, 'role' => $role, 'csrf' => issue_csrf()]);

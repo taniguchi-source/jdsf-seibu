@@ -6,6 +6,7 @@ uk_require_read();
 
 $id = $_GET['id'] ?? ($_POST['id'] ?? '');
 if (!uk_valid_id($id)) json_out(['error' => '大会IDが不正です'], 400);
+uk_require_comp($id);   /* 公認番号で開いた大会のみ操作できる */
 
 $events   = uk_load_events($id);
 $roster   = uk_load_roster($id);

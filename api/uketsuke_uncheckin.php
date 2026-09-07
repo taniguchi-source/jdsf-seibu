@@ -8,6 +8,7 @@ require_auth('admin');
 
 $id = $_POST['id'] ?? '';
 if (!uk_valid_id($id)) json_out(['error' => '大会IDが不正です'], 400);
+uk_require_comp($id);   /* 公認番号で開いた大会のみ操作できる */
 
 $bib = (int)($_POST['bib'] ?? 0);
 if ($bib <= 0) json_out(['error' => '背番号が不正です'], 400);
