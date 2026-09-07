@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>競技会受付システム | JDSF 近畿中四国ブロック</title>
+<link rel="icon" href="favicon.ico">
+<style>
+  :root{
+    --primary:#123262; --primary-dark:#0D2347; --primary-light:#2a5aa0;
+    --bg:#f4f5f7; --card:#fff; --text:#1a1a1a; --muted:#6b7280; --border:#e0e2e7;
+    --ok:#16a34a; --ok-bg:#dcfce7; --warn:#b45309; --warn-bg:#fef3c7;
+    --danger:#dc2626; --danger-bg:#fee2e2;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    -webkit-tap-highlight-color:transparent}
+  header{background:var(--primary);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  header h1{font-size:17px;margin:0;font-weight:700}
+  header .comp{font-size:13px;opacity:.85}
+  header a{color:#fff;font-size:13px;text-decoration:none;opacity:.85;margin-left:auto}
+  nav.tabs{display:flex;gap:2px;background:var(--card);border-bottom:1px solid var(--border);
+    padding:6px 8px 0;overflow-x:auto;position:sticky;top:0;z-index:10}
+  nav.tabs button{flex:none;padding:10px 14px;border:none;background:none;color:var(--muted);
+    font-weight:700;font-size:14px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+  nav.tabs button.active{color:var(--primary);border-bottom-color:var(--primary)}
+  main{max-width:820px;margin:0 auto;padding:16px;padding-bottom:80px}
+  h2{font-size:16px;margin:22px 0 8px;color:var(--muted)}
+  h2:first-child{margin-top:4px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+  button,.btn{font-size:16px;font-weight:700;padding:12px 16px;border:none;border-radius:10px;
+    background:var(--primary);color:#fff;cursor:pointer}
+  button:active{background:var(--primary-dark)}
+  button.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+  button.danger{background:var(--danger)}
+  button.small{font-size:13px;padding:7px 12px}
+  button.block{width:100%}
+  input[type=text],input[type=number],input[type=date],input[type=password],select{
+    font-size:16px;padding:10px;border:1px solid var(--border);border-radius:8px;width:100%;background:#fff}
+  .bib-input{font-size:40px;text-align:center;padding:18px 12px;letter-spacing:2px;border-width:2px}
+  .bib-input:focus{outline:none;border-color:var(--primary)}
+  .row{display:flex;gap:8px;align-items:center}
+  .row.wrap{flex-wrap:wrap}
+  .grow{flex:1;min-width:120px}
+  .muted{color:var(--muted);font-size:13px}
+  table{width:100%;border-collapse:collapse;font-size:14px;background:var(--card)}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)}
+  th{color:var(--muted);font-weight:600;background:#fafafa}
+  .banner{padding:14px;border-radius:10px;margin:12px 0;font-size:17px;font-weight:700;text-align:center}
+  .b-ok{background:var(--ok-bg);color:var(--ok)} .b-warn{background:var(--warn-bg);color:var(--warn)}
+  .b-danger{background:var(--danger-bg);color:var(--danger)}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;
+    background:#eef1f5;color:var(--muted);margin:1px}
+  .pill-ok{background:var(--ok-bg);color:var(--ok)}
+  .checkbox-row{display:flex;align-items:center;gap:8px;padding:5px 0}
+  .comp-item{display:flex;gap:8px;align-items:center;padding:10px;border:1px solid var(--border);
+    border-radius:10px;background:var(--card);margin-bottom:8px}
+  .comp-item .nm{font-weight:700}
+  #login-screen{position:fixed;inset:0;background:var(--primary);display:flex;align-items:center;
+    justify-content:center;z-index:100;padding:20px}
+  .login-box{background:#fff;border-radius:14px;padding:32px 26px;max-width:360px;width:100%;text-align:center}
+  .login-title{font-size:19px;font-weight:700;margin-bottom:4px}
+  .login-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+  .login-err{color:var(--danger);font-size:13px;margin-top:10px;display:none}
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div style="font-size:34px">🔑</div>
+    <div class="login-title">競技会受付システム</div>
+    <div class="login-sub">JDSF 近畿中四国ブロック委員会 役員専用</div>
+    <input type="password" id="login-pw" placeholder="役員ページのパスワード" autocomplete="current-password">
+    <div class="login-err" id="login-err"></div>
+    <div style="height:14px"></div>
+    <button class="block" id="login-btn">ログイン</button>
+    <div style="height:12px"></div>
+    <a href="officers.html" class="muted" style="text-decoration:none">← 役員ページに戻る</a>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header>
+    <h1>競技会受付システム</h1>
+    <span class="comp" id="hd-comp"></span>
+    <a href="officers.html">役員ページへ戻る</a>
+  </header>
+
+  <nav class="tabs">
+    <button data-view="comp" class="active">大会</button>
+    <button data-view="checkin">受付</button>
+    <button data-view="rollcall">出場・欠場</button>
+    <button data-view="roster">名簿</button>
+    <button data-view="events">種目</button>
+  </nav>
+
+  <main>
+    <!-- ======== 大会選択 ======== -->
+    <section id="v-comp">
+      <h2>大会を選ぶ</h2>
+      <div id="comp-list"></div>
+
+      <h2>新しい大会を作る</h2>
+      <div class="card">
+        <div class="row wrap">
+          <div class="grow"><label class="muted">大会名</label>
+            <input type="text" id="nc-name" placeholder="例: 2026京都府ダンススポーツ選手権"></div>
+          <div style="width:170px"><label class="muted">開催日</label>
+            <input type="date" id="nc-date"></div>
+        </div>
+        <div style="height:10px"></div>
+        <button id="nc-btn">作成する</button>
+      </div>
+    </section>
+
+    <!-- ======== 受付 ======== -->
+    <section id="v-checkin" class="hidden">
+      <div class="card">
+        <label class="muted" for="by">受付担当者名（任意・この端末に記憶）</label>
+        <input type="text" id="by" placeholder="例: 受付1">
+      </div>
+
+      <form class="card" id="ci-form">
+        <label class="muted" for="bib">背番号</label>
+        <input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="bib" class="bib-input" placeholder="0">
+        <div style="height:10px"></div>
+        <button type="submit" class="block">チェックイン</button>
+      </form>
+
+      <div id="ci-banner" class="banner hidden"></div>
+
+      <h2>受付状況 <span class="muted" id="ci-count"></span></h2>
+      <table>
+        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>時刻</th></tr></thead>
+        <tbody id="ci-recent"></tbody>
+      </table>
+
+      <h2>管理</h2>
+      <div class="card">
+        <p class="muted">テスト受付の記録を消して本番前に初期化したいときに使います。名簿・種目は消えません。</p>
+        <button class="danger" id="ci-reset">全員のチェックインを解除</button>
+      </div>
+    </section>
+
+    <!-- ======== 出場・欠場 ======== -->
+    <section id="v-rollcall" class="hidden">
+      <div class="card">
+        <label class="muted">種目</label>
+        <select id="rc-event"></select>
+        <div style="height:10px"></div>
+        <a class="btn secondary" id="rc-print" href="uketsuke-print.html" style="display:inline-block;text-decoration:none">印刷ページを開く</a>
+      </div>
+      <div class="row wrap">
+        <span class="pill pill-ok" id="rc-p-count">出場 0</span>
+        <span class="pill" id="rc-a-count">欠場 0</span>
+      </div>
+      <h2>出場（チェックイン済み）</h2>
+      <table>
+        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>時刻</th></tr></thead>
+        <tbody id="rc-present"></tbody>
+      </table>
+      <h2>欠場（未チェックイン）</h2>
+      <table>
+        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th></tr></thead>
+        <tbody id="rc-absent"></tbody>
+      </table>
+    </section>
+
+    <!-- ======== 名簿 ======== -->
+    <section id="v-roster" class="hidden">
+      <h2>CSV取込</h2>
+      <div class="card">
+        <div id="imp-step1">
+          <p class="muted">JDSF競技会支援システム（DCS）の「選手名簿ファイル処理」で書き出したCSVをそのまま読み込めます（Shift-JIS / UTF-8 対応）。</p>
+          <input type="file" id="csv-file" accept=".csv,text/csv">
+          <div style="height:10px"></div>
+          <button id="csv-read">読み込む</button>
+        </div>
+
+        <div id="imp-step2" class="hidden">
+          <div id="dcs-banner" class="banner b-warn hidden"></div>
+          <label class="checkbox-row"><input type="checkbox" id="has-header"> 1行目を項目名（ヘッダー）として使う</label>
+          <div id="map-fields"></div>
+          <h2>種目として扱う列</h2>
+          <p class="muted">値が「1」または「◎」なら出場ありとして扱います（空欄・「＿」は出場なし）。
+            CSVには種目コードが入っていないので、DCSの競技内容設定を見ながら右欄にコードを入力してください。</p>
+          <div id="map-events"></div>
+          <div style="height:12px"></div>
+          <div class="row">
+            <button id="imp-run" class="grow">この内容で取り込む</button>
+            <button id="imp-cancel" class="secondary">キャンセル</button>
+          </div>
+        </div>
+
+        <div id="imp-result" class="banner hidden"></div>
+      </div>
+
+      <h2>手動で追加・編集</h2>
+      <form class="card" id="rs-form">
+        <div class="row wrap">
+          <div class="grow"><label class="muted">背番号</label><input type="number" id="rs-bib" required></div>
+          <div class="grow"><label class="muted">リーダー</label><input type="text" id="rs-leader" required></div>
+          <div class="grow"><label class="muted">パートナー</label><input type="text" id="rs-partner" required></div>
+        </div>
+        <div class="row wrap" style="margin-top:8px">
+          <div class="grow"><label class="muted">競技区分（任意）</label><input type="text" id="rs-category"></div>
+          <div class="grow"><label class="muted">所属（任意）</label><input type="text" id="rs-affiliation"></div>
+        </div>
+        <h2>エントリー種目</h2>
+        <div id="rs-events" class="row wrap"></div>
+        <div style="height:12px"></div>
+        <div class="row">
+          <button type="submit" class="grow">保存</button>
+          <button type="button" id="rs-clear" class="secondary">クリア</button>
+        </div>
+      </form>
+
+      <h2>一覧 <span class="muted" id="rs-count"></span></h2>
+      <input type="text" id="rs-search" placeholder="背番号・氏名・所属で検索">
+      <div style="height:8px"></div>
+      <table>
+        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>種目</th><th></th></tr></thead>
+        <tbody id="rs-list"></tbody>
+      </table>
+    </section>
+
+    <!-- ======== 種目 ======== -->
+    <section id="v-events" class="hidden">
+      <h2>種目マスタ</h2>
+      <p class="muted">名簿CSVの取込で未登録の種目コードが見つかると、ここに仮登録（種目名＝コード）されます。名称と開始時刻を整えてください。</p>
+      <div class="card">
+        <table>
+          <thead><tr><th>コード</th><th>種目名</th><th>開始</th><th></th></tr></thead>
+          <tbody id="ev-list"></tbody>
+        </table>
+        <div style="height:10px"></div>
+        <div class="row wrap">
+          <div style="width:110px"><input type="text" id="ev-code" placeholder="コード"></div>
+          <div class="grow"><input type="text" id="ev-name" placeholder="種目名"></div>
+          <div style="width:100px"><input type="text" id="ev-time" placeholder="10:00"></div>
+          <button id="ev-add" class="small">追加</button>
+        </div>
+        <div style="height:12px"></div>
+        <button id="ev-save">種目マスタを保存</button>
+        <span class="muted" id="ev-saved"></span>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+'use strict';
+
+/* ---------- 共通 ---------- */
+var CSRF = '';
+var COMP = null;            /* 選択中の大会 {id,name,date} */
+var DATA = {events:[], roster:[], checkins:[]};
+var pollTimer = null;
+
+/* POST は既存サイトと同じく FormData + X-CSRF-Token ヘッダ */
+function post(url, obj){
+  var fd = new FormData();
+  Object.keys(obj || {}).forEach(function(k){ fd.append(k, obj[k]); });
+  return fetch(url, {method:'POST', body:fd, headers:{'X-CSRF-Token': CSRF}})
+    .then(function(r){ return r.json().catch(function(){ return {error:'通信エラー'}; }); })
+    .then(function(j){ if (j && j.error) throw new Error(j.error); return j; });
+}
+function get(url){
+  return fetch(url, {headers:{'X-CSRF-Token': CSRF}})
+    .then(function(r){ return r.json().catch(function(){ return {error:'通信エラー'}; }); })
+    .then(function(j){ if (j && j.error) throw new Error(j.error); return j; });
+}
+function esc(s){
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function el(id){ return document.getElementById(id); }
+function fmtTime(iso){
+  if (!iso) return '';
+  var d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+
+/* ---------- ログイン ---------- */
+function showApp(){ el('login-screen').classList.add('hidden'); el('app').classList.remove('hidden'); loadComps(); }
+
+fetch('api/session-status.php').then(function(r){ return r.json(); }).then(function(d){
+  CSRF = (d && d.csrf) || '';
+  if (d && d.admin) showApp();
+}).catch(function(){});
+
+el('login-btn').addEventListener('click', doLogin);
+el('login-pw').addEventListener('keydown', function(e){ if (e.key === 'Enter') doLogin(); });
+function doLogin(){
+  var err = el('login-err');
+  var fd = new FormData();
+  fd.append('role', 'admin');
+  fd.append('password', el('login-pw').value);
+  fetch('api/login.php', {method:'POST', body:fd})
+    .then(function(r){ return r.json().then(function(j){ return {s:r.status, j:j}; }); })
+    .then(function(res){
+      if (res.j && res.j.ok) { CSRF = res.j.csrf || ''; err.style.display='none'; showApp(); }
+      else if (res.s === 429) { err.textContent = '試行回数が多すぎます。約' + Math.ceil((res.j.retry||300)/60) + '分後にお試しください。'; err.style.display='block'; }
+      else { err.textContent = 'パスワードが正しくありません。'; err.style.display='block'; }
+    })
+    .catch(function(){ err.textContent = '通信エラーが発生しました。'; err.style.display='block'; });
+}
+
+/* ---------- タブ切替 ---------- */
+var views = ['comp','checkin','rollcall','roster','events'];
+document.querySelectorAll('nav.tabs button').forEach(function(b){
+  b.addEventListener('click', function(){ switchView(b.dataset.view); });
+});
+function switchView(v){
+  document.querySelectorAll('nav.tabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.view === v); });
+  views.forEach(function(x){ el('v-' + x).classList.toggle('hidden', x !== v); });
+  if (v !== 'comp' && !COMP) { alert('先に大会を選んでください'); switchView('comp'); return; }
+  if (v === 'checkin') { el('bib').focus(); }
+  if (v === 'rollcall') renderRollcall();
+  if (v === 'roster') { renderRoster(); renderEventChecks(); }
+  if (v === 'events') renderEvents();
+  startPolling(v === 'checkin' || v === 'rollcall');
+}
+
+/* ---------- 大会 ---------- */
+function loadComps(){
+  return get('api/uketsuke_list.php').then(function(d){
+    var box = el('comp-list');
+    if (!d.competitions.length) { box.innerHTML = '<p class="muted">まだ大会がありません。下の欄から作成してください。</p>'; return; }
+    box.innerHTML = d.competitions.map(function(c){
+      return '<div class="comp-item">'
+        + '<div class="grow"><div class="nm">' + esc(c.name) + '</div>'
+        + '<div class="muted">' + esc(c.date || '') + '　選手 ' + (c.roster_count||0) + '組／受付済 ' + (c.checkin_count||0) + '組</div></div>'
+        + '<button class="small" data-open="' + esc(c.id) + '">開く</button>'
+        + '<button class="small danger" data-del="' + esc(c.id) + '">削除</button></div>';
+    }).join('');
+    box.querySelectorAll('[data-open]').forEach(function(b){
+      b.addEventListener('click', function(){ openComp(b.dataset.open); });
+    });
+    box.querySelectorAll('[data-del]').forEach(function(b){
+      b.addEventListener('click', function(){
+        if (!confirm('この大会のデータ（名簿・種目・受付記録）をすべて削除します。よろしいですか？')) return;
+        post('api/uketsuke_save_competition.php', {action:'delete', id:b.dataset.del})
+          .then(function(){ if (COMP && COMP.id === b.dataset.del) { COMP = null; el('hd-comp').textContent=''; } loadComps(); })
+          .catch(function(e){ alert(e.message); });
+      });
+    });
+  }).catch(function(e){ alert(e.message); });
+}
+
+el('nc-btn').addEventListener('click', function(){
+  post('api/uketsuke_save_competition.php', {action:'create', name:el('nc-name').value, date:el('nc-date').value})
+    .then(function(d){ el('nc-name').value=''; return loadComps().then(function(){ openComp(d.id); }); })
+    .catch(function(e){ alert(e.message); });
+});
+
+function openComp(id){
+  return refresh(id).then(function(){
+    COMP = {id:id, name:DATA.name, date:DATA.date};
+    el('hd-comp').textContent = DATA.name + (DATA.date ? '（' + DATA.date + '）' : '');
+    switchView('checkin');
+  }).catch(function(e){ alert(e.message); });
+}
+
+/* ---------- データ取得（ポーリング） ---------- */
+function refresh(id){
+  return get('api/uketsuke_get.php?id=' + encodeURIComponent(id || (COMP && COMP.id) || '')).then(function(d){
+    DATA = d;
+    return d;
+  });
+}
+function startPolling(on){
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  if (!on || !COMP) return;
+  pollTimer = setInterval(function(){
+    refresh().then(function(){
+      if (!el('v-checkin').classList.contains('hidden')) renderRecent();
+      if (!el('v-rollcall').classList.contains('hidden')) renderRollcall();
+    }).catch(function(){});
+  }, 3000);
+}
+
+/* ---------- 受付 ---------- */
+el('by').value = localStorage.getItem('uk_by') || '';
+el('by').addEventListener('change', function(){ localStorage.setItem('uk_by', el('by').value); });
+
+el('ci-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  var bib = el('bib').value.trim();
+  if (!bib) return;
+  post('api/uketsuke_checkin.php', {id:COMP.id, bib:bib, by:el('by').value})
+    .then(function(r){
+      var who = esc(r.bib) + ' ' + esc(r.leader) + ' / ' + esc(r.partner)
+        + (r.affiliation ? '（' + esc(r.affiliation) + '）' : '');
+      banner(r.already ? 'warn' : 'ok',
+        who + '<br>' + (r.already ? '既にチェックイン済み（' + esc(fmtTime(r.checked_in_at)) + '）' : 'チェックインしました'));
+      return refresh().then(renderRecent);
+    })
+    .catch(function(err){ banner('danger', esc(err.message)); })
+    .then(function(){ el('bib').value=''; el('bib').focus(); });
+});
+function banner(kind, html){
+  var b = el('ci-banner');
+  b.className = 'banner b-' + kind;
+  b.innerHTML = html;
+  b.classList.remove('hidden');
+}
+function renderRecent(){
+  var map = {};
+  (DATA.roster || []).forEach(function(r){ map[r.bib] = r; });
+  var rows = (DATA.checkins || []).slice().sort(function(a,b){ return (b.at||'').localeCompare(a.at||''); });
+  el('ci-count').textContent = '（' + rows.length + ' / ' + (DATA.roster||[]).length + ' 組）';
+  el('ci-recent').innerHTML = rows.slice(0, 40).map(function(c){
+    var r = map[c.bib] || {};
+    return '<tr><td>' + esc(c.bib) + '</td><td>' + esc(r.leader) + '</td><td>' + esc(r.partner)
+      + '</td><td>' + esc(r.affiliation) + '</td><td>' + esc(fmtTime(c.at)) + '</td></tr>';
+  }).join('');
+}
+el('ci-reset').addEventListener('click', function(){
+  if (!confirm('現在 ' + (DATA.checkins||[]).length + ' 件のチェックイン記録があります。すべて解除して受付前の状態に戻しますか？')) return;
+  post('api/uketsuke_reset_checkins.php', {id:COMP.id, by:el('by').value})
+    .then(function(d){ alert(d.cleared + ' 件を解除しました'); return refresh().then(renderRecent); })
+    .catch(function(e){ alert(e.message); });
+});
+
+/* ---------- 出場・欠場 ---------- */
+function renderRollcall(){
+  var sel = el('rc-event');
+  var cur = sel.value;
+  var opts = (DATA.events || []).map(function(e){
+    return '<option value="' + esc(e.code) + '">' + esc(e.code) + ' ' + esc(e.name)
+      + (e.start_time ? '（' + esc(e.start_time) + '）' : '') + '</option>';
+  }).join('');
+  if (sel.innerHTML !== opts) { sel.innerHTML = opts; if (cur) sel.value = cur; }
+  var code = sel.value;
+  el('rc-print').href = 'uketsuke-print.html?id=' + encodeURIComponent(COMP ? COMP.id : '');
+
+  var done = {};
+  (DATA.checkins || []).forEach(function(c){ done[c.bib] = c.at; });
+  var present = [], absent = [];
+  (DATA.roster || []).forEach(function(r){
+    if ((r.events || []).indexOf(code) === -1) return;
+    if (done[r.bib]) present.push([r, done[r.bib]]); else absent.push(r);
+  });
+  present.sort(function(a,b){ return a[0].bib - b[0].bib; });
+  absent.sort(function(a,b){ return a.bib - b.bib; });
+
+  el('rc-p-count').textContent = '出場 ' + present.length;
+  el('rc-a-count').textContent = '欠場 ' + absent.length;
+  el('rc-present').innerHTML = present.map(function(p){
+    return '<tr><td>' + esc(p[0].bib) + '</td><td>' + esc(p[0].leader) + '</td><td>' + esc(p[0].partner)
+      + '</td><td>' + esc(p[0].affiliation) + '</td><td>' + esc(fmtTime(p[1])) + '</td></tr>';
+  }).join('') || '<tr><td colspan="5" class="muted">なし</td></tr>';
+  el('rc-absent').innerHTML = absent.map(function(r){
+    return '<tr><td>' + esc(r.bib) + '</td><td>' + esc(r.leader) + '</td><td>' + esc(r.partner)
+      + '</td><td>' + esc(r.affiliation) + '</td></tr>';
+  }).join('') || '<tr><td colspan="4" class="muted">なし</td></tr>';
+}
+el('rc-event').addEventListener('change', renderRollcall);
+
+/* ---------- 名簿 ---------- */
+function renderRoster(){
+  var q = el('rs-search').value.trim().toLowerCase();
+  var rows = (DATA.roster || []).filter(function(r){
+    if (!q) return true;
+    return (r.bib + ' ' + r.leader + ' ' + r.partner + ' ' + (r.affiliation||'')).toLowerCase().indexOf(q) !== -1;
+  });
+  el('rs-count').textContent = '（' + (DATA.roster||[]).length + ' 組）';
+  el('rs-list').innerHTML = rows.map(function(r){
+    return '<tr><td>' + esc(r.bib) + '</td><td>' + esc(r.leader) + '</td><td>' + esc(r.partner)
+      + '</td><td>' + esc(r.affiliation) + '</td><td>'
+      + (r.events||[]).map(function(c){ return '<span class="pill">' + esc(c) + '</span>'; }).join('')
+      + '</td><td><button class="small secondary" data-edit="' + esc(r.bib) + '">編集</button> '
+      + '<button class="small danger" data-del="' + esc(r.bib) + '">削除</button></td></tr>';
+  }).join('');
+  el('rs-list').querySelectorAll('[data-edit]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var r = (DATA.roster||[]).filter(function(x){ return String(x.bib) === b.dataset.edit; })[0];
+      if (!r) return;
+      el('rs-bib').value = r.bib; el('rs-bib').disabled = true;
+      el('rs-leader').value = r.leader; el('rs-partner').value = r.partner;
+      el('rs-category').value = r.category || ''; el('rs-affiliation').value = r.affiliation || '';
+      document.querySelectorAll('.rs-ev').forEach(function(cb){ cb.checked = (r.events||[]).indexOf(cb.value) !== -1; });
+      window.scrollTo({top:el('rs-form').offsetTop - 60, behavior:'smooth'});
+    });
+  });
+  el('rs-list').querySelectorAll('[data-del]').forEach(function(b){
+    b.addEventListener('click', function(){
+      if (!confirm('背番号 ' + b.dataset.del + ' を名簿から削除しますか？')) return;
+      post('api/uketsuke_save_roster.php', {id:COMP.id, mode:'delete', roster:JSON.stringify([{bib:Number(b.dataset.del)}])})
+        .then(function(){ return refresh().then(renderRoster); })
+        .catch(function(e){ alert(e.message); });
+    });
+  });
+}
+el('rs-search').addEventListener('input', renderRoster);
+
+function renderEventChecks(){
+  el('rs-events').innerHTML = (DATA.events || []).map(function(e){
+    return '<label class="checkbox-row"><input type="checkbox" class="rs-ev" value="' + esc(e.code) + '"> '
+      + esc(e.code) + ' ' + esc(e.name) + '</label>';
+  }).join('');
+}
+el('rs-clear').addEventListener('click', function(){
+  el('rs-form').reset(); el('rs-bib').disabled = false;
+  document.querySelectorAll('.rs-ev').forEach(function(cb){ cb.checked = false; });
+});
+el('rs-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  var events = [];
+  document.querySelectorAll('.rs-ev:checked').forEach(function(cb){ events.push(cb.value); });
+  var row = {
+    bib: Number(el('rs-bib').value), leader: el('rs-leader').value, partner: el('rs-partner').value,
+    category: el('rs-category').value, affiliation: el('rs-affiliation').value, events: events
+  };
+  post('api/uketsuke_save_roster.php', {id:COMP.id, mode:'upsert', roster:JSON.stringify([row])})
+    .then(function(){
+      el('rs-form').reset(); el('rs-bib').disabled = false;
+      return refresh().then(function(){ renderRoster(); renderEventChecks(); });
+    })
+    .catch(function(err){ alert(err.message); });
+});
+
+/* ---------- CSV取込 ---------- */
+var PREV = null;
+
+/* DCSは出場を「1」または「◎」、未出場を空欄または「＿」で書き出す */
+function truthy(v){
+  var t = String(v === undefined || v === null ? '' : v).trim();
+  if (t === '' || t === '＿' || t === '_' || t === '0' || t === '×' || t === 'ｘ' || t === '-' || t === '－') return false;
+  return true;
+}
+function headers(){
+  if (!PREV || !PREV.rows.length) return [];
+  var w = 0;
+  PREV.rows.forEach(function(r){ if (r.length > w) w = r.length; });
+  var out = [];
+  for (var i = 0; i < w; i++) {
+    out.push(el('has-header').checked ? (PREV.rows[0][i] || ('列' + (i+1))) : ('列' + (i+1)));
+  }
+  return out;
+}
+function dataRows(){ return el('has-header').checked ? PREV.rows.slice(1) : PREV.rows; }
+function sampleFor(i){
+  var rows = dataRows();
+  for (var k = 0; k < rows.length; k++) { if (rows[k][i]) return rows[k][i]; }
+  return '';
+}
+function selectHtml(id, label, required){
+  var hs = headers();
+  var opts = hs.map(function(h, i){ return '<option value="' + i + '">' + esc(h) + ' — ' + esc(sampleFor(i)) + '</option>'; }).join('');
+  return '<div style="margin-bottom:8px"><label class="muted">' + label + '</label><select id="' + id + '">'
+    + (required ? '' : '<option value="-1">（なし）</option>') + opts + '</select></div>';
+}
+function renderMap(){
+  el('map-fields').innerHTML =
+    selectHtml('m-bib', '背番号列', true) + selectHtml('m-leader', 'リーダー列', true) +
+    selectHtml('m-partner', 'パートナー列', true) + selectHtml('m-category', '競技区分列', false) +
+    selectHtml('m-affiliation', '所属列', false);
+  el('map-events').innerHTML = headers().map(function(h, i){
+    return '<div class="checkbox-row"><input type="checkbox" class="ev-col" data-i="' + i + '">'
+      + '<span style="width:150px;display:inline-block">' + esc(h) + ' <span class="muted">(' + esc(sampleFor(i)) + ')</span></span>'
+      + '<input type="text" class="ev-code" data-i="' + i + '" placeholder="種目コード" style="width:120px"></div>';
+  }).join('');
+}
+el('has-header').addEventListener('change', function(){ if (PREV) renderMap(); });
+
+el('csv-read').addEventListener('click', function(){
+  var f = el('csv-file').files[0];
+  if (!f) { alert('CSVファイルを選択してください'); return; }
+  var fd = new FormData();
+  fd.append('id', COMP.id);
+  fd.append('file', f);
+  fetch('api/uketsuke_csv_preview.php', {method:'POST', body:fd, headers:{'X-CSRF-Token': CSRF}})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.error) throw new Error(d.error);
+      PREV = d;
+      el('has-header').checked = !!d.likely_has_header;
+      var b = el('dcs-banner');
+      if (d.dcs_signature) {
+        b.textContent = 'DCSの出力ファイルを検出しました（認識コード: ' + d.dcs_signature + '）。項目名の行はありません。サンプル値を見て列を割り当ててください。';
+        b.classList.remove('hidden');
+      } else { b.classList.add('hidden'); }
+      renderMap();
+      el('imp-step1').classList.add('hidden');
+      el('imp-step2').classList.remove('hidden');
+      el('imp-result').classList.add('hidden');
+    })
+    .catch(function(e){ alert(e.message); });
+});
+el('imp-cancel').addEventListener('click', function(){
+  PREV = null;
+  el('imp-step2').classList.add('hidden');
+  el('imp-step1').classList.remove('hidden');
+});
+el('imp-run').addEventListener('click', function(){
+  var hs = headers(), rows = dataRows();
+  var bi = Number(el('m-bib').value), li = Number(el('m-leader').value), pi = Number(el('m-partner').value);
+  var ci = Number(el('m-category').value), ai = Number(el('m-affiliation').value);
+  var cols = [];
+  document.querySelectorAll('.ev-col:checked').forEach(function(cb){
+    var i = Number(cb.dataset.i);
+    var code = document.querySelector('.ev-code[data-i="' + i + '"]').value.trim();
+    cols.push({i:i, code:code});
+  });
+  if (cols.some(function(c){ return !c.code; })) { alert('種目として選んだ列には、種目コードを入力してください'); return; }
+
+  var out = [];
+  rows.forEach(function(r){
+    var bib = parseInt(String(r[bi] || '').trim(), 10);
+    if (!bib) return;
+    var evs = cols.filter(function(c){ return truthy(r[c.i]); }).map(function(c){ return c.code; });
+    out.push({
+      bib: bib,
+      leader: String(r[li] || '').trim(),
+      partner: String(r[pi] || '').trim(),
+      category: ci >= 0 ? String(r[ci] || '').trim() : '',
+      affiliation: ai >= 0 ? String(r[ai] || '').trim() : '',
+      events: evs
+    });
+  });
+  if (!out.length) { alert('取り込める行がありませんでした（背番号列とヘッダー有無を確認してください）'); return; }
+  if (!confirm(out.length + '組を取り込みます。現在の名簿は置き換わります。よろしいですか？')) return;
+
+  post('api/uketsuke_save_roster.php', {id:COMP.id, mode:'replace', roster:JSON.stringify(out)})
+    .then(function(d){
+      var msg = d.count + '組を取り込みました。';
+      if (d.new_events_created.length) msg += '<br>種目を仮登録しました: ' + esc(d.new_events_created.join(', ')) + '（種目タブで名称・時刻を確認してください）';
+      if (d.duplicate_bibs.length) msg += '<br>CSV内で背番号が重複していました（後の行を採用）: ' + esc(d.duplicate_bibs.join(', '));
+      var b = el('imp-result'); b.className = 'banner b-ok'; b.innerHTML = msg; b.classList.remove('hidden');
+      PREV = null;
+      el('imp-step2').classList.add('hidden'); el('imp-step1').classList.remove('hidden');
+      el('csv-file').value = '';
+      return refresh().then(function(){ renderRoster(); renderEventChecks(); });
+    })
+    .catch(function(e){
+      var b = el('imp-result'); b.className = 'banner b-danger'; b.textContent = e.message; b.classList.remove('hidden');
+    });
+});
+
+/* ---------- 種目 ---------- */
+var EV = [];
+function renderEvents(){
+  EV = (DATA.events || []).slice();
+  el('ev-list').innerHTML = EV.map(function(e, i){
+    return '<tr><td>' + esc(e.code) + '</td>'
+      + '<td><input type="text" class="ev-n" data-i="' + i + '" value="' + esc(e.name) + '"></td>'
+      + '<td><input type="text" class="ev-t" data-i="' + i + '" value="' + esc(e.start_time || '') + '" style="width:90px"></td>'
+      + '<td><button class="small danger" data-i="' + i + '">削除</button></td></tr>';
+  }).join('');
+  el('ev-list').querySelectorAll('button[data-i]').forEach(function(b){
+    b.addEventListener('click', function(){ EV.splice(Number(b.dataset.i), 1); DATA.events = EV; renderEvents(); });
+  });
+}
+el('ev-add').addEventListener('click', function(){
+  var c = el('ev-code').value.trim();
+  if (!c) { alert('種目コードを入力してください'); return; }
+  EV.push({code:c, name:el('ev-name').value.trim() || c, start_time:el('ev-time').value.trim()});
+  DATA.events = EV;
+  el('ev-code').value=''; el('ev-name').value=''; el('ev-time').value='';
+  renderEvents();
+});
+el('ev-save').addEventListener('click', function(){
+  document.querySelectorAll('.ev-n').forEach(function(inp){ EV[Number(inp.dataset.i)].name = inp.value; });
+  document.querySelectorAll('.ev-t').forEach(function(inp){ EV[Number(inp.dataset.i)].start_time = inp.value; });
+  post('api/uketsuke_save_events.php', {id:COMP.id, events:JSON.stringify(EV)})
+    .then(function(){ el('ev-saved').textContent = '保存しました'; setTimeout(function(){ el('ev-saved').textContent=''; }, 2000);
+      return refresh().then(renderEvents); })
+    .catch(function(e){ alert(e.message); });
+});
+</script>
+</body>
+</html>
