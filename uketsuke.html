@@ -113,7 +113,9 @@
 
       <h2>新しい大会を作る</h2>
       <div class="card">
-        <div class="row wrap">
+        <label class="muted">サイトの競技会一覧から選ぶ（大会名・開催日・公認番号が入ります）</label>
+        <select id="nc-pick"><option value="">選択して入力する…</option></select>
+        <div class="row wrap" style="margin-top:10px">
           <div class="grow"><label class="muted">大会名</label>
             <input type="text" id="nc-name" placeholder="例: 2026京都府ダンススポーツ選手権"></div>
           <div style="width:170px"><label class="muted">開催日</label>
@@ -122,12 +124,6 @@
         <div style="margin-top:8px">
           <label class="muted">公認番号（この大会を開くときの合言葉になります）</label>
           <input type="text" id="nc-code" placeholder="大会の公認番号">
-        </div>
-        <div style="margin-top:8px">
-          <label class="muted">種目（1行に1種目。<b>コード</b> だけでも可。「コード,種目名,開始時刻」の順）</label>
-          <textarea id="nc-events" rows="6"
-            style="width:100%;font-size:14px;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:inherit"></textarea>
-          <div class="muted">種目名を省略するとコードから自動で付けます（JAS→A級スタンダード）。あとから種目タブで直せます。</div>
         </div>
         <div style="height:10px"></div>
         <button id="nc-btn">作成する</button>
@@ -322,7 +318,7 @@ function evLabel(e){
 }
 
 /* ---------- ログイン ---------- */
-function showApp(){ el('login-screen').classList.add('hidden'); el('app').classList.remove('hidden'); loadComps(); }
+function showApp(){ el('login-screen').classList.add('hidden'); el('app').classList.remove('hidden'); loadComps(); loadCompCandidates(); }
 
 fetch('api/session-status.php').then(function(r){ return r.json(); }).then(function(d){
   CSRF = (d && d.csrf) || '';
@@ -390,15 +386,46 @@ function loadComps(){
   }).catch(function(e){ alert(e.message); });
 }
 
+/* サイトに登録済みの競技会（data/competitions_seibu.json）から選んで入力を省く。
+   一覧に無い大会（登録前のものなど）は、これまで通り手入力できる。 */
+function loadCompCandidates(){
+  fetch('data/competitions_seibu.json?_=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var items = Array.isArray(d) ? d : (d.competitions || []);
+      var from = new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10);
+      items = items.filter(function(x){ return x && x.date_iso && x.date_iso >= from; })
+                   .sort(function(a, b){ return (a.date_iso || '').localeCompare(b.date_iso || ''); });
+      var sel = el('nc-pick');
+      items.forEach(function(x){
+        var o = document.createElement('option');
+        o.value = JSON.stringify({n: cleanCompName(x.name), d: x.date_iso, c: x.comp_no || ''});
+        o.textContent = x.date_iso + '　' + cleanCompName(x.name).slice(0, 40);
+        sel.appendChild(o);
+      });
+    })
+    .catch(function(){ /* 一覧が取れなくても手入力で使えるので何もしない */ });
+}
+/* 一覧の大会名には注意書きが続いていることがあるので、案内文以降を落とす */
+function cleanCompName(name){
+  return String(name || '').split('※')[0].split(' 詳細')[0].replace(/【[^】]*】/g, '').trim();
+}
+el('nc-pick').addEventListener('change', function(){
+  if (!this.value) return;
+  var v = JSON.parse(this.value);
+  el('nc-name').value = v.n;
+  el('nc-date').value = v.d || '';
+  el('nc-code').value = v.c || '';
+});
+
 el('nc-btn').addEventListener('click', function(){
   if (!el('nc-code').value.trim() &&
       !confirm('公認番号が空です。この大会は誰でも開ける状態になります。よろしいですか？')) return;
   post('api/uketsuke_save_competition.php', {
-    action: 'create', name: el('nc-name').value, date: el('nc-date').value,
-    code: el('nc-code').value, events: el('nc-events').value
+    action: 'create', name: el('nc-name').value, date: el('nc-date').value, code: el('nc-code').value
   })
     .then(function(d){
-      el('nc-name').value = ''; el('nc-code').value = ''; el('nc-events').value = '';
+      el('nc-name').value = ''; el('nc-code').value = ''; el('nc-pick').value = '';
       return loadComps().then(function(){ openComp(d.id); });
     })
     .catch(function(e){ alert(e.message); });
