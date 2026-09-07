@@ -88,6 +88,19 @@ if ($action === 'rename') {
 if ($action === 'delete') {
     $id = $_POST['id'] ?? '';
     if (!uk_valid_id($id)) json_out(['error' => '大会IDが不正です'], 400);
+
+    /* 名簿も受付記録もまとめて消える操作なので、二重に確認する。
+       ① その大会を開いていること（公認番号を通っていること）
+       ② 役員ページのパスワードをもう一度入力すること
+       受付スタッフに端末を渡したまま誤って消される事故を防ぐため。 */
+    uk_require_comp($id);
+    $pw   = (string)($_POST['password'] ?? '');
+    $auth = load_auth();
+    $hash = $auth['admin'] ?? '';
+    if ($pw === '' || $hash === '' || !password_verify($pw, $hash)) {
+        json_out(['error' => '役員ページのパスワードが違います'], 401);
+    }
+
     $dir = uk_dir($id);
     foreach (['events.json', 'roster.json', 'checkins.jsonl'] as $f) {
         if (is_file($dir . '/' . $f)) @unlink($dir . '/' . $f);

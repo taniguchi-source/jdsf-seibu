@@ -375,10 +375,15 @@ function loadComps(){
     box.querySelectorAll('[data-open]').forEach(function(b){
       b.addEventListener('click', function(){ openComp(b.dataset.open, b.dataset.need === '1'); });
     });
+    /* 削除は名簿も受付記録もまとめて消えるため、大会名の確認に加えて
+       役員ページのパスワードを求める（サーバー側でも照合する） */
     box.querySelectorAll('[data-del]').forEach(function(b){
       b.addEventListener('click', function(){
-        if (!confirm('この大会のデータ（名簿・種目・受付記録）をすべて削除します。よろしいですか？')) return;
-        post('api/uketsuke_save_competition.php', {action:'delete', id:b.dataset.del})
+        var c = d.competitions.filter(function(x){ return x.id === b.dataset.del; })[0] || {};
+        if (!confirm('「' + (c.name || b.dataset.del) + '」の名簿・種目・受付記録をすべて削除します。\n元に戻せません。よろしいですか？')) return;
+        var pw = prompt('削除を実行するには、役員ページのパスワードを入力してください');
+        if (pw === null || pw === '') return;
+        post('api/uketsuke_save_competition.php', {action:'delete', id:b.dataset.del, password:pw})
           .then(function(){ if (COMP && COMP.id === b.dataset.del) { COMP = null; el('hd-comp').textContent=''; } loadComps(); })
           .catch(function(e){ alert(e.message); });
       });
