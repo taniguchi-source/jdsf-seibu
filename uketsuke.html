@@ -260,17 +260,6 @@
         <span class="muted" id="ev-saved"></span>
       </div>
 
-      <h2>まとめて入力</h2>
-      <div class="card">
-        <p class="muted">現在の内容を <b>コード,種目名,開始時刻</b> の形で表示しています。ここを直接書き換えるか、
-          タイムテーブルからコピーした内容を貼り付けて「まとめて反映」を押すと、上の表に反映して保存します。
-          既にあるコードは名称・時刻を上書きし、無いコードは追加します（Excelからのタブ区切りの貼り付けも可）。</p>
-        <textarea id="ev-bulk" rows="8"
-          style="width:100%;font-size:14px;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:inherit"></textarea>
-        <div style="height:10px"></div>
-        <button id="ev-bulk-apply">まとめて反映</button>
-        <span class="muted" id="ev-bulk-msg"></span>
-      </div>
     </section>
   </main>
 </div>
@@ -846,12 +835,6 @@ function renderEvents(){
     b.addEventListener('click', function(){ EV.splice(Number(b.dataset.i), 1); DATA.events = EV; renderEvents(); });
   });
 
-  /* まとめて入力欄に現在の内容を実際の文字として入れておく。
-     見本をプレースホルダ（グレー表示）にすると、入力済みに見えて
-     そのままボタンを押してしまうため。 */
-  el('ev-bulk').value = EV.map(function(e){
-    return [e.code, e.name || '', e.start_time || ''].join(',');
-  }).join('\n');
 }
 /* 種目コードから種目名を推定する（api/_uketsuke.php の uk_guess_event_name と同じ規則）
    級別戦: [J:一般/M:シニアII/G:シニアIII/R:シニアIV] + [級] + [S:スタンダード/L:ラテン]
@@ -902,44 +885,6 @@ el('ev-save').addEventListener('click', function(){
     .catch(function(e){ alert(e.message); });
 });
 
-/* 「コード,種目名,開始時刻」を1行ずつ貼り付けて種目マスタへ反映する。
-   CSVには種目名が入っていないため、タイムテーブルから写す作業をまとめて行えるようにする。 */
-el('ev-bulk-apply').addEventListener('click', function(){
-  var lines = el('ev-bulk').value.split(/\r?\n/);
-  var updated = 0, added = 0, bad = 0;
-  var pos = {};
-  EV.forEach(function(e, i){ pos[e.code] = i; });
-
-  lines.forEach(function(line){
-    if (!line.trim()) return;
-    var p = line.split(/[,\t]/);                      /* カンマ区切り・Excelからのタブ区切りの両方 */
-    var code = (p[0] || '').trim();
-    if (!code) { bad++; return; }
-    var name = (p[1] || '').trim();
-    var time = (p[2] || '').trim();
-    if (pos[code] === undefined) {
-      EV.push({code:code, name:name || code, start_time:time});
-      pos[code] = EV.length - 1;
-      added++;
-    } else {
-      var e = EV[pos[code]];
-      if (name) e.name = name;
-      if (time) e.start_time = time;
-      updated++;
-    }
-  });
-
-  if (!updated && !added) { alert('反映できる行がありませんでした。欄が空になっていないか確認し、「コード,種目名,開始時刻」を1行ずつ入力してください。'); return; }
-
-  post('api/uketsuke_save_events.php', {id:COMP.id, events:JSON.stringify(EV)})
-    .then(function(){
-      el('ev-bulk-msg').textContent = updated + '件を更新' + (added ? '、' + added + '件を追加' : '') + 'して保存しました'
-        + (bad ? '（' + bad + '行は形式が不正なため無視）' : '');
-      el('ev-bulk').value = '';
-      return refresh().then(renderEvents);
-    })
-    .catch(function(e){ alert(e.message); });
-});
 </script>
 </body>
 </html>
