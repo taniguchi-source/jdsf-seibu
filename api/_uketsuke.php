@@ -115,7 +115,8 @@ function uk_load_events($id) { return uk_read_json(uk_events_file($id), []); }
 function uk_load_roster($id) { return uk_read_json(uk_roster_file($id), []); }
 
 /* チェックイン記録（追記式）を読み、背番号ごとに最後の行を採用する。
-   action=clear の行が現れたらそこまでの記録を破棄する（全員リセット用）。 */
+   action=clear  … そこまでの記録を破棄する（全員リセット用）
+   action=remove … その背番号だけ取り消す（打ち間違いの訂正用） */
 function uk_load_checkins($id) {
     $file = uk_checkins_file($id);
     if (!is_file($file)) return [];
@@ -128,6 +129,10 @@ function uk_load_checkins($id) {
         $rec = json_decode($line, true);
         if (!is_array($rec)) continue;
         if (($rec['action'] ?? '') === 'clear') { $map = []; continue; }
+        if (($rec['action'] ?? '') === 'remove') {          /* 1件だけ取り消し（打ち間違いの訂正） */
+            unset($map[(int)($rec['bib'] ?? 0)]);
+            continue;
+        }
         $bib = isset($rec['bib']) ? (int)$rec['bib'] : 0;
         if ($bib <= 0) continue;
         $map[$bib] = ['bib' => $bib, 'at' => (string)($rec['at'] ?? ''), 'by' => (string)($rec['by'] ?? '')];

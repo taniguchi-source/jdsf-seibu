@@ -135,7 +135,7 @@
 
       <h2>受付状況 <span class="muted" id="ci-count"></span></h2>
       <table>
-        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>時刻</th></tr></thead>
+        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>時刻</th><th></th></tr></thead>
         <tbody id="ci-recent"></tbody>
       </table>
 
@@ -435,8 +435,25 @@ function renderRecent(){
   el('ci-recent').innerHTML = rows.slice(0, 40).map(function(c){
     var r = map[c.bib] || {};
     return '<tr><td>' + esc(c.bib) + '</td><td>' + esc(r.leader) + '</td><td>' + esc(r.partner)
-      + '</td><td>' + esc(r.affiliation) + '</td><td>' + esc(fmtTime(c.at)) + '</td></tr>';
+      + '</td><td>' + esc(r.affiliation) + '</td><td>' + esc(fmtTime(c.at)) + '</td>'
+      + '<td><button type="button" class="small secondary" data-uncheck="' + esc(c.bib) + '">取消</button></td></tr>';
   }).join('');
+
+  /* 打ち間違えた背番号を1件だけ取り消す */
+  el('ci-recent').querySelectorAll('[data-uncheck]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var bib = btn.dataset.uncheck;
+      var r = map[bib] || {};
+      var who = bib + ' ' + (r.leader || '') + (r.partner ? ' / ' + r.partner : '');
+      if (!confirm(who + ' のチェックインを取り消しますか？')) return;
+      post('api/uketsuke_uncheckin.php', {id:COMP.id, bib:bib, by:el('by').value})
+        .then(function(){
+          banner('warn', esc(who) + '<br>チェックインを取り消しました');
+          return refresh().then(renderRecent);
+        })
+        .catch(function(e){ alert(e.message); });
+    });
+  });
 }
 el('ci-reset').addEventListener('click', function(){
   if (!confirm('現在 ' + (DATA.checkins||[]).length + ' 件のチェックイン記録があります。すべて解除して受付前の状態に戻しますか？')) return;
