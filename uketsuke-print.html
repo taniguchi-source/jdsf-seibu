@@ -64,6 +64,9 @@ function esc(s){ if(s===null||s===undefined) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function fmtTime(iso){ if(!iso) return ''; var d=new Date(iso); return isNaN(d.getTime()) ? ''
   : d.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+/* 種目名が未設定（コードのまま）のとき「JAS JAS」と二重に出さない */
+function evLabel(e){ var n = (e && e.name) ? String(e.name).trim() : '';
+  return (!n || n === e.code) ? esc(e.code) : esc(e.code) + ' ' + esc(n); }
 function qs(k){ var m = new RegExp('[?&]'+k+'=([^&]*)').exec(location.search); return m ? decodeURIComponent(m[1]) : ''; }
 
 var id = qs('id');
@@ -77,7 +80,7 @@ else {
       el('comp-name').textContent = d.name + (d.date ? '（' + d.date + '）' : '');
       el('ev-checks').innerHTML = (d.events||[]).map(function(e){
         return '<label class="checkbox-row"><input type="checkbox" class="evc" value="' + esc(e.code) + '" checked> '
-          + esc(e.code) + ' ' + esc(e.name) + '</label>';
+          + evLabel(e) + '</label>';
       }).join('');
       document.querySelectorAll('.evc').forEach(function(cb){ cb.addEventListener('change', render); });
       render();
@@ -105,7 +108,7 @@ function render(){
       absent.sort(function(a,b){ return a.bib-b.bib; });
 
       return '<div class="event-block">'
-        + '<h2>' + esc(e.code) + ' ' + esc(e.name) + '</h2>'
+        + '<h2>' + evLabel(e) + '</h2>'
         + '<div class="muted">' + (e.start_time ? '開始 ' + esc(e.start_time) + '　' : '')
         + '出場 ' + present.length + ' / 欠場 ' + absent.length + '　'
         + esc(DATA.name) + (DATA.date ? '（' + esc(DATA.date) + '）' : '') + '</div>'

@@ -293,6 +293,11 @@ function fmtTime(iso){
   if (isNaN(d.getTime())) return '';
   return d.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
 }
+/* 種目の表示名。仮登録直後は名称がコードのままなので「JAS JAS」と二重に出さない */
+function evLabel(e){
+  var name = (e && e.name) ? String(e.name).trim() : '';
+  return (!name || name === e.code) ? esc(e.code) : esc(e.code) + ' ' + esc(name);
+}
 
 /* ---------- ログイン ---------- */
 function showApp(){ el('login-screen').classList.add('hidden'); el('app').classList.remove('hidden'); loadComps(); }
@@ -441,7 +446,7 @@ function renderRollcall(){
   var sel = el('rc-event');
   var cur = sel.value;
   var opts = (DATA.events || []).map(function(e){
-    return '<option value="' + esc(e.code) + '">' + esc(e.code) + ' ' + esc(e.name)
+    return '<option value="' + esc(e.code) + '">' + evLabel(e)
       + (e.start_time ? '（' + esc(e.start_time) + '）' : '') + '</option>';
   }).join('');
   if (sel.innerHTML !== opts) { sel.innerHTML = opts; if (cur) sel.value = cur; }
@@ -511,7 +516,7 @@ el('rs-search').addEventListener('input', renderRoster);
 function renderEventChecks(){
   el('rs-events').innerHTML = (DATA.events || []).map(function(e){
     return '<label class="checkbox-row"><input type="checkbox" class="rs-ev" value="' + esc(e.code) + '"> '
-      + esc(e.code) + ' ' + esc(e.name) + '</label>';
+      + evLabel(e) + '</label>';
   }).join('');
 }
 el('rs-clear').addEventListener('click', function(){
