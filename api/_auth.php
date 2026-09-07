@@ -54,7 +54,11 @@ function issue_csrf() {
 
 /* 同一オリジン確認（Origin/Referer があれば自ホストと一致必須。無い場合は許容） */
 function same_origin_ok() {
+    /* HTTP_HOST にはポートが付くことがある（ローカル確認時の 127.0.0.1:8080 など）。
+       Origin/Referer 側はホスト名だけなので、比較する前にポートを外す。
+       本番は443番でポートが付かないため、判定結果は従来と変わらない。 */
     $host = strtolower($_SERVER['HTTP_HOST'] ?? '');
+    $host = preg_replace('/:\d+$/', '', $host);
     foreach (['HTTP_ORIGIN', 'HTTP_REFERER'] as $k) {
         if (!empty($_SERVER[$k])) {
             $h = parse_url($_SERVER[$k], PHP_URL_HOST);
