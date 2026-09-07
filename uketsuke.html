@@ -52,6 +52,8 @@
   #ci-recent td:first-child, #rc-present td:first-child,
   #rc-absent td:first-child, #rs-list td:first-child{
     font-size:22px;font-weight:800;color:var(--primary);width:1%;white-space:nowrap}
+  /* 背番号の列は幅を詰めるため、見出しが「背/番/号」と縦に折り返さないようにする */
+  th:first-child{white-space:nowrap}
   .bib-big{font-size:30px;font-weight:800;vertical-align:-2px}
   .banner{padding:14px;border-radius:10px;margin:12px 0;font-size:17px;font-weight:700;text-align:center}
   .b-ok{background:var(--ok-bg);color:var(--ok)} .b-warn{background:var(--warn-bg);color:var(--warn)}
@@ -140,7 +142,7 @@
 
       <h2>受付状況 <span class="muted" id="ci-count"></span></h2>
       <table>
-        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>時刻</th><th></th></tr></thead>
+        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>受付</th><th>時刻</th><th></th></tr></thead>
         <tbody id="ci-recent"></tbody>
       </table>
 
@@ -170,7 +172,7 @@
       </table>
       <h2>出場（チェックイン済み）</h2>
       <table>
-        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>時刻</th></tr></thead>
+        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>受付</th><th>時刻</th></tr></thead>
         <tbody id="rc-present"></tbody>
       </table>
     </section>
@@ -441,7 +443,8 @@ function renderRecent(){
   el('ci-recent').innerHTML = rows.slice(0, 40).map(function(c){
     var r = map[c.bib] || {};
     return '<tr><td>' + esc(c.bib) + '</td><td>' + esc(r.leader) + '</td><td>' + esc(r.partner)
-      + '</td><td>' + esc(r.affiliation) + '</td><td>' + esc(fmtTime(c.at)) + '</td>'
+      + '</td><td>' + esc(r.affiliation) + '</td><td class="muted">' + esc(c.by || '') + '</td>'
+      + '<td>' + esc(fmtTime(c.at)) + '</td>'
       + '<td><button type="button" class="small secondary" data-uncheck="' + esc(c.bib) + '">取消</button></td></tr>';
   }).join('');
 
@@ -481,7 +484,7 @@ function renderRollcall(){
   el('rc-print').href = 'uketsuke-print.html?id=' + encodeURIComponent(COMP ? COMP.id : '');
 
   var done = {};
-  (DATA.checkins || []).forEach(function(c){ done[c.bib] = c.at; });
+  (DATA.checkins || []).forEach(function(c){ done[c.bib] = c; });   /* 受付担当者名も使うので記録ごと持つ */
   var present = [], absent = [];
   (DATA.roster || []).forEach(function(r){
     if ((r.events || []).indexOf(code) === -1) return;
@@ -494,8 +497,9 @@ function renderRollcall(){
   el('rc-a-count').textContent = '欠場 ' + absent.length;
   el('rc-present').innerHTML = present.map(function(p){
     return '<tr><td>' + esc(p[0].bib) + '</td><td>' + esc(p[0].leader) + '</td><td>' + esc(p[0].partner)
-      + '</td><td>' + esc(p[0].affiliation) + '</td><td>' + esc(fmtTime(p[1])) + '</td></tr>';
-  }).join('') || '<tr><td colspan="5" class="muted">なし</td></tr>';
+      + '</td><td>' + esc(p[0].affiliation) + '</td><td class="muted">' + esc(p[1].by || '') + '</td>'
+      + '<td>' + esc(fmtTime(p[1].at)) + '</td></tr>';
+  }).join('') || '<tr><td colspan="6" class="muted">なし</td></tr>';
   el('rc-absent').innerHTML = absent.map(function(r){
     return '<tr><td>' + esc(r.bib) + '</td><td>' + esc(r.leader) + '</td><td>' + esc(r.partner)
       + '</td><td>' + esc(r.affiliation) + '</td></tr>';
