@@ -59,18 +59,28 @@ if ($mode === 'replace') {
 ksort($merged, SORT_NUMERIC);
 uk_write_json(uk_roster_file($id), array_values($merged));
 
-/* 名簿にあって種目マスタに無いコードを仮登録する */
+/* 種目マスタに無いコードを仮登録する。
+   取込画面で指定した種目コード（event_codes）は、エントリーが0組でも登録する。
+   その種目が競技会には存在するのに出場欠場一覧や印刷に出てこない、という事態を防ぐため。 */
 $events = uk_load_events($id);
 $known  = [];
 foreach ($events as $e) $known[$e['code'] ?? ''] = true;
-$added = [];
+
+$wanted = [];
+foreach (json_decode($_POST['event_codes'] ?? '[]', true) ?: [] as $c) {
+    $c = mb_substr(preg_replace('/[^A-Za-z0-9_-]/', '', (string)$c), 0, 20);
+    if ($c !== '') $wanted[] = $c;
+}
 foreach ($merged as $r) {
-    foreach (($r['events'] ?? []) as $c) {
-        if ($c !== '' && !isset($known[$c])) {
-            $known[$c] = true;
-            $added[]   = $c;
-            $events[]  = ['code' => $c, 'name' => $c, 'start_time' => ''];
-        }
+    foreach (($r['events'] ?? []) as $c) $wanted[] = $c;
+}
+
+$added = [];
+foreach ($wanted as $c) {
+    if (!isset($known[$c])) {
+        $known[$c] = true;
+        $added[]   = $c;
+        $events[]  = ['code' => $c, 'name' => $c, 'start_time' => ''];
     }
 }
 if ($added) uk_write_json(uk_events_file($id), $events);

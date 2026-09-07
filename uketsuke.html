@@ -188,7 +188,14 @@
           <div id="map-fields"></div>
           <h2>種目として扱う列</h2>
           <p class="muted">値が「1」または「◎」なら出場ありとして扱います（空欄・「＿」は出場なし）。
-            CSVには種目コードが入っていないので、DCSの競技内容設定を見ながら右欄にコードを入力してください。</p>
+            CSVには種目コードが入っていないので、DCSの競技内容設定と同じ順にコードを指定してください。</p>
+          <div class="row wrap" style="margin-bottom:10px">
+            <div class="grow">
+              <label class="muted">種目コードをまとめて入力（DCSの競技内容設定の順に、カンマ区切り）</label>
+              <input type="text" id="bulk-codes" placeholder="例: JAS,JAL,MAS,GAS,RAS,JBS,JBL,JCS,JCL,JDS,JDL">
+            </div>
+            <button type="button" id="bulk-apply" class="small" style="align-self:flex-end">割り当てる</button>
+          </div>
           <div id="map-events"></div>
           <div style="height:12px"></div>
           <div class="row">
@@ -572,6 +579,33 @@ function renderMap(){
 }
 el('has-header').addEventListener('change', function(){ if (PREV) renderMap(); });
 
+/* ---------- 種目コードをまとめて割り当てる ---------- */
+var EV_START = -1;   /* 自動判定で分かった「競技参加区分」の開始列 */
+el('bulk-apply').addEventListener('click', function(){
+  if (!PREV) return;
+  var codes = el('bulk-codes').value.split(/[,、\s]+/).map(function(s){ return s.trim(); })
+    .filter(function(s){ return s !== ''; });
+  if (!codes.length) { alert('種目コードを入力してください（例: JAS,JAL,MAS）'); return; }
+  var start = EV_START;
+  if (start < 0) { alert('競技参加区分の列を判定できていません。チェックとコードを手で指定してください。'); return; }
+
+  /* いったん全て外してから、開始列から順に割り当て直す */
+  document.querySelectorAll('.ev-col').forEach(function(cb){ cb.checked = false; });
+  document.querySelectorAll('.ev-code').forEach(function(ci){ ci.value = ''; });
+  var n = headers().length, applied = 0;
+  for (var k = 0; k < codes.length && start + k < n; k++) {
+    var idx = start + k;
+    var cb = document.querySelector('.ev-col[data-i="' + idx + '"]');
+    var ci = document.querySelector('.ev-code[data-i="' + idx + '"]');
+    if (cb && ci) { cb.checked = true; ci.value = codes[k]; applied++; }
+  }
+  var b = el('detect-banner');
+  b.className = 'banner b-ok';
+  b.innerHTML = '列' + (start+1) + '以降に ' + applied + '種目を割り当てました（' + esc(codes.slice(0, applied).join(', ')) + '）。<br>'
+    + 'サンプル値を見て、種目の順番が合っているか確認してから取り込んでください。';
+  b.classList.remove('hidden');
+});
+
 /* ---------- 列の自動判定 ----------
    DCSのCSVには項目名の行が無いが、各列の中身には特徴があるので推定できる。
    誤判定があり得るので確定はせず、画面に反映して人が確認する。 */
@@ -670,6 +704,8 @@ function autoDetect(){
     }
   }
 
+  EV_START = evStart;   /* 「まとめて入力」で使う */
+
   /* 判定結果を知らせる（間違っていれば手で直せる） */
   var msg = [];
   msg.push('自動判定しました → 背番号=' + (bib >= 0 ? '列' + (bib+1) : '不明')
@@ -680,7 +716,7 @@ function autoDetect(){
     msg.push('競技参加区分は列' + (evStart+1) + '以降と判断し、種目マスタの並び順で ' + assigned + '種目を割り当てました（' + codes.slice(0, assigned).join(', ') + '）。');
     msg.push('※この順番はDCSの「競技内容設定」の並び順と一致している必要があります。');
   } else if (evStart >= 0) {
-    msg.push('競技参加区分は列' + (evStart+1) + '以降と判断しましたが、種目マスタが未登録のため種目コードを割り当てられませんでした。「種目」タブでDCSの競技内容設定と同じ順に登録してから取り込むと自動で割り当てられます。');
+    msg.push('競技参加区分は列' + (evStart+1) + '以降と判断しました。種目マスタが未登録のため、下の「種目コードをまとめて入力」欄に、DCSの競技内容設定の順でコードを入れて「割り当てる」を押してください（取り込み時に種目マスタへ自動登録されます）。');
   } else {
     msg.push('競技参加区分の列を判定できませんでした。手動でチェックしてください。');
   }
@@ -749,7 +785,11 @@ el('imp-run').addEventListener('click', function(){
   if (!out.length) { alert('取り込める行がありませんでした（背番号列とヘッダー有無を確認してください）'); return; }
   if (!confirm(out.length + '組を取り込みます。現在の名簿は置き換わります。よろしいですか？')) return;
 
-  post('api/uketsuke_save_roster.php', {id:COMP.id, mode:'replace', roster:JSON.stringify(out)})
+  post('api/uketsuke_save_roster.php', {
+    id: COMP.id, mode: 'replace', roster: JSON.stringify(out),
+    /* エントリー0組の種目も種目マスタに残すため、指定した種目コードを一緒に送る */
+    event_codes: JSON.stringify(cols.map(function(c){ return c.code; }))
+  })
     .then(function(d){
       var msg = d.count + '組を取り込みました。';
       if (d.new_events_created.length) msg += '<br>種目を仮登録しました: ' + esc(d.new_events_created.join(', ')) + '（種目タブで名称・時刻を確認してください）';
