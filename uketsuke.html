@@ -183,6 +183,7 @@
 
         <div id="imp-step2" class="hidden">
           <div id="dcs-banner" class="banner b-warn hidden"></div>
+          <div id="detect-banner" class="banner hidden" style="font-size:14px;font-weight:400;text-align:left"></div>
           <label class="checkbox-row"><input type="checkbox" id="has-header"> 1行目を項目名（ヘッダー）として使う</label>
           <div id="map-fields"></div>
           <h2>種目として扱う列</h2>
@@ -567,8 +568,128 @@ function renderMap(){
       + '<span style="width:150px;display:inline-block">' + esc(h) + ' <span class="muted">(' + esc(sampleFor(i)) + ')</span></span>'
       + '<input type="text" class="ev-code" data-i="' + i + '" placeholder="種目コード" style="width:120px"></div>';
   }).join('');
+  autoDetect();
 }
 el('has-header').addEventListener('change', function(){ if (PREV) renderMap(); });
+
+/* ---------- 列の自動判定 ----------
+   DCSのCSVには項目名の行が無いが、各列の中身には特徴があるので推定できる。
+   誤判定があり得るので確定はせず、画面に反映して人が確認する。 */
+function colVals(i){
+  var out = [], rows = dataRows();
+  for (var k = 0; k < rows.length; k++) {
+    var v = (rows[k][i] === undefined || rows[k][i] === null) ? '' : String(rows[k][i]).trim();
+    if (v !== '') out.push(v);
+  }
+  return out;
+}
+var RE_KANA_HALF = /^[｡-ﾟ 　]+$/;          /* 半角カタカナのみ＝フリガナ */
+var RE_JP        = /[぀-ゟ゠-ヿ㐀-鿿]/; /* ひらがな・全角カナ・漢字 */
+function colIsInt(i){
+  var v = colVals(i);
+  if (!v.length) return false;
+  for (var k = 0; k < v.length; k++) if (!/^\d{1,4}$/.test(v[k])) return false;
+  return true;
+}
+function colIsKana(i){
+  var v = colVals(i);
+  if (!v.length) return false;
+  for (var k = 0; k < v.length; k++) if (!RE_KANA_HALF.test(v[k])) return false;
+  return true;
+}
+function colIsName(i){
+  var v = colVals(i);
+  if (!v.length) return false;
+  var jp = 0;
+  for (var k = 0; k < v.length; k++) if (RE_JP.test(v[k])) jp++;
+  return jp >= v.length * 0.5;            /* 外国人選手のローマ字表記が混ざるため過半数で判定 */
+}
+/* 出場マーク（1 / ◎ / ＿ / 空欄）しか出てこない列か */
+function colIsFlag(i){
+  var v = colVals(i);
+  for (var k = 0; k < v.length; k++) {
+    if (v[k] !== '1' && v[k] !== '◎' && v[k] !== '＿' && v[k] !== '0') return false;
+  }
+  return true;
+}
+function colHasMark(i){
+  var v = colVals(i);
+  for (var k = 0; k < v.length; k++) if (v[k] === '1' || v[k] === '◎') return true;
+  return false;
+}
+
+function autoDetect(){
+  var n = headers().length;
+  if (!n) return;
+  var used = {};
+  function pick(id, idx){ if (idx >= 0 && idx < n) { el(id).value = String(idx); used[idx] = true; } }
+
+  /* 1) 背番号：整数だけの最初の列（DCSでは必須項目で必ず先頭） */
+  var bib = -1;
+  for (var i = 0; i < n && bib < 0; i++) if (colIsInt(i)) bib = i;
+
+  /* 2) 氏名：漢字などを含む隣り合った2列（リーダー・パートナーの順） */
+  var leader = -1, partner = -1;
+  for (var i = 0; i + 1 < n && leader < 0; i++) {
+    if (colIsName(i) && !colIsKana(i) && colIsName(i + 1) && !colIsKana(i + 1)) { leader = i; partner = i + 1; }
+  }
+
+  /* 3) フリガナ：氏名より後にある、半角カタカナだけの隣り合った2列 */
+  var kana = -1;
+  for (var i = (partner >= 0 ? partner + 1 : 0); i + 1 < n && kana < 0; i++) {
+    if (colIsKana(i) && colIsKana(i + 1)) kana = i;
+  }
+
+  /* 4) 所属：フリガナ（無ければ氏名）の次にある、数字だけではない文字列の列 */
+  var affil = -1;
+  var from = (kana >= 0 ? kana + 2 : (partner >= 0 ? partner + 1 : 0));
+  for (var i = from; i < n && affil < 0; i++) {
+    if (!colIsInt(i) && !colIsFlag(i) && colVals(i).length) affil = i;
+  }
+
+  /* 5) 競技参加区分：マークがあり、そこから最後までが全てマーク列になっている位置から */
+  var evStart = -1;
+  for (var i = 0; i < n && evStart < 0; i++) {
+    if (!colIsFlag(i) || !colHasMark(i)) continue;
+    var ok = true;
+    for (var j = i; j < n; j++) if (!colIsFlag(j)) { ok = false; break; }
+    if (ok) evStart = i;
+  }
+
+  pick('m-bib', bib); pick('m-leader', leader); pick('m-partner', partner); pick('m-affiliation', affil);
+
+  /* 6) 種目コードは種目マスタの並び順（＝DCSの競技内容設定の順）で先頭から割り当てる */
+  var codes = (DATA.events || []).map(function(e){ return e.code; });
+  var assigned = 0;
+  if (evStart >= 0) {
+    for (var k = 0; k < codes.length && evStart + k < n; k++) {
+      var idx = evStart + k;
+      var cb = document.querySelector('.ev-col[data-i="' + idx + '"]');
+      var ci = document.querySelector('.ev-code[data-i="' + idx + '"]');
+      if (cb && ci) { cb.checked = true; ci.value = codes[k]; assigned++; }
+    }
+  }
+
+  /* 判定結果を知らせる（間違っていれば手で直せる） */
+  var msg = [];
+  msg.push('自動判定しました → 背番号=' + (bib >= 0 ? '列' + (bib+1) : '不明')
+    + '／リーダー=' + (leader >= 0 ? '列' + (leader+1) : '不明')
+    + '／パートナー=' + (partner >= 0 ? '列' + (partner+1) : '不明')
+    + '／所属=' + (affil >= 0 ? '列' + (affil+1) : 'なし'));
+  if (evStart >= 0 && assigned > 0) {
+    msg.push('競技参加区分は列' + (evStart+1) + '以降と判断し、種目マスタの並び順で ' + assigned + '種目を割り当てました（' + codes.slice(0, assigned).join(', ') + '）。');
+    msg.push('※この順番はDCSの「競技内容設定」の並び順と一致している必要があります。');
+  } else if (evStart >= 0) {
+    msg.push('競技参加区分は列' + (evStart+1) + '以降と判断しましたが、種目マスタが未登録のため種目コードを割り当てられませんでした。「種目」タブでDCSの競技内容設定と同じ順に登録してから取り込むと自動で割り当てられます。');
+  } else {
+    msg.push('競技参加区分の列を判定できませんでした。手動でチェックしてください。');
+  }
+  msg.push('サンプル値を見て、誤りがあれば直してから取り込んでください。');
+  var b = el('detect-banner');
+  b.innerHTML = msg.join('<br>');
+  b.className = 'banner ' + ((bib >= 0 && leader >= 0 && partner >= 0 && assigned > 0) ? 'b-ok' : 'b-warn');
+  b.classList.remove('hidden');
+}
 
 el('csv-read').addEventListener('click', function(){
   var f = el('csv-file').files[0];
