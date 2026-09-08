@@ -172,6 +172,14 @@
 
     <!-- ======== 受付 ======== -->
     <section id="v-checkin" class="hidden">
+      <!-- 誰の名前で受付しているかは常に見えている必要があるが、入力欄を出しっぱなしにすると
+           背番号の邪魔になるので、名前の表示と「変更」ボタンだけを置く -->
+      <div class="row" style="margin-bottom:10px">
+        <span class="muted">受付担当者名</span>
+        <b id="ci-by">未設定</b>
+        <button type="button" class="small secondary" id="ci-by-edit" style="margin-left:auto">変更</button>
+      </div>
+
       <form class="card" id="ci-form">
         <label class="muted" for="bib">背番号</label>
         <div class="checkin-row">
@@ -644,9 +652,12 @@ function startPolling(on){
 el('by').value = localStorage.getItem('uk_by') || '';
 function renderBy(){
   var v = el('by').value.trim();
-  /* 誰の名前で受付しているかは常に見えている必要があるので、タブ名自体に出す */
+  /* 誰の名前で受付しているかは常に見えている必要があるので、タブ名と受付画面の両方に出す */
   el('tab-staff').textContent = '受付担当者名（' + (v || '未設定') + '）';
+  el('ci-by').textContent = v || '未設定';
 }
+/* 受付画面から担当者名の設定へ移る */
+el('ci-by-edit').addEventListener('click', function(){ switchView('staff'); });
 function saveBy(){
   var v = el('by').value.trim();
   el('by').value = v;
