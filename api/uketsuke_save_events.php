@@ -2,7 +2,7 @@
 /* 種目マスタの保存（画面上の一覧をまるごと置き換える）。
    events は JSON文字列で1フィールドに入れて POST する（既存の save_schedule.php と同じ方式）。 */
 require __DIR__ . '/_uketsuke.php';
-require_auth('admin');
+require_auth_any(['admin', 'build', 'uketsuke']);
 
 $id = $_POST['id'] ?? '';
 if (!uk_valid_id($id)) json_out(['error' => '大会IDが不正です'], 400);

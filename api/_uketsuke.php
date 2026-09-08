@@ -16,7 +16,7 @@ function uk_root() { return dirname(__DIR__) . '/data/uketsuke'; }
 /* 読み出しの入口：名簿は個人情報なので、役員ページにログイン済みでなければ返さない。
    （書き込みは既存の require_auth('admin') ＝ POST＋同一オリジン＋CSRF＋role を使う） */
 function uk_require_read() {
-    if (empty($_SESSION['auth']['admin']) && empty($_SESSION['auth']['build'])) {
+    if (empty($_SESSION['auth']['admin']) && empty($_SESSION['auth']['build']) && empty($_SESSION['auth']['uketsuke'])) {
         json_out(['error' => 'Forbidden'], 403);
     }
     return true;

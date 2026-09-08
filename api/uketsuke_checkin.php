@@ -4,7 +4,7 @@
    - 既にチェックイン済みならエラーにせず already=true と受付時刻を返す
    - 記録は1行の追記なので、複数の受付端末が同時に押しても取りこぼさない */
 require __DIR__ . '/_uketsuke.php';
-require_auth('admin');
+require_auth_any(['admin', 'build', 'uketsuke']);
 
 $id = $_POST['id'] ?? '';
 if (!uk_valid_id($id)) json_out(['error' => '大会IDが不正です'], 400);

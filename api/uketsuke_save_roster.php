@@ -5,7 +5,7 @@
    mode=delete  : 送った背番号の行を削除する
    名簿に無い種目コードが来たら、種目マスタへ仮登録（名称＝コード）する。 */
 require __DIR__ . '/_uketsuke.php';
-require_auth('admin');
+require_auth_any(['admin', 'build', 'uketsuke']);
 
 $id = $_POST['id'] ?? '';
 if (!uk_valid_id($id)) json_out(['error' => '大会IDが不正です'], 400);

@@ -2,7 +2,7 @@
 /* 大会を開く（公認番号の照合）。
    合っていればセッションに記録し、以後その大会のデータを扱えるようにする。 */
 require __DIR__ . '/_uketsuke.php';
-require_auth('admin');
+require_auth_any(['admin', 'build', 'uketsuke']);
 
 $id = $_POST['id'] ?? '';
 if (!uk_valid_id($id)) json_out(['error' => '大会IDが不正です'], 400);

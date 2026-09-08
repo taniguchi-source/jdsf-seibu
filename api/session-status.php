@@ -14,6 +14,7 @@ json_out([
     'build'    => !empty($auth['build']),
     'special'  => $special,
     'schedule' => !empty($auth['schedule']),
+    'uketsuke' => !empty($auth['uketsuke']),
     'csrf'     => issue_csrf(),
     'has_pw'   => $has_pw,
 ]);

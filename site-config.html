@@ -79,12 +79,13 @@
     <div style="background:#fff;border-radius:12px;padding:24px;max-width:420px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.3);position:relative;">
       <button onclick="closePwModal()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:1.1rem;cursor:pointer;color:#94A3B8;">✕</button>
       <h3 style="font-size:1rem;font-weight:700;margin:0 0 6px;">🔑 パスワードの変更</h3>
-      <p style="font-size:.8rem;color:#64748b;margin:0 0 12px;">主サイトのパスワードを変更します。まず<b>変更するパスワード</b>を選び、その<b>現在の値</b>と新しい値を入力してください。<br><span style="color:#9F1239;">※「担当者用（競技予定）」を初めて設定するときは、現在のパスワードは空欄のままでOKです。</span></p>
+      <p style="font-size:.8rem;color:#64748b;margin:0 0 12px;">主サイトのパスワードを変更します。まず<b>変更するパスワード</b>を選び、その<b>現在の値</b>と新しい値を入力してください。<br><span style="color:#9F1239;">※「担当者用（競技予定）」「受付システム用」を初めて設定するときは、現在のパスワードは空欄のままでOKです。</span></p>
       <div style="margin:0 0 14px;padding:10px 12px;background:#f4f6fa;border-radius:8px;">
         <div style="font-size:.8rem;font-weight:700;margin-bottom:6px;">変更するパスワード</div>
         <label style="display:inline-flex;align-items:center;gap:5px;font-size:.85rem;margin-right:16px;cursor:pointer;"><input type="radio" name="cpw-role" value="admin"> 役員用</label>
         <label style="display:inline-flex;align-items:center;gap:5px;font-size:.85rem;margin-right:16px;cursor:pointer;"><input type="radio" name="cpw-role" value="build" checked> サイト構築ページ用</label>
-        <label style="display:inline-flex;align-items:center;gap:5px;font-size:.85rem;cursor:pointer;"><input type="radio" name="cpw-role" value="schedule"> 担当者用（競技予定）</label>
+        <label style="display:inline-flex;align-items:center;gap:5px;font-size:.85rem;margin-right:16px;cursor:pointer;"><input type="radio" name="cpw-role" value="schedule"> 担当者用（競技予定）</label>
+        <label style="display:inline-flex;align-items:center;gap:5px;font-size:.85rem;cursor:pointer;"><input type="radio" name="cpw-role" value="uketsuke"> 受付システム用</label>
       </div>
       <div style="display:grid;gap:12px;">
         <div><label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;">現在のパスワード（上で選んだ方／担当者用の初回は空欄可）</label>
@@ -148,15 +149,21 @@
     <!-- ⑤ 広告バナー管理 -->
     <div class="card">
       <h2>📣 広告バナー管理</h2>
-      <p class="hint">トップページの<strong>フッター直前</strong>に表示される広告バナー（画像＋リンク）です。最大6枚。PCは横並び・スマホは縦積み。推奨：横長・比率およそ2.6:1（表示は<strong>PC 260×100px／スマホ 240px幅</strong>）。画像は 520×200px 前後、高精細にするなら 1040×400px・8MB以内（JPG/PNG/WebP/GIF）。文字は小さめに縮小表示されるため<strong>大きめの文字・少ない情報量</strong>が読みやすいです。<strong>画像あり＋「表示する」ONのバナーだけ</strong>が下のプレビューとトップに出ます（0枚ならバナー帯ごと非表示）。並び順は各バナーの <strong>↑↓</strong> で入れ替えできます。</p>
+      <div id="banner-ledger" class="hidden" style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px 14px;margin:10px 0 4px;font-size:.82rem;color:#1E3A8A;">
+        📣 広告バナーは<b>「広告スポンサー管理」で一元管理されています</b>（契約期間・入金状況とバナーが連動し、掲載期間を過ぎると自動で消えます）。<br>
+        このページからの手動編集は、内容が食い違わないよう無効になっています。
+        <div style="margin-top:10px;"><a class="btn btn-sm" href="ads.html" target="_blank" style="text-decoration:none;">📣 広告スポンサー管理を開く ↗</a></div>
+      </div>
+      <p class="hint" id="banner-hint">トップページの<strong>フッター直前</strong>に表示される広告バナー（画像＋リンク）です。最大6枚。PCは横並び・スマホは縦積み。推奨：横長・比率およそ2.6:1（表示は<strong>PC 260×100px／スマホ 240px幅</strong>）。画像は 520×200px 前後、高精細にするなら 1040×400px・8MB以内（JPG/PNG/WebP/GIF）。文字は小さめに縮小表示されるため<strong>大きめの文字・少ない情報量</strong>が読みやすいです。<strong>画像あり＋「表示する」ONのバナーだけ</strong>が下のプレビューとトップに出ます（0枚ならバナー帯ごと非表示）。並び順は各バナーの <strong>↑↓</strong> で入れ替えできます。</p>
       <div style="margin:0 0 14px;">
         <div style="font-size:.72rem;font-weight:700;color:var(--text-light);margin-bottom:6px;">🖥 トップページでの表示プレビュー（左から順に並びます）</div>
         <div id="banner-preview" style="background:#fff;border:1px dashed var(--border);border-radius:8px;padding:14px;display:flex;flex-wrap:wrap;gap:16px;justify-content:center;align-items:center;min-height:74px;"></div>
       </div>
       <div id="banner-list" style="display:grid;gap:12px;"></div>
-      <div style="display:flex;gap:8px;margin-top:10px;">
+      <div id="banner-actions" style="display:flex;gap:8px;margin-top:10px;">
         <button class="btn btn-sec btn-sm" onclick="bannerAdd()">＋ バナーを追加</button>
         <button class="btn btn-sm" onclick="bannerSave()">💾 広告バナーを保存</button>
+        <a class="btn btn-sec btn-sm" href="ads.html" target="_blank" style="text-decoration:none;">📣 広告スポンサー管理（契約・入金）↗</a>
       </div>
       <div id="banner-msg" class="msg"></div>
     </div>
@@ -280,8 +287,8 @@ function loadAll(){
     .then(function(d){ fillHero(d||DEFAULT_HERO, d); })
     .catch(function(){ fillHero(DEFAULT_HERO, null); });
   fetch('data/home_banner.json?_='+Date.now()).then(function(r){return r.ok?r.json():null;})
-    .then(function(d){ _bn = (d && Array.isArray(d.banners)) ? d.banners : []; bnRender(); })
-    .catch(function(){ _bn = []; bnRender(); });
+    .then(function(d){ _bn = (d && Array.isArray(d.banners)) ? d.banners : []; _bnLedger = !!(d && d.source === 'ledger'); bnLedgerUI(); bnRender(); })
+    .catch(function(){ _bn = []; _bnLedger = false; bnLedgerUI(); bnRender(); });
 }
 
 /* ===== ① クイックリンク ===== */
@@ -360,7 +367,21 @@ function slUpload(n){
     .catch(function(){ setMsg('sl-msg','⚠ 通信エラー',false); });
 }
 
-/* ===== ⑤ 広告バナー（フッター直前・最大6枚） ===== */
+/* ===== ⑤ 広告バナー（フッター直前・最大6枚） =====
+   広告スポンサー管理（ads.html）へ移行済み（home_banner.json の source が 'ledger'）の場合は、
+   ここでの手動編集を隠す。台帳の保存が home_banner.json を作り直すため、二重管理を避ける。 */
+var _bnLedger = false;
+function bnLedgerUI(){
+  var note = document.getElementById('banner-ledger');
+  var hint = document.getElementById('banner-hint');
+  var list = document.getElementById('banner-list');
+  var acts = document.getElementById('banner-actions');
+  if(note) note.classList.toggle('hidden', !_bnLedger);
+  if(hint) hint.classList.toggle('hidden',  _bnLedger);
+  if(list) list.classList.toggle('hidden',  _bnLedger);
+  if(acts) acts.classList.toggle('hidden',  _bnLedger);
+}
+
 var _bn = [];
 function bnRender(){
   bnPreview();
@@ -405,7 +426,15 @@ function bnThumbHtml(i, url){
 function bnPreview(){
   var pv=document.getElementById('banner-preview');
   if(!pv) return;
-  var shown=_bn.filter(function(b){return b.enabled!==false && b.image;});
+  /* トップページと同じ条件で絞る（掲載期間がある台帳データは期間外を除外） */
+  var _t=new Date(), _p=function(n){return (n<10?'0':'')+n;};
+  var today=_t.getFullYear()+'-'+_p(_t.getMonth()+1)+'-'+_p(_t.getDate());
+  var shown=_bn.filter(function(b){
+    if(b.enabled===false || !b.image) return false;
+    if(b.start && today<String(b.start)) return false;
+    if(b.end   && today>String(b.end))   return false;
+    return true;
+  });
   if(!shown.length){ pv.innerHTML='<span style="font-size:.75rem;color:#999;">表示できるバナーがありません（画像あり＋「表示する」ONのバナーがここに出ます）</span>'; return; }
   pv.innerHTML=shown.map(function(b){
     return '<div style="flex:0 1 240px;max-width:240px;line-height:0;">'
@@ -432,7 +461,10 @@ function bannerSave(){
   var fd=new FormData(); fd.append('token',TOKEN); fd.append('banners',JSON.stringify(_bn));
   fetch('api/save_home_banner.php',{method:'POST',body:fd})
     .then(function(r){return r.json();})
-    .then(function(res){ setMsg('banner-msg', res.ok?'✅ 保存しました（トップのフッター直前に反映されます）':('⚠ '+(res.error||'失敗')), !!res.ok); })
+    .then(function(res){
+      if(res && res.ledger){ _bnLedger = true; bnLedgerUI(); }
+      setMsg('banner-msg', res.ok?'✅ 保存しました（トップのフッター直前に反映されます）':('⚠ '+(res.error||'失敗')), !!res.ok);
+    })
     .catch(function(){ setMsg('banner-msg','⚠ 通信エラー',false); });
 }
 

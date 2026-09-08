@@ -178,6 +178,26 @@ function require_schedule_auth() {
 }
 
 /* =====================================================================
+   受付システム 担当者パスワード（共通1つ）
+   - data/uketsuke_auth.php : <?php return '<bcrypt>';
+   - セッションは $_SESSION['auth']['uketsuke'] = true
+   受付の通常操作は admin / build / uketsuke で可。大会削除・受付リセット等の
+   危険操作は各APIが役員パスワードの再入力を別途要求する（従来どおり）。
+   ===================================================================== */
+
+function uketsuke_auth_file() { return auth_data_dir() . '/uketsuke_auth.php'; }
+
+function load_uketsuke_auth() {
+    $f = uketsuke_auth_file();
+    if (is_file($f)) { $h = include $f; if (is_string($h) && $h !== '') return $h; }
+    return '';
+}
+function save_uketsuke_auth($hash) {
+    $php = "<?php\nreturn " . var_export((string)$hash, true) . ";\n";
+    return file_put_contents(uketsuke_auth_file(), $php, LOCK_EX) !== false;
+}
+
+/* =====================================================================
    ログイン試行のレート制限（data/login_attempts.php を共用）
    api/login.php は従来どおり自前で処理している。ここは新しいログイン
    （特設サイト）用のヘルパー。

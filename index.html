@@ -105,6 +105,7 @@
       <a href="guidance.html"     class="nav-link">指導員情報</a>
       <a href="contact.html"      class="nav-link nav-cta">お問い合わせ</a>
       <a href="officers.html"     class="nav-link">役員用</a>
+      <a href="kyougi.html" class="nav-link">競技用</a>
     </nav>
   </div>
 </header>
@@ -745,7 +746,18 @@
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){
       if (!d || !Array.isArray(d.banners)) return;
-      var items = d.banners.filter(function(b){ return b.enabled !== false && b.image; });
+      /* 掲載期間（start/end）が入っていれば期間外を除外する。
+         → 広告スポンサー管理（ads.html）で設定した契約期間を過ぎたバナーは自動で消える。
+         期間が未設定の古いデータは従来どおり常時表示。 */
+      var td = new Date();
+      var p2 = function(n){ return (n < 10 ? '0' : '') + n; };
+      var today = td.getFullYear() + '-' + p2(td.getMonth() + 1) + '-' + p2(td.getDate());
+      var items = d.banners.filter(function(b){
+        if (b.enabled === false || !b.image) return false;
+        if (b.start && today < String(b.start)) return false;
+        if (b.end   && today > String(b.end))   return false;
+        return true;
+      });
       if (!items.length) return;
       var box = document.getElementById('ad-banners');
       var sec = document.getElementById('ad-banner-section');
@@ -755,7 +767,7 @@
         if (!/^(https?:\/\/|uploads\/)/i.test(img)) return '';
         var url = String(b.url || '');
         if (/^\s*(javascript|data|vbscript):/i.test(url)) url = '';
-        var inner = '<img src="' + esc(img) + '" alt="広告">';
+        var inner = '<img src="' + esc(img) + '" alt="' + esc(b.alt || '広告') + '">';
         if (url) {
           var tgt = b.newtab ? ' target="_blank" rel="noopener"' : '';
           return '<a href="' + esc(url) + '"' + tgt + '>' + inner + '</a>';

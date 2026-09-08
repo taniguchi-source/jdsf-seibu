@@ -336,6 +336,7 @@
       <a href="guidance.html"     class="nav-link">指導員情報</a>
       <a href="contact.html"      class="nav-link nav-cta">お問い合わせ</a>
       <a href="officers.html"     class="nav-link active">役員用</a>
+      <a href="kyougi.html" class="nav-link">競技用</a>
       <a href="officers-manual.html" class="nav-link" target="_blank" rel="noopener">📖 マニュアル</a>
       </nav>
     </div>
@@ -365,8 +366,6 @@
              style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:#fff;color:var(--primary);border-radius:8px;font-size:.85rem;font-weight:800;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.25);white-space:nowrap;">📅 競技予定を編集 →</a>
           <a href="ads.html" target="_blank" rel="noopener"
              style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:#fff;color:var(--primary);border-radius:8px;font-size:.85rem;font-weight:800;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.25);white-space:nowrap;">📣 広告スポンサー管理 →</a>
-          <a href="uketsuke.html" target="_blank" rel="noopener"
-             style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:#fff;color:var(--primary);border-radius:8px;font-size:.85rem;font-weight:800;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.25);white-space:nowrap;">🎫 競技会受付システム →</a>
         </div>
       </div>
     </div>
@@ -1138,6 +1137,7 @@
         + '<span style="font-size:0.8rem;color:var(--text-light);flex-shrink:0;min-width:88px;">📅 ' + (item.date || '') + '</span>'
         + '<div style="flex:1;min-width:180px;font-weight:700;font-size:0.9rem;color:var(--text-dark);">' + (item.title || '') + '</div>'
         + '<div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">'
+        + '<label style="display:inline-flex;align-items:center;gap:4px;font-size:0.78rem;color:var(--text-medium);cursor:pointer;white-space:nowrap;"><input type="checkbox" ' + (item.show_kyougi ? 'checked' : '') + ' onchange="setRefKyougi(\'' + safeId + '\', this.checked)"> 競技用に表示</label>'
         + linkHtml
         + '<button onclick="deleteReference(\'' + safeId + '\')" '
             + 'style="padding:5px 12px;background:#fee2e2;color:#B91C1C;border:none;border-radius:6px;font-size:0.8125rem;cursor:pointer;">🗑 削除</button>'
@@ -1146,6 +1146,19 @@
     });
     html += '</div>';
     el.innerHTML = html;
+  }
+
+  // 競技用ページに表示するかのON/OFF（役員セッションのみで切替。役員PW不要）
+  function setRefKyougi(id, checked) {
+    var fd = new FormData();
+    fd.append('token', 'jdsfseibu2026');
+    fd.append('action', 'set_kyougi');
+    fd.append('id', id);
+    if (checked) fd.append('show_kyougi', '1');
+    fetch('api/save_reference.php', { method: 'POST', body: fd })
+      .then(function(r){ return r.json(); })
+      .then(function(res){ if (!res || !res.ok) { alert('競技用の表示切替に失敗しました'); loadReferences(); } })
+      .catch(function(){ alert('通信エラーが発生しました'); loadReferences(); });
   }
 
   // ===== その他参考資料フォーム =====

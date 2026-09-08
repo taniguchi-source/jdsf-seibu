@@ -37,10 +37,15 @@ function jdsf_officer_password() {
     return 'seibu2026'; // GAS不通/空欄時のフォールバック（officers.html と一致）
 }
 
-$ref_password = $_POST['ref_password'] ?? '';
-if ($ref_password !== jdsf_officer_password()) {
-    echo json_encode(['ok' => false, 'error' => 'パスワードが正しくありません']);
-    exit;
+$action = $_POST['action'] ?? 'add';
+
+/* 競技用ページへの表示ON/OFFは、ログイン済み（役員セッション）なら役員PW不要で切り替え可 */
+if ($action !== 'set_kyougi') {
+    $ref_password = $_POST['ref_password'] ?? '';
+    if ($ref_password !== jdsf_officer_password()) {
+        echo json_encode(['ok' => false, 'error' => 'パスワードが正しくありません']);
+        exit;
+    }
 }
 
 $json_path = __DIR__ . '/../data/references.json';
@@ -48,7 +53,16 @@ $content   = @file_get_contents($json_path);
 $data      = ($content !== false) ? json_decode($content, true) : [];
 if (!isset($data['references'])) $data['references'] = [];
 
-$action = $_POST['action'] ?? 'add';
+/* ── 競技用ページへの表示ON/OFF（セッション認証のみ） ── */
+if ($action === 'set_kyougi') {
+    $id  = $_POST['id'] ?? '';
+    $val = !empty($_POST['show_kyougi']);
+    foreach ($data['references'] as &$r) { if (($r['id'] ?? '') === $id) $r['show_kyougi'] = $val; }
+    unset($r);
+    file_put_contents($json_path, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+    echo json_encode(['ok' => true]);
+    exit;
+}
 
 /* ── 削除 ── */
 if ($action === 'delete') {
@@ -118,6 +132,7 @@ $new_item = [
     'name'  => $name,
     'title' => $title,
     'url'   => $url,
+    'show_kyougi' => !empty($_POST['show_kyougi']),
 ];
 if ($download_password !== '') {
     $new_item['download_password'] = $download_password;

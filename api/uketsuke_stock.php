@@ -3,7 +3,7 @@
    受付に背番号が残っている＝本当に来ていない、という確認に使う。
    チェックインと同じく追記方式なので、複数端末で同時に操作しても記録が壊れない。 */
 require __DIR__ . '/_uketsuke.php';
-require_auth('admin');
+require_auth_any(['admin', 'build', 'uketsuke']);
 
 $id = $_POST['id'] ?? '';
 if (!uk_valid_id($id)) json_out(['error' => '大会IDが不正です'], 400);

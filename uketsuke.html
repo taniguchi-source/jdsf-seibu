@@ -113,7 +113,7 @@
     <div style="font-size:34px">🔑</div>
     <div class="login-title">競技会受付システム</div>
     <div class="login-sub">JDSF 近畿中四国ブロック委員会 役員専用</div>
-    <input type="password" id="login-pw" placeholder="役員ページのパスワード" autocomplete="current-password">
+    <input type="password" id="login-pw" placeholder="受付 または 役員 のパスワード" autocomplete="current-password">
     <div class="login-err" id="login-err"></div>
     <div id="local-hint" class="muted hidden" style="margin-top:10px">
       ローカル動作確認用サーバーです（本番とは別のパスワード）
@@ -399,7 +399,7 @@ function showApp(){ el('login-screen').classList.add('hidden'); el('app').classL
 
 fetch('api/session-status.php').then(function(r){ return r.json(); }).then(function(d){
   CSRF = (d && d.csrf) || '';
-  if (d && d.admin) showApp();
+  if (d && (d.admin || d.build || d.uketsuke)) showApp();
 }).catch(function(){});
 
 el('login-btn').addEventListener('click', doLogin);
@@ -407,9 +407,8 @@ el('login-pw').addEventListener('keydown', function(e){ if (e.key === 'Enter') d
 function doLogin(){
   var err = el('login-err');
   var fd = new FormData();
-  fd.append('role', 'admin');
   fd.append('password', el('login-pw').value);
-  fetch('api/login.php', {method:'POST', body:fd})
+  fetch('api/uketsuke_login.php', {method:'POST', body:fd})
     .then(function(r){ return r.json().then(function(j){ return {s:r.status, j:j}; }); })
     .then(function(res){
       if (res.j && res.j.ok) { CSRF = res.j.csrf || ''; err.style.display='none'; showApp(); }

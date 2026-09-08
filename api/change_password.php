@@ -6,7 +6,7 @@
 require __DIR__ . '/_auth.php';
 
 $roleIn = (string)($_POST['role'] ?? '');
-$role   = in_array($roleIn, ['admin', 'build', 'schedule'], true) ? $roleIn : 'admin';
+$role   = in_array($roleIn, ['admin', 'build', 'schedule', 'uketsuke'], true) ? $roleIn : 'admin';
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST')   json_out(['error' => 'Method Not Allowed'], 405);
 if (!same_origin_ok())                               json_out(['error' => 'Bad Origin'], 403);
@@ -29,6 +29,20 @@ if ($role === 'schedule') {
         if ($new === $cur)                   json_out(['error' => '現在のパスワードと異なるものにしてください'], 400);
     }                                     // 未設定（初回）は現PW不要
     if (!save_schedule_auth(password_hash($new, PASSWORD_DEFAULT))) json_out(['error' => '保存に失敗しました'], 500);
+    json_out(['ok' => true]);
+}
+
+/* ===== 受付システム用: data/uketsuke_auth.php ===== */
+if ($role === 'uketsuke') {
+    if (empty($_SESSION['auth']['build']) && empty($_SESSION['auth']['admin']) && empty($_SESSION['auth']['uketsuke'])) {
+        json_out(['error' => 'Forbidden'], 403);
+    }
+    $stored = load_uketsuke_auth();
+    if ($stored !== '') {
+        if (!password_verify($cur, $stored)) json_out(['error' => '現在のパスワードが正しくありません'], 403);
+        if ($new === $cur)                   json_out(['error' => '現在のパスワードと異なるものにしてください'], 400);
+    }
+    if (!save_uketsuke_auth(password_hash($new, PASSWORD_DEFAULT))) json_out(['error' => '保存に失敗しました'], 500);
     json_out(['ok' => true]);
 }
 
