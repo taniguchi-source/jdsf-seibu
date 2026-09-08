@@ -28,7 +28,8 @@
   .bibs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
   .bib{font-size:30px;font-weight:800;line-height:1;padding:8px 14px;border:2px solid var(--border);
     border-radius:8px;background:#fff;color:var(--primary)}
-  .block{margin-bottom:24px}
+  .block{margin-bottom:16px}
+  .no-break{padding-bottom:8px}
   @media print{
     header,.no-print{display:none !important}
     body{background:#fff}
@@ -97,7 +98,7 @@ function load(){
     });
 }
 
-/* 受付締切が同じ種目はまとめて呼び出すので、締切ごとの選択肢も用意する。
+/* 受付締切が同じ種目はまとめて呼び出すので、締切ごとに選べるようにする。
    値は t:<時刻> で締切ごと、e:<コード> で種目ごと。 */
 function deadlines(){
   var seen = {}, out = [];
@@ -115,7 +116,7 @@ function buildPicker(){
   var dl = deadlines();
   var html = '';
   if (dl.length) {
-    html += '<optgroup label="受付締切ごと（まとめて）">'
+    html += '<optgroup label="受付締切ごと（その時刻の種目を種目別に表示）">'
       + dl.map(function(g){
           return '<option value="t:' + esc(g.time) + '">' + esc(g.time) + '　'
             + esc(g.events.map(function(e){ return e.code; }).join(', ')) + '</option>';
@@ -159,32 +160,44 @@ function entryCount(codes){
   return n;
 }
 
-function render(){
-  var v = el('pick').value, title = '', codes = [];
-  if (v.indexOf('t:') === 0) {
-    var t = v.slice(2);
-    var g = deadlines().filter(function(x){ return x.time === t; })[0];
-    if (!g) { el('out').innerHTML = ''; return; }
-    codes = g.events.map(function(e){ return e.code; });
-    title = '受付締切 ' + esc(t) + '　<span class="muted">' + esc(codes.join(', ')) + '</span>';
-  } else {
-    var code = v.slice(2);
-    var e = (DATA.events || []).filter(function(x){ return x.code === code; })[0];
-    if (!e) { el('out').innerHTML = ''; return; }
-    codes = [code];
-    title = evLabel(e) + (e.start_time ? '　<span class="muted">受付締切 ' + esc(e.start_time) + '</span>' : '');
-  }
-
-  var absent = absentFor(codes);
-  var total  = entryCount(codes);
-  el('out').innerHTML = '<div class="card block">'
-    + '<h2>' + title + '</h2>'
-    + '<div class="muted">' + esc(DATA.name) + (DATA.date ? '（' + esc(DATA.date) + '）' : '')
-    + '　欠場 <b>' + absent.length + '</b> / エントリー ' + total + ' 組</div>'
+/* 1種目ぶんの欠場者を出す */
+function blockHtml(e){
+  var absent = absentFor([e.code]);
+  var total  = entryCount([e.code]);
+  return '<div class="card block">'
+    + '<h2>' + evLabel(e) + (e.start_time ? '　<span class="muted">受付締切 ' + esc(e.start_time) + '</span>' : '') + '</h2>'
+    + '<div class="muted">欠場 <b>' + absent.length + '</b> / エントリー ' + total + ' 組</div>'
     + (absent.length
         ? '<div class="bibs">' + absent.map(function(r){ return '<span class="bib">' + esc(r.bib) + '</span>'; }).join('') + '</div>'
         : '<p class="muted">欠場者はいません。</p>')
     + '</div>';
+}
+
+function render(){
+  var v = el('pick').value;
+  var head = '', evs = [];
+  if (v.indexOf('t:') === 0) {
+    /* 受付締切で選んだときは、その時刻の種目を種目別に分けて出す。
+       どの種目の欠場かが分からないと、進行席で使えないため。 */
+    var t = v.slice(2);
+    var g = deadlines().filter(function(x){ return x.time === t; })[0];
+    if (!g) { el('out').innerHTML = ''; return; }
+    evs = g.events;
+    var codes = evs.map(function(e){ return e.code; });
+    head = '<div class="card block no-break">'
+      + '<h2>受付締切 ' + esc(t) + '　<span class="muted">' + esc(codes.join(', ')) + '</span></h2>'
+      + '<div class="muted">' + esc(DATA.name) + (DATA.date ? '（' + esc(DATA.date) + '）' : '')
+      + '　この時刻の欠場 <b>' + absentFor(codes).length + '</b> 組（重複を除く） / エントリー '
+      + entryCount(codes) + ' 組</div></div>';
+  } else {
+    var code = v.slice(2);
+    var e = (DATA.events || []).filter(function(x){ return x.code === code; })[0];
+    if (!e) { el('out').innerHTML = ''; return; }
+    evs = [e];
+    head = '<div class="card block no-break"><div class="muted">' + esc(DATA.name)
+      + (DATA.date ? '（' + esc(DATA.date) + '）' : '') + '</div></div>';
+  }
+  el('out').innerHTML = head + evs.map(blockHtml).join('');
 }
 
 el('b-reload').addEventListener('click', function(){ load(); });
