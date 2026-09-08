@@ -337,6 +337,22 @@
 
     <!-- ======== 管理 ======== -->
     <section id="v-admin" class="hidden">
+      <h2>種目ごとの出場・欠場（例外処理）</h2>
+      <div class="card">
+        <p class="muted">
+          複数種目にエントリーしている組が、用事などで<b>一部の種目だけ欠場する</b>ときに使います。<br>
+          背番号を入れると、その組のエントリー種目が出ます。種目ごとに出場・欠場を切り替えてください。
+        </p>
+        <div class="row wrap">
+          <div style="width:160px">
+            <label class="muted" for="ex-bib">背番号</label>
+            <input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="ex-bib" placeholder="例: 12">
+          </div>
+          <button type="button" id="ex-find" style="align-self:flex-end">表示する</button>
+        </div>
+        <div id="ex-result" class="hidden" style="margin-top:12px"></div>
+      </div>
+
       <h2>管理</h2>
       <div class="card">
         <p class="muted">
@@ -857,6 +873,69 @@ el('ci-reset').addEventListener('click', function(){
     .catch(function(e){ alert(e.message); });
 });
 
+/* ---------- 種目ごとの出場・欠場（例外処理） ----------
+   1組が複数種目に出ているとき、一部の種目だけ欠場することがまれにある。
+   受付そのもの（チェックイン）は組単位なので、こちらは種目単位で上書きする扱いにする。 */
+function evAbsentMap(){
+  var m = {};
+  (DATA.event_absent || []).forEach(function(x){ m[x.bib + ':' + x.code] = x; });
+  return m;
+}
+/* その組がその種目を欠場か。受付していない組はもちろん欠場。 */
+function isAbsentIn(bib, code, doneMap, absMap){
+  if (absMap[bib + ':' + code]) return true;
+  return !doneMap[bib];
+}
+function renderExcept(){
+  var box = el('ex-result');
+  var bib = el('ex-bib').value.trim();
+  if (!bib) { box.classList.add('hidden'); return; }
+  var r = (DATA.roster || []).filter(function(x){ return String(x.bib) === String(bib); })[0];
+  if (!r) {
+    box.className = 'banner b-danger';
+    box.innerHTML = '背番号 ' + esc(bib) + ' は名簿にありません';
+    box.classList.remove('hidden');
+    return;
+  }
+  var done = {};
+  (DATA.checkins || []).forEach(function(c){ done[c.bib] = c; });
+  var absMap = evAbsentMap();
+  box.className = '';
+  box.innerHTML = '<div>' + whoHtml(r.bib, r) + '</div>'
+    + '<div class="muted" style="margin:6px 0 8px">'
+    + (done[r.bib] ? '受付済み（' + esc(fmtTime(done[r.bib].at)) + '）' : '<b>まだ受付していません</b>')
+    + '</div>'
+    + '<table class="dense"><thead><tr><th>種目</th><th>状態</th><th></th></tr></thead><tbody>'
+    + (r.events || []).map(function(c){
+        var m = (DATA.events || []).filter(function(e){ return e.code === c; })[0] || {code:c};
+        var off = !!absMap[r.bib + ':' + c];
+        var abs = isAbsentIn(r.bib, c, done, absMap);
+        return '<tr><td>' + esc(c) + ' <span class="muted">' + esc(m.name || '') + '</span></td>'
+          + '<td>' + (abs ? '<b style="color:var(--danger)">欠場</b>' : '<b style="color:var(--ok)">出場</b>')
+          + (off ? ' <span class="muted">（この種目だけ欠場に設定）</span>' : '') + '</td>'
+          + '<td><button type="button" class="small ' + (off ? 'secondary' : 'danger') + '" data-ex="'
+          + esc(c) + '" data-off="' + (off ? '1' : '') + '">'
+          + (off ? '出場に戻す' : 'この種目だけ欠場にする') + '</button></td></tr>';
+      }).join('')
+    + '</tbody></table>';
+  box.classList.remove('hidden');
+
+  box.querySelectorAll('[data-ex]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var on = b.dataset.off !== '1';    /* いまが出場なら欠場にする */
+      b.disabled = true;
+      post('api/uketsuke_event_status.php',
+           {id:COMP.id, bib:r.bib, code:b.dataset.ex, absent:on ? '1' : '0', by:el('by').value})
+        .then(function(){ return refresh().then(renderExcept); })
+        .catch(function(e){ b.disabled = false; alert(e.message); });
+    });
+  });
+}
+el('ex-find').addEventListener('click', renderExcept);
+el('ex-bib').addEventListener('keydown', function(e){
+  if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); renderExcept(); }
+});
+
 /* ---------- 欠場報告 ----------
    背番号在庫のチェックは受付とは別の人が担当するので、名前も受付担当者とは別に持つ。 */
 function absentBy(){
@@ -884,10 +963,11 @@ function renderRollcall(){
 
   var done = {};
   (DATA.checkins || []).forEach(function(c){ done[c.bib] = c; });   /* 受付担当者名も使うので記録ごと持つ */
+  var absMap = evAbsentMap();                                       /* 種目ごとの欠場（例外処理） */
   var present = [], absent = [];
   (DATA.roster || []).forEach(function(r){
     if ((r.events || []).indexOf(code) === -1) return;
-    if (done[r.bib]) present.push([r, done[r.bib]]); else absent.push(r);
+    if (isAbsentIn(r.bib, code, done, absMap)) absent.push(r); else present.push([r, done[r.bib]]);
   });
   present.sort(function(a,b){ return a[0].bib - b[0].bib; });
   absent.sort(function(a,b){ return a.bib - b.bib; });

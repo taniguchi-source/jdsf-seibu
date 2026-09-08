@@ -12,6 +12,7 @@ $events   = uk_load_events($id);
 $roster   = uk_load_roster($id);
 $checkins = uk_load_checkins($id);
 $stock    = uk_load_stock($id);
+$evabs    = uk_load_event_status($id);   /* 種目ごとの欠場（例外処理） */
 
 /* 一覧から大会名を引く */
 $name = '';
@@ -29,5 +30,6 @@ json_out([
     'roster'     => $roster,
     'checkins'   => array_values($checkins),
     'stock'      => array_values($stock),
+    'event_absent' => array_values($evabs),
     'updated_at' => uk_now(),
 ]);

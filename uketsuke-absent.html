@@ -138,16 +138,21 @@ function buildPicker(){
   el('pick').addEventListener('change', render);
 }
 
-/* 指定した種目に出ていて、まだチェックインしていない組。
+/* 指定した種目の欠場者。まだチェックインしていない組に加えて、
+   受付済みでも「その種目だけ欠場」に設定された組（例外処理）も欠場として扱う。
    締切ごとの表示では複数種目にまたがるので、背番号で重複を取り除く。 */
 function absentFor(codes){
   var done = {};
   (DATA.checkins || []).forEach(function(c){ done[c.bib] = true; });
+  var abs = {};
+  (DATA.event_absent || []).forEach(function(x){ abs[x.bib + ':' + x.code] = true; });
   var seen = {}, out = [];
   (DATA.roster || []).forEach(function(r){
-    if (done[r.bib]) return;
-    var hit = (r.events || []).some(function(c){ return codes.indexOf(c) !== -1; });
-    if (!hit || seen[r.bib]) return;
+    if (seen[r.bib]) return;
+    var hit = (r.events || []).some(function(c){
+      return codes.indexOf(c) !== -1 && (!done[r.bib] || abs[r.bib + ':' + c]);
+    });
+    if (!hit) return;
     seen[r.bib] = true;
     out.push(r);
   });

@@ -195,6 +195,40 @@ function uk_load_stock($id) {
     return $map;
 }
 
+/* 種目ごとの出場・欠場（例外処理）。
+   1つの組が複数種目に出ているとき、用事などで一部の種目だけ欠場することがまれにある。
+   チェックインと同じ追記ファイルに action=evstat として書く（全員解除で一緒に消えるように）。
+   ここに載っている「背番号:種目コード」は、受付済みでもその種目は欠場として扱う。 */
+function uk_load_event_status($id) {
+    $file = uk_checkins_file($id);
+    if (!is_file($file)) return [];
+    $fh = @fopen($file, 'r');
+    if (!$fh) return [];
+    $map = [];
+    while (($line = fgets($fh)) !== false) {
+        $line = trim($line);
+        if ($line === '') continue;
+        $rec = json_decode($line, true);
+        if (!is_array($rec)) continue;
+        $action = (string)($rec['action'] ?? '');
+        if ($action === 'clear') { $map = []; continue; }
+        if ($action !== 'evstat') continue;
+        $bib  = isset($rec['bib']) ? (int)$rec['bib'] : 0;
+        $code = uk_str($rec['code'] ?? '', 20);
+        if ($bib <= 0 || $code === '') continue;
+        $key = $bib . ':' . $code;
+        if (empty($rec['absent'])) { unset($map[$key]); continue; }   /* 出場に戻した */
+        $map[$key] = [
+            'bib'  => $bib,
+            'code' => $code,
+            'at'   => (string)($rec['at'] ?? ''),
+            'by'   => (string)($rec['by'] ?? ''),
+        ];
+    }
+    fclose($fh);
+    return $map;
+}
+
 /* 1行追記（同時書き込みでも取りこぼさない） */
 function uk_append_checkin($id, $rec) {
     $file = uk_checkins_file($id);
