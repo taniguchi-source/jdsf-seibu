@@ -83,6 +83,9 @@
     <div class="login-sub">JDSF 近畿中四国ブロック委員会 役員専用</div>
     <input type="password" id="login-pw" placeholder="役員ページのパスワード" autocomplete="current-password">
     <div class="login-err" id="login-err"></div>
+    <div id="local-hint" class="muted hidden" style="margin-top:10px">
+      ローカル動作確認用サーバーです（本番とは別のパスワード）
+    </div>
     <div style="height:14px"></div>
     <button class="block" id="login-btn">ログイン</button>
     <div style="height:12px"></div>
@@ -318,6 +321,10 @@ function evLabel(e){
 }
 
 /* ---------- ログイン ---------- */
+/* ローカルの動作確認用サーバーは本番と別のパスワードなので、取り違えないよう画面に出す */
+var IS_LOCAL = (location.hostname === '127.0.0.1' || location.hostname === 'localhost');
+if (IS_LOCAL) el('local-hint').classList.remove('hidden');
+
 function showApp(){ el('login-screen').classList.add('hidden'); el('app').classList.remove('hidden'); loadComps(); loadCompCandidates(); }
 
 fetch('api/session-status.php').then(function(r){ return r.json(); }).then(function(d){
@@ -381,7 +388,8 @@ function loadComps(){
       b.addEventListener('click', function(){
         var c = d.competitions.filter(function(x){ return x.id === b.dataset.del; })[0] || {};
         if (!confirm('「' + (c.name || b.dataset.del) + '」の名簿・種目・受付記録をすべて削除します。\n元に戻せません。よろしいですか？')) return;
-        var pw = prompt('削除を実行するには、役員ページのパスワードを入力してください');
+        var pw = prompt('削除を実行するには、役員ページのパスワードを入力してください'
+          + (IS_LOCAL ? '\n（ローカル動作確認用サーバーのパスワードです。本番のものではありません）' : ''));
         if (pw === null || pw === '') return;
         post('api/uketsuke_save_competition.php', {action:'delete', id:b.dataset.del, password:pw})
           .then(function(){ if (COMP && COMP.id === b.dataset.del) { COMP = null; el('hd-comp').textContent=''; } loadComps(); })
