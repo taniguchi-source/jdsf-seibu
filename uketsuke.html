@@ -459,6 +459,8 @@ function takeHashView(){
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
   return views.indexOf(v) === -1 ? '' : v;
 }
+/* 別ページのタブから「#画面名」付きで来たか */
+function hasPendingView(){ return views.indexOf(HASH_VIEW) !== -1; }
 function openViewFromHash(){
   if (!HASH_VIEW) return;
   if (HASH_VIEW !== 'comp' && !COMP) return;   /* 大会を開くまで待つ */
@@ -711,9 +713,13 @@ function restoreLastComp(list){
   var id;
   try { id = localStorage.getItem('uk_last_comp'); } catch (e) { return; }
   if (!id) return;
-  var c = (list || []).filter(function(x){ return x.id === id && !x.need_code; })[0];
-  /* 開き終えてから画面を切り替える（openComp の中で切り替わる） */
-  if (c) openComp(id, false, true);
+  var c = (list || []).filter(function(x){ return x.id === id; })[0];
+  if (!c) return;
+  /* 公認番号の要らない大会はそのまま開き直す。
+     公認番号つきの大会は開くたびに番号を求めるが、別ページのタブから戻ってきたとき
+     （#画面名つき）で、このセッションが既にその大会を開いていれば聞き直さない。
+     受付の途中で欠場者一覧などへ行き来するたびに止められると仕事にならないため。 */
+  if (!c.need_code || (hasPendingView() && c.unlocked)) openComp(id, false, true);
 }
 
 /* ---------- データ取得（ポーリング） ---------- */
