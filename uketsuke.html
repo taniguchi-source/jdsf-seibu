@@ -133,7 +133,7 @@
     <button data-view="comp" class="active">大会</button>
     <button data-view="roster">名簿</button>
     <button data-view="checkin" id="tab-checkin">受付</button>
-    <button data-view="rollcall">出場・欠場</button>
+    <button data-view="rollcall">欠場報告</button>
     <button data-view="events">種目</button>
     <button data-view="admin">管理</button>
   </nav>
@@ -199,7 +199,7 @@
 
     </section>
 
-    <!-- ======== 出場・欠場 ======== -->
+    <!-- ======== 欠場報告 ======== -->
     <section id="v-rollcall" class="hidden">
       <div class="card">
         <label class="muted">種目</label>
@@ -755,7 +755,7 @@ el('ci-reset').addEventListener('click', function(){
     .catch(function(e){ alert(e.message); });
 });
 
-/* ---------- 出場・欠場 ---------- */
+/* ---------- 欠場報告 ---------- */
 function renderRollcall(){
   var sel = el('rc-event');
   var cur = sel.value;
