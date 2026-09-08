@@ -73,8 +73,9 @@
   }
   table.dense td{line-height:1.25}
   table.dense #ci-recent td:first-child, table.dense #rs-list td:first-child{font-size:18px}
-  /* 行の高さは「取消」ボタンで決まってしまうので、この表の中だけ小さくする */
+  /* 行の高さは「取消」ボタンや入力欄で決まってしまうので、この表の中だけ小さくする */
   table.dense button.small{padding:2px 10px;font-size:12px}
+  table.dense input[type=text]{padding:3px 8px;font-size:14px}
   /* 出場種目のコード。名称は出さず、コードだけを小さく並べる */
   .code-pill{display:inline-block;margin:0 3px 0 0;padding:1px 6px;border-radius:4px;
     font-size:12px;font-weight:700;background:#eef2f7;color:var(--primary)}
@@ -134,7 +135,6 @@
     <button data-view="roster">名簿</button>
     <button data-view="checkin" id="tab-checkin">受付</button>
     <button data-view="rollcall">欠場報告</button>
-    <button data-view="events">種目</button>
     <button data-view="admin">管理</button>
   </nav>
 
@@ -274,6 +274,29 @@
       </div>
       <div id="imp-result" class="banner hidden"></div>
 
+      <h2>種目マスタ</h2>
+      <p class="muted">名簿CSVの取込で未登録の種目コードが見つかると、ここに仮登録（種目名＝コード）されます。名称と受付締切を整えてください。</p>
+
+      <div class="card">
+        <table class="dense">
+          <thead><tr><th>コード</th><th>種目名</th><th>受付締切</th><th></th></tr></thead>
+          <tbody id="ev-list"></tbody>
+        </table>
+        <div style="height:10px"></div>
+        <div class="row wrap">
+          <div style="width:110px"><input type="text" id="ev-code" placeholder="コード"></div>
+          <div class="grow"><input type="text" id="ev-name" placeholder="種目名"></div>
+          <div style="width:110px"><input type="text" id="ev-time" placeholder="受付締切 10:00"></div>
+          <button id="ev-add" class="small">追加</button>
+        </div>
+        <div style="height:12px"></div>
+        <div class="row wrap">
+          <button id="ev-save">種目マスタを保存</button>
+          <button id="ev-guess" class="secondary">コードから種目名を補う</button>
+        </div>
+        <span class="muted" id="ev-saved"></span>
+      </div>
+
       <h2>一覧 <span class="muted" id="rs-count"></span></h2>
       <input type="text" id="rs-search" placeholder="背番号・氏名・所属で検索">
       <div style="height:8px"></div>
@@ -303,32 +326,6 @@
       </form>
     </section>
 
-    <!-- ======== 種目 ======== -->
-    <section id="v-events" class="hidden">
-      <h2>種目マスタ</h2>
-      <p class="muted">名簿CSVの取込で未登録の種目コードが見つかると、ここに仮登録（種目名＝コード）されます。名称と受付締切を整えてください。</p>
-
-      <div class="card">
-        <table>
-          <thead><tr><th>コード</th><th>種目名</th><th>受付締切</th><th></th></tr></thead>
-          <tbody id="ev-list"></tbody>
-        </table>
-        <div style="height:10px"></div>
-        <div class="row wrap">
-          <div style="width:110px"><input type="text" id="ev-code" placeholder="コード"></div>
-          <div class="grow"><input type="text" id="ev-name" placeholder="種目名"></div>
-          <div style="width:110px"><input type="text" id="ev-time" placeholder="受付締切 10:00"></div>
-          <button id="ev-add" class="small">追加</button>
-        </div>
-        <div style="height:12px"></div>
-        <div class="row wrap">
-          <button id="ev-save">種目マスタを保存</button>
-          <button id="ev-guess" class="secondary">コードから種目名を補う</button>
-        </div>
-        <span class="muted" id="ev-saved"></span>
-      </div>
-
-    </section>
 
     <!-- ======== 管理 ======== -->
     <section id="v-admin" class="hidden">
@@ -415,7 +412,7 @@ function doLogin(){
 }
 
 /* ---------- タブ切替 ---------- */
-var views = ['comp','checkin','rollcall','roster','events','admin'];
+var views = ['comp','checkin','rollcall','roster','admin'];
 document.querySelectorAll('nav.tabs button').forEach(function(b){
   b.addEventListener('click', function(){ switchView(b.dataset.view); });
 });
@@ -433,8 +430,7 @@ function switchView(v){
   if (v === 'comp') loadComps();
   if (v === 'checkin') { renderRecent(); el('bib').focus(); }
   if (v === 'rollcall') renderRollcall();
-  if (v === 'roster') { renderRoster(); renderEventChecks(); }
-  if (v === 'events') renderEvents();
+  if (v === 'roster') { renderEvents(); renderRoster(); renderEventChecks(); }
   if (v === 'admin') el('ad-count').textContent = (DATA.checkins || []).length + ' 件';
   startPolling(v === 'checkin' || v === 'rollcall');
 }
