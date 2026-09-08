@@ -18,7 +18,8 @@ if ($pw === '' || $hash === '' || !password_verify($pw, $hash)) {
     json_out(['error' => '役員ページのパスワードが違います'], 401);
 }
 
-$before = count(uk_load_checkins($id));
+$checkins = uk_load_checkins($id);
+$bibs     = count(uk_checked_bibs($checkins));
 uk_append_checkin($id, ['action' => 'clear', 'at' => uk_now(), 'by' => uk_str($_POST['by'] ?? '', 20)]);
 
-json_out(['ok' => true, 'cleared' => $before]);
+json_out(['ok' => true, 'cleared' => $bibs, 'cleared_events' => count($checkins)]);

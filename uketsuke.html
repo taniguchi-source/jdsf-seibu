@@ -43,7 +43,7 @@
     font-size:16px;padding:10px;border:1px solid var(--border);border-radius:8px;width:100%;background:#fff}
   .bib-input{font-size:40px;text-align:center;padding:18px 12px;letter-spacing:2px;border-width:2px}
   .bib-input:focus{outline:none;border-color:var(--primary)}
-  /* 受付でいちばん使う場所。背番号を大きく取り、チェックインはその右隣に置く */
+  /* 受付でいちばん使う場所。背番号を大きく取り、表示ボタンはその右隣に置く */
   .checkin-row{display:flex;gap:12px;align-items:stretch}
   .checkin-row .bib-input{flex:1;min-width:0;font-size:64px;padding:14px 12px}
   .checkin-row .ci-btn{flex:none;font-size:24px;padding:0 34px;white-space:nowrap}
@@ -85,14 +85,22 @@
   .banner{padding:14px;border-radius:10px;margin:12px 0;font-size:17px;font-weight:700;text-align:center}
   .b-ok{background:var(--ok-bg);color:var(--ok)} .b-warn{background:var(--warn-bg);color:var(--warn)}
   .b-danger{background:var(--danger-bg);color:var(--danger)}
-  /* 照会しただけ（まだチェックインしていない）状態。受付済みの緑と見分けがつく色にする */
+  /* 照会しただけ（まだ受付していない）状態。受付済みの緑と見分けがつく色にする */
   .b-info{background:#e0edff;color:var(--primary)}
   .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;
     background:#eef1f5;color:var(--muted);margin:1px}
   .pill-ok{background:var(--ok-bg);color:var(--ok)}
-  /* 受付結果に出す出場種目。読み上げ確認に使うので一覧の pill より大きくする */
-  .ev-pill{display:inline-block;margin:3px 3px 0;padding:3px 10px;border-radius:999px;
-    font-size:14px;font-weight:700;background:#fff;border:1px solid var(--border);color:var(--text)}
+  /* 受付は種目（区分）ごとに押す。押しやすい大きさを取り、受付済みは色で分かるようにする */
+  .ev-grid{display:grid;gap:8px}
+  .ev-btn{display:block;width:100%;text-align:left;background:var(--card);color:var(--text);
+    border:2px solid var(--border);padding:10px 14px;font-size:15px;font-weight:700}
+  .ev-btn .c{font-size:20px;font-weight:800;color:var(--primary);margin-right:6px}
+  .ev-btn .s{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-top:3px}
+  .ev-btn.done{background:var(--ok-bg);border-color:var(--ok)}
+  .ev-btn.done .c{color:var(--ok)}
+  .ev-btn:active{background:#e8eef7}
+  /* 一覧の区分コード。受付済みだけ色を付け、取りこぼしがその場で見えるようにする */
+  .code-pill.on{background:var(--ok-bg);color:var(--ok)}
   .checkbox-row{display:flex;align-items:center;gap:8px;padding:5px 0}
   .comp-item{display:flex;gap:8px;align-items:center;padding:10px;border:1px solid var(--border);
     border-radius:10px;background:var(--card);margin-bottom:8px}
@@ -206,16 +214,28 @@
         <label class="muted" for="bib">背番号</label>
         <div class="checkin-row">
           <input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="bib" class="bib-input" placeholder="0">
-          <button type="submit" class="ci-btn">チェックイン</button>
+          <button type="submit" class="ci-btn">表示する</button>
         </div>
       </form>
 
       <div id="ci-banner" class="banner hidden"></div>
 
+      <!-- 受付は種目（区分）ごと。押した区分だけが出場になり、押さなかった区分は欠場になる。
+           次の組の背番号をすぐ打てるよう、ボタンは入力欄ではなく表示中の組を覚えて動く。 -->
+      <div id="ci-panel" class="card hidden">
+        <div id="ci-who"></div>
+        <p class="muted" id="ci-hint" style="margin:6px 0 10px"></p>
+        <div id="ci-evs" class="ev-grid"></div>
+        <div class="row" style="margin-top:12px">
+          <button type="button" id="ci-all" class="grow">全種目を受付</button>
+          <button type="button" id="ci-close" class="secondary">閉じる</button>
+        </div>
+      </div>
+
       <h2>受付状況 <span class="muted" id="ci-count"></span></h2>
       <table class="dense">
         <thead><tr><th>背番号</th><th class="c-leader">リーダー</th><th class="c-partner">パートナー</th>
-          <th>種目</th><th>受付</th><th>時刻</th><th></th></tr></thead>
+          <th>受付した区分</th><th>受付</th><th>時刻</th><th></th></tr></thead>
         <tbody id="ci-recent"></tbody>
       </table>
 
@@ -234,7 +254,7 @@
         <span class="pill pill-ok" id="rc-p-count">出場 0</span>
       </div>
       <div class="row wrap" style="margin:22px 0 8px">
-        <h2 style="margin:0">欠場（未チェックイン）</h2>
+        <h2 style="margin:0">欠場（この区分を受付していない組）</h2>
         <span class="muted" style="margin-left:auto">欠場処理チェック担当者</span>
         <b id="rc-by">未設定</b>
         <button type="button" class="small secondary" id="rc-by-edit">変更</button>
@@ -244,7 +264,7 @@
         <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>背番号在庫</th></tr></thead>
         <tbody id="rc-absent"></tbody>
       </table>
-      <h2>出場（チェックイン済み）</h2>
+      <h2>出場（この区分を受付した組）</h2>
       <table>
         <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>受付</th><th>時刻</th></tr></thead>
         <tbody id="rc-present"></tbody>
@@ -337,30 +357,14 @@
 
     <!-- ======== 管理 ======== -->
     <section id="v-admin" class="hidden">
-      <h2>種目ごとの出場・欠場（例外処理）</h2>
-      <div class="card">
-        <p class="muted">
-          複数種目にエントリーしている組が、用事などで<b>一部の種目だけ欠場する</b>ときに使います。<br>
-          背番号を入れると、その組のエントリー種目が出ます。種目ごとに出場・欠場を切り替えてください。
-        </p>
-        <div class="row wrap">
-          <div style="width:160px">
-            <label class="muted" for="ex-bib">背番号</label>
-            <input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="ex-bib" placeholder="例: 12">
-          </div>
-          <button type="button" id="ex-find" style="align-self:flex-end">表示する</button>
-        </div>
-        <div id="ex-result" class="hidden" style="margin-top:12px"></div>
-      </div>
-
       <h2>管理</h2>
       <div class="card">
         <p class="muted">
           テスト受付の記録を消して、本番前に初期化したいときに使います。名簿・種目は消えません。<br>
           受付をやり直せなくなる操作なので、実行には役員ページのパスワードが必要です。
         </p>
-        <p class="muted">現在のチェックイン件数: <b id="ad-count">-</b></p>
-        <button class="danger" id="ci-reset">全員のチェックインを解除</button>
+        <p class="muted">現在の受付: <b id="ad-count">-</b></p>
+        <button class="danger" id="ci-reset">全員の受付を解除</button>
       </div>
     </section>
 
@@ -454,7 +458,7 @@ function switchView(v){
   if (v === 'checkin') { renderRecent(); el('bib').focus(); }
   if (v === 'rollcall') renderRollcall();
   if (v === 'roster') { renderEvents(); renderRoster(); renderEventChecks(); }
-  if (v === 'admin') el('ad-count').textContent = (DATA.checkins || []).length + ' 件';
+  if (v === 'admin') renderAdmin();
   /* 受付以外の画面にいても更新を続ける。ヘッダーの更新時刻が動いていることが、
      その端末が最新であることの目印になるため。 */
   startPolling(true);
@@ -604,7 +608,9 @@ el('nc-btn').addEventListener('click', function(){
 function clearWorkState(){
   el('bib').value = '';
   el('ci-banner').classList.add('hidden');
+  el('ci-panel').classList.add('hidden');      /* 前の大会の組の区分ボタンを残さない */
   LOOKED_UP = null;
+  PANEL_BIB = null;
   PREV = null;                                  /* 読み込み途中のCSV */
   hideMapping();
   el('imp-result').classList.add('hidden');
@@ -730,6 +736,7 @@ function pollTick(){
     renderSync();
     if (!el('v-checkin').classList.contains('hidden')) renderRecent();
     if (!el('v-rollcall').classList.contains('hidden')) renderRollcall();
+    if (!el('v-admin').classList.contains('hidden')) renderAdmin();
   }).catch(function(e){ syncFailed(e && e.message); });
 }
 function startPolling(on){
@@ -773,57 +780,129 @@ function whoHtml(bib, r){
   return '<span class="bib-big">' + esc(bib) + '</span> ' + esc(r.leader || '') + ' / ' + esc(r.partner || '')
     + (r.affiliation ? '（' + esc(r.affiliation) + '）' : '');
 }
-/* 出場種目。種目名は種目マスタから引く（未登録ならコードだけ） */
-function evHtml(codes){
-  var evs = (codes || []).map(function(c){
-    var m = (DATA.events || []).filter(function(e){ return e.code === c; })[0];
-    var nm = (m && m.name && m.name !== c) ? ' ' + m.name : '';
-    return '<span class="ev-pill">' + esc(c + nm) + '</span>';
-  }).join('');
-  return evs ? '<br>' + evs : '<br><span class="muted">出場種目の登録がありません</span>';
+/* ---------- 受付（種目＝区分ごと） ----------
+   受付は種目単位。背番号を入れるとその組のエントリー区分がボタンで出て、
+   押した区分だけが出場になる。押さなかった区分はそのまま欠場として扱われる。
+   1回目のEnterは照会だけ（打ち間違えた背番号がEnterひとつで受付されるのを防ぐ）。
+   同じ背番号のままもう一度Enterを押すと、全種目をまとめて受付する。 */
+var LOOKED_UP = null;   /* 照会を出し終えた背番号。これと同じならEnterで全種目受付 */
+var PANEL_BIB = null;   /* いま区分ボタンを出している組。次の背番号をすぐ打てるよう入力欄とは別に持つ */
+
+function rosterOf(bib){
+  return (DATA.roster || []).filter(function(x){ return String(x.bib) === String(bib); })[0];
+}
+/* 受付済みの「背番号:区分」。受付が種目単位なので、判定は必ずこの組み合わせで行う。 */
+function doneMap(){
+  var m = {};
+  (DATA.checkins || []).forEach(function(c){ m[c.bib + ':' + c.code] = c; });
+  return m;
 }
 
-/* 1回目のEnterは「照会」だけ。打ち間違えた背番号がEnterひとつで受付されるのを防ぐ。
-   表示された内容が正しければ、同じ背番号のままもう一度Enterを押すと受付になる
-   （「チェックイン」ボタンを押すのと同じ）。番号を打ち直したら、また照会からやり直す。 */
-var LOOKED_UP = null;   /* 照会を出し終えた背番号。これと同じならEnterで受付する */
 el('bib').addEventListener('keydown', function(e){
   if (e.key !== 'Enter' && e.keyCode !== 13) return;
   e.preventDefault();
   var bib = el('bib').value.trim();
   if (!bib) return;
-  if (LOOKED_UP !== null && bib === LOOKED_UP) { doCheckin(); return; }
+  if (LOOKED_UP !== null && bib === LOOKED_UP) { doCheckin(bib, null); return; }
   lookupBib();
 });
+el('ci-form').addEventListener('submit', function(e){ e.preventDefault(); lookupBib(); });
+el('ci-close').addEventListener('click', function(){ closePanel(); });
+el('ci-all').addEventListener('click', function(){ if (PANEL_BIB !== null) doCheckin(PANEL_BIB, null); });
+
+function closePanel(){
+  PANEL_BIB = null;
+  LOOKED_UP = null;
+  el('ci-panel').classList.add('hidden');
+  el('bib').value = '';
+  el('bib').focus();
+}
 function lookupBib(){
   var bib = el('bib').value.trim();
   if (!bib) return;
   LOOKED_UP = null;
-  var r = (DATA.roster || []).filter(function(x){ return String(x.bib) === String(bib); })[0];
-  if (!r) { banner('danger', '背番号 ' + esc(bib) + ' は名簿にありません'); return; }
-  var done = (DATA.checkins || []).filter(function(c){ return String(c.bib) === String(bib); })[0];
+  if (!rosterOf(bib)) {
+    PANEL_BIB = null;
+    el('ci-panel').classList.add('hidden');
+    banner('danger', '背番号 ' + esc(bib) + ' は名簿にありません');
+    return;
+  }
   LOOKED_UP = bib;
-  banner(done ? 'warn' : 'info',
-    whoHtml(bib, r) + evHtml(r.events) + '<br>'
-    + (done ? '既にチェックイン済み（' + esc(fmtTime(done.at)) + '）'
-            : '内容が正しければ、もう一度Enterを押すか「チェックイン」を押してください'));
+  el('ci-banner').classList.add('hidden');
+  showPanel(bib, '出場する区分のボタンを押してください。もう一度Enterを押すと全種目を受付します。');
 }
 
-/* ここで初めて受付が記録される。「チェックイン」ボタン、または照会後の2回目のEnterから呼ばれる。 */
-el('ci-form').addEventListener('submit', function(e){ e.preventDefault(); doCheckin(); });
-function doCheckin(){
-  var bib = el('bib').value.trim();
-  if (!bib) return;
+/* 表示中の組の区分ボタンを描く。受付済みの区分は緑になり、押すと取消になる。 */
+function showPanel(bib, msg){
+  var r = rosterOf(bib);
+  if (!r) { PANEL_BIB = null; el('ci-panel').classList.add('hidden'); return; }
+  PANEL_BIB = String(bib);
+  var done  = doneMap();
+  var codes = r.events || [];
+  el('ci-who').innerHTML = whoHtml(r.bib, r);
+  el('ci-hint').textContent = msg || '押さなかった区分は欠場になります。';
+  el('ci-evs').innerHTML = codes.length
+    ? codes.map(function(c){
+        var m = (DATA.events || []).filter(function(e){ return e.code === c; })[0] || {code:c};
+        var d = done[r.bib + ':' + c];
+        return '<button type="button" class="ev-btn' + (d ? ' done' : '') + '" data-code="' + esc(c) + '">'
+          + '<span class="c">' + esc(c) + '</span>'
+          + esc((m.name && m.name !== c) ? m.name : '')
+          + '<span class="s">' + (d
+              ? '受付済み ' + esc(fmtTime(d.at)) + (d.by ? '　' + esc(d.by) : '') + '　押すと取消'
+              : 'この区分を受付する') + '</span></button>';
+      }).join('')
+    : '<p class="muted">この組は出場種目が登録されていません。</p>';
+  var rest = codes.filter(function(c){ return !done[r.bib + ':' + c]; }).length;
+  el('ci-all').textContent = rest ? '全種目を受付（残り ' + rest + '）' : '全種目 受付済み';
+  el('ci-all').disabled = !rest;
+  el('ci-panel').classList.remove('hidden');
+  el('ci-evs').querySelectorAll('[data-code]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var c = b.dataset.code;
+      if (done[r.bib + ':' + c]) doUncheckin(r.bib, c); else doCheckin(r.bib, c);
+    });
+  });
+}
+
+/* ここで初めて受付が記録される。code を渡すとその区分だけ、null なら全種目。 */
+function doCheckin(bib, code){
   LOOKED_UP = null;
-  post('api/uketsuke_checkin.php', {id:COMP.id, bib:bib, by:el('by').value})
+  var body = {id:COMP.id, bib:bib, by:el('by').value};
+  if (code) body.code = code; else body.all = '1';
+  post('api/uketsuke_checkin.php', body)
     .then(function(r){
-      banner(r.already ? 'warn' : 'ok',
-        whoHtml(r.bib, r) + evHtml(r.events) + '<br>'
-        + (r.already ? '既にチェックイン済み（' + esc(fmtTime(r.checked_in_at)) + '）' : 'チェックインしました'));
-      return refresh().then(renderRecent);
+      var did = (r['new'] || []);
+      banner(did.length ? 'ok' : 'warn',
+        whoHtml(r.bib, r) + '<br>'
+        + (did.length ? '受付しました：' + esc(did.join('・'))
+                      : '既に受付済みです：' + esc((r.already || []).join('・'))));
+      return refresh().then(function(){
+        renderRecent();
+        showPanel(r.bib, '続けて区分を押せます。次の組は背番号を入力してください。');
+        /* 次の組をすぐ打てるように入力欄は空にする（区分ボタンは表示中の組で動く） */
+        el('bib').value = '';
+        el('bib').focus();
+      });
     })
-    .catch(function(err){ banner('danger', esc(err.message)); })
-    .then(function(){ el('bib').value=''; el('bib').focus(); });
+    .catch(function(err){ banner('danger', esc(err.message)); el('bib').focus(); });
+}
+/* 受付の取消。code を渡すとその区分だけ、null ならその組の全種目。 */
+function doUncheckin(bib, code){
+  var r = rosterOf(bib) || {};
+  var who = bib + ' ' + (r.leader || '') + (r.partner ? ' / ' + r.partner : '');
+  if (!confirm(who + (code ? '　' + code : '　全種目') + ' の受付を取り消しますか？')) return;
+  var body = {id:COMP.id, bib:bib, by:el('by').value};
+  if (code) body.code = code;
+  post('api/uketsuke_uncheckin.php', body)
+    .then(function(){
+      banner('warn', esc(who) + '<br>' + esc(code ? code + ' の受付を取り消しました' : '全種目の受付を取り消しました'));
+      return refresh().then(function(){
+        renderRecent();
+        if (PANEL_BIB !== null && String(PANEL_BIB) === String(bib)) showPanel(bib, '');
+      });
+    })
+    .catch(function(e){ alert(e.message); });
 }
 function banner(kind, html){
   var b = el('ci-banner');
@@ -831,132 +910,75 @@ function banner(kind, html){
   b.innerHTML = html;
   b.classList.remove('hidden');
 }
+
+/* 受付状況。記録は区分ごとだが、一覧は組ごとにまとめ、どの区分を受付したかを並べる。
+   受付していない区分もグレーで出す（取りこぼしがその場で見えるようにするため）。 */
 function renderRecent(){
   var map = {};
   (DATA.roster || []).forEach(function(r){ map[r.bib] = r; });
-  var rows = (DATA.checkins || []).slice().sort(function(a,b){ return (b.at||'').localeCompare(a.at||''); });
-  el('ci-count').textContent = '（' + rows.length + ' / ' + (DATA.roster||[]).length + ' 組）';
-  el('ci-recent').innerHTML = rows.slice(0, 40).map(function(c){
-    var r = map[c.bib] || {};
-    var codes = (r.events || []).map(function(x){ return '<span class="code-pill">' + esc(x) + '</span>'; }).join('');
-    return '<tr><td>' + esc(c.bib) + '</td>'
+  var done  = doneMap();
+  var byBib = {};
+  (DATA.checkins || []).forEach(function(c){
+    var g = byBib[c.bib] || (byBib[c.bib] = {bib:c.bib, at:'', by:''});
+    if ((c.at || '') > g.at) { g.at = c.at || ''; g.by = c.by || ''; }
+  });
+  var rows = Object.keys(byBib).map(function(k){ return byBib[k]; })
+    .sort(function(a, b){ return (b.at || '').localeCompare(a.at || ''); });
+  el('ci-count').textContent = '（' + rows.length + ' / ' + (DATA.roster||[]).length + ' 組　'
+    + (DATA.checkins||[]).length + ' 区分）';
+  el('ci-recent').innerHTML = rows.slice(0, 40).map(function(g){
+    var r = map[g.bib] || {};
+    var codes = (r.events || []).map(function(c){
+      var on = !!done[g.bib + ':' + c];
+      return '<span class="code-pill' + (on ? ' on' : '') + '">' + esc(c) + (on ? ' ✓' : '') + '</span>';
+    }).join('');
+    return '<tr><td>' + esc(g.bib) + '</td>'
       + '<td class="c-leader">' + esc(r.leader) + '</td><td class="c-partner">' + esc(r.partner) + '</td>'
-      + '<td>' + codes + '</td><td class="muted">' + esc(c.by || '') + '</td>'
-      + '<td>' + esc(fmtTime(c.at)) + '</td>'
-      + '<td><button type="button" class="small secondary" data-uncheck="' + esc(c.bib) + '">取消</button></td></tr>';
+      + '<td>' + codes + '</td><td class="muted">' + esc(g.by || '') + '</td>'
+      + '<td>' + esc(fmtTime(g.at)) + '</td>'
+      + '<td><button type="button" class="small secondary" data-open="' + esc(g.bib) + '">区分</button>'
+      + ' <button type="button" class="small secondary" data-uncheck="' + esc(g.bib) + '">取消</button></td></tr>';
   }).join('');
 
-  /* 打ち間違えた背番号を1件だけ取り消す */
-  el('ci-recent').querySelectorAll('[data-uncheck]').forEach(function(btn){
+  /* 区分を押し間違えたときに、その組のボタンをすぐ開き直せるようにする */
+  el('ci-recent').querySelectorAll('[data-open]').forEach(function(btn){
     btn.addEventListener('click', function(){
-      var bib = btn.dataset.uncheck;
-      var r = map[bib] || {};
-      var who = bib + ' ' + (r.leader || '') + (r.partner ? ' / ' + r.partner : '');
-      if (!confirm(who + ' のチェックインを取り消しますか？')) return;
-      post('api/uketsuke_uncheckin.php', {id:COMP.id, bib:bib, by:el('by').value})
-        .then(function(){
-          banner('warn', esc(who) + '<br>チェックインを取り消しました');
-          return refresh().then(renderRecent);
-        })
-        .catch(function(e){ alert(e.message); });
+      LOOKED_UP = null;
+      showPanel(btn.dataset.open, '');
+      el('ci-panel').scrollIntoView({block:'center'});
     });
+  });
+  /* 打ち間違えた背番号を1組ぶん取り消す */
+  el('ci-recent').querySelectorAll('[data-uncheck]').forEach(function(btn){
+    btn.addEventListener('click', function(){ doUncheckin(btn.dataset.uncheck, null); });
   });
 }
 el('ci-reset').addEventListener('click', function(){
-  if (!confirm('現在 ' + (DATA.checkins||[]).length + ' 件のチェックイン記録があります。すべて解除して受付前の状態に戻しますか？')) return;
+  var n = adminCounts();
+  if (!confirm('現在 ' + n.bibs + ' 組（' + n.events + ' 区分）の受付記録があります。'
+    + '\nすべて解除して受付前の状態に戻しますか？')) return;
   /* 受付をやり直せなくなるので、大会の削除と同じく役員ページのパスワードを求める（サーバー側でも照合する） */
   var pw = prompt('解除を実行するには、役員ページのパスワードを入力してください'
     + (IS_LOCAL ? '\n（ローカル動作確認用サーバーのパスワードです。本番のものではありません）' : ''));
   if (pw === null || pw === '') return;
   post('api/uketsuke_reset_checkins.php', {id:COMP.id, by:el('by').value, password:pw})
-    .then(function(d){ alert(d.cleared + ' 件を解除しました'); return refresh().then(renderRecent); })
+    .then(function(d){
+      alert(d.cleared + ' 組（' + d.cleared_events + ' 区分）を解除しました');
+      return refresh().then(function(){ renderRecent(); renderAdmin(); });
+    })
     .catch(function(e){ alert(e.message); });
 });
 
-/* ---------- 種目ごとの出場・欠場（例外処理） ----------
-   1組が複数種目に出ているとき、一部の種目だけ欠場することがまれにある。
-   受付そのもの（チェックイン）は組単位なので、こちらは種目単位で上書きする扱いにする。 */
-function evAbsentMap(){
-  var m = {};
-  (DATA.event_absent || []).forEach(function(x){ m[x.bib + ':' + x.code] = x; });
-  return m;
+/* 管理画面の件数。受付は区分ごとに記録するので、組と区分の両方を出す。 */
+function adminCounts(){
+  var bibs = {};
+  (DATA.checkins || []).forEach(function(c){ bibs[c.bib] = 1; });
+  return {bibs: Object.keys(bibs).length, events: (DATA.checkins || []).length};
 }
-/* その組がその種目を欠場か。受付していない組はもちろん欠場。 */
-function isAbsentIn(bib, code, doneMap, absMap){
-  if (absMap[bib + ':' + code]) return true;
-  return !doneMap[bib];
+function renderAdmin(){
+  var n = adminCounts();
+  el('ad-count').textContent = n.bibs + ' 組（' + n.events + ' 区分）';
 }
-function renderExcept(){
-  var box = el('ex-result');
-  var bib = el('ex-bib').value.trim();
-  if (!bib) { box.classList.add('hidden'); return; }
-  var r = (DATA.roster || []).filter(function(x){ return String(x.bib) === String(bib); })[0];
-  if (!r) {
-    box.className = 'banner b-danger';
-    box.innerHTML = '背番号 ' + esc(bib) + ' は名簿にありません';
-    box.classList.remove('hidden');
-    return;
-  }
-  var done = {};
-  (DATA.checkins || []).forEach(function(c){ done[c.bib] = c; });
-  var absMap = evAbsentMap();
-  var checkedIn = !!done[r.bib];
-  box.className = '';
-  box.innerHTML = '<div>' + whoHtml(r.bib, r) + '</div>'
-    + '<div style="margin:6px 0 10px">'
-    + (checkedIn
-        ? '<span class="muted">受付済み（' + esc(fmtTime(done[r.bib].at)) + '）</span>'
-        /* 未受付の組は全種目が欠場なので、種目ごとに設定しても表示は変わらない。
-           そのことを伝えたうえで、ここから受付できるようにしておく。 */
-        : '<div class="banner b-warn" style="font-size:14px;font-weight:400;text-align:left;margin:0 0 8px">'
-          + 'この組はまだ受付していません。未受付の間はすべての種目が欠場です。'
-          + '種目ごとの設定が効くのは受付したあとです。</div>'
-          + '<button type="button" id="ex-checkin" class="small">この組を受付する（チェックイン）</button>')
-    + '</div>'
-    + '<table class="dense"><thead><tr><th>種目</th><th>状態</th><th></th></tr></thead><tbody>'
-    + (r.events || []).map(function(c){
-        var m = (DATA.events || []).filter(function(e){ return e.code === c; })[0] || {code:c};
-        var off = !!absMap[r.bib + ':' + c];
-        var abs = isAbsentIn(r.bib, c, done, absMap);
-        /* なぜ欠場なのかが分かるように理由を添える */
-        var why = [];
-        if (!checkedIn) why.push('未受付');
-        if (off) why.push('この種目だけ欠場に設定');
-        return '<tr><td>' + esc(c) + ' <span class="muted">' + esc(m.name || '') + '</span></td>'
-          + '<td>' + (abs ? '<b style="color:var(--danger)">欠場</b>' : '<b style="color:var(--ok)">出場</b>')
-          + (why.length ? ' <span class="muted">（' + esc(why.join('・')) + '）</span>' : '') + '</td>'
-          + '<td><button type="button" class="small ' + (off ? 'secondary' : 'danger') + '" data-ex="'
-          + esc(c) + '" data-off="' + (off ? '1' : '') + '">'
-          + (off ? 'この種目の欠場設定を外す' : 'この種目だけ欠場にする') + '</button></td></tr>';
-      }).join('')
-    + '</tbody></table>';
-  box.classList.remove('hidden');
-
-  var ci = el('ex-checkin');
-  if (ci) {
-    ci.addEventListener('click', function(){
-      ci.disabled = true;
-      post('api/uketsuke_checkin.php', {id:COMP.id, bib:r.bib, by:el('by').value})
-        .then(function(){ return refresh().then(renderExcept); })
-        .catch(function(e){ ci.disabled = false; alert(e.message); });
-    });
-  }
-
-  box.querySelectorAll('[data-ex]').forEach(function(b){
-    b.addEventListener('click', function(){
-      var on = b.dataset.off !== '1';    /* いまが出場なら欠場にする */
-      b.disabled = true;
-      post('api/uketsuke_event_status.php',
-           {id:COMP.id, bib:r.bib, code:b.dataset.ex, absent:on ? '1' : '0', by:el('by').value})
-        .then(function(){ return refresh().then(renderExcept); })
-        .catch(function(e){ b.disabled = false; alert(e.message); });
-    });
-  });
-}
-el('ex-find').addEventListener('click', renderExcept);
-el('ex-bib').addEventListener('keydown', function(e){
-  if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); renderExcept(); }
-});
 
 /* ---------- 欠場報告 ----------
    背番号在庫のチェックは受付とは別の人が担当するので、名前も受付担当者とは別に持つ。 */
@@ -983,13 +1005,13 @@ function renderRollcall(){
   var code = sel.value;
   el('rc-print').href = 'uketsuke-absent.html?id=' + encodeURIComponent(COMP ? COMP.id : '');
 
-  var done = {};
-  (DATA.checkins || []).forEach(function(c){ done[c.bib] = c; });   /* 受付担当者名も使うので記録ごと持つ */
-  var absMap = evAbsentMap();                                       /* 種目ごとの欠場（例外処理） */
+  /* その区分を受付した組が出場。受付は区分ごとなので、他の区分の受付は関係しない。 */
+  var done = doneMap();
   var present = [], absent = [];
   (DATA.roster || []).forEach(function(r){
     if ((r.events || []).indexOf(code) === -1) return;
-    if (isAbsentIn(r.bib, code, done, absMap)) absent.push(r); else present.push([r, done[r.bib]]);
+    var d = done[r.bib + ':' + code];
+    if (d) present.push([r, d]); else absent.push(r);
   });
   present.sort(function(a,b){ return a[0].bib - b[0].bib; });
   absent.sort(function(a,b){ return a.bib - b.bib; });

@@ -13,7 +13,8 @@ foreach ($list as &$c) {
     /* 公認番号が設定されていて、まだこのセッションで開いていない大会だけ入力を求める */
     $c['need_code']     = $has_code;   /* 公認番号がある大会は、開くたびに必ず公認番号を要求する */
     $c['roster_count']  = count(uk_load_roster($id));
-    $c['checkin_count'] = count(uk_load_checkins($id));
+    /* 受付は種目単位だが、一覧に出すのは「来ている組」の数なので組で数え直す */
+    $c['checkin_count'] = count(uk_checked_bibs(uk_load_checkins($id)));
 }
 unset($c);
 

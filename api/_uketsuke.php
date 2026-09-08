@@ -141,33 +141,80 @@ function uk_checkins_file($id) { return uk_dir($id) . '/checkins.jsonl'; }
 function uk_load_events($id) { return uk_read_json(uk_events_file($id), []); }
 function uk_load_roster($id) { return uk_read_json(uk_roster_file($id), []); }
 
-/* チェックイン記録（追記式）を読み、背番号ごとに最後の行を採用する。
-   action=clear  … そこまでの記録を破棄する（全員リセット用）
-   action=remove … その背番号だけ取り消す（打ち間違いの訂正用） */
+/* チェックイン記録（追記式）を読み、「背番号:種目コード」ごとに最後の行を採用する。
+   受付は種目（区分）単位。受付で押さなかった種目は、そのまま欠場として扱われる。
+   action=checkin（action 無しも同じ）… code があればその種目だけ、無ければその組の全種目
+   action=remove  … 同じ単位で取り消す（打ち間違いの訂正用）
+   action=clear   … そこまでの記録を破棄する（全員リセット用）
+   action=evstat  … 種目単位の受付にする前の「例外処理」。古い記録を読むためだけに残す。 */
 function uk_load_checkins($id) {
     $file = uk_checkins_file($id);
     if (!is_file($file)) return [];
     $fh = @fopen($file, 'r');
     if (!$fh) return [];
-    $map = [];
+    /* 種目を持たない記録（種目単位にする前の受付）は、その組のエントリー種目すべてとして読む */
+    $entry = [];
+    foreach (uk_load_roster($id) as $r) {
+        $entry[(int)($r['bib'] ?? 0)] = array_values((array)($r['events'] ?? []));
+    }
+    $map = [];   /* "背番号:種目" => 記録 */
+    $all = [];   /* 種目を指定せず受付した組。旧・例外処理を外した記録を戻すのに使う */
     while (($line = fgets($fh)) !== false) {
         $line = trim($line);
         if ($line === '') continue;
         $rec = json_decode($line, true);
         if (!is_array($rec)) continue;
         $action = (string)($rec['action'] ?? '');
-        if ($action === 'clear') { $map = []; continue; }
-        if ($action === 'remove') {                     /* 1件だけ取り消し（打ち間違いの訂正） */
-            unset($map[(int)($rec['bib'] ?? 0)]);
-            continue;
-        }
-        if ($action !== '' && $action !== 'checkin') continue;   /* 在庫チェック等、他の記録は無視する */
+        if ($action === 'clear') { $map = []; $all = []; continue; }
         $bib = isset($rec['bib']) ? (int)$rec['bib'] : 0;
         if ($bib <= 0) continue;
-        $map[$bib] = ['bib' => $bib, 'at' => (string)($rec['at'] ?? ''), 'by' => (string)($rec['by'] ?? '')];
+        $code = uk_str($rec['code'] ?? '', 20);
+        $at   = (string)($rec['at'] ?? '');
+        $by   = (string)($rec['by'] ?? '');
+
+        if ($action === '' || $action === 'checkin') {
+            if ($code !== '') {
+                $map[$bib . ':' . $code] = ['bib' => $bib, 'code' => $code, 'at' => $at, 'by' => $by];
+                continue;
+            }
+            $all[$bib] = ['at' => $at, 'by' => $by];               /* 全種目まとめての受付 */
+            foreach (($entry[$bib] ?? []) as $c) {
+                $map[$bib . ':' . $c] = ['bib' => $bib, 'code' => $c, 'at' => $at, 'by' => $by];
+            }
+            continue;
+        }
+        if ($action === 'remove') {
+            if ($code !== '') { unset($map[$bib . ':' . $code]); continue; }
+            unset($all[$bib]);
+            foreach (($entry[$bib] ?? []) as $c) unset($map[$bib . ':' . $c]);
+            continue;
+        }
+        /* 旧・例外処理。欠場に設定＝その種目は未受付、出場に戻す＝まとめて受付した状態に戻す */
+        if ($action === 'evstat') {
+            if ($code === '') continue;
+            if (!empty($rec['absent'])) { unset($map[$bib . ':' . $code]); continue; }
+            if (isset($all[$bib])) {
+                $map[$bib . ':' . $code] =
+                    ['bib' => $bib, 'code' => $code, 'at' => $all[$bib]['at'], 'by' => $all[$bib]['by']];
+            }
+            continue;
+        }
+        /* 在庫チェック等、他の記録は無視する */
     }
     fclose($fh);
     return $map;
+}
+
+/* 受付済みの組（背番号 => その組でいちばん新しい記録）。件数の表示や並べ替えに使う。
+   1種目でも受付していれば「来ている組」なので、組数はこれで数える。 */
+function uk_checked_bibs($checkins) {
+    $out = [];
+    foreach ($checkins as $c) {
+        $bib = (int)($c['bib'] ?? 0);
+        if ($bib <= 0) continue;
+        if (!isset($out[$bib]) || (string)($c['at'] ?? '') > (string)($out[$bib]['at'] ?? '')) $out[$bib] = $c;
+    }
+    return $out;
 }
 
 /* 欠場者の背番号が受付に残っているかの確認記録。
@@ -190,40 +237,6 @@ function uk_load_stock($id) {
         if ($bib <= 0) continue;
         if (empty($rec['on'])) { unset($map[$bib]); continue; }   /* チェックを外した */
         $map[$bib] = ['bib' => $bib, 'at' => (string)($rec['at'] ?? ''), 'by' => (string)($rec['by'] ?? '')];
-    }
-    fclose($fh);
-    return $map;
-}
-
-/* 種目ごとの出場・欠場（例外処理）。
-   1つの組が複数種目に出ているとき、用事などで一部の種目だけ欠場することがまれにある。
-   チェックインと同じ追記ファイルに action=evstat として書く（全員解除で一緒に消えるように）。
-   ここに載っている「背番号:種目コード」は、受付済みでもその種目は欠場として扱う。 */
-function uk_load_event_status($id) {
-    $file = uk_checkins_file($id);
-    if (!is_file($file)) return [];
-    $fh = @fopen($file, 'r');
-    if (!$fh) return [];
-    $map = [];
-    while (($line = fgets($fh)) !== false) {
-        $line = trim($line);
-        if ($line === '') continue;
-        $rec = json_decode($line, true);
-        if (!is_array($rec)) continue;
-        $action = (string)($rec['action'] ?? '');
-        if ($action === 'clear') { $map = []; continue; }
-        if ($action !== 'evstat') continue;
-        $bib  = isset($rec['bib']) ? (int)$rec['bib'] : 0;
-        $code = uk_str($rec['code'] ?? '', 20);
-        if ($bib <= 0 || $code === '') continue;
-        $key = $bib . ':' . $code;
-        if (empty($rec['absent'])) { unset($map[$key]); continue; }   /* 出場に戻した */
-        $map[$key] = [
-            'bib'  => $bib,
-            'code' => $code,
-            'at'   => (string)($rec['at'] ?? ''),
-            'by'   => (string)($rec['by'] ?? ''),
-        ];
     }
     fclose($fh);
     return $map;

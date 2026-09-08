@@ -1,8 +1,9 @@
 <?php
-/* 受付のチェックイン。
-   - 名簿に無い背番号は登録しない（幽霊レコードを作らない）
-   - 既にチェックイン済みならエラーにせず already=true と受付時刻を返す
-   - 記録は1行の追記なので、複数の受付端末が同時に押しても取りこぼさない */
+/* 受付のチェックイン。受付は種目（区分）単位で記録する。
+   - code を指定するとその種目だけ、all=1 ならその組のエントリー種目すべてを受付する
+   - 名簿に無い背番号・エントリーしていない種目は受け付けない（幽霊レコードを作らない）
+   - 既に受付済みの種目は二重に書かない（already で返す）
+   - 記録は1行ずつの追記なので、複数の受付端末が同時に押しても取りこぼさない */
 require __DIR__ . '/_uketsuke.php';
 require_auth_any(['admin', 'build', 'uketsuke']);
 
@@ -18,36 +19,47 @@ foreach (uk_load_roster($id) as $r) {
     if ((int)($r['bib'] ?? 0) === $bib) { $person = $r; break; }
 }
 if (!$person) json_out(['error' => "背番号 {$bib} は名簿にありません"], 404);
+$entry = array_values((array)($person['events'] ?? []));
 
-$checkins = uk_load_checkins($id);
-if (isset($checkins[$bib])) {
-    json_out([
-        'ok'            => true,
-        'already'       => true,
-        'bib'           => $bib,
-        'leader'        => $person['leader'] ?? '',
-        'partner'       => $person['partner'] ?? '',
-        'affiliation'   => $person['affiliation'] ?? '',
-        /* 受付画面で出場種目を読み上げ確認できるよう、エントリー種目も返す */
-        'events'        => array_values((array)($person['events'] ?? [])),
-        'checked_in_at' => $checkins[$bib]['at'],
-    ]);
+$code = uk_str($_POST['code'] ?? '', 20);
+if ($code === '') {
+    /* 種目の指定なしで全種目が入ってしまわないよう、まとめて受付するときは all=1 を必ず付ける */
+    if (empty($_POST['all'])) json_out(['error' => '種目を指定してください'], 400);
+    if (!$entry) json_out(['error' => "背番号 {$bib} は出場種目が登録されていません"], 400);
+    $codes = $entry;
+} else {
+    if (!in_array($code, $entry, true)) {
+        json_out(['error' => "背番号 {$bib} は {$code} にエントリーしていません"], 400);
+    }
+    $codes = [$code];
 }
 
+$checkins = uk_load_checkins($id);
 $now = uk_now();
-uk_append_checkin($id, [
-    'bib' => $bib,
-    'at'  => $now,
-    'by'  => uk_str($_POST['by'] ?? '', 20),   /* 受付担当者名（表示用） */
-]);
+$by  = uk_str($_POST['by'] ?? '', 20);   /* 受付担当者名（表示用） */
+$new = [];
+$already = [];
+foreach ($codes as $c) {
+    if (isset($checkins[$bib . ':' . $c])) { $already[] = $c; continue; }
+    uk_append_checkin($id, ['action' => 'checkin', 'bib' => $bib, 'code' => $c, 'at' => $now, 'by' => $by]);
+    $new[] = $c;
+}
+
+/* いま受付済みの種目。画面はこれを使って、その組の状態をそのまま描き直せる */
+$done = [];
+foreach ($entry as $c) {
+    if (in_array($c, $new, true) || isset($checkins[$bib . ':' . $c])) $done[] = $c;
+}
 
 json_out([
-    'ok'            => true,
-    'already'       => false,
-    'bib'           => $bib,
-    'leader'        => $person['leader'] ?? '',
-    'partner'       => $person['partner'] ?? '',
-    'affiliation'   => $person['affiliation'] ?? '',
-    'events'        => array_values((array)($person['events'] ?? [])),
-    'checked_in_at' => $now,
+    'ok'          => true,
+    'bib'         => $bib,
+    'leader'      => $person['leader'] ?? '',
+    'partner'     => $person['partner'] ?? '',
+    'affiliation' => $person['affiliation'] ?? '',
+    'events'      => $entry,      /* エントリー種目（受付で読み上げ確認に使う） */
+    'done'        => $done,       /* うち受付済みの種目 */
+    'new'         => $new,        /* この操作で受付した種目 */
+    'already'     => $already,    /* 既に受付済みだった種目 */
+    'at'          => $now,
 ]);
