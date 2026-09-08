@@ -136,6 +136,7 @@
     <button data-view="checkin">受付</button>
     <button data-view="rollcall">出場・欠場</button>
     <button data-view="events">種目</button>
+    <button data-view="admin">管理</button>
   </nav>
 
   <main>
@@ -183,11 +184,6 @@
         <tbody id="ci-recent"></tbody>
       </table>
 
-      <h2>管理</h2>
-      <div class="card">
-        <p class="muted">テスト受付の記録を消して本番前に初期化したいときに使います。名簿・種目は消えません。</p>
-        <button class="danger" id="ci-reset">全員のチェックインを解除</button>
-      </div>
     </section>
 
     <!-- ======== 出場・欠場 ======== -->
@@ -324,6 +320,19 @@
 
     </section>
 
+    <!-- ======== 管理 ======== -->
+    <section id="v-admin" class="hidden">
+      <h2>管理</h2>
+      <div class="card">
+        <p class="muted">
+          テスト受付の記録を消して、本番前に初期化したいときに使います。名簿・種目は消えません。<br>
+          受付をやり直せなくなる操作なので、実行には役員ページのパスワードが必要です。
+        </p>
+        <p class="muted">現在のチェックイン件数: <b id="ad-count">-</b></p>
+        <button class="danger" id="ci-reset">全員のチェックインを解除</button>
+      </div>
+    </section>
+
     <!-- ======== 受付担当者名 ======== -->
     <section id="v-staff" class="hidden">
       <h2>受付担当者名</h2>
@@ -413,7 +422,7 @@ function doLogin(){
 }
 
 /* ---------- タブ切替 ---------- */
-var views = ['comp','checkin','rollcall','roster','events','staff'];
+var views = ['comp','checkin','rollcall','roster','events','staff','admin'];
 document.querySelectorAll('nav.tabs button').forEach(function(b){
   b.addEventListener('click', function(){ switchView(b.dataset.view); });
 });
@@ -434,6 +443,7 @@ function switchView(v){
   if (v === 'roster') { renderRoster(); renderEventChecks(); }
   if (v === 'events') renderEvents();
   if (v === 'staff') el('by').focus();
+  if (v === 'admin') el('ad-count').textContent = (DATA.checkins || []).length + ' 件';
   startPolling(v === 'checkin' || v === 'rollcall');
 }
 
@@ -641,31 +651,38 @@ function evHtml(codes){
   return evs ? '<br>' + evs : '<br><span class="muted">出場種目の登録がありません</span>';
 }
 
-/* Enter は「照会」だけ。名簿から引いて内容を出すところまでで、受付はしない。
-   打ち間違えた背番号がEnterひとつで受付されてしまうのを防ぐため、
-   実際のチェックインは「チェックイン」ボタンを押したときだけ行う。 */
+/* 1回目のEnterは「照会」だけ。打ち間違えた背番号がEnterひとつで受付されるのを防ぐ。
+   表示された内容が正しければ、同じ背番号のままもう一度Enterを押すと受付になる
+   （「チェックイン」ボタンを押すのと同じ）。番号を打ち直したら、また照会からやり直す。 */
+var LOOKED_UP = null;   /* 照会を出し終えた背番号。これと同じならEnterで受付する */
 el('bib').addEventListener('keydown', function(e){
   if (e.key !== 'Enter' && e.keyCode !== 13) return;
   e.preventDefault();
+  var bib = el('bib').value.trim();
+  if (!bib) return;
+  if (LOOKED_UP !== null && bib === LOOKED_UP) { doCheckin(); return; }
   lookupBib();
 });
 function lookupBib(){
   var bib = el('bib').value.trim();
   if (!bib) return;
+  LOOKED_UP = null;
   var r = (DATA.roster || []).filter(function(x){ return String(x.bib) === String(bib); })[0];
   if (!r) { banner('danger', '背番号 ' + esc(bib) + ' は名簿にありません'); return; }
   var done = (DATA.checkins || []).filter(function(c){ return String(c.bib) === String(bib); })[0];
+  LOOKED_UP = bib;
   banner(done ? 'warn' : 'info',
     whoHtml(bib, r) + evHtml(r.events) + '<br>'
     + (done ? '既にチェックイン済み（' + esc(fmtTime(done.at)) + '）'
-            : '内容を確認して「チェックイン」を押してください'));
+            : '内容が正しければ、もう一度Enterを押すか「チェックイン」を押してください'));
 }
 
-/* 送信＝「チェックイン」ボタンを押したときだけ。ここで初めて受付が記録される。 */
-el('ci-form').addEventListener('submit', function(e){
-  e.preventDefault();
+/* ここで初めて受付が記録される。「チェックイン」ボタン、または照会後の2回目のEnterから呼ばれる。 */
+el('ci-form').addEventListener('submit', function(e){ e.preventDefault(); doCheckin(); });
+function doCheckin(){
   var bib = el('bib').value.trim();
   if (!bib) return;
+  LOOKED_UP = null;
   post('api/uketsuke_checkin.php', {id:COMP.id, bib:bib, by:el('by').value})
     .then(function(r){
       banner(r.already ? 'warn' : 'ok',
@@ -675,7 +692,7 @@ el('ci-form').addEventListener('submit', function(e){
     })
     .catch(function(err){ banner('danger', esc(err.message)); })
     .then(function(){ el('bib').value=''; el('bib').focus(); });
-});
+}
 function banner(kind, html){
   var b = el('ci-banner');
   b.className = 'banner b-' + kind;
@@ -715,7 +732,11 @@ function renderRecent(){
 }
 el('ci-reset').addEventListener('click', function(){
   if (!confirm('現在 ' + (DATA.checkins||[]).length + ' 件のチェックイン記録があります。すべて解除して受付前の状態に戻しますか？')) return;
-  post('api/uketsuke_reset_checkins.php', {id:COMP.id, by:el('by').value})
+  /* 受付をやり直せなくなるので、大会の削除と同じく役員ページのパスワードを求める（サーバー側でも照合する） */
+  var pw = prompt('解除を実行するには、役員ページのパスワードを入力してください'
+    + (IS_LOCAL ? '\n（ローカル動作確認用サーバーのパスワードです。本番のものではありません）' : ''));
+  if (pw === null || pw === '') return;
+  post('api/uketsuke_reset_checkins.php', {id:COMP.id, by:el('by').value, password:pw})
     .then(function(d){ alert(d.cleared + ' 件を解除しました'); return refresh().then(renderRecent); })
     .catch(function(e){ alert(e.message); });
 });
