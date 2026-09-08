@@ -26,8 +26,13 @@
   h2{font-size:18px;margin:0 0 2px}
   /* 欠場者の背番号だけを横に並べる。進行席で読み上げるので大きく出す。 */
   .bibs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-  .bib{font-size:30px;font-weight:800;line-height:1;padding:8px 14px;border:2px solid var(--border);
+  .bib{display:inline-flex;flex-direction:column;align-items:center;gap:2px;min-width:64px;
+    font-size:30px;font-weight:800;line-height:1;padding:8px 12px;border:2px solid var(--border);
     border-radius:8px;background:#fff;color:var(--primary)}
+  /* 背番号在庫を確認した組は、ひと目で区別できるようにする */
+  .bib.checked{border-color:#16a34a;background:#f0fdf4}
+  .bib .who{font-size:11px;font-weight:700;line-height:1.2;color:#16a34a;white-space:nowrap}
+  .bib .who.none{color:var(--muted)}
   .block{margin-bottom:16px}
   .no-break{padding-bottom:8px}
   @media print{
@@ -160,15 +165,33 @@ function entryCount(codes){
   return n;
 }
 
+/* 背番号在庫の確認記録（背番号 → {by, at}） */
+function stockMap(){
+  var m = {};
+  (DATA.stock || []).forEach(function(s){ m[s.bib] = s; });
+  return m;
+}
+/* 背番号ひとつぶん。在庫を確認済みなら緑にして、確認した担当者名を添える */
+function bibHtml(r, stock){
+  var s = stock[r.bib];
+  return '<span class="bib' + (s ? ' checked' : '') + '">' + esc(r.bib)
+    + (s ? '<span class="who">✓ ' + esc(s.by || '確認済') + '</span>'
+         : '<span class="who none">未確認</span>')
+    + '</span>';
+}
+
 /* 1種目ぶんの欠場者を出す */
 function blockHtml(e){
   var absent = absentFor([e.code]);
   var total  = entryCount([e.code]);
+  var stock  = stockMap();
+  var checked = absent.filter(function(r){ return stock[r.bib]; }).length;
   return '<div class="card block">'
     + '<h2>' + evLabel(e) + (e.start_time ? '　<span class="muted">受付締切 ' + esc(e.start_time) + '</span>' : '') + '</h2>'
-    + '<div class="muted">欠場 <b>' + absent.length + '</b> / エントリー ' + total + ' 組</div>'
+    + '<div class="muted">欠場 <b>' + absent.length + '</b> / エントリー ' + total + ' 組'
+    + '　背番号在庫の確認済み ' + checked + ' / ' + absent.length + ' 組</div>'
     + (absent.length
-        ? '<div class="bibs">' + absent.map(function(r){ return '<span class="bib">' + esc(r.bib) + '</span>'; }).join('') + '</div>'
+        ? '<div class="bibs">' + absent.map(function(r){ return bibHtml(r, stock); }).join('') + '</div>'
         : '<p class="muted">欠場者はいません。</p>')
     + '</div>';
 }
