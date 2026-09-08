@@ -132,8 +132,7 @@
   <nav class="tabs">
     <button data-view="comp" class="active">大会</button>
     <button data-view="roster">名簿</button>
-    <button data-view="staff" id="tab-staff">受付担当者名</button>
-    <button data-view="checkin">受付</button>
+    <button data-view="checkin" id="tab-checkin">受付</button>
     <button data-view="rollcall">出場・欠場</button>
     <button data-view="events">種目</button>
     <button data-view="admin">管理</button>
@@ -174,10 +173,11 @@
     <section id="v-checkin" class="hidden">
       <!-- 誰の名前で受付しているかは常に見えている必要があるが、入力欄を出しっぱなしにすると
            背番号の邪魔になるので、名前の表示と「変更」ボタンだけを置く -->
+      <!-- 担当者名はタブに出しているので、ここには変更の入口だけ置く。
+           記録に付ける値は #by が持つ（この端末の localStorage に記憶する）。 -->
+      <input type="hidden" id="by">
       <div class="row" style="margin-bottom:10px">
-        <span class="muted">受付担当者名</span>
-        <b id="ci-by">未設定</b>
-        <button type="button" class="small secondary" id="ci-by-edit" style="margin-left:auto">変更</button>
+        <button type="button" class="small secondary" id="ci-by-edit" style="margin-left:auto">受付担当者名を変更</button>
       </div>
 
       <form class="card" id="ci-form">
@@ -340,24 +340,7 @@
       </div>
     </section>
 
-    <!-- ======== 受付担当者名 ======== -->
-    <section id="v-staff" class="hidden">
-      <h2>受付担当者名</h2>
-      <div class="card">
-        <p class="muted">
-          受付・取消・在庫確認の記録に、担当者として残ります。<br>
-          最初に一度だけ設定してください。この端末に記憶されるので、次に開いたときもそのまま使えます。
-        </p>
-        <label class="muted" for="by">受付担当者名（任意）</label>
-        <input type="text" id="by" placeholder="例: 谷口">
-        <div style="height:10px"></div>
-        <div class="row">
-          <button id="by-save">保存する</button>
-          <span class="muted" id="by-saved"></span>
-        </div>
-      </div>
-    </section>
-  </main>
+ </main>
 </div>
 
 <script>
@@ -429,7 +412,7 @@ function doLogin(){
 }
 
 /* ---------- タブ切替 ---------- */
-var views = ['comp','checkin','rollcall','roster','events','staff','admin'];
+var views = ['comp','checkin','rollcall','roster','events','admin'];
 document.querySelectorAll('nav.tabs button').forEach(function(b){
   b.addEventListener('click', function(){ switchView(b.dataset.view); });
 });
@@ -437,7 +420,7 @@ function switchView(v){
   document.querySelectorAll('nav.tabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.view === v); });
   views.forEach(function(x){ el('v-' + x).classList.toggle('hidden', x !== v); });
   /* 受付担当者名は端末ごとの設定なので、大会を選ぶ前でも開ける */
-  if (v !== 'comp' && v !== 'staff' && !COMP) {
+  if (v !== 'comp' && !COMP) {
     alert('先に「大会」タブで大会を開いてください（一覧の「開く」を押します）');
     switchView('comp');
     return;
@@ -449,7 +432,6 @@ function switchView(v){
   if (v === 'rollcall') renderRollcall();
   if (v === 'roster') { renderRoster(); renderEventChecks(); }
   if (v === 'events') renderEvents();
-  if (v === 'staff') el('by').focus();
   if (v === 'admin') el('ad-count').textContent = (DATA.checkins || []).length + ' 件';
   startPolling(v === 'checkin' || v === 'rollcall');
 }
@@ -652,22 +634,21 @@ function startPolling(on){
 el('by').value = localStorage.getItem('uk_by') || '';
 function renderBy(){
   var v = el('by').value.trim();
-  /* 誰の名前で受付しているかは常に見えている必要があるので、タブ名と受付画面の両方に出す */
-  el('tab-staff').textContent = '受付担当者名（' + (v || '未設定') + '）';
-  el('ci-by').textContent = v || '未設定';
+  /* 誰の名前で受付しているかは常に見えている必要があるので、受付タブに出す */
+  el('tab-checkin').textContent = '受付（' + (v || '未設定') + '）';
 }
-/* 受付画面から担当者名の設定へ移る */
-el('ci-by-edit').addEventListener('click', function(){ switchView('staff'); });
-function saveBy(){
-  var v = el('by').value.trim();
-  el('by').value = v;
-  localStorage.setItem('uk_by', v);
+function saveBy(v){
+  el('by').value = String(v || '').trim();
+  try { localStorage.setItem('uk_by', el('by').value); } catch (e) {}
   renderBy();
-  el('by-saved').textContent = v ? '保存しました' : '担当者名なしにしました';
-  setTimeout(function(){ el('by-saved').textContent = ''; }, 2000);
 }
-el('by').addEventListener('change', saveBy);
-el('by-save').addEventListener('click', saveBy);
+/* 受付画面から名前を変える。設定用のページは持たず、ここだけで完結させる。 */
+el('ci-by-edit').addEventListener('click', function(){
+  var v = prompt('受付担当者名を入力してください。\n受付・取消・在庫確認の記録に残ります（この端末に記憶されます）。',
+                 el('by').value || '');
+  if (v === null) return;
+  saveBy(v);
+});
 renderBy();
 
 /* 背番号・氏名・所属・競技区分の1行 */
