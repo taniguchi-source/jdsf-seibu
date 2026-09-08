@@ -28,6 +28,8 @@ if (isset($checkins[$bib])) {
         'leader'        => $person['leader'] ?? '',
         'partner'       => $person['partner'] ?? '',
         'affiliation'   => $person['affiliation'] ?? '',
+        /* 受付画面で出場種目を読み上げ確認できるよう、エントリー種目も返す */
+        'events'        => array_values((array)($person['events'] ?? [])),
         'checked_in_at' => $checkins[$bib]['at'],
     ]);
 }
@@ -46,5 +48,6 @@ json_out([
     'leader'        => $person['leader'] ?? '',
     'partner'       => $person['partner'] ?? '',
     'affiliation'   => $person['affiliation'] ?? '',
+    'events'        => array_values((array)($person['events'] ?? [])),
     'checked_in_at' => $now,
 ]);

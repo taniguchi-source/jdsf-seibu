@@ -18,7 +18,7 @@ import os
 import sys
 import io
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Force UTF-8 output to avoid cp932 encoding errors on Windows
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
@@ -26,6 +26,7 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='repla
 BASE_URL = 'https://adm.jdsf.jp/competition/index.php'
 BLOCK_ID = 5  # S = 西部ブロック（近畿・中国・四国）
 OUTPUT_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'competitions_seibu.json')
+PUBLISHED_JSON_URL = 'https://jdsf-seibu.com/data/competitions_seibu.json'   # 前回取得分の引き継ぎ元
 
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (compatible; JDSF-SeibuBot/1.0; +https://jdsf-seibu.com/)',
@@ -91,6 +92,58 @@ def fetch_detail_info(detail_url):
     except Exception as exc:
         print(f"    詳細情報取得エラー ({detail_url}): {exc}")
     return result
+
+
+def fetch_syllabus_events(syllabus_url):
+    """
+    シラバス（大会要項）の「競技内容」表から種目を取り出す。
+
+    表の「区分」の並び順は DCS の「競技内容設定」の並び順そのもので、
+    DCSが書き出す選手名簿CSVの競技参加区分の列順と一致する
+    （2026-09-23 京都府選手権の実CSVで、参加者の背番号集合まで突き合わせて確認済み）。
+    受付システムのCSV取込で列に種目コードを割り当てるのに使う。
+
+    スマホ用の表（sp-only）は略称の列が無いので、略称を持つ表だけを見る。
+    Returns: [{'no': 1, 'code': 'JAS', 'name': 'JDSF A級スタンダード'}, ...]
+    """
+    events = []
+    if not syllabus_url or '/syllabus/' not in syllabus_url:
+        return events
+    try:
+        resp = requests.get(syllabus_url, headers=HEADERS, timeout=15)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.content.decode('utf-8', 'replace'), 'html.parser')
+
+        for table in soup.find_all('table'):
+            heads = [th.get_text(strip=True) for th in table.find_all('th')]
+            if '区分' not in heads or '略称' not in heads:
+                continue
+            i_no   = heads.index('区分')
+            i_code = heads.index('略称')
+            i_name = heads.index('競技名') if '競技名' in heads else -1
+
+            seen = set()
+            for tr in table.find_all('tr'):
+                tds = tr.find_all('td')
+                if len(tds) <= max(i_no, i_code, i_name):
+                    continue
+                code = tds[i_code].get_text(strip=True).upper()
+                if not re.match(r'^[A-Z0-9]{2,6}$', code) or code in seen:
+                    continue
+                seen.add(code)
+                name = tds[i_name].get_text(' ', strip=True) if i_name >= 0 else ''
+                name = re.sub(r'\s+', ' ', name).strip()
+                try:
+                    no = int(tds[i_no].get_text(strip=True))
+                except ValueError:
+                    no = len(events) + 1
+                events.append({'no': no, 'code': code, 'name': name})
+            if events:
+                break
+
+    except Exception as exc:
+        print(f"    シラバス取得エラー ({syllabus_url}): {exc}")
+    return events
 
 
 def check_result_url(result_url):
@@ -208,12 +261,58 @@ def fetch_year(year):
             'has_syllabus':     has_syllabus,
             'has_result':       '◎' in result_text,
             'has_participants': '参' in result_text,
+            'events':           [],   # filled in later (シラバスの競技内容)
             'detail_url':       detail_url,
             'syllabus_url':     syllabus_url,
             'result_url':       result_url,
         })
 
     return competitions
+
+
+def is_recent_competition(c, from_iso):
+    """
+    西部ブロックのトップページ「直近競技会情報」に載る競技会かどうか。
+
+    シラバスはこの一覧に出るものだけ取りに行く（＝サイトで案内している競技会だけ）。
+    判定は index.html の絞り込みとまったく同じ規則にしてあるので、
+    片方だけ変えると「トップには出ているのにシラバスが取れていない」というズレが起きる。
+    """
+    if not c.get('date_iso') or c['date_iso'] < from_iso:
+        return False                                   # 1週間前より過去は除外
+    name = c.get('name') or ''
+    if 'PD' in name[:10]:
+        return False                                   # 大会名先頭10文字に「PD」
+    if '奈良県ダンス連盟' in name:
+        return False
+    return True
+
+
+def load_prev_events():
+    """
+    すでに取得済みのシラバス種目（comp_no → events）を集める。
+
+    GitHub Actions は毎回リポジトリを clone し直し、生成した JSON は本番へ rsync するだけで
+    コミットしない。そのためローカルのファイルだけを見ると毎回「未取得」になってしまうので、
+    公開中の JSON も見て引き継ぐ。シラバスは一度公開されれば内容が変わらないので、
+    ここで拾えたものは二度と取りに行かない。
+    """
+    prev = {}
+    for source in ('published', 'local'):
+        try:
+            if source == 'local':
+                with open(os.path.abspath(OUTPUT_PATH), encoding='utf-8') as f:
+                    data = json.load(f)
+            else:
+                resp = requests.get(PUBLISHED_JSON_URL, headers=HEADERS, timeout=20)
+                resp.raise_for_status()
+                data = resp.json()
+            for c in (data.get('competitions') or []):
+                if c.get('events') and not prev.get(c.get('comp_no')):
+                    prev[c['comp_no']] = c['events']
+        except Exception as exc:
+            print(f"  （{source} の既存データは読めませんでした: {exc}）")
+    return prev
 
 
 def main():
@@ -270,6 +369,31 @@ def main():
         entry_status = 'エントリー受付中' if info['entry_url'] else '受付なし'
         print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:30]}... → 会場:{info['venue'] or '(なし)'} 締切:{info['entry_deadline'] or '(なし)'} {entry_status}")
         time.sleep(0.5)  # polite delay
+
+    # シラバス（大会要項）の「競技内容」から種目（区分順）を取得する。
+    # 受付システムのCSV取込で、競技参加区分の列に種目コードを割り当てるのに使う。
+    # シラバスは一度出れば内容が変わらないので、取れているものは二度と取りに行かない。
+    prev_events = load_prev_events()
+    syllabus_from = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+    print("")
+    print("競技内容（シラバス）を取得中... (※トップページの直近競技会情報に出るもののみ／取得済みは取り直さない)")
+    kept = fetched = 0
+    for i, c in enumerate(unique):
+        # すでに取れている分はそのまま引き継ぐ（過去分のデータも消さない）
+        if prev_events.get(c['comp_no']):
+            c['events'] = prev_events[c['comp_no']]
+            kept += 1
+            continue
+        # まだ取れていないものだけ取りに行く。シラバス未公開なら次回また試す。
+        if not is_recent_competition(c, syllabus_from) or not c.get('syllabus_url'):
+            c['events'] = []
+            continue
+        c['events'] = fetch_syllabus_events(c['syllabus_url'])
+        fetched += 1
+        codes = ','.join(e['code'] for e in c['events'])
+        print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:24]}... → {len(c['events'])}種目 {codes[:60]}")
+        time.sleep(0.5)  # polite delay
+    print(f"  取得 {fetched} 件 / 引き継ぎ {kept} 件")
 
     # result_url が実際に存在するか確認して has_result を補完
     # adm.jdsf.jp の ◎ マーク更新はJDSF事務局の手動作業のため遅延する場合がある

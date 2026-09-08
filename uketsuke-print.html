@@ -111,7 +111,7 @@ function render(){
 
       return '<div class="event-block">'
         + '<h2>' + evLabel(e) + '</h2>'
-        + '<div class="muted">' + (e.start_time ? '開始 ' + esc(e.start_time) + '　' : '')
+        + '<div class="muted">' + (e.start_time ? '受付締切 ' + esc(e.start_time) + '　' : '')
         + '欠場 ' + absent.length + ' / 出場 ' + present.length + '　'
         + esc(DATA.name) + (DATA.date ? '（' + esc(DATA.date) + '）' : '') + '</div>'
         + '<h3>欠場（未チェックイン）</h3>'

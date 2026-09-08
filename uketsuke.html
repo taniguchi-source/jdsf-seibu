@@ -41,6 +41,14 @@
     font-size:16px;padding:10px;border:1px solid var(--border);border-radius:8px;width:100%;background:#fff}
   .bib-input{font-size:40px;text-align:center;padding:18px 12px;letter-spacing:2px;border-width:2px}
   .bib-input:focus{outline:none;border-color:var(--primary)}
+  /* 受付でいちばん使う場所。背番号を大きく取り、チェックインはその右隣に置く */
+  .checkin-row{display:flex;gap:12px;align-items:stretch}
+  .checkin-row .bib-input{flex:1;min-width:0;font-size:64px;padding:14px 12px}
+  .checkin-row .ci-btn{flex:none;font-size:24px;padding:0 34px;white-space:nowrap}
+  @media (max-width:560px){
+    .checkin-row .bib-input{font-size:44px;padding:12px 8px}
+    .checkin-row .ci-btn{font-size:17px;padding:0 16px}
+  }
   .row{display:flex;gap:8px;align-items:center}
   .row.wrap{flex-wrap:wrap}
   .grow{flex:1;min-width:120px}
@@ -54,13 +62,34 @@
     font-size:22px;font-weight:800;color:var(--primary);width:1%;white-space:nowrap}
   /* 背番号の列は幅を詰めるため、見出しが「背/番/号」と縦に折り返さないようにする */
   th:first-child{white-space:nowrap}
+  /* 受付状況は一度に多く見えることが大事なので、行の上下を詰める */
+  table.dense th, table.dense td{padding:4px 8px}
+  /* リーダーとパートナーは内容ぶんの幅だけにして、間を詰める。
+     余った幅は所属・種目の列に回る。狭い画面では横スクロールになるので広い画面だけ。 */
+  table.dense .c-leader{padding-right:2px}
+  table.dense .c-partner{padding-left:2px}
+  @media (min-width:560px){
+    table.dense .c-leader, table.dense .c-partner{width:1%;white-space:nowrap}
+  }
+  table.dense td{line-height:1.25}
+  table.dense #ci-recent td:first-child, table.dense #rs-list td:first-child{font-size:18px}
+  /* 行の高さは「取消」ボタンで決まってしまうので、この表の中だけ小さくする */
+  table.dense button.small{padding:2px 10px;font-size:12px}
+  /* 出場種目のコード。名称は出さず、コードだけを小さく並べる */
+  .code-pill{display:inline-block;margin:0 3px 0 0;padding:1px 6px;border-radius:4px;
+    font-size:12px;font-weight:700;background:#eef2f7;color:var(--primary)}
   .bib-big{font-size:30px;font-weight:800;vertical-align:-2px}
   .banner{padding:14px;border-radius:10px;margin:12px 0;font-size:17px;font-weight:700;text-align:center}
   .b-ok{background:var(--ok-bg);color:var(--ok)} .b-warn{background:var(--warn-bg);color:var(--warn)}
   .b-danger{background:var(--danger-bg);color:var(--danger)}
+  /* 照会しただけ（まだチェックインしていない）状態。受付済みの緑と見分けがつく色にする */
+  .b-info{background:#e0edff;color:var(--primary)}
   .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;
     background:#eef1f5;color:var(--muted);margin:1px}
   .pill-ok{background:var(--ok-bg);color:var(--ok)}
+  /* 受付結果に出す出場種目。読み上げ確認に使うので一覧の pill より大きくする */
+  .ev-pill{display:inline-block;margin:3px 3px 0;padding:3px 10px;border-radius:999px;
+    font-size:14px;font-weight:700;background:#fff;border:1px solid var(--border);color:var(--text)}
   .checkbox-row{display:flex;align-items:center;gap:8px;padding:5px 0}
   .comp-item{display:flex;gap:8px;align-items:center;padding:10px;border:1px solid var(--border);
     border-radius:10px;background:var(--card);margin-bottom:8px}
@@ -102,9 +131,10 @@
 
   <nav class="tabs">
     <button data-view="comp" class="active">大会</button>
+    <button data-view="roster">名簿</button>
+    <button data-view="staff" id="tab-staff">受付担当者名</button>
     <button data-view="checkin">受付</button>
     <button data-view="rollcall">出場・欠場</button>
-    <button data-view="roster">名簿</button>
     <button data-view="events">種目</button>
   </nav>
 
@@ -118,6 +148,7 @@
       <div class="card">
         <label class="muted">サイトの競技会一覧から選ぶ（大会名・開催日・公認番号が入ります）</label>
         <select id="nc-pick"><option value="">選択して入力する…</option></select>
+        <div id="nc-events" class="muted hidden" style="margin-top:8px"></div>
         <div class="row wrap" style="margin-top:10px">
           <div class="grow"><label class="muted">大会名</label>
             <input type="text" id="nc-name" placeholder="例: 2026京都府ダンススポーツ選手権"></div>
@@ -135,23 +166,20 @@
 
     <!-- ======== 受付 ======== -->
     <section id="v-checkin" class="hidden">
-      <div class="card">
-        <label class="muted" for="by">受付担当者名（任意・この端末に記憶）</label>
-        <input type="text" id="by" placeholder="例: 受付1">
-      </div>
-
       <form class="card" id="ci-form">
         <label class="muted" for="bib">背番号</label>
-        <input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="bib" class="bib-input" placeholder="0">
-        <div style="height:10px"></div>
-        <button type="submit" class="block">チェックイン</button>
+        <div class="checkin-row">
+          <input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="bib" class="bib-input" placeholder="0">
+          <button type="submit" class="ci-btn">チェックイン</button>
+        </div>
       </form>
 
       <div id="ci-banner" class="banner hidden"></div>
 
       <h2>受付状況 <span class="muted" id="ci-count"></span></h2>
-      <table>
-        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>受付</th><th>時刻</th><th></th></tr></thead>
+      <table class="dense">
+        <thead><tr><th>背番号</th><th class="c-leader">リーダー</th><th class="c-partner">パートナー</th>
+          <th>種目</th><th>受付</th><th>時刻</th><th></th></tr></thead>
         <tbody id="ci-recent"></tbody>
       </table>
 
@@ -189,7 +217,7 @@
 
     <!-- ======== 名簿 ======== -->
     <section id="v-roster" class="hidden">
-      <h2>CSV取込</h2>
+      <h2>CSV取込 <span class="muted" id="rs-imported"></span></h2>
       <div class="card">
         <div id="imp-step1">
           <p class="muted">JDSF競技会支援システム（DCS）の「選手名簿ファイル処理」で書き出したCSVをそのまま読み込めます（Shift-JIS / UTF-8 対応）。</p>
@@ -247,8 +275,9 @@
       <h2>一覧 <span class="muted" id="rs-count"></span></h2>
       <input type="text" id="rs-search" placeholder="背番号・氏名・所属で検索">
       <div style="height:8px"></div>
-      <table>
-        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>種目</th><th></th></tr></thead>
+      <table class="dense">
+        <thead><tr><th>背番号</th><th class="c-leader">リーダー</th><th class="c-partner">パートナー</th>
+          <th>所属</th><th>種目</th><th></th></tr></thead>
         <tbody id="rs-list"></tbody>
       </table>
     </section>
@@ -256,17 +285,33 @@
     <!-- ======== 種目 ======== -->
     <section id="v-events" class="hidden">
       <h2>種目マスタ</h2>
-      <p class="muted">名簿CSVの取込で未登録の種目コードが見つかると、ここに仮登録（種目名＝コード）されます。名称と開始時刻を整えてください。</p>
+      <p class="muted">名簿CSVの取込で未登録の種目コードが見つかると、ここに仮登録（種目名＝コード）されます。名称と受付締切を整えてください。</p>
+
+      <div class="card" id="ev-import-box">
+        <p class="muted">
+          サイトの競技会一覧（シラバスの「競技内容」）から、この大会の種目を<b>区分順</b>で取り込みます。<br>
+          この並び順はDCSの「競技内容設定」と同じなので、名簿CSVの競技参加区分の列にそのまま対応します。
+        </p>
+        <div id="ev-import-none" class="muted hidden"></div>
+        <div id="ev-import-ui">
+          <select id="ev-import-pick"></select>
+          <div style="height:10px"></div>
+          <div class="row wrap">
+            <button id="ev-import" class="secondary">この大会の種目として取り込む</button>
+            <span class="muted" id="ev-import-msg"></span>
+          </div>
+        </div>
+      </div>
       <div class="card">
         <table>
-          <thead><tr><th>コード</th><th>種目名</th><th>開始</th><th></th></tr></thead>
+          <thead><tr><th>コード</th><th>種目名</th><th>受付締切</th><th></th></tr></thead>
           <tbody id="ev-list"></tbody>
         </table>
         <div style="height:10px"></div>
         <div class="row wrap">
           <div style="width:110px"><input type="text" id="ev-code" placeholder="コード"></div>
           <div class="grow"><input type="text" id="ev-name" placeholder="種目名"></div>
-          <div style="width:100px"><input type="text" id="ev-time" placeholder="10:00"></div>
+          <div style="width:110px"><input type="text" id="ev-time" placeholder="受付締切 10:00"></div>
           <button id="ev-add" class="small">追加</button>
         </div>
         <div style="height:12px"></div>
@@ -277,6 +322,24 @@
         <span class="muted" id="ev-saved"></span>
       </div>
 
+    </section>
+
+    <!-- ======== 受付担当者名 ======== -->
+    <section id="v-staff" class="hidden">
+      <h2>受付担当者名</h2>
+      <div class="card">
+        <p class="muted">
+          受付・取消・在庫確認の記録に、担当者として残ります。<br>
+          最初に一度だけ設定してください。この端末に記憶されるので、次に開いたときもそのまま使えます。
+        </p>
+        <label class="muted" for="by">受付担当者名（任意）</label>
+        <input type="text" id="by" placeholder="例: 谷口">
+        <div style="height:10px"></div>
+        <div class="row">
+          <button id="by-save">保存する</button>
+          <span class="muted" id="by-saved"></span>
+        </div>
+      </div>
     </section>
   </main>
 </div>
@@ -350,19 +413,27 @@ function doLogin(){
 }
 
 /* ---------- タブ切替 ---------- */
-var views = ['comp','checkin','rollcall','roster','events'];
+var views = ['comp','checkin','rollcall','roster','events','staff'];
 document.querySelectorAll('nav.tabs button').forEach(function(b){
   b.addEventListener('click', function(){ switchView(b.dataset.view); });
 });
 function switchView(v){
   document.querySelectorAll('nav.tabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.view === v); });
   views.forEach(function(x){ el('v-' + x).classList.toggle('hidden', x !== v); });
-  if (v !== 'comp' && !COMP) { alert('先に大会を選んでください'); switchView('comp'); return; }
+  /* 受付担当者名は端末ごとの設定なので、大会を選ぶ前でも開ける */
+  if (v !== 'comp' && v !== 'staff' && !COMP) {
+    alert('先に「大会」タブで大会を開いてください（一覧の「開く」を押します）');
+    switchView('comp');
+    return;
+  }
   /* 画面を開いた時点で描画する（ポーリング待ちで数秒空欄になるのを防ぐ） */
+  /* 大会一覧の「選手○組／受付済○組」は取込や受付で増えるので、開くたびに数え直す */
+  if (v === 'comp') loadComps();
   if (v === 'checkin') { renderRecent(); el('bib').focus(); }
   if (v === 'rollcall') renderRollcall();
   if (v === 'roster') { renderRoster(); renderEventChecks(); }
   if (v === 'events') renderEvents();
+  if (v === 'staff') el('by').focus();
   startPolling(v === 'checkin' || v === 'rollcall');
 }
 
@@ -370,7 +441,10 @@ function switchView(v){
 function loadComps(){
   return get('api/uketsuke_list.php').then(function(d){
     var box = el('comp-list');
-    if (!d.competitions.length) { box.innerHTML = '<p class="muted">まだ大会がありません。下の欄から作成してください。</p>'; return; }
+    if (!d.competitions.length) {
+      box.innerHTML = '<p class="muted">まだ大会がありません。下の欄から作成してください。</p>';
+      return;
+    }
     box.innerHTML = d.competitions.map(function(c){
       return '<div class="comp-item">'
         + '<div class="grow"><div class="nm">' + esc(c.name) + '</div>'
@@ -392,28 +466,38 @@ function loadComps(){
           + (IS_LOCAL ? '\n（ローカル動作確認用サーバーのパスワードです。本番のものではありません）' : ''));
         if (pw === null || pw === '') return;
         post('api/uketsuke_save_competition.php', {action:'delete', id:b.dataset.del, password:pw})
-          .then(function(){ if (COMP && COMP.id === b.dataset.del) { COMP = null; el('hd-comp').textContent=''; } loadComps(); })
+          .then(function(){
+            if (COMP && COMP.id === b.dataset.del) { COMP = null; el('hd-comp').textContent = ''; }
+            try { if (localStorage.getItem('uk_last_comp') === b.dataset.del) localStorage.removeItem('uk_last_comp'); } catch (e) {}
+            loadComps();
+          })
           .catch(function(e){ alert(e.message); });
       });
     });
+    restoreLastComp(d.competitions);
   }).catch(function(e){ alert(e.message); });
 }
 
 /* サイトに登録済みの競技会（data/competitions_seibu.json）から選んで入力を省く。
    一覧に無い大会（登録前のものなど）は、これまで通り手入力できる。 */
+var CANDS = [];        /* サイトの競技会一覧（シラバスの競技内容つき） */
+var NC_EVENTS = [];    /* 選んだ大会の種目（シラバスの区分順＝CSVの列順） */
 function loadCompCandidates(){
   fetch('data/competitions_seibu.json?_=' + Date.now())
     .then(function(r){ return r.json(); })
     .then(function(d){
       var items = Array.isArray(d) ? d : (d.competitions || []);
-      var from = new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10);
+      /* 終了した大会が並んでも選ぶ邪魔になるだけなので、
+         当日以降＋直近7日以内に終わったものだけにする */
+      var from = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
       items = items.filter(function(x){ return x && x.date_iso && x.date_iso >= from; })
                    .sort(function(a, b){ return (a.date_iso || '').localeCompare(b.date_iso || ''); });
+      CANDS = items;
       var sel = el('nc-pick');
       sel.innerHTML = '<option value="">選択して入力する…</option>';   /* 二重に積まないよう作り直す */
-      items.forEach(function(x){
+      items.forEach(function(x, i){
         var o = document.createElement('option');
-        o.value = JSON.stringify({n: cleanCompName(x.name), d: x.date_iso, c: x.comp_no || ''});
+        o.value = String(i);   /* 中身は CANDS[i] から引く（種目一覧まで属性に詰めると長くなるため） */
         o.textContent = x.date_iso + '　' + cleanCompName(x.name).slice(0, 40);
         sel.appendChild(o);
       });
@@ -425,28 +509,54 @@ function cleanCompName(name){
   return String(name || '').split('※')[0].split(' 詳細')[0].replace(/【[^】]*】/g, '').trim();
 }
 el('nc-pick').addEventListener('change', function(){
-  if (!this.value) return;
-  var v = JSON.parse(this.value);
-  el('nc-name').value = v.n;
-  el('nc-date').value = v.d || '';
-  el('nc-code').value = v.c || '';
+  var x = this.value === '' ? null : CANDS[Number(this.value)];
+  NC_EVENTS = x ? (x.events || []) : [];
+  renderNcEvents();
+  if (!x) return;
+  el('nc-name').value = cleanCompName(x.name);
+  el('nc-date').value = x.date_iso || '';
+  el('nc-code').value = x.comp_no || '';
 });
+
+/* シラバス（大会要項）の「競技内容」から取れた種目を確認用に出す。
+   この並び順（区分順）が、DCSの選手名簿CSVの競技参加区分の列順そのものなので、
+   そのまま種目マスタとして登録しておけば、名簿の取込で列に自動で割り当てられる。 */
+function renderNcEvents(){
+  var box = el('nc-events');
+  if (!NC_EVENTS.length) {
+    box.innerHTML = el('nc-pick').value === '' ? '' :
+      'この大会はシラバスから競技内容を取得できませんでした。種目は「種目」タブであとから登録できます。';
+    box.classList.toggle('hidden', el('nc-pick').value === '');
+    return;
+  }
+  box.innerHTML = 'シラバスの競技内容から <b>' + NC_EVENTS.length + '種目</b> を区分順で登録します：<br>'
+    + esc(NC_EVENTS.map(function(e){ return e.code; }).join(', ')) + '<br>'
+    + 'この並び順が名簿CSVの競技参加区分の列順になります（受付締切は「種目」タブで入れてください）。';
+  box.classList.remove('hidden');
+}
 
 el('nc-btn').addEventListener('click', function(){
   if (!el('nc-code').value.trim() &&
       !confirm('公認番号が空です。この大会は誰でも開ける状態になります。よろしいですか？')) return;
+  /* 種目は「コード,種目名」を1行ずつ送る（サーバー側で種目マスタになる）。
+     種目名の区切り文字と衝突しないよう、名前の中のカンマ・タブは空白にしておく。 */
+  var evLines = NC_EVENTS.map(function(e){
+    return e.code + ',' + String(e.name || '').replace(/[,\t]+/g, ' ').trim();
+  }).join('\n');
   post('api/uketsuke_save_competition.php', {
-    action: 'create', name: el('nc-name').value, date: el('nc-date').value, code: el('nc-code').value
+    action: 'create', name: el('nc-name').value, date: el('nc-date').value, code: el('nc-code').value,
+    events: evLines
   })
     .then(function(d){
       el('nc-name').value = ''; el('nc-code').value = ''; el('nc-pick').value = '';
+      NC_EVENTS = []; renderNcEvents();
       return loadComps().then(function(){ openComp(d.id); });
     })
     .catch(function(e){ alert(e.message); });
 });
 
 /* 大会を開く。公認番号が設定されていれば、まずそれを照合する（サーバー側で確認する）。 */
-function openComp(id, needCode){
+function openComp(id, needCode, keepView){
   var step = Promise.resolve();
   if (needCode) {
     var code = prompt('この大会の公認番号を入力してください');
@@ -458,9 +568,23 @@ function openComp(id, needCode){
     .then(function(){
       COMP = {id:id, name:DATA.name, date:DATA.date};
       el('hd-comp').textContent = DATA.name + (DATA.date ? '（' + DATA.date + '）' : '');
-      switchView('checkin');
+      try { localStorage.setItem('uk_last_comp', id); } catch (e) {}
+      if (!keepView) switchView('checkin');
     })
     .catch(function(e){ alert(e.message); return loadComps(); });
+}
+
+/* 直前に開いていた大会を開き直す。
+   画面を再読み込みしただけで大会が閉じてしまい、受付に進めなくなるのを防ぐ。
+   公認番号の確認が済んでいる（need_code=false）ものだけ自動で開き、
+   いま見ている画面は変えない。 */
+function restoreLastComp(list){
+  if (COMP) return;
+  var id;
+  try { id = localStorage.getItem('uk_last_comp'); } catch (e) { return; }
+  if (!id) return;
+  var c = (list || []).filter(function(x){ return x.id === id && !x.need_code; })[0];
+  if (c) openComp(id, false, true);
 }
 
 /* ---------- データ取得（ポーリング） ---------- */
@@ -482,19 +606,71 @@ function startPolling(on){
 }
 
 /* ---------- 受付 ---------- */
+/* ---------- 受付担当者名（この端末に記憶する） ---------- */
 el('by').value = localStorage.getItem('uk_by') || '';
-el('by').addEventListener('change', function(){ localStorage.setItem('uk_by', el('by').value); });
+function renderBy(){
+  var v = el('by').value.trim();
+  /* 誰の名前で受付しているかは常に見えている必要があるので、タブ名自体に出す */
+  el('tab-staff').textContent = '受付担当者名（' + (v || '未設定') + '）';
+}
+function saveBy(){
+  var v = el('by').value.trim();
+  el('by').value = v;
+  localStorage.setItem('uk_by', v);
+  renderBy();
+  el('by-saved').textContent = v ? '保存しました' : '担当者名なしにしました';
+  setTimeout(function(){ el('by-saved').textContent = ''; }, 2000);
+}
+el('by').addEventListener('change', saveBy);
+el('by-save').addEventListener('click', saveBy);
+renderBy();
 
+/* 背番号・氏名・所属・競技区分の1行 */
+function whoHtml(bib, r){
+  return '<span class="bib-big">' + esc(bib) + '</span> ' + esc(r.leader || '') + ' / ' + esc(r.partner || '')
+    + (r.affiliation ? '（' + esc(r.affiliation) + '）' : '')
+    + (r.category ? ' <span class="muted">' + esc(r.category) + '</span>' : '');
+}
+/* 出場種目。種目名は種目マスタから引く（未登録ならコードだけ） */
+function evHtml(codes){
+  var evs = (codes || []).map(function(c){
+    var m = (DATA.events || []).filter(function(e){ return e.code === c; })[0];
+    var nm = (m && m.name && m.name !== c) ? ' ' + m.name : '';
+    return '<span class="ev-pill">' + esc(c + nm) + '</span>';
+  }).join('');
+  return evs ? '<br>' + evs : '<br><span class="muted">出場種目の登録がありません</span>';
+}
+
+/* Enter は「照会」だけ。名簿から引いて内容を出すところまでで、受付はしない。
+   打ち間違えた背番号がEnterひとつで受付されてしまうのを防ぐため、
+   実際のチェックインは「チェックイン」ボタンを押したときだけ行う。 */
+el('bib').addEventListener('keydown', function(e){
+  if (e.key !== 'Enter' && e.keyCode !== 13) return;
+  e.preventDefault();
+  lookupBib();
+});
+function lookupBib(){
+  var bib = el('bib').value.trim();
+  if (!bib) return;
+  var r = (DATA.roster || []).filter(function(x){ return String(x.bib) === String(bib); })[0];
+  if (!r) { banner('danger', '背番号 ' + esc(bib) + ' は名簿にありません'); return; }
+  var done = (DATA.checkins || []).filter(function(c){ return String(c.bib) === String(bib); })[0];
+  banner(done ? 'warn' : 'info',
+    whoHtml(bib, r) + evHtml(r.events) + '<br>'
+    + (done ? '既にチェックイン済み（' + esc(fmtTime(done.at)) + '）'
+            : '内容を確認して「チェックイン」を押してください'));
+}
+
+/* 送信＝「チェックイン」ボタンを押したときだけ。ここで初めて受付が記録される。 */
 el('ci-form').addEventListener('submit', function(e){
   e.preventDefault();
   var bib = el('bib').value.trim();
   if (!bib) return;
   post('api/uketsuke_checkin.php', {id:COMP.id, bib:bib, by:el('by').value})
     .then(function(r){
-      var who = '<span class="bib-big">' + esc(r.bib) + '</span> ' + esc(r.leader) + ' / ' + esc(r.partner)
-        + (r.affiliation ? '（' + esc(r.affiliation) + '）' : '');
       banner(r.already ? 'warn' : 'ok',
-        who + '<br>' + (r.already ? '既にチェックイン済み（' + esc(fmtTime(r.checked_in_at)) + '）' : 'チェックインしました'));
+        whoHtml(r.bib, r) + evHtml(r.events) + '<br>'
+        + (r.already ? '既にチェックイン済み（' + esc(fmtTime(r.checked_in_at)) + '）' : 'チェックインしました'));
       return refresh().then(renderRecent);
     })
     .catch(function(err){ banner('danger', esc(err.message)); })
@@ -513,8 +689,10 @@ function renderRecent(){
   el('ci-count').textContent = '（' + rows.length + ' / ' + (DATA.roster||[]).length + ' 組）';
   el('ci-recent').innerHTML = rows.slice(0, 40).map(function(c){
     var r = map[c.bib] || {};
-    return '<tr><td>' + esc(c.bib) + '</td><td>' + esc(r.leader) + '</td><td>' + esc(r.partner)
-      + '</td><td>' + esc(r.affiliation) + '</td><td class="muted">' + esc(c.by || '') + '</td>'
+    var codes = (r.events || []).map(function(x){ return '<span class="code-pill">' + esc(x) + '</span>'; }).join('');
+    return '<tr><td>' + esc(c.bib) + '</td>'
+      + '<td class="c-leader">' + esc(r.leader) + '</td><td class="c-partner">' + esc(r.partner) + '</td>'
+      + '<td>' + codes + '</td><td class="muted">' + esc(c.by || '') + '</td>'
       + '<td>' + esc(fmtTime(c.at)) + '</td>'
       + '<td><button type="button" class="small secondary" data-uncheck="' + esc(c.bib) + '">取消</button></td></tr>';
   }).join('');
@@ -604,12 +782,18 @@ function renderRoster(){
   });
   el('rs-count').textContent = '（' + (DATA.roster||[]).length + ' 組）';
   el('rs-list').innerHTML = rows.map(function(r){
-    return '<tr><td>' + esc(r.bib) + '</td><td>' + esc(r.leader) + '</td><td>' + esc(r.partner)
-      + '</td><td>' + esc(r.affiliation) + '</td><td>'
-      + (r.events||[]).map(function(c){ return '<span class="pill">' + esc(c) + '</span>'; }).join('')
+    return '<tr><td>' + esc(r.bib) + '</td>'
+      + '<td class="c-leader">' + esc(r.leader) + '</td><td class="c-partner">' + esc(r.partner) + '</td>'
+      + '<td>' + esc(r.affiliation) + '</td><td>'
+      + (r.events||[]).map(function(c){ return '<span class="code-pill">' + esc(c) + '</span>'; }).join('')
       + '</td><td><button class="small secondary" data-edit="' + esc(r.bib) + '">編集</button> '
       + '<button class="small danger" data-del="' + esc(r.bib) + '">削除</button></td></tr>';
   }).join('');
+  /* 取り込み済みかどうかが一目で分かるようにしておく（毎回CSVを探さなくて済む） */
+  var n = (DATA.roster || []).length;
+  el('rs-imported').textContent = n
+    ? '取り込み済み（' + n + '組・種目 ' + (DATA.events || []).length + '）'
+    : '未取り込み';
   el('rs-list').querySelectorAll('[data-edit]').forEach(function(b){
     b.addEventListener('click', function(){
       var r = (DATA.roster||[]).filter(function(x){ return String(x.bib) === b.dataset.edit; })[0];
@@ -730,6 +914,8 @@ el('bulk-apply').addEventListener('click', function(){
   b.classList.remove('hidden');
 });
 
+var DETECT_OK = false;   /* 自動判定で全項目そろったか（＝そのまま取り込んでよいか） */
+
 /* ---------- 列の自動判定 ----------
    DCSのCSVには項目名の行が無いが、各列の中身には特徴があるので推定できる。
    誤判定があり得るので確定はせず、画面に反映して人が確認する。 */
@@ -776,6 +962,20 @@ function colHasMark(i){
   return false;
 }
 
+/* この大会に対応するシラバスの競技内容（区分順）を、サイトの競技会一覧から探す。
+   種目マスタがまだ空でも、取込画面だけで正しい列順に割り当てられるようにするため。
+   開催日で突き合わせ、同じ日に複数あるときは大会名が一致するものを優先する。 */
+function syllabusEventsForComp(){
+  var date = (DATA && DATA.date) || (COMP && COMP.date) || '';
+  var name = cleanCompName((DATA && DATA.name) || (COMP && COMP.name) || '');
+  var list = CANDS.filter(function(x){ return (x.events || []).length && x.date_iso === date; });
+  if (list.length > 1) {
+    var exact = list.filter(function(x){ return cleanCompName(x.name) === name; });
+    if (exact.length) list = exact;
+  }
+  return list.length ? list[0].events : [];
+}
+
 function autoDetect(){
   var n = headers().length;
   if (!n) return;
@@ -816,8 +1016,21 @@ function autoDetect(){
 
   pick('m-bib', bib); pick('m-leader', leader); pick('m-partner', partner); pick('m-affiliation', affil);
 
-  /* 6) 種目コードは種目マスタの並び順（＝DCSの競技内容設定の順）で先頭から割り当てる */
-  var codes = (DATA.events || []).map(function(e){ return e.code; });
+  /* 6) 種目コードを先頭から割り当てる。この大会の種目マスタ（＝DCSの競技内容設定の順）を優先し、
+        まだ種目を登録していない新しい大会では、前回の取込で使った並びをそのまま充てる。
+        （どちらの場合も「割り当てる」を押させずに自動で入れる。順番はサンプル値を見て人が確認する） */
+  var master = (DATA.events || []).map(function(e){ return e.code; });
+  var syl    = master.length ? [] : syllabusEventsForComp().map(function(e){ return e.code; });
+  var codes, src;
+  if (master.length)      { codes = master; src = 'この大会の種目マスタ'; }
+  else if (syl.length)    { codes = syl;    src = 'シラバスの競技内容'; }
+  else                    { codes = PREV.event_codes || []; src = '前回の取込'; }
+  /* DCSは使っていない区分の列も含めて常に40区分ぶん書き出すので、単純に「最後の列まで」を
+     種目数とすると空列を数えてしまう。出場者のマークが入っている最後の列までを実際の種目数とみなす。 */
+  var evUsed = 0;
+  if (evStart >= 0) {
+    for (var i = n - 1; i >= evStart; i--) { if (colHasMark(i)) { evUsed = i - evStart + 1; break; } }
+  }
   var assigned = 0;
   if (evStart >= 0) {
     for (var k = 0; k < codes.length && evStart + k < n; k++) {
@@ -832,8 +1045,7 @@ function autoDetect(){
 
   /* まとめて入力欄に、この大会の種目マスタ（無ければ前回取込時の並び）を初期表示しておく。
      毎回コードを打ち直さずに「割り当てる」を押すだけで済むように。 */
-  var known = codes.length ? codes : (PREV.event_codes || []);
-  if (known.length && !el('bulk-codes').value) el('bulk-codes').value = known.join(',');
+  if (codes.length && !el('bulk-codes').value) el('bulk-codes').value = codes.join(',');
 
   /* 判定結果を知らせる（間違っていれば手で直せる） */
   var msg = [];
@@ -842,19 +1054,25 @@ function autoDetect(){
     + '／パートナー=' + (partner >= 0 ? '列' + (partner+1) : '不明')
     + '／所属=' + (affil >= 0 ? '列' + (affil+1) : 'なし'));
   if (evStart >= 0 && assigned > 0) {
-    msg.push('競技参加区分は列' + (evStart+1) + '以降と判断し、種目マスタの並び順で ' + assigned + '種目を割り当てました（' + codes.slice(0, assigned).join(', ') + '）。');
+    msg.push('競技参加区分は列' + (evStart+1) + '以降と判断し、<b>' + src + '</b>の並び順で '
+      + assigned + '種目を割り当てました（' + codes.slice(0, assigned).join(', ') + '）。');
+    if (assigned < evUsed) {
+      msg.push('<b>コードが ' + (evUsed - assigned) + '種目分足りません。</b>出場者のいる列が列' + (evStart + evUsed)
+        + 'まであるのに、割り当てられたのは列' + (evStart + assigned) + 'までです。'
+        + '下の「種目コードをまとめて入力」欄に続きのコードを足して <b>「割り当てる」</b> を押してください。');
+    }
     msg.push('※この順番はDCSの「競技内容設定」の並び順と一致している必要があります。');
-  } else if (evStart >= 0 && (PREV.event_codes || []).length) {
-    msg.push('競技参加区分は列' + (evStart+1) + '以降と判断しました。下の「種目コードをまとめて入力」欄に前回の並びを入れてありますので、確認して <b>「割り当てる」</b> を押してください。');
   } else if (evStart >= 0) {
     msg.push('競技参加区分は列' + (evStart+1) + '以降と判断しました。下の「種目コードをまとめて入力」欄に、DCSの競技内容設定の順でコードを入れて <b>「割り当てる」</b> を押してください（取り込み時に種目マスタへ自動登録されます）。');
   } else {
     msg.push('競技参加区分の列を判定できませんでした。手動でチェックしてください。');
   }
   msg.push('サンプル値を見て、誤りがあれば直してから取り込んでください。');
+  /* 全部そろった＝人が直すところが無い、と判断できる状態。この時だけ自動で取り込む。 */
+  DETECT_OK = (bib >= 0 && leader >= 0 && partner >= 0 && assigned > 0 && assigned >= evUsed);
   var b = el('detect-banner');
   b.innerHTML = msg.join('<br>');
-  b.className = 'banner ' + ((bib >= 0 && leader >= 0 && partner >= 0 && assigned > 0) ? 'b-ok' : 'b-warn');
+  b.className = 'banner ' + (DETECT_OK ? 'b-ok' : 'b-warn');
   b.classList.remove('hidden');
 }
 
@@ -887,7 +1105,12 @@ el('imp-cancel').addEventListener('click', function(){
   el('imp-step2').classList.add('hidden');
   el('imp-step1').classList.remove('hidden');
 });
-el('imp-run').addEventListener('click', function(){
+el('imp-run').addEventListener('click', function(){ runImport(false); });
+
+/* auto=true は「読み込んだだけで自動的に取り込む」経路。
+   判定が全部そろったときだけ通る。既にある名簿を黙って置き換えないよう、
+   中身があるときは自動でも確認する。 */
+function runImport(auto){
   var hs = headers(), rows = dataRows();
   var bi = Number(el('m-bib').value), li = Number(el('m-leader').value), pi = Number(el('m-partner').value);
   var ci = Number(el('m-category').value), ai = Number(el('m-affiliation').value);
@@ -914,7 +1137,12 @@ el('imp-run').addEventListener('click', function(){
     });
   });
   if (!out.length) { alert('取り込める行がありませんでした（背番号列とヘッダー有無を確認してください）'); return; }
-  if (!confirm(out.length + '組を取り込みます。現在の名簿は置き換わります。よろしいですか？')) return;
+  var already = (DATA.roster || []).length;
+  if (!auto || already) {
+    if (!confirm(out.length + '組を取り込みます。'
+        + (already ? '現在の名簿（' + already + '組）と受付の記録は置き換わります。' : '')
+        + 'よろしいですか？')) return;
+  }
 
   post('api/uketsuke_save_roster.php', {
     id: COMP.id, mode: 'replace', roster: JSON.stringify(out),
@@ -934,9 +1162,11 @@ el('imp-run').addEventListener('click', function(){
     .catch(function(e){
       var b = el('imp-result'); b.className = 'banner b-danger'; b.textContent = e.message; b.classList.remove('hidden');
     });
-});
+}
 
-/* ---------- 種目 ---------- */
+/* ---------- 種目 ----------
+   start_time は画面上の「受付締切」。既に保存済みのデータと印刷ページが
+   このキーを使っているため、表示名だけ変えてキー名は据え置いている。 */
 var EV = [];
 function renderEvents(){
   EV = (DATA.events || []).slice();
@@ -949,8 +1179,47 @@ function renderEvents(){
   el('ev-list').querySelectorAll('button[data-i]').forEach(function(b){
     b.addEventListener('click', function(){ EV.splice(Number(b.dataset.i), 1); DATA.events = EV; renderEvents(); });
   });
-
+  renderEvImport();
 }
+
+/* ---------- サイトの競技会一覧（シラバスの競技内容）から種目を取り込む ----------
+   大会作成のときに取り込めなかった場合の入口。作成済みの大会、手入力で作った大会、
+   シラバスが後から公開された場合に、あとからでも正しい区分順を入れられるようにする。 */
+function renderEvImport(){
+  var withEv = CANDS.filter(function(x){ return (x.events || []).length; });
+  el('ev-import-ui').classList.toggle('hidden', !withEv.length);
+  el('ev-import-none').classList.toggle('hidden', !!withEv.length);
+  if (!withEv.length) {
+    el('ev-import-none').innerHTML =
+      'サイトの競技会一覧に、まだ競技内容（シラバス）が取り込まれていません。'
+      + '毎朝6時の自動取得で入りますので、それまでは下の欄から手で追加してください。';
+    return;
+  }
+  var today = DATA.date || (COMP && COMP.date) || '';
+  el('ev-import-pick').innerHTML = withEv.map(function(x){
+    return '<option value="' + CANDS.indexOf(x) + '"' + (x.date_iso === today ? ' selected' : '') + '>'
+      + esc(x.date_iso + '　' + cleanCompName(x.name).slice(0, 36)) + '（' + x.events.length + '種目）</option>';
+  }).join('');
+}
+el('ev-import').addEventListener('click', function(){
+  var x = CANDS[Number(el('ev-import-pick').value)];
+  if (!x || !(x.events || []).length) return;
+  if (EV.length && !confirm('いまの種目マスタ（' + EV.length + '件）を、「' + cleanCompName(x.name) + '」の '
+      + x.events.length + '種目で置き換えます。よろしいですか？'
+      + '（同じコードの種目名・受付締切はそのまま残します）')) return;
+  /* すでに整えてある種目名・受付締切は消さずに、並び順だけシラバスに合わせる */
+  var keep = {};
+  EV.forEach(function(e){ keep[e.code] = e; });
+  EV = x.events.map(function(e){
+    var old = keep[e.code] || {};
+    return {code: e.code, name: old.name || e.name || e.code, start_time: old.start_time || ''};
+  });
+  DATA.events = EV;
+  renderEvents();
+  el('ev-save').click();
+  el('ev-import-msg').textContent = x.events.length + '種目を取り込みました';
+  setTimeout(function(){ el('ev-import-msg').textContent = ''; }, 3000);
+});
 /* 種目コードから種目名を推定する（api/_uketsuke.php の uk_guess_event_name と同じ規則）
    級別戦: [J:一般/M:シニアII/G:シニアIII/R:シニアIV] + [級] + [S:スタンダード/L:ラテン]
    市民総体: FK + [W/T/C/R] + [1:一般/2:シニア] */
@@ -991,13 +1260,36 @@ el('ev-add').addEventListener('click', function(){
   el('ev-code').value=''; el('ev-name').value=''; el('ev-time').value='';
   renderEvents();
 });
-el('ev-save').addEventListener('click', function(){
+/* 画面の入力を EV に取り込んで保存する。
+   focusIndex を渡すと、保存後の再描画のあとにその行の受付締切へフォーカスを戻す
+   （保存すると一覧を作り直すので、そのままでは入力位置を見失うため）。 */
+function saveEvents(focusIndex){
   document.querySelectorAll('.ev-n').forEach(function(inp){ EV[Number(inp.dataset.i)].name = inp.value; });
   document.querySelectorAll('.ev-t').forEach(function(inp){ EV[Number(inp.dataset.i)].start_time = inp.value; });
-  post('api/uketsuke_save_events.php', {id:COMP.id, events:JSON.stringify(EV)})
-    .then(function(){ el('ev-saved').textContent = '保存しました'; setTimeout(function(){ el('ev-saved').textContent=''; }, 2000);
-      return refresh().then(renderEvents); })
+  return post('api/uketsuke_save_events.php', {id:COMP.id, events:JSON.stringify(EV)})
+    .then(function(){
+      el('ev-saved').textContent = '保存しました';
+      setTimeout(function(){ el('ev-saved').textContent = ''; }, 2000);
+      return refresh().then(function(){
+        renderEvents();
+        if (focusIndex === undefined) return;
+        var next = document.querySelector('.ev-t[data-i="' + focusIndex + '"]');
+        if (next) { next.focus(); next.select(); }
+      });
+    })
     .catch(function(e){ alert(e.message); });
+}
+el('ev-save').addEventListener('click', function(){ saveEvents(); });
+
+/* 受付締切は上から続けて入れることが多いので、Enterで確定して次の種目の欄へ移る。
+   種目名の欄でEnterを押したときは、同じ行の受付締切へ移る。 */
+el('ev-list').addEventListener('keydown', function(e){
+  if (e.key !== 'Enter' && e.keyCode !== 13) return;
+  var t = e.target;
+  if (!t.classList || !(t.classList.contains('ev-t') || t.classList.contains('ev-n'))) return;
+  e.preventDefault();
+  var i = Number(t.dataset.i);
+  saveEvents(t.classList.contains('ev-n') ? i : i + 1);
 });
 
 </script>
