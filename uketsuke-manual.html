@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>競技会受付システム マニュアル | JDSF 近畿中四国ブロック</title>
+<link rel="icon" href="favicon.ico">
+<style>
+  :root{--primary:#123262;--primary-dark:#0d2649;--bg:#f4f5f7;--card:#fff;--text:#1a1a1a;
+    --muted:#6b7280;--border:#e0e2e7;--ok:#127a3b;--ok-bg:#e8f6ec;--warn:#8a5a00;--warn-bg:#fff4de;
+    --danger:#b3261e;--danger-bg:#fdecea}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);line-height:1.75;
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,-apple-system,"Segoe UI",sans-serif}
+  header{background:var(--primary);color:#fff;padding:12px 16px;display:flex;gap:12px;align-items:center;
+    flex-wrap:wrap}
+  header h1{font-size:17px;margin:0}
+  header .sub{font-size:13px;opacity:.85}
+  header a{color:#fff;font-size:13px;text-decoration:none;opacity:.85;margin-left:auto}
+  main{max-width:880px;margin:0 auto;padding:20px 16px 80px}
+  h2{font-size:21px;margin:44px 0 10px;padding-bottom:8px;border-bottom:3px solid var(--primary);
+    color:var(--primary)}
+  h2:first-of-type{margin-top:16px}
+  h3{font-size:17px;margin:26px 0 6px;color:var(--primary)}
+  p{margin:8px 0}
+  ul,ol{margin:8px 0;padding-left:1.5em}
+  li{margin:4px 0}
+  .lead{font-size:15px;color:var(--muted)}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin:14px 0}
+  figure{margin:14px 0}
+  figure img{width:100%;border:1px solid var(--border);border-radius:10px;display:block;background:#fff}
+  figcaption{font-size:13px;color:var(--muted);margin-top:6px}
+  .note{border-left:5px solid var(--primary);background:#eef2f8;padding:12px 16px;border-radius:0 8px 8px 0;
+    margin:14px 0}
+  .warn{border-left:5px solid var(--danger);background:var(--danger-bg);padding:12px 16px;
+    border-radius:0 8px 8px 0;margin:14px 0}
+  .ok{border-left:5px solid var(--ok);background:var(--ok-bg);padding:12px 16px;border-radius:0 8px 8px 0;
+    margin:14px 0}
+  .note b,.warn b,.ok b{display:block;margin-bottom:2px}
+  kbd{font-family:inherit;font-weight:700;background:#fff;border:1px solid #b9bec7;border-bottom-width:2px;
+    border-radius:5px;padding:1px 7px;font-size:.92em}
+  .btn-name{font-weight:700;background:var(--primary);color:#fff;border-radius:6px;padding:1px 9px;
+    font-size:.9em;white-space:nowrap}
+  .btn-sub{font-weight:700;background:#fff;color:var(--text);border:1px solid var(--border);border-radius:6px;
+    padding:1px 9px;font-size:.9em;white-space:nowrap}
+  table{width:100%;border-collapse:collapse;font-size:14px;background:var(--card);margin:12px 0}
+  th,td{text-align:left;padding:8px 10px;border:1px solid var(--border);vertical-align:top}
+  th{background:#f7f8fa;color:var(--muted);font-weight:700;white-space:nowrap}
+  .steps{counter-reset:st;list-style:none;padding-left:0}
+  .steps>li{counter-increment:st;position:relative;padding-left:42px;margin:14px 0}
+  .steps>li::before{content:counter(st);position:absolute;left:0;top:1px;width:28px;height:28px;
+    border-radius:50%;background:var(--primary);color:#fff;font-weight:800;font-size:15px;
+    display:flex;align-items:center;justify-content:center}
+  .toc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 20px}
+  .toc ol{margin:4px 0}
+  .toc a{color:var(--primary)}
+  .video{background:#0e131b;color:#fff;border-radius:12px;padding:18px 20px;margin:16px 0}
+  .video a{color:#9ecbff;font-weight:700}
+  .video .muted{color:#9aa4b2;font-size:13px}
+  .foot{margin-top:50px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:13px}
+  .print-only{display:none}
+  @media print{
+    body{background:#fff;font-size:10.5pt;line-height:1.6}
+    header{background:#fff;color:#000;border-bottom:2px solid #000;padding:0 0 6px}
+    header a,.web-only{display:none !important}
+    .print-only{display:block}
+    main{max-width:none;padding:0}
+    h2{page-break-after:avoid;font-size:14pt;margin:18pt 0 6pt}
+    h3{page-break-after:avoid;font-size:11.5pt}
+    figure,table,.note,.warn,.ok,.card{page-break-inside:avoid}
+    figure img{border:1px solid #999;width:82%}
+    .video{display:none}
+    section{page-break-before:always}
+    section:first-of-type{page-break-before:auto}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>競技会受付システム　マニュアル</h1>
+  <span class="sub">JDSF 近畿中四国ブロック</span>
+  <a href="uketsuke.html">受付システムを開く →</a>
+</header>
+
+<main>
+
+<p class="lead">
+  競技会当日の受付を、会場の複数の端末（パソコン・タブレット・スマートフォン）で同時に行うためのシステムです。
+  受付した内容はすべての端末にすぐ反映され、そのまま欠場者の一覧を作って印刷できます。
+</p>
+
+<div class="video web-only">
+  <b>解説動画（約9分）</b>
+  <div id="video-link">準備でき次第、ここにリンクを掲載します。</div>
+  <div class="muted">動画で全体をつかんでから、細かいところをこのマニュアルで確認すると分かりやすくなります。</div>
+</div>
+
+<div class="toc web-only">
+  <b>目次</b>
+  <ol>
+    <li><a href="#about">このシステムでできること</a></li>
+    <li><a href="#login">開き方とログイン</a></li>
+    <li><a href="#create">【準備】大会を作る</a></li>
+    <li><a href="#events">【準備】種目を整える</a></li>
+    <li><a href="#roster">【準備】名簿を確かめる</a></li>
+    <li><a href="#checkin">【当日】受付する</a></li>
+    <li><a href="#part">【当日】一部の区分だけ受付する</a></li>
+    <li><a href="#undo">【当日】間違えたとき</a></li>
+    <li><a href="#rollcall">【当日】欠場報告と背番号在庫</a></li>
+    <li><a href="#print">【当日】欠場者一覧を印刷する</a></li>
+    <li><a href="#multi">複数の端末で使う</a></li>
+    <li><a href="#admin">本番前に受付記録を消す</a></li>
+    <li><a href="#faq">困ったとき</a></li>
+  </ol>
+</div>
+
+<section id="about">
+<h2>1. このシステムでできること</h2>
+
+<p>
+  紙の名簿に丸を付ける代わりに、背番号を入力して受付します。<b>受付は種目（区分）ごと</b>に記録されるので、
+  「スタンダードだけ出てラテンは欠場」といった組も、そのまま扱えます。
+</p>
+
+<table>
+  <tr><th style="width:22%">受付</th><td>背番号を入れて<span class="btn-name">受付</span>を押すと、その組の全種目を受付します。一部の区分だけの組は<span class="btn-sub">一部受付</span>から選びます。</td></tr>
+  <tr><th>欠場報告</th><td>種目ごとに「出場」と「欠場」の一覧が自動で出ます。欠場者の背番号が受付に残っているかの確認も記録できます。</td></tr>
+  <tr><th>欠場者一覧</th><td>受付締切の時刻ごとに、欠場した背番号だけを大きく並べたページを印刷できます。進行席へ渡す用です。</td></tr>
+  <tr><th>同時に使える</th><td>受付レーンを分けて、何台の端末からでも同時に受付できます。3秒ごとに自動で最新になります。</td></tr>
+</table>
+
+<h3>全体の流れ</h3>
+<ol class="steps">
+  <li><b>【事前】大会を作る</b>　大会名・開催日・公認番号を入れ、DCSの選手名簿CSVを取り込みます。</li>
+  <li><b>【事前】種目を整える</b>　種目名と受付締切の時刻を入れます。</li>
+  <li><b>【当日】受付する</b>　背番号を入れて受付。取りこぼしは画面の一覧で分かります。</li>
+  <li><b>【当日】欠場を報告する</b>　種目ごとの欠場一覧を出し、印刷して進行席へ渡します。</li>
+</ol>
+
+<div class="note">
+  <b>用語について</b>
+  このマニュアルでは、JAS・JBL といった<b>種目（区分）</b>の単位を「区分」と呼びます。1つの組が複数の区分にエントリーしていることがあります。
+</div>
+</section>
+
+<section id="login">
+<h2>2. 開き方とログイン</h2>
+
+<p>
+  ブラウザで <b>https://jdsf-seibu.com/uketsuke.html</b> を開きます。
+  役員ページの右上のボタン「🎫 競技会受付システム →」からも開けます。
+</p>
+
+<figure>
+  <img src="images/uketsuke-manual/01_login.jpg" alt="ログイン画面">
+  <figcaption>ログイン画面。役員ページと同じパスワード、または受付用のパスワードを入れます。</figcaption>
+</figure>
+
+<div class="note">
+  <b>当日、受付スタッフの端末で開くとき</b>
+  受付用のパスワードでもログインできます。役員ページのパスワードを受付スタッフに渡す必要はありません。
+</div>
+
+<div class="warn">
+  <b>当日はかならず本番のURLを開いてください</b>
+  動作確認用にパソコンでローカルのサーバーを開いたまま受付すると、スマートフォンの受付が反映されず食い違います。
+  端末ごとの受付内容が合わないときは、まず<b>各端末のアドレスバーが jdsf-seibu.com になっているか</b>を確認してください。
+</div>
+</section>
+
+<section id="create">
+<h2>3. 【準備】大会を作る</h2>
+
+<p>「大会」タブを開き、下の「新しい大会を作る」に入力します。</p>
+
+<figure>
+  <img src="images/uketsuke-manual/03_comp_new.jpg" alt="新しい大会を作る">
+  <figcaption>大会名・開催日・公認番号を入れ、選手名簿CSVを選んで「作成する」を押します。</figcaption>
+</figure>
+
+<ol class="steps">
+  <li><b>サイトの競技会一覧から選ぶ</b>　プルダウンから選ぶと、大会名・開催日・公認番号が自動で入ります。一覧に無い大会は手入力してください。</li>
+  <li><b>公認番号</b>　この大会を開くときの合言葉になります。ログインできる人でも、公認番号を知らなければその大会の名簿は開けません。</li>
+  <li><b>選手名簿CSV</b>　DCS（JDSF競技会支援システム）の「選手名簿ファイル処理」で書き出したCSVを、そのまま選べます。文字コードの変換や項目名の追加は不要です。</li>
+  <li><b>「作成する」を押す</b>　大会が作られ、CSVがあれば同時に名簿へ取り込まれます。</li>
+</ol>
+
+<div class="note">
+  <b>取り込む列が自動で判定できなかったとき</b>
+  列の割り当て画面が出ます。背番号・リーダー・パートナー・所属を選び、種目の列には
+  <b>DCSの競技内容設定と同じ順に</b>種目コードを入れてください（例: JAS,JAL,MAS,GAS,RAS,JBS,JBL,JCS,JCL,JDS,JDL）。
+  値が「1」または「◎」の列を出場ありとして読みます。
+</div>
+
+<figure>
+  <img src="images/uketsuke-manual/02_comp.jpg" alt="大会一覧">
+  <figcaption>作成後の大会一覧。「開く」で受付を始めます。「編集」で大会名・開催日・公認番号を後から変えられます。</figcaption>
+</figure>
+
+<div class="warn">
+  <b>「削除」は名簿も受付記録もまとめて消えます</b>
+  実行には公認番号に加えて役員ページのパスワードが必要です。当日は使わないでください。
+</div>
+</section>
+
+<section id="events">
+<h2>4. 【準備】種目を整える</h2>
+
+<p>
+  「名簿」タブの上に<b>種目マスタ</b>があります。名簿CSVの取込で見つかった種目コードが仮登録されているので、
+  <b>種目名</b>と<b>受付締切</b>の時刻を入れて「種目マスタを保存」を押します。
+</p>
+
+<figure>
+  <img src="images/uketsuke-manual/04_roster.jpg" alt="種目マスタ">
+  <figcaption>種目マスタ。受付締切の時刻は、欠場者一覧を時刻ごとにまとめるために使います。</figcaption>
+</figure>
+
+<ul>
+  <li><b>受付締切</b>　タイムテーブルの受付締切時刻を <b>10:30</b> の形で入れます。同じ時刻の種目は、欠場者一覧でまとめて1枚に出ます。</li>
+  <li><b>「コードから種目名を補う」</b>　JAS・JBL などの標準的なコードなら、種目名を自動で埋められます。埋めたあと必要に応じて直してください。</li>
+</ul>
+</section>
+
+<section id="roster">
+<h2>5. 【準備】名簿を確かめる</h2>
+
+<p>同じ「名簿」タブの下に、取り込んだ組の一覧が出ます。背番号・氏名・所属で検索できます。</p>
+
+<figure>
+  <img src="images/uketsuke-manual/05_roster_list.jpg" alt="名簿一覧">
+  <figcaption>名簿一覧。当日の追加・変更はここで直せます。</figcaption>
+</figure>
+
+<ul>
+  <li>当日エントリーの追加や、背番号の変更はこの画面で行えます。</li>
+  <li>出場種目のチェックが実際と違うと、欠場者一覧が合わなくなります。取込後にひととおり確認してください。</li>
+</ul>
+</section>
+
+<section id="checkin">
+<h2>6. 【当日】受付する</h2>
+
+<p>
+  「受付」タブを開きます。はじめに右上の<span class="btn-sub">受付担当者名を変更</span>で自分の名前を入れてください。
+  誰が受付したかが記録に残ります（この端末に覚えます。毎回入れ直す必要はありません）。
+</p>
+
+<figure>
+  <img src="images/uketsuke-manual/06_checkin.jpg" alt="受付画面">
+  <figcaption>受付画面。背番号を入れて<span class="btn-name">受付</span>を押すと、その組の全種目を受付します。</figcaption>
+</figure>
+
+<h3>受付のしかた（2通り・どちらでも同じ）</h3>
+<table>
+  <tr>
+    <th style="width:30%">ボタンで受付</th>
+    <td>背番号を入れて<span class="btn-name">受付</span>を押す。1回の操作で受付できます。</td>
+  </tr>
+  <tr>
+    <th><kbd>Enter</kbd> 2回で受付</th>
+    <td>背番号を入れて<kbd>Enter</kbd>。1回目は<b>確認だけ</b>で、氏名と出場種目が出ます。合っていればもう一度<kbd>Enter</kbd>で受付します。
+      打ち間違えた背番号がそのまま受付されないよう、確認を挟んでいます。</td>
+  </tr>
+</table>
+
+<figure>
+  <img src="images/uketsuke-manual/07_lookup.jpg" alt="1回目のEnterで確認">
+  <figcaption><kbd>Enter</kbd> 1回目。まだ受付されていません。氏名と出場種目を読み上げて確認できます。</figcaption>
+</figure>
+
+<figure>
+  <img src="images/uketsuke-manual/08_done.jpg" alt="受付しました">
+  <figcaption>受付すると緑の帯が出て、下の「受付状況」に加わります。背番号欄は自動で空になり、次の組をすぐ打てます。</figcaption>
+</figure>
+
+<div class="ok">
+  <b>受付状況の見かた</b>
+  受付した区分は<b>緑にチェック</b>、受付していない区分は<b>灰色</b>で並びます。
+  灰色が残っている組は、その区分が欠場の扱いになります。取りこぼしがその場で分かります。
+</div>
+</section>
+
+<section id="part">
+<h2>7. 【当日】一部の区分だけ受付する</h2>
+
+<p>
+  「スタンダードだけ出て、ラテンは欠場」のように、<b>一部の区分だけ出る組</b>のときに使います。
+  背番号を入れて<span class="btn-sub">一部受付</span>を押すと、その組のエントリー区分がボタンで出ます。
+</p>
+
+<figure>
+  <img src="images/uketsuke-manual/09_part.jpg" alt="一部受付の区分選択">
+  <figcaption>出場する区分のボタンだけを押します。押さなかった区分は欠場になります。</figcaption>
+</figure>
+
+<figure>
+  <img src="images/uketsuke-manual/10_part_done.jpg" alt="一部受付の結果">
+  <figcaption>押した区分だけが受付され、この画面は自動で閉じます。受付状況に「JAS（灰色） JBL（緑）」のように残ります。</figcaption>
+</figure>
+
+<ul>
+  <li>全部の区分に出るなら、この画面の<span class="btn-name">全種目を受付</span>でまとめて受付できます。</li>
+  <li>すでに受付した区分（緑）をもう一度押すと、その区分の受付を<b>取り消し</b>ます。</li>
+</ul>
+</section>
+
+<section id="undo">
+<h2>8. 【当日】間違えたとき</h2>
+
+<table>
+  <tr>
+    <th style="width:34%">背番号を間違えて受付した</th>
+    <td>受付状況のその行の<span class="btn-sub">取消</span>を押します。その組の全種目の受付が取り消されます。</td>
+  </tr>
+  <tr>
+    <th>区分を間違えた／1つ増やしたい</th>
+    <td>受付状況のその行の<span class="btn-sub">区分</span>を押すと、区分の選択画面が開きます。押し直して直してください。</td>
+  </tr>
+  <tr>
+    <th>名簿に無いと言われる</th>
+    <td>背番号の打ち間違いか、名簿に入っていない組です。「名簿」タブで確認し、当日エントリーなら追加してください。</td>
+  </tr>
+</table>
+
+<div class="note">
+  <b>記録は消えません</b>
+  取消も「取り消した」という記録として残ります。複数の端末が同時に操作しても、受付が消えたり混ざったりしません。
+</div>
+</section>
+
+<section id="rollcall">
+<h2>9. 【当日】欠場報告と背番号在庫</h2>
+
+<p>
+  「欠場報告」タブで種目を選ぶと、<b>その区分を受付していない組＝欠場</b>と、<b>受付した組＝出場</b>が分かれて出ます。
+</p>
+
+<figure>
+  <img src="images/uketsuke-manual/11_rollcall.jpg" alt="欠場報告">
+  <figcaption>種目ごとの欠場・出場。出場の側には受付した担当者名と時刻も出ます。</figcaption>
+</figure>
+
+<h3>背番号在庫のチェック</h3>
+<p>
+  欠場者の背番号が受付に残っている（＝本当に来ていない）ことを確認したら、その組の<b>背番号在庫</b>にチェックを入れます。
+  担当者名は受付担当者とは別に持てるので、右上の<span class="btn-sub">変更</span>で確認した人の名前を入れてください。
+</p>
+
+<div class="note">
+  <b>この確認は何のため？</b>
+  受付を忘れているだけなのか、本当に来ていないのかを切り分けるためです。背番号が受付に残っていれば、その組は来ていません。
+</div>
+</section>
+
+<section id="print">
+<h2>10. 【当日】欠場者一覧を印刷する</h2>
+
+<p>
+  「欠場報告」タブの<span class="btn-name">欠場者のみのページを開く</span>を押すと、欠場した背番号だけを大きく並べたページが開きます。
+  進行席へ渡す用です。
+</p>
+
+<figure>
+  <img src="images/uketsuke-manual/14_absent.jpg" alt="欠場者一覧">
+  <figcaption>欠場者一覧。受付締切の時刻ごとにまとめて出せます。背番号在庫を確認済みの組は緑になります。</figcaption>
+</figure>
+
+<ol class="steps">
+  <li><b>表示する範囲を選ぶ</b>　「11:00 JAS, MAS, GAS」のように、受付締切の時刻でまとめて選べます。</li>
+  <li><b>最新にする</b>　受付は進み続けるので、印刷する直前に押してください。</li>
+  <li><b>印刷する</b>　ブラウザの印刷画面が出ます。ヘッダーやボタンは印刷されません。</li>
+</ol>
+
+<p>このページの上にも受付システムと同じタブがあります。印刷したあと、そのまま「受付」や「欠場報告」へ戻れます。</p>
+</section>
+
+<section id="multi">
+<h2>11. 複数の端末で使う</h2>
+
+<ul>
+  <li>受付レーンごとに端末を分けて、<b>同時に受付できます</b>。同じ大会を開くだけです。</li>
+  <li>画面は<b>3秒ごとに自動で最新</b>になります。手で更新する必要はありません。</li>
+  <li>画面の右上に<b>更新 ○:○○:○○</b> と出ます。ここが動いていれば、その端末は最新です。</li>
+</ul>
+
+<div class="warn">
+  <b>「最新の状態を取得できていません」と赤く出たとき</b>
+  通信が切れています。その端末で受付を続けても、他の端末に伝わりません。
+  Wi-Fi を確認して、表示が消えてから受付を再開してください。
+</div>
+
+<div class="note">
+  <b>公認番号を聞かれるのは最初の1回だけ</b>
+  ログインしてその大会を最初に開くときに聞かれます。受付と欠場報告を行き来する分には聞かれません。
+</div>
+</section>
+
+<section id="admin">
+<h2>12. 本番前に受付記録を消す</h2>
+
+<p>
+  練習や動作確認で受付した記録を消して、本番前の状態に戻せます。「管理」タブの
+  <span class="btn-name" style="background:var(--danger)">全員の受付を解除</span>です。
+</p>
+
+<figure>
+  <img src="images/uketsuke-manual/13_admin.jpg" alt="管理タブ">
+  <figcaption>管理タブ。名簿と種目は消えません。消えるのは受付の記録だけです。</figcaption>
+</figure>
+
+<div class="warn">
+  <b>元に戻せません</b>
+  実行には役員ページのパスワードが必要です。受付が始まったあとは絶対に押さないでください。
+</div>
+</section>
+
+<section id="faq">
+<h2>13. 困ったとき</h2>
+
+<table>
+  <tr><th style="width:38%">スマホの受付がパソコンに出ない</th>
+      <td>どちらかが本番以外のURLを開いています。両方のアドレスバーが <b>jdsf-seibu.com</b> か確認してください。</td></tr>
+  <tr><th>「この大会を開けなくなりました」と出た</th>
+      <td>ログインが切れたか、大会が消されています。大会を選び直してログインし直してください。</td></tr>
+  <tr><th>受付したのに欠場に出る</th>
+      <td>その<b>区分</b>を受付していません。受付状況でその組の区分が灰色になっていないか確認し、<span class="btn-sub">区分</span>から受付してください。</td></tr>
+  <tr><th>エントリーしていない区分を受付したい</th>
+      <td>できません。名簿の出場種目を直してから受付してください（「名簿」タブ）。</td></tr>
+  <tr><th>背番号を入れても何も起きない</th>
+      <td>大会を開いていない可能性があります。「大会」タブで「開く」を押してください。</td></tr>
+  <tr><th>会場のネットが不安定</th>
+      <td>受付の記録はサーバーに置いています。通信が切れている間は他の端末に伝わりません。復旧後、右上の更新時刻が動いていることを確認してください。</td></tr>
+</table>
+
+<div class="foot">
+  JDSF 近畿中四国ブロック　デジタルコミュニティ推進部<br>
+  受付システム: <b>https://jdsf-seibu.com/uketsuke.html</b>
+</div>
+</section>
+
+</main>
+</body>
+</html>
