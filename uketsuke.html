@@ -160,6 +160,11 @@
           <label class="muted">公認番号（この大会を開くときの合言葉になります）</label>
           <input type="text" id="nc-code" placeholder="大会の公認番号">
         </div>
+        <div style="margin-top:10px">
+          <label class="muted">選手名簿CSV（任意）　DCSの「選手名簿ファイル処理」で書き出したものをそのまま選べます</label>
+          <input type="file" id="nc-csv" accept=".csv,.CSV,.txt,text/csv">
+          <div class="muted" style="margin-top:4px">大会を作ると同時に取り込んで、名簿に反映します。</div>
+        </div>
         <div style="height:10px"></div>
         <button id="nc-btn">作成する</button>
       </div>
@@ -558,13 +563,19 @@ el('nc-btn').addEventListener('click', function(){
     events: evLines
   })
     .then(function(d){
+      /* 大会を開くと入力欄の状態が消えるので、CSVは先に取り出しておく */
+      var csv = el('nc-csv').files[0];
       el('nc-name').value = ''; el('nc-code').value = ''; el('nc-pick').value = '';
+      el('nc-csv').value = '';
       NC_EVENTS = []; renderNcEvents();
-      /* 作りたてで名簿が無い大会をいきなり受付画面で開いても何もできないので、
-         CSV取込のある名簿ページから始める */
+      /* 作りたての大会は名簿ページから始める。CSVが選ばれていれば続けて取り込む。 */
       return loadComps()
         .then(function(){ return openComp(d.id, false, true); })
-        .then(function(){ if (COMP && COMP.id === d.id) switchView('roster'); });
+        .then(function(){
+          if (!(COMP && COMP.id === d.id)) return;
+          switchView('roster');
+          if (csv) return readCsvFile(csv).catch(function(e){ alert(e.message); });
+        });
     })
     .catch(function(e){ alert(e.message); });
 });
@@ -1118,13 +1129,13 @@ function autoDetect(){
   b.classList.remove('hidden');
 }
 
-el('csv-read').addEventListener('click', function(){
-  var f = el('csv-file').files[0];
-  if (!f) { alert('CSVファイルを選択してください'); return; }
+/* CSVを読み、判定できたらそのまま取り込む。
+   名簿ページの「読み込む」からも、大会作成のときからも呼ばれる。 */
+function readCsvFile(file){
   var fd = new FormData();
   fd.append('id', COMP.id);
-  fd.append('file', f);
-  fetch('api/uketsuke_csv_preview.php', {method:'POST', body:fd, headers:{'X-CSRF-Token': CSRF}})
+  fd.append('file', file);
+  return fetch('api/uketsuke_csv_preview.php', {method:'POST', body:fd, headers:{'X-CSRF-Token': CSRF}})
     .then(function(r){ return r.json(); })
     .then(function(d){
       if (d.error) throw new Error(d.error);
@@ -1138,8 +1149,12 @@ el('csv-read').addEventListener('click', function(){
          取り込まなかったとき（既存の名簿がある場合の確認でキャンセルしたとき）だけ画面を出す。 */
       if (DETECT_OK) { runImport(true, function(){ showMapping(d.dcs_signature); }); return; }
       showMapping(d.dcs_signature);
-    })
-    .catch(function(e){ alert(e.message); });
+    });
+}
+el('csv-read').addEventListener('click', function(){
+  var f = el('csv-file').files[0];
+  if (!f) { alert('CSVファイルを選択してください'); return; }
+  readCsvFile(f).catch(function(e){ alert(e.message); });
 });
 /* 自動で取り込めなかったときだけ、列の割り当て画面を出す */
 function showMapping(signature){
