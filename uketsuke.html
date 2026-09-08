@@ -144,6 +144,25 @@
       <h2>大会を選ぶ</h2>
       <div id="comp-list"></div>
 
+      <!-- 一覧の「編集」を押したときだけ出す -->
+      <div class="card hidden" id="ed-box">
+        <p class="muted">大会名・開催日・公認番号を変更します。<b>公認番号は空欄のままなら、いまの設定を変えません。</b></p>
+        <div class="row wrap">
+          <div class="grow"><label class="muted">大会名</label><input type="text" id="ed-name"></div>
+          <div style="width:170px"><label class="muted">開催日</label><input type="date" id="ed-date"></div>
+        </div>
+        <div style="margin-top:8px">
+          <label class="muted">公認番号（この大会を開くときの合言葉になります）</label>
+          <input type="text" id="ed-code" placeholder="変更しないときは空欄のまま">
+        </div>
+        <div style="height:10px"></div>
+        <div class="row wrap">
+          <button id="ed-save">保存する</button>
+          <button type="button" id="ed-cancel" class="secondary">キャンセル</button>
+          <span class="muted" id="ed-msg"></span>
+        </div>
+      </div>
+
       <h2>新しい大会を作る</h2>
       <div class="card">
         <label class="muted">サイトの競技会一覧から選ぶ（大会名・開催日・公認番号が入ります）</label>
@@ -434,10 +453,20 @@ function loadComps(){
         + '<div class="muted">' + esc(c.date || '') + '　選手 ' + (c.roster_count||0) + '組／受付済 ' + (c.checkin_count||0) + '組'
         + (c.need_code ? '　🔒 公認番号が必要' : '') + '</div></div>'
         + '<button class="small" data-open="' + esc(c.id) + '" data-need="' + (c.need_code ? '1' : '') + '">開く</button>'
+        + '<button class="small secondary" data-edit="' + esc(c.id) + '" data-need="' + (c.need_code ? '1' : '') + '">編集</button>'
         + '<button class="small danger" data-del="' + esc(c.id) + '">削除</button></div>';
     }).join('');
     box.querySelectorAll('[data-open]').forEach(function(b){
       b.addEventListener('click', function(){ openComp(b.dataset.open, b.dataset.need === '1'); });
+    });
+    /* 編集は公認番号の差し替えができるので、鍵のかかった大会はまず開いてもらう
+       （サーバー側でも、開いていない大会の変更は拒否する） */
+    box.querySelectorAll('[data-edit]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var c = d.competitions.filter(function(x){ return x.id === b.dataset.edit; })[0] || {};
+        var step = (b.dataset.need === '1') ? openComp(c.id, true, true) : Promise.resolve();
+        step.then(function(){ if (COMP || b.dataset.need !== '1') openEditor(c); });
+      });
     });
     /* 削除は名簿も受付記録もまとめて消えるため、大会名の確認に加えて
        役員ページのパスワードを求める（サーバー側でも照合する） */
@@ -581,6 +610,43 @@ function openComp(id, needCode, keepView){
     })
     .catch(function(e){ alert(e.message); return loadComps(); });
 }
+
+/* ---------- 大会の編集（名称・開催日・公認番号） ---------- */
+var ED_ID = null;
+function openEditor(c){
+  ED_ID = c.id;
+  el('ed-name').value = c.name || '';
+  el('ed-date').value = c.date || '';
+  el('ed-code').value = '';
+  el('ed-msg').textContent = '';
+  el('ed-box').classList.remove('hidden');
+  el('ed-box').scrollIntoView({block:'center'});
+  el('ed-name').focus();
+}
+el('ed-cancel').addEventListener('click', function(){
+  ED_ID = null;
+  el('ed-box').classList.add('hidden');
+});
+el('ed-save').addEventListener('click', function(){
+  if (!ED_ID) return;
+  if (!el('ed-name').value.trim()) { alert('大会名を入力してください'); return; }
+  post('api/uketsuke_save_competition.php', {
+    action: 'rename', id: ED_ID,
+    name: el('ed-name').value, date: el('ed-date').value, code: el('ed-code').value
+  })
+    .then(function(){
+      /* 開いている大会を編集したときは、ヘッダーの表示も合わせる */
+      if (COMP && COMP.id === ED_ID) {
+        COMP.name = el('ed-name').value.trim();
+        COMP.date = el('ed-date').value;
+        el('hd-comp').textContent = COMP.name + (COMP.date ? '（' + COMP.date + '）' : '');
+      }
+      ED_ID = null;
+      el('ed-box').classList.add('hidden');
+      return loadComps();
+    })
+    .catch(function(e){ alert(e.message); });
+});
 
 /* 直前に開いていた大会を開き直す。
    画面を再読み込みしただけで大会が閉じてしまい、受付に進めなくなるのを防ぐ。

@@ -68,6 +68,9 @@ if ($action === 'rename') {
     $date = uk_str($_POST['date'] ?? '', 20);
     if (!uk_valid_id($id)) json_out(['error' => '大会IDが不正です'], 400);
     if ($name === '') json_out(['error' => '大会名を入力してください'], 400);
+    /* 公認番号を差し替えられる操作なので、その大会を開いていることを求める。
+       開かずに変更できると、公認番号を上書きして鍵を回避できてしまう。 */
+    uk_require_comp($id);
     $code  = uk_norm_code($_POST['code'] ?? '');
     $found = false;
     foreach ($list as &$c) {
