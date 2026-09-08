@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>欠場者一覧 | 競技会受付システム</title>
+<link rel="icon" href="favicon.ico">
+<style>
+  :root{--primary:#123262;--bg:#f4f5f7;--card:#fff;--text:#1a1a1a;--muted:#6b7280;--border:#e0e2e7}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,-apple-system,"Segoe UI",sans-serif}
+  header{background:var(--primary);color:#fff;padding:12px 16px;display:flex;gap:12px;align-items:center}
+  header h1{font-size:16px;margin:0}
+  header a{color:#fff;font-size:13px;margin-left:auto;text-decoration:none;opacity:.85}
+  main{max-width:900px;margin:0 auto;padding:16px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
+  button{font-size:15px;font-weight:700;padding:10px 16px;border:none;border-radius:8px;
+    background:var(--primary);color:#fff;cursor:pointer}
+  button.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+  select{font-size:16px;padding:10px;border:1px solid var(--border);border-radius:8px;width:100%;background:#fff}
+  label{display:block;color:var(--muted);font-size:13px;margin-bottom:4px}
+  .muted{color:var(--muted);font-size:13px}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  h2{font-size:18px;margin:0 0 2px}
+  /* 欠場者の背番号だけを横に並べる。進行席で読み上げるので大きく出す。 */
+  .bibs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .bib{font-size:30px;font-weight:800;line-height:1;padding:8px 14px;border:2px solid var(--border);
+    border-radius:8px;background:#fff;color:var(--primary)}
+  .block{margin-bottom:24px}
+  @media print{
+    header,.no-print{display:none !important}
+    body{background:#fff}
+    main{max-width:none;padding:0}
+    .card{border:none;padding:0}
+    .bib{border-color:#999}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>欠場者一覧</h1>
+  <a href="uketsuke.html">← 受付システムへ戻る</a>
+</header>
+
+<main>
+  <div class="card no-print">
+    <div id="comp-name" class="muted"></div>
+    <div style="height:8px"></div>
+    <label for="pick">表示する範囲</label>
+    <select id="pick"></select>
+    <div style="height:12px"></div>
+    <div class="row">
+      <button id="b-reload" class="secondary">最新にする</button>
+      <button id="b-print">印刷する</button>
+      <span class="muted" id="updated"></span>
+    </div>
+  </div>
+  <div id="out"></div>
+</main>
+
+<script>
+'use strict';
+var DATA = null;
+function el(id){ return document.getElementById(id); }
+function esc(s){ if(s===null||s===undefined) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+/* 種目名が未設定（コードのまま）のとき「JAS JAS」と二重に出さない */
+function evLabel(e){ var n = (e && e.name) ? String(e.name).trim() : '';
+  return (!n || n === e.code) ? esc(e.code) : esc(e.code) + ' ' + esc(n); }
+function qs(k){ var m = new RegExp('[?&]'+k+'=([^&]*)').exec(location.search); return m ? decodeURIComponent(m[1]) : ''; }
+
+var id = qs('id');
+if (!id) {
+  document.body.innerHTML = '<p style="padding:20px">大会が指定されていません。'
+    + '<a href="uketsuke.html">受付システム</a>から開いてください。</p>';
+} else {
+  load();
+}
+
+function load(){
+  return fetch('api/uketsuke_get.php?id=' + encodeURIComponent(id) + '&_=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.error) throw new Error(d.error);
+      var first = (DATA === null);
+      DATA = d;
+      el('comp-name').textContent = d.name + (d.date ? '（' + d.date + '）' : '');
+      if (first) buildPicker();
+      el('updated').textContent = '最終更新 ' + new Date().toLocaleTimeString('ja-JP');
+      render();
+    })
+    .catch(function(e){
+      document.body.innerHTML = '<p style="padding:20px">読み込めませんでした（' + esc(e.message)
+        + '）。<a href="uketsuke.html">受付システム</a>でログインしてから開いてください。</p>';
+    });
+}
+
+/* 受付締切が同じ種目はまとめて呼び出すので、締切ごとの選択肢も用意する。
+   値は t:<時刻> で締切ごと、e:<コード> で種目ごと。 */
+function deadlines(){
+  var seen = {}, out = [];
+  (DATA.events || []).forEach(function(e){
+    var t = (e.start_time || '').trim();
+    if (!t) return;
+    if (!seen[t]) { seen[t] = []; out.push(t); }
+    seen[t].push(e);
+  });
+  out.sort();
+  return out.map(function(t){ return {time: t, events: seen[t]}; });
+}
+
+function buildPicker(){
+  var dl = deadlines();
+  var html = '';
+  if (dl.length) {
+    html += '<optgroup label="受付締切ごと（まとめて）">'
+      + dl.map(function(g){
+          return '<option value="t:' + esc(g.time) + '">' + esc(g.time) + '　'
+            + esc(g.events.map(function(e){ return e.code; }).join(', ')) + '</option>';
+        }).join('')
+      + '</optgroup>';
+  }
+  html += '<optgroup label="種目ごと">'
+    + (DATA.events || []).map(function(e){
+        return '<option value="e:' + esc(e.code) + '">' + evLabel(e)
+          + (e.start_time ? '（' + esc(e.start_time) + '）' : '') + '</option>';
+      }).join('')
+    + '</optgroup>';
+  el('pick').innerHTML = html;
+  el('pick').addEventListener('change', render);
+}
+
+/* 指定した種目に出ていて、まだチェックインしていない組。
+   締切ごとの表示では複数種目にまたがるので、背番号で重複を取り除く。 */
+function absentFor(codes){
+  var done = {};
+  (DATA.checkins || []).forEach(function(c){ done[c.bib] = true; });
+  var seen = {}, out = [];
+  (DATA.roster || []).forEach(function(r){
+    if (done[r.bib]) return;
+    var hit = (r.events || []).some(function(c){ return codes.indexOf(c) !== -1; });
+    if (!hit || seen[r.bib]) return;
+    seen[r.bib] = true;
+    out.push(r);
+  });
+  out.sort(function(a, b){ return a.bib - b.bib; });
+  return out;
+}
+function entryCount(codes){
+  var seen = {}, n = 0;
+  (DATA.roster || []).forEach(function(r){
+    var hit = (r.events || []).some(function(c){ return codes.indexOf(c) !== -1; });
+    if (!hit || seen[r.bib]) return;
+    seen[r.bib] = true;
+    n++;
+  });
+  return n;
+}
+
+function render(){
+  var v = el('pick').value, title = '', codes = [];
+  if (v.indexOf('t:') === 0) {
+    var t = v.slice(2);
+    var g = deadlines().filter(function(x){ return x.time === t; })[0];
+    if (!g) { el('out').innerHTML = ''; return; }
+    codes = g.events.map(function(e){ return e.code; });
+    title = '受付締切 ' + esc(t) + '　<span class="muted">' + esc(codes.join(', ')) + '</span>';
+  } else {
+    var code = v.slice(2);
+    var e = (DATA.events || []).filter(function(x){ return x.code === code; })[0];
+    if (!e) { el('out').innerHTML = ''; return; }
+    codes = [code];
+    title = evLabel(e) + (e.start_time ? '　<span class="muted">受付締切 ' + esc(e.start_time) + '</span>' : '');
+  }
+
+  var absent = absentFor(codes);
+  var total  = entryCount(codes);
+  el('out').innerHTML = '<div class="card block">'
+    + '<h2>' + title + '</h2>'
+    + '<div class="muted">' + esc(DATA.name) + (DATA.date ? '（' + esc(DATA.date) + '）' : '')
+    + '　欠場 <b>' + absent.length + '</b> / エントリー ' + total + ' 組</div>'
+    + (absent.length
+        ? '<div class="bibs">' + absent.map(function(r){ return '<span class="bib">' + esc(r.bib) + '</span>'; }).join('') + '</div>'
+        : '<p class="muted">欠場者はいません。</p>')
+    + '</div>';
+}
+
+el('b-reload').addEventListener('click', function(){ load(); });
+el('b-print').addEventListener('click', function(){ window.print(); });
+</script>
+</body>
+</html>

@@ -224,7 +224,7 @@
         <label class="muted">種目</label>
         <select id="rc-event"></select>
         <div style="height:10px"></div>
-        <a class="btn secondary" id="rc-print" href="uketsuke-print.html" style="display:inline-block;text-decoration:none">印刷ページを開く</a>
+        <a class="btn secondary" id="rc-print" href="uketsuke-absent.html" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">欠場者のみのページを開く</a>
       </div>
       <div class="row wrap">
         <span class="pill" id="rc-a-count">欠場 0</span>
@@ -830,7 +830,7 @@ function renderRollcall(){
   }).join('');
   if (sel.innerHTML !== opts) { sel.innerHTML = opts; if (cur) sel.value = cur; }
   var code = sel.value;
-  el('rc-print').href = 'uketsuke-print.html?id=' + encodeURIComponent(COMP ? COMP.id : '');
+  el('rc-print').href = 'uketsuke-absent.html?id=' + encodeURIComponent(COMP ? COMP.id : '');
 
   var done = {};
   (DATA.checkins || []).forEach(function(c){ done[c.bib] = c; });   /* 受付担当者名も使うので記録ごと持つ */
