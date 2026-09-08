@@ -230,7 +230,12 @@
         <span class="pill" id="rc-a-count">欠場 0</span>
         <span class="pill pill-ok" id="rc-p-count">出場 0</span>
       </div>
-      <h2>欠場（未チェックイン）</h2>
+      <div class="row wrap" style="margin:22px 0 8px">
+        <h2 style="margin:0">欠場（未チェックイン）</h2>
+        <span class="muted" style="margin-left:auto">欠場処理チェック担当者</span>
+        <b id="rc-by">未設定</b>
+        <button type="button" class="small secondary" id="rc-by-edit">変更</button>
+      </div>
       <p class="muted">「背番号在庫」は、その背番号が受付に残っている（本当に来ていない）ことを確認したときにチェックします。</p>
       <table>
         <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>背番号在庫</th></tr></thead>
@@ -802,6 +807,27 @@ el('ci-reset').addEventListener('click', function(){
     .catch(function(e){ alert(e.message); });
 });
 
+/* ---------- 欠場報告 ----------
+   背番号在庫のチェックは受付とは別の人が担当するので、名前も受付担当者とは別に持つ。
+   誤って書き換えられないよう、変更にはその大会の公認番号を求める（サーバー側で照合する）。 */
+function absentBy(){
+  try { return localStorage.getItem('uk_by_absent') || ''; } catch (e) { return ''; }
+}
+function renderAbsentBy(){ el('rc-by').textContent = absentBy() || '未設定'; }
+el('rc-by-edit').addEventListener('click', function(){
+  if (!COMP) return;
+  var v = prompt('欠場処理チェック担当者名を入力してください。\n背番号在庫のチェック記録に残ります（この端末に記憶されます）。', absentBy());
+  if (v === null) return;
+  var code = prompt('変更するには、この大会の公認番号を入力してください');
+  if (code === null || code === '') return;
+  post('api/uketsuke_open.php', {id: COMP.id, code: code})
+    .then(function(){
+      try { localStorage.setItem('uk_by_absent', v.trim()); } catch (e) {}
+      renderAbsentBy();
+    })
+    .catch(function(e){ alert(e.message); });
+});
+
 /* ---------- 欠場報告 ---------- */
 function renderRollcall(){
   var sel = el('rc-event');
@@ -824,6 +850,7 @@ function renderRollcall(){
   present.sort(function(a,b){ return a[0].bib - b[0].bib; });
   absent.sort(function(a,b){ return a.bib - b.bib; });
 
+  renderAbsentBy();
   el('rc-p-count').textContent = '出場 ' + present.length;
   el('rc-a-count').textContent = '欠場 ' + absent.length;
   el('rc-present').innerHTML = present.map(function(p){
@@ -847,7 +874,7 @@ function renderRollcall(){
     cb.addEventListener('change', function(){
       var bib = cb.dataset.bib, on = cb.checked;
       cb.disabled = true;
-      post('api/uketsuke_stock.php', {id:COMP.id, bib:bib, on:on ? '1' : '0', by:el('by').value})
+      post('api/uketsuke_stock.php', {id:COMP.id, bib:bib, on:on ? '1' : '0', by:absentBy()})
         .then(function(){ return refresh().then(renderRollcall); })
         .catch(function(e){ cb.checked = !on; cb.disabled = false; alert(e.message); });
     });
