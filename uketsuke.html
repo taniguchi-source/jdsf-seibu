@@ -43,13 +43,18 @@
     font-size:16px;padding:10px;border:1px solid var(--border);border-radius:8px;width:100%;background:#fff}
   .bib-input{font-size:40px;text-align:center;padding:18px 12px;letter-spacing:2px;border-width:2px}
   .bib-input:focus{outline:none;border-color:var(--primary)}
-  /* 受付でいちばん使う場所。背番号を大きく取り、表示ボタンはその右隣に置く */
+  /* 受付でいちばん使う場所。背番号を大きく取り、受付ボタンはその右隣に置く。
+     ほとんどの組は全種目に出るので「受付」を主にし、一部だけの組は「一部受付」から選ぶ。 */
   .checkin-row{display:flex;gap:12px;align-items:stretch}
   .checkin-row .bib-input{flex:1;min-width:0;font-size:64px;padding:14px 12px}
   .checkin-row .ci-btn{flex:none;font-size:24px;padding:0 34px;white-space:nowrap}
+  .checkin-row .ci-part{flex:none;font-size:13px;padding:0 12px;white-space:nowrap}
   @media (max-width:560px){
     .checkin-row .bib-input{font-size:44px;padding:12px 8px}
     .checkin-row .ci-btn{font-size:17px;padding:0 16px}
+    /* 狭い画面では「一部受付」を受付ボタンの下に回す（背番号の幅を削らない） */
+    .checkin-row{flex-wrap:wrap}
+    .checkin-row .ci-part{width:100%;padding:8px 12px}
   }
   .row{display:flex;gap:8px;align-items:center}
   .row.wrap{flex-wrap:wrap}
@@ -214,13 +219,16 @@
         <label class="muted" for="bib">背番号</label>
         <div class="checkin-row">
           <input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="bib" class="bib-input" placeholder="0">
-          <button type="submit" class="ci-btn">表示する</button>
+          <button type="submit" class="ci-btn">受付</button>
+          <!-- 一部の区分だけ出る組はまれなので、選択画面はこのボタンを押したときだけ出す -->
+          <button type="button" class="secondary ci-part" id="ci-part">一部受付</button>
         </div>
       </form>
 
       <div id="ci-banner" class="banner hidden"></div>
 
-      <!-- 受付は種目（区分）ごと。押した区分だけが出場になり、押さなかった区分は欠場になる。
+      <!-- 「一部受付」を押したときだけ出す区分の選択画面。
+           押した区分だけが出場になり、押さなかった区分は欠場になる。
            次の組の背番号をすぐ打てるよう、ボタンは入力欄ではなく表示中の組を覚えて動く。 -->
       <div id="ci-panel" class="card hidden">
         <div id="ci-who"></div>
@@ -780,13 +788,25 @@ function whoHtml(bib, r){
   return '<span class="bib-big">' + esc(bib) + '</span> ' + esc(r.leader || '') + ' / ' + esc(r.partner || '')
     + (r.affiliation ? '（' + esc(r.affiliation) + '）' : '');
 }
-/* ---------- 受付（種目＝区分ごと） ----------
-   受付は種目単位。背番号を入れるとその組のエントリー区分がボタンで出て、
-   押した区分だけが出場になる。押さなかった区分はそのまま欠場として扱われる。
+/* ---------- 受付 ----------
+   記録は種目（区分）単位だが、ほとんどの組は出場種目すべてに出るので、
+   ふだんは「受付」だけで全種目をまとめて受付する。
+   一部の区分だけ出る組のときだけ「一部受付」を押し、区分を選ぶ。
    1回目のEnterは照会だけ（打ち間違えた背番号がEnterひとつで受付されるのを防ぐ）。
-   同じ背番号のままもう一度Enterを押すと、全種目をまとめて受付する。 */
-var LOOKED_UP = null;   /* 照会を出し終えた背番号。これと同じならEnterで全種目受付 */
-var PANEL_BIB = null;   /* いま区分ボタンを出している組。次の背番号をすぐ打てるよう入力欄とは別に持つ */
+   同じ背番号のままもう一度Enterを押すか「受付」を押すと、全種目を受付する。 */
+var LOOKED_UP = null;   /* 照会を出し終えた背番号。これと同じならEnterで受付 */
+var PANEL_BIB = null;   /* 区分を選ぶ画面に出している組。次の背番号をすぐ打てるよう入力欄とは別に持つ */
+var LAST_BIB  = null;   /* 直前に扱った組。入力欄が空でも「一部受付」で直せるようにする */
+
+/* 出場種目。照会と受付結果に出して、読み上げ確認に使う。 */
+function evHtml(codes){
+  var evs = (codes || []).map(function(c){
+    var m = (DATA.events || []).filter(function(e){ return e.code === c; })[0];
+    var nm = (m && m.name && m.name !== c) ? ' ' + m.name : '';
+    return '<span class="ev-pill">' + esc(c + nm) + '</span>';
+  }).join('');
+  return evs ? '<br>' + evs : '<br><span class="muted">出場種目の登録がありません</span>';
+}
 
 function rosterOf(bib){
   return (DATA.roster || []).filter(function(x){ return String(x.bib) === String(bib); })[0];
@@ -806,30 +826,61 @@ el('bib').addEventListener('keydown', function(e){
   if (LOOKED_UP !== null && bib === LOOKED_UP) { doCheckin(bib, null); return; }
   lookupBib();
 });
-el('ci-form').addEventListener('submit', function(e){ e.preventDefault(); lookupBib(); });
+/* 「受付」ボタンはその場で全種目を受付する（Enterと違って確認の1手を挟まない） */
+el('ci-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  var bib = el('bib').value.trim();
+  if (!bib) { el('bib').focus(); return; }
+  if (!rosterOf(bib)) { notInRoster(bib); return; }
+  doCheckin(bib, null);
+});
+/* 一部の区分だけ受付する組のときだけ、区分を選ぶ画面を出す */
+el('ci-part').addEventListener('click', function(){
+  var bib = el('bib').value.trim() || LAST_BIB;
+  if (!bib) { banner('warn', '先に背番号を入力してください'); el('bib').focus(); return; }
+  if (!rosterOf(bib)) { notInRoster(bib); return; }
+  LOOKED_UP = null;
+  el('ci-banner').classList.add('hidden');
+  LAST_BIB = String(bib);
+  showPanel(bib, '出場する区分だけを押してください。押さなかった区分は欠場になります。');
+  /* 次の組をすぐ打てるように入力欄は空にする（区分ボタンは表示中の組で動く） */
+  el('bib').value = '';
+  el('ci-panel').scrollIntoView({block:'nearest'});
+});
 el('ci-close').addEventListener('click', function(){ closePanel(); });
 el('ci-all').addEventListener('click', function(){ if (PANEL_BIB !== null) doCheckin(PANEL_BIB, null); });
 
 function closePanel(){
   PANEL_BIB = null;
   LOOKED_UP = null;
+  LAST_BIB  = null;
   el('ci-panel').classList.add('hidden');
   el('bib').value = '';
   el('bib').focus();
 }
+function notInRoster(bib){
+  PANEL_BIB = null;
+  el('ci-panel').classList.add('hidden');
+  banner('danger', '背番号 ' + esc(bib) + ' は名簿にありません');
+}
+/* 1回目のEnter。受付はせず、誰なのかと出場種目だけを出す。 */
 function lookupBib(){
   var bib = el('bib').value.trim();
   if (!bib) return;
   LOOKED_UP = null;
-  if (!rosterOf(bib)) {
-    PANEL_BIB = null;
-    el('ci-panel').classList.add('hidden');
-    banner('danger', '背番号 ' + esc(bib) + ' は名簿にありません');
-    return;
-  }
+  var r = rosterOf(bib);
+  if (!r) { notInRoster(bib); return; }
   LOOKED_UP = bib;
-  el('ci-banner').classList.add('hidden');
-  showPanel(bib, '出場する区分のボタンを押してください。もう一度Enterを押すと全種目を受付します。');
+  LAST_BIB  = String(bib);
+  PANEL_BIB = null;
+  el('ci-panel').classList.add('hidden');
+  var done  = doneMap();
+  var rest  = (r.events || []).filter(function(c){ return !done[r.bib + ':' + c]; });
+  var isDone = (r.events || []).length && !rest.length;
+  banner(isDone ? 'warn' : 'info',
+    whoHtml(r.bib, r) + evHtml(r.events) + '<br>'
+    + (isDone ? '全種目 受付済みです'
+              : '内容が正しければ、もう一度Enterを押すか「受付」を押してください'));
 }
 
 /* 表示中の組の区分ボタンを描く。受付済みの区分は緑になり、押すと取消になる。 */
@@ -840,7 +891,7 @@ function showPanel(bib, msg){
   var done  = doneMap();
   var codes = r.events || [];
   el('ci-who').innerHTML = whoHtml(r.bib, r);
-  el('ci-hint').textContent = msg || '押さなかった区分は欠場になります。';
+  el('ci-hint').textContent = msg || '出場する区分だけを押してください。押さなかった区分は欠場になります。';
   el('ci-evs').innerHTML = codes.length
     ? codes.map(function(c){
         var m = (DATA.events || []).filter(function(e){ return e.code === c; })[0] || {code:c};
@@ -866,21 +917,24 @@ function showPanel(bib, msg){
 }
 
 /* ここで初めて受付が記録される。code を渡すとその区分だけ、null なら全種目。 */
+/* ここで初めて受付が記録される。code を渡すとその区分だけ、null なら全種目。
+   区分を選ぶ画面が出ているときはそのまま開いておき、続けて押せるようにする。 */
 function doCheckin(bib, code){
   LOOKED_UP = null;
+  LAST_BIB  = String(bib);
   var body = {id:COMP.id, bib:bib, by:el('by').value};
   if (code) body.code = code; else body.all = '1';
   post('api/uketsuke_checkin.php', body)
     .then(function(r){
       var did = (r['new'] || []);
       banner(did.length ? 'ok' : 'warn',
-        whoHtml(r.bib, r) + '<br>'
+        whoHtml(r.bib, r) + evHtml(r.done) + '<br>'
         + (did.length ? '受付しました：' + esc(did.join('・'))
                       : '既に受付済みです：' + esc((r.already || []).join('・'))));
       return refresh().then(function(){
         renderRecent();
-        showPanel(r.bib, '続けて区分を押せます。次の組は背番号を入力してください。');
-        /* 次の組をすぐ打てるように入力欄は空にする（区分ボタンは表示中の組で動く） */
+        if (PANEL_BIB !== null && String(PANEL_BIB) === String(bib)) showPanel(bib, '');
+        /* 次の組をすぐ打てるように入力欄は空にする */
         el('bib').value = '';
         el('bib').focus();
       });
@@ -944,6 +998,7 @@ function renderRecent(){
   el('ci-recent').querySelectorAll('[data-open]').forEach(function(btn){
     btn.addEventListener('click', function(){
       LOOKED_UP = null;
+      LAST_BIB  = String(btn.dataset.open);
       showPanel(btn.dataset.open, '');
       el('ci-panel').scrollIntoView({block:'center'});
     });
