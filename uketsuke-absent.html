@@ -14,6 +14,13 @@
   header{background:var(--primary);color:#fff;padding:12px 16px;display:flex;gap:12px;align-items:center}
   header h1{font-size:16px;margin:0}
   header a{color:#fff;font-size:13px;margin-left:auto;text-decoration:none;opacity:.85}
+  /* 受付システムと同じ並びのタブ。別ページなので中身はリンクで、押すと受付システムのその画面が開く。 */
+  nav.tabs{display:flex;gap:2px;background:var(--card);border-bottom:1px solid var(--border);
+    padding:6px 8px 0;overflow-x:auto}
+  nav.tabs a,nav.tabs span{flex:none;padding:10px 14px;color:var(--muted);font-weight:700;font-size:14px;
+    border-bottom:3px solid transparent;text-decoration:none;white-space:nowrap}
+  nav.tabs a:hover{color:var(--text)}
+  nav.tabs .active{color:var(--primary);border-bottom-color:var(--primary)}
   main{max-width:900px;margin:0 auto;padding:16px}
   .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
   button{font-size:15px;font-weight:700;padding:10px 16px;border:none;border-radius:8px;
@@ -49,6 +56,15 @@
   <h1>欠場者一覧</h1>
   <a href="uketsuke.html">← 受付システムへ戻る</a>
 </header>
+
+<nav class="tabs no-print">
+  <a href="uketsuke.html#comp">大会</a>
+  <a href="uketsuke.html#roster">名簿</a>
+  <a href="uketsuke.html#checkin">受付</a>
+  <a href="uketsuke.html#rollcall">欠場報告</a>
+  <a href="uketsuke.html#admin">管理</a>
+  <span class="active">欠場者一覧</span>
+</nav>
 
 <main>
   <div class="card no-print">

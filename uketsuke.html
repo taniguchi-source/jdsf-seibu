@@ -448,6 +448,23 @@ function doLogin(){
 
 /* ---------- タブ切替 ---------- */
 var views = ['comp','checkin','rollcall','roster','admin'];
+/* 欠場者一覧など別ページのタブから「uketsuke.html#画面名」で戻ってきたら、その画面を開く。
+   公認番号を求められる大会では、番号を入れて大会を開いた時点で切り替える（それまで覚えておく）。 */
+var HASH_VIEW = (location.hash || '').replace(/^#/, '');
+/* 取り出したらURLからも消す。一度きりにして、あとでタブを押したときに引き戻されないようにする。 */
+function takeHashView(){
+  var v = HASH_VIEW;
+  HASH_VIEW = '';
+  if (!v) return '';
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  return views.indexOf(v) === -1 ? '' : v;
+}
+function openViewFromHash(){
+  if (!HASH_VIEW) return;
+  if (HASH_VIEW !== 'comp' && !COMP) return;   /* 大会を開くまで待つ */
+  var v = takeHashView();
+  if (v) switchView(v);
+}
 document.querySelectorAll('nav.tabs button').forEach(function(b){
   b.addEventListener('click', function(){ switchView(b.dataset.view); });
 });
@@ -641,8 +658,9 @@ function openComp(id, needCode, keepView){
       el('hd-comp').textContent = DATA.name + (DATA.date ? '（' + DATA.date + '）' : '');
       try { localStorage.setItem('uk_last_comp', id); } catch (e) {}
       clearWorkState();
-      if (!keepView) switchView('checkin');
-      else startPolling(true);
+      /* 別ページのタブから来ていれば、その画面を開く（無ければ受付） */
+      if (!keepView) switchView(takeHashView() || 'checkin');
+      else { startPolling(true); openViewFromHash(); }
     })
     .catch(function(e){ alert(e.message); return loadComps(); });
 }
@@ -689,11 +707,12 @@ el('ed-save').addEventListener('click', function(){
    公認番号の確認が済んでいる（need_code=false）ものだけ自動で開き、
    いま見ている画面は変えない。 */
 function restoreLastComp(list){
-  if (COMP) return;
+  if (COMP) { openViewFromHash(); return; }
   var id;
   try { id = localStorage.getItem('uk_last_comp'); } catch (e) { return; }
   if (!id) return;
   var c = (list || []).filter(function(x){ return x.id === id && !x.need_code; })[0];
+  /* 開き終えてから画面を切り替える（openComp の中で切り替わる） */
   if (c) openComp(id, false, true);
 }
 
