@@ -854,13 +854,25 @@ function closePanel(){
   PANEL_BIB = null;
   LOOKED_UP = null;
   LAST_BIB  = null;
-  el('ci-panel').classList.add('hidden');
+  hidePanel();
   el('bib').value = '';
   el('bib').focus();
 }
-function notInRoster(bib){
+/* 選択画面を閉じるだけ。直前に扱った組は覚えておき、「一部受付」で開き直せるようにする。 */
+function hidePanel(){
   PANEL_BIB = null;
   el('ci-panel').classList.add('hidden');
+}
+/* 受付が済んだ組は受付状況の一覧に出て、そこで確かめられる。
+   選択画面を出したままにすると画面が長くなるだけなので自動で閉じる。
+   まだ1区分も受付していない組（全部取り消した直後など）は、押し直せるよう開いておく。 */
+function autoClosePanel(bib){
+  var done = doneMap();
+  var any = ((rosterOf(bib) || {}).events || []).some(function(c){ return !!done[bib + ':' + c]; });
+  if (any) hidePanel(); else showPanel(bib, '');
+}
+function notInRoster(bib){
+  hidePanel();
   banner('danger', '背番号 ' + esc(bib) + ' は名簿にありません');
 }
 /* 1回目のEnter。受付はせず、誰なのかと出場種目だけを出す。 */
@@ -872,8 +884,7 @@ function lookupBib(){
   if (!r) { notInRoster(bib); return; }
   LOOKED_UP = bib;
   LAST_BIB  = String(bib);
-  PANEL_BIB = null;
-  el('ci-panel').classList.add('hidden');
+  hidePanel();
   var done  = doneMap();
   var rest  = (r.events || []).filter(function(c){ return !done[r.bib + ':' + c]; });
   var isDone = (r.events || []).length && !rest.length;
@@ -933,7 +944,7 @@ function doCheckin(bib, code){
                       : '既に受付済みです：' + esc((r.already || []).join('・'))));
       return refresh().then(function(){
         renderRecent();
-        if (PANEL_BIB !== null && String(PANEL_BIB) === String(bib)) showPanel(bib, '');
+        if (PANEL_BIB !== null && String(PANEL_BIB) === String(bib)) autoClosePanel(bib);
         /* 次の組をすぐ打てるように入力欄は空にする */
         el('bib').value = '';
         el('bib').focus();
@@ -953,7 +964,7 @@ function doUncheckin(bib, code){
       banner('warn', esc(who) + '<br>' + esc(code ? code + ' の受付を取り消しました' : '全種目の受付を取り消しました'));
       return refresh().then(function(){
         renderRecent();
-        if (PANEL_BIB !== null && String(PANEL_BIB) === String(bib)) showPanel(bib, '');
+        if (PANEL_BIB !== null && String(PANEL_BIB) === String(bib)) autoClosePanel(bib);
       });
     })
     .catch(function(e){ alert(e.message); });
