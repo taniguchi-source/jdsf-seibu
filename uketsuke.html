@@ -21,6 +21,8 @@
   header h1{font-size:17px;margin:0;font-weight:700}
   header .comp{font-size:13px;opacity:.85}
   header a{color:#fff;font-size:13px;text-decoration:none;opacity:.85;margin-left:auto}
+  /* 画面が最新かどうかは受付中いちばん大事な情報なので、常に見える場所に出す */
+  #hd-sync.ng{background:var(--danger);color:#fff;padding:2px 8px;border-radius:6px;opacity:1;font-weight:700}
   nav.tabs{display:flex;gap:2px;background:var(--card);border-bottom:1px solid var(--border);
     padding:6px 8px 0;overflow-x:auto;position:sticky;top:0;z-index:10}
   nav.tabs button{flex:none;padding:10px 14px;border:none;background:none;color:var(--muted);
@@ -127,6 +129,7 @@
   <header>
     <h1>競技会受付システム</h1>
     <span class="comp" id="hd-comp"></span>
+    <span class="comp" id="hd-sync"></span>
     <a href="officers.html">役員ページへ戻る</a>
   </header>
 
@@ -669,14 +672,44 @@ function refresh(id){
     return d;
   });
 }
+/* 最後に取得できた時刻と、直前の失敗。
+   取得できていないことに気づかないまま古い一覧を見続けるのが、受付でいちばん困る。 */
+var LAST_OK = 0, SYNC_ERR = '';
+function renderSync(){
+  var e = el('hd-sync');
+  if (!COMP) { e.textContent = ''; e.className = 'comp'; return; }
+  if (SYNC_ERR) {
+    e.textContent = '⚠ 最新の状態を取得できていません（' + SYNC_ERR + '）';
+    e.className = 'comp ng';
+    return;
+  }
+  e.className = 'comp';
+  e.textContent = LAST_OK ? '更新 ' + new Date(LAST_OK).toLocaleTimeString('ja-JP') : '';
+}
+/* 大会が消えている・権限が切れている場合は、古い画面を見せ続けても意味がないので大会選択へ戻す */
+function syncFailed(msg){
+  SYNC_ERR = msg || '通信エラー';
+  renderSync();
+  if (/見つかりません|Forbidden|公認番号/.test(SYNC_ERR)) {
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    COMP = null;
+    el('hd-comp').textContent = '';
+    try { localStorage.removeItem('uk_last_comp'); } catch (e) {}
+    alert('この大会を開けなくなりました（' + SYNC_ERR + '）。\n大会を選び直してください。');
+    switchView('comp');
+  }
+}
 function startPolling(on){
   if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  renderSync();
   if (!on || !COMP) return;
   pollTimer = setInterval(function(){
     refresh().then(function(){
+      LAST_OK = Date.now(); SYNC_ERR = '';
+      renderSync();
       if (!el('v-checkin').classList.contains('hidden')) renderRecent();
       if (!el('v-rollcall').classList.contains('hidden')) renderRollcall();
-    }).catch(function(){});
+    }).catch(function(e){ syncFailed(e && e.message); });
   }, 3000);
 }
 
