@@ -560,10 +560,30 @@ el('nc-btn').addEventListener('click', function(){
     .then(function(d){
       el('nc-name').value = ''; el('nc-code').value = ''; el('nc-pick').value = '';
       NC_EVENTS = []; renderNcEvents();
-      return loadComps().then(function(){ openComp(d.id); });
+      /* 作りたてで名簿が無い大会をいきなり受付画面で開いても何もできないので、
+         CSV取込のある名簿ページから始める */
+      return loadComps()
+        .then(function(){ return openComp(d.id, false, true); })
+        .then(function(){ if (COMP && COMP.id === d.id) switchView('roster'); });
     })
     .catch(function(e){ alert(e.message); });
 });
+
+/* 前の大会で作業していた内容を画面から消す。
+   別の大会に切り替えたのに、背番号や照会結果、読み込み途中のCSVが残っていると、
+   別大会のデータを取り込んでしまう事故につながるため。 */
+function clearWorkState(){
+  el('bib').value = '';
+  el('ci-banner').classList.add('hidden');
+  LOOKED_UP = null;
+  PREV = null;                                  /* 読み込み途中のCSV */
+  el('imp-step2').classList.add('hidden');
+  el('imp-step1').classList.remove('hidden');
+  el('imp-result').classList.add('hidden');
+  el('csv-file').value = '';
+  el('bulk-codes').value = '';
+  el('rs-search').value = '';
+}
 
 /* 大会を開く。公認番号が設定されていれば、まずそれを照合する（サーバー側で確認する）。 */
 function openComp(id, needCode, keepView){
@@ -579,6 +599,7 @@ function openComp(id, needCode, keepView){
       COMP = {id:id, name:DATA.name, date:DATA.date};
       el('hd-comp').textContent = DATA.name + (DATA.date ? '（' + DATA.date + '）' : '');
       try { localStorage.setItem('uk_last_comp', id); } catch (e) {}
+      clearWorkState();
       if (!keepView) switchView('checkin');
     })
     .catch(function(e){ alert(e.message); return loadComps(); });
