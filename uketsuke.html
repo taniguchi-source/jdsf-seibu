@@ -442,11 +442,11 @@ function switchView(v){
   if (v === 'admin') el('ad-count').textContent = (DATA.checkins || []).length + ' 件';
   /* 受付以外の画面にいても更新を続ける。ヘッダーの更新時刻が動いていることが、
      その端末が最新であることの目印になるため。 */
-  startPolling(!!COMP);
+  startPolling(true);
 }
 
 /* ---------- 大会 ---------- */
-function loadComps(){
+function loadComps(quiet){
   return get('api/uketsuke_list.php').then(function(d){
     var box = el('comp-list');
     if (!d.competitions.length) {
@@ -493,7 +493,7 @@ function loadComps(){
       });
     });
     restoreLastComp(d.competitions);
-  }).catch(function(e){ alert(e.message); });
+  }).catch(function(e){ if (!quiet) alert(e.message); });
 }
 
 /* サイトに登録済みの競技会（data/competitions_seibu.json）から選んで入力を省く。
@@ -706,6 +706,9 @@ function syncFailed(msg){
    名簿・種目マスタは入力欄があり、作り直すと入力中の値が消えるので描き直さない
    （データ自体は新しくなるので、画面を切り替えた時点で反映される）。 */
 function pollTick(){
+  /* 大会一覧の「選手○組／受付済○組」も、開いている間は数え直す。
+     ここが古いままだと、別の端末で受付した件数に気づけない。 */
+  if (!el('v-comp').classList.contains('hidden')) loadComps(true);
   if (!COMP) return Promise.resolve();
   return refresh().then(function(){
     LAST_OK = Date.now(); SYNC_ERR = '';
@@ -717,7 +720,7 @@ function pollTick(){
 function startPolling(on){
   if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
   renderSync();
-  if (!on || !COMP) return;
+  if (!on) return;
   pollTick();                       /* 画面を開いた時点で最新にする */
   pollTimer = setInterval(pollTick, 3000);
 }
