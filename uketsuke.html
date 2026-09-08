@@ -218,15 +218,10 @@
 
     <!-- ======== 名簿 ======== -->
     <section id="v-roster" class="hidden">
-      <h2>CSV取込 <span class="muted" id="rs-imported"></span></h2>
-      <div class="card">
-        <div id="imp-step1">
-          <p class="muted">JDSF競技会支援システム（DCS）の「選手名簿ファイル処理」で書き出したCSVをそのまま読み込めます（Shift-JIS / UTF-8 対応）。</p>
-          <input type="file" id="csv-file" accept=".csv,text/csv">
-          <div style="height:10px"></div>
-          <button id="csv-read">読み込む</button>
-        </div>
-
+      <!-- CSV取込の画面部品。ふだんは出さない。
+           名簿CSVは大会を作るときに取り込むので、ここに入口は置かない。
+           自動で判定できなかったときだけ、下の割り当て画面を出して人に直してもらう。 -->
+      <div class="card hidden" id="imp-box">
         <div id="imp-step2" class="hidden">
           <div id="dcs-banner" class="banner b-warn hidden"></div>
           <div id="detect-banner" class="banner hidden" style="font-size:14px;font-weight:400;text-align:left"></div>
@@ -249,9 +244,17 @@
             <button id="imp-cancel" class="secondary">キャンセル</button>
           </div>
         </div>
-
-        <div id="imp-result" class="banner hidden"></div>
       </div>
+      <div id="imp-result" class="banner hidden"></div>
+
+      <h2>一覧 <span class="muted" id="rs-count"></span></h2>
+      <input type="text" id="rs-search" placeholder="背番号・氏名・所属で検索">
+      <div style="height:8px"></div>
+      <table class="dense">
+        <thead><tr><th>背番号</th><th class="c-leader">リーダー</th><th class="c-partner">パートナー</th>
+          <th>所属</th><th>種目</th><th></th></tr></thead>
+        <tbody id="rs-list"></tbody>
+      </table>
 
       <h2>手動で追加・編集</h2>
       <form class="card" id="rs-form">
@@ -272,15 +275,6 @@
           <button type="button" id="rs-clear" class="secondary">クリア</button>
         </div>
       </form>
-
-      <h2>一覧 <span class="muted" id="rs-count"></span></h2>
-      <input type="text" id="rs-search" placeholder="背番号・氏名・所属で検索">
-      <div style="height:8px"></div>
-      <table class="dense">
-        <thead><tr><th>背番号</th><th class="c-leader">リーダー</th><th class="c-partner">パートナー</th>
-          <th>所属</th><th>種目</th><th></th></tr></thead>
-        <tbody id="rs-list"></tbody>
-      </table>
     </section>
 
     <!-- ======== 種目 ======== -->
@@ -588,10 +582,8 @@ function clearWorkState(){
   el('ci-banner').classList.add('hidden');
   LOOKED_UP = null;
   PREV = null;                                  /* 読み込み途中のCSV */
-  el('imp-step2').classList.add('hidden');
-  el('imp-step1').classList.remove('hidden');
+  hideMapping();
   el('imp-result').classList.add('hidden');
-  el('csv-file').value = '';
   el('bulk-codes').value = '';
   el('rs-search').value = '';
 }
@@ -842,11 +834,7 @@ function renderRoster(){
       + '</td><td><button class="small secondary" data-edit="' + esc(r.bib) + '">編集</button> '
       + '<button class="small danger" data-del="' + esc(r.bib) + '">削除</button></td></tr>';
   }).join('');
-  /* 取り込み済みかどうかが一目で分かるようにしておく（毎回CSVを探さなくて済む） */
-  var n = (DATA.roster || []).length;
-  el('rs-imported').textContent = n
-    ? '取り込み済み（' + n + '組・種目 ' + (DATA.events || []).length + '）'
-    : '未取り込み';
+
   el('rs-list').querySelectorAll('[data-edit]').forEach(function(b){
     b.addEventListener('click', function(){
       var r = (DATA.roster||[]).filter(function(x){ return String(x.bib) === b.dataset.edit; })[0];
@@ -1151,26 +1139,27 @@ function readCsvFile(file){
       showMapping(d.dcs_signature);
     });
 }
-el('csv-read').addEventListener('click', function(){
-  var f = el('csv-file').files[0];
-  if (!f) { alert('CSVファイルを選択してください'); return; }
-  readCsvFile(f).catch(function(e){ alert(e.message); });
-});
-/* 自動で取り込めなかったときだけ、列の割り当て画面を出す */
+
+/* 自動で取り込めなかったときだけ、列の割り当て画面を出す。
+   ふだんこの画面は隠れているので、開いていない場合は名簿ページへ切り替える。 */
 function showMapping(signature){
   var b = el('dcs-banner');
   if (signature) {
     b.textContent = 'DCSの出力ファイルを検出しました（認識コード: ' + signature + '）。項目名の行はありません。サンプル値を見て列を割り当ててください。';
     b.classList.remove('hidden');
   } else { b.classList.add('hidden'); }
-  el('imp-step1').classList.add('hidden');
+  el('imp-box').classList.remove('hidden');
   el('imp-step2').classList.remove('hidden');
+  if (el('v-roster').classList.contains('hidden')) switchView('roster');
+}
+function hideMapping(){
+  el('imp-box').classList.add('hidden');
+  el('imp-step2').classList.add('hidden');
 }
 
 el('imp-cancel').addEventListener('click', function(){
   PREV = null;
-  el('imp-step2').classList.add('hidden');
-  el('imp-step1').classList.remove('hidden');
+  hideMapping();
 });
 el('imp-run').addEventListener('click', function(){ runImport(false); });
 
@@ -1222,8 +1211,7 @@ function runImport(auto, onCancel){
       if (d.duplicate_bibs.length) msg += '<br>CSV内で背番号が重複していました（後の行を採用）: ' + esc(d.duplicate_bibs.join(', '));
       var b = el('imp-result'); b.className = 'banner b-ok'; b.innerHTML = msg; b.classList.remove('hidden');
       PREV = null;
-      el('imp-step2').classList.add('hidden'); el('imp-step1').classList.remove('hidden');
-      el('csv-file').value = '';
+      hideMapping();
       return refresh().then(function(){ renderRoster(); renderEventChecks(); });
     })
     .catch(function(e){
