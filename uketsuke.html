@@ -440,7 +440,9 @@ function switchView(v){
   if (v === 'rollcall') renderRollcall();
   if (v === 'roster') { renderEvents(); renderRoster(); renderEventChecks(); }
   if (v === 'admin') el('ad-count').textContent = (DATA.checkins || []).length + ' 件';
-  startPolling(v === 'checkin' || v === 'rollcall');
+  /* 受付以外の画面にいても更新を続ける。ヘッダーの更新時刻が動いていることが、
+     その端末が最新であることの目印になるため。 */
+  startPolling(!!COMP);
 }
 
 /* ---------- 大会 ---------- */
@@ -611,6 +613,7 @@ function openComp(id, needCode, keepView){
       try { localStorage.setItem('uk_last_comp', id); } catch (e) {}
       clearWorkState();
       if (!keepView) switchView('checkin');
+      else startPolling(true);
     })
     .catch(function(e){ alert(e.message); return loadComps(); });
 }
@@ -699,19 +702,31 @@ function syncFailed(msg){
     switchView('comp');
   }
 }
+/* サーバーから取り直して、表示中の画面に反映する。
+   名簿・種目マスタは入力欄があり、作り直すと入力中の値が消えるので描き直さない
+   （データ自体は新しくなるので、画面を切り替えた時点で反映される）。 */
+function pollTick(){
+  if (!COMP) return Promise.resolve();
+  return refresh().then(function(){
+    LAST_OK = Date.now(); SYNC_ERR = '';
+    renderSync();
+    if (!el('v-checkin').classList.contains('hidden')) renderRecent();
+    if (!el('v-rollcall').classList.contains('hidden')) renderRollcall();
+  }).catch(function(e){ syncFailed(e && e.message); });
+}
 function startPolling(on){
   if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
   renderSync();
   if (!on || !COMP) return;
-  pollTimer = setInterval(function(){
-    refresh().then(function(){
-      LAST_OK = Date.now(); SYNC_ERR = '';
-      renderSync();
-      if (!el('v-checkin').classList.contains('hidden')) renderRecent();
-      if (!el('v-rollcall').classList.contains('hidden')) renderRollcall();
-    }).catch(function(e){ syncFailed(e && e.message); });
-  }, 3000);
+  pollTick();                       /* 画面を開いた時点で最新にする */
+  pollTimer = setInterval(pollTick, 3000);
 }
+/* スリープから復帰したり、他のアプリから戻ったときは巡回を待たずに取り直す。
+   スマホやタブレットは画面を消している間タイマーが止まるため、これが無いと
+   復帰直後に古い一覧を見たまま受付してしまう。 */
+document.addEventListener('visibilitychange', function(){ if (!document.hidden) pollTick(); });
+window.addEventListener('focus', function(){ pollTick(); });
+window.addEventListener('online', function(){ pollTick(); });
 
 /* ---------- 受付 ---------- */
 /* ---------- 受付担当者名（この端末に記憶する） ---------- */
