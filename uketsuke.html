@@ -1130,18 +1130,28 @@ el('csv-read').addEventListener('click', function(){
       if (d.error) throw new Error(d.error);
       PREV = d;
       el('has-header').checked = !!d.likely_has_header;
-      var b = el('dcs-banner');
-      if (d.dcs_signature) {
-        b.textContent = 'DCSの出力ファイルを検出しました（認識コード: ' + d.dcs_signature + '）。項目名の行はありません。サンプル値を見て列を割り当ててください。';
-        b.classList.remove('hidden');
-      } else { b.classList.add('hidden'); }
-      renderMap();
-      el('imp-step1').classList.add('hidden');
-      el('imp-step2').classList.remove('hidden');
+      renderMap();                       /* 画面には出さなくても、判定と割り当てはここで済ませる */
       el('imp-result').classList.add('hidden');
+
+      /* 直すところが無い（背番号・氏名が取れ、種目コードが出場列を全部覆っている）なら、
+         割り当て画面を見せずにそのまま取り込む。確認を挟んでも手間なだけなので。
+         取り込まなかったとき（既存の名簿がある場合の確認でキャンセルしたとき）だけ画面を出す。 */
+      if (DETECT_OK) { runImport(true, function(){ showMapping(d.dcs_signature); }); return; }
+      showMapping(d.dcs_signature);
     })
     .catch(function(e){ alert(e.message); });
 });
+/* 自動で取り込めなかったときだけ、列の割り当て画面を出す */
+function showMapping(signature){
+  var b = el('dcs-banner');
+  if (signature) {
+    b.textContent = 'DCSの出力ファイルを検出しました（認識コード: ' + signature + '）。項目名の行はありません。サンプル値を見て列を割り当ててください。';
+    b.classList.remove('hidden');
+  } else { b.classList.add('hidden'); }
+  el('imp-step1').classList.add('hidden');
+  el('imp-step2').classList.remove('hidden');
+}
+
 el('imp-cancel').addEventListener('click', function(){
   PREV = null;
   el('imp-step2').classList.add('hidden');
@@ -1152,7 +1162,7 @@ el('imp-run').addEventListener('click', function(){ runImport(false); });
 /* auto=true は「読み込んだだけで自動的に取り込む」経路。
    判定が全部そろったときだけ通る。既にある名簿を黙って置き換えないよう、
    中身があるときは自動でも確認する。 */
-function runImport(auto){
+function runImport(auto, onCancel){
   var hs = headers(), rows = dataRows();
   var bi = Number(el('m-bib').value), li = Number(el('m-leader').value), pi = Number(el('m-partner').value);
   var ci = Number(el('m-category').value), ai = Number(el('m-affiliation').value);
@@ -1183,7 +1193,7 @@ function runImport(auto){
   if (!auto || already) {
     if (!confirm(out.length + '組を取り込みます。'
         + (already ? '現在の名簿（' + already + '組）と受付の記録は置き換わります。' : '')
-        + 'よろしいですか？')) return;
+        + 'よろしいですか？')) { if (onCancel) onCancel(); return; }
   }
 
   post('api/uketsuke_save_roster.php', {
