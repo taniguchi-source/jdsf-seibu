@@ -272,7 +272,6 @@
           <div class="grow"><label class="muted">パートナー</label><input type="text" id="rs-partner" required></div>
         </div>
         <div class="row wrap" style="margin-top:8px">
-          <div class="grow"><label class="muted">競技区分（任意）</label><input type="text" id="rs-category"></div>
           <div class="grow"><label class="muted">所属（任意）</label><input type="text" id="rs-affiliation"></div>
         </div>
         <h2>エントリー種目</h2>
@@ -651,11 +650,10 @@ el('ci-by-edit').addEventListener('click', function(){
 });
 renderBy();
 
-/* 背番号・氏名・所属・競技区分の1行 */
+/* 背番号・氏名・所属の1行 */
 function whoHtml(bib, r){
   return '<span class="bib-big">' + esc(bib) + '</span> ' + esc(r.leader || '') + ' / ' + esc(r.partner || '')
-    + (r.affiliation ? '（' + esc(r.affiliation) + '）' : '')
-    + (r.category ? ' <span class="muted">' + esc(r.category) + '</span>' : '');
+    + (r.affiliation ? '（' + esc(r.affiliation) + '）' : '');
 }
 /* 出場種目。種目名は種目マスタから引く（未登録ならコードだけ） */
 function evHtml(codes){
@@ -833,7 +831,7 @@ function renderRoster(){
       if (!r) return;
       el('rs-bib').value = r.bib; el('rs-bib').disabled = true;
       el('rs-leader').value = r.leader; el('rs-partner').value = r.partner;
-      el('rs-category').value = r.category || ''; el('rs-affiliation').value = r.affiliation || '';
+      el('rs-affiliation').value = r.affiliation || '';
       document.querySelectorAll('.rs-ev').forEach(function(cb){ cb.checked = (r.events||[]).indexOf(cb.value) !== -1; });
       window.scrollTo({top:el('rs-form').offsetTop - 60, behavior:'smooth'});
     });
@@ -865,7 +863,7 @@ el('rs-form').addEventListener('submit', function(e){
   document.querySelectorAll('.rs-ev:checked').forEach(function(cb){ events.push(cb.value); });
   var row = {
     bib: Number(el('rs-bib').value), leader: el('rs-leader').value, partner: el('rs-partner').value,
-    category: el('rs-category').value, affiliation: el('rs-affiliation').value, events: events
+    affiliation: el('rs-affiliation').value, events: events
   };
   post('api/uketsuke_save_roster.php', {id:COMP.id, mode:'upsert', roster:JSON.stringify([row])})
     .then(function(){
@@ -909,7 +907,7 @@ function selectHtml(id, label, required){
 function renderMap(){
   el('map-fields').innerHTML =
     selectHtml('m-bib', '背番号列', true) + selectHtml('m-leader', 'リーダー列', true) +
-    selectHtml('m-partner', 'パートナー列', true) + selectHtml('m-category', '競技区分列', false) +
+    selectHtml('m-partner', 'パートナー列', true) +
     selectHtml('m-affiliation', '所属列', false);
   el('map-events').innerHTML = headers().map(function(h, i){
     return '<div class="checkbox-row"><input type="checkbox" class="ev-col" data-i="' + i + '">'
@@ -1161,7 +1159,7 @@ el('imp-run').addEventListener('click', function(){ runImport(false); });
 function runImport(auto, onCancel){
   var hs = headers(), rows = dataRows();
   var bi = Number(el('m-bib').value), li = Number(el('m-leader').value), pi = Number(el('m-partner').value);
-  var ci = Number(el('m-category').value), ai = Number(el('m-affiliation').value);
+  var ai = Number(el('m-affiliation').value);
   var cols = [];
   document.querySelectorAll('.ev-col:checked').forEach(function(cb){
     var i = Number(cb.dataset.i);
@@ -1179,7 +1177,6 @@ function runImport(auto, onCancel){
       bib: bib,
       leader: String(r[li] || '').trim(),
       partner: String(r[pi] || '').trim(),
-      category: ci >= 0 ? String(r[ci] || '').trim() : '',
       affiliation: ai >= 0 ? String(r[ai] || '').trim() : '',
       events: evs
     });

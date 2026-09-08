@@ -34,7 +34,6 @@ foreach ($rows as $r) {
         'bib'         => $bib,
         'leader'      => uk_str($r['leader'] ?? '', 40),
         'partner'     => uk_str($r['partner'] ?? '', 40),
-        'category'    => uk_str($r['category'] ?? '', 60),
         'affiliation' => uk_str($r['affiliation'] ?? '', 60),
         'events'      => array_keys($events),
     ];
