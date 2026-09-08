@@ -11,7 +11,7 @@ foreach ($list as &$c) {
     $id = $c['id'] ?? '';
     if (!uk_valid_id($id)) { $c['roster_count'] = 0; $c['checkin_count'] = 0; continue; }
     /* 公認番号が設定されていて、まだこのセッションで開いていない大会だけ入力を求める */
-    $c['need_code']     = $has_code && !uk_comp_unlocked($id);
+    $c['need_code']     = $has_code;   /* 公認番号がある大会は、開くたびに必ず公認番号を要求する */
     $c['roster_count']  = count(uk_load_roster($id));
     $c['checkin_count'] = count(uk_load_checkins($id));
 }
