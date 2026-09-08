@@ -900,25 +900,47 @@ function renderExcept(){
   var done = {};
   (DATA.checkins || []).forEach(function(c){ done[c.bib] = c; });
   var absMap = evAbsentMap();
+  var checkedIn = !!done[r.bib];
   box.className = '';
   box.innerHTML = '<div>' + whoHtml(r.bib, r) + '</div>'
-    + '<div class="muted" style="margin:6px 0 8px">'
-    + (done[r.bib] ? '受付済み（' + esc(fmtTime(done[r.bib].at)) + '）' : '<b>まだ受付していません</b>')
+    + '<div style="margin:6px 0 10px">'
+    + (checkedIn
+        ? '<span class="muted">受付済み（' + esc(fmtTime(done[r.bib].at)) + '）</span>'
+        /* 未受付の組は全種目が欠場なので、種目ごとに設定しても表示は変わらない。
+           そのことを伝えたうえで、ここから受付できるようにしておく。 */
+        : '<div class="banner b-warn" style="font-size:14px;font-weight:400;text-align:left;margin:0 0 8px">'
+          + 'この組はまだ受付していません。未受付の間はすべての種目が欠場です。'
+          + '種目ごとの設定が効くのは受付したあとです。</div>'
+          + '<button type="button" id="ex-checkin" class="small">この組を受付する（チェックイン）</button>')
     + '</div>'
     + '<table class="dense"><thead><tr><th>種目</th><th>状態</th><th></th></tr></thead><tbody>'
     + (r.events || []).map(function(c){
         var m = (DATA.events || []).filter(function(e){ return e.code === c; })[0] || {code:c};
         var off = !!absMap[r.bib + ':' + c];
         var abs = isAbsentIn(r.bib, c, done, absMap);
+        /* なぜ欠場なのかが分かるように理由を添える */
+        var why = [];
+        if (!checkedIn) why.push('未受付');
+        if (off) why.push('この種目だけ欠場に設定');
         return '<tr><td>' + esc(c) + ' <span class="muted">' + esc(m.name || '') + '</span></td>'
           + '<td>' + (abs ? '<b style="color:var(--danger)">欠場</b>' : '<b style="color:var(--ok)">出場</b>')
-          + (off ? ' <span class="muted">（この種目だけ欠場に設定）</span>' : '') + '</td>'
+          + (why.length ? ' <span class="muted">（' + esc(why.join('・')) + '）</span>' : '') + '</td>'
           + '<td><button type="button" class="small ' + (off ? 'secondary' : 'danger') + '" data-ex="'
           + esc(c) + '" data-off="' + (off ? '1' : '') + '">'
-          + (off ? '出場に戻す' : 'この種目だけ欠場にする') + '</button></td></tr>';
+          + (off ? 'この種目の欠場設定を外す' : 'この種目だけ欠場にする') + '</button></td></tr>';
       }).join('')
     + '</tbody></table>';
   box.classList.remove('hidden');
+
+  var ci = el('ex-checkin');
+  if (ci) {
+    ci.addEventListener('click', function(){
+      ci.disabled = true;
+      post('api/uketsuke_checkin.php', {id:COMP.id, bib:r.bib, by:el('by').value})
+        .then(function(){ return refresh().then(renderExcept); })
+        .catch(function(e){ ci.disabled = false; alert(e.message); });
+    });
+  }
 
   box.querySelectorAll('[data-ex]').forEach(function(b){
     b.addEventListener('click', function(){
