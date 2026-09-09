@@ -1,5 +1,5 @@
 <?php
-/* 種目マスタの保存（画面上の一覧をまるごと置き換える）。
+/* 区分マスタの保存（画面上の一覧をまるごと置き換える）。
    events は JSON文字列で1フィールドに入れて POST する（既存の save_schedule.php と同じ方式）。 */
 require __DIR__ . '/_uketsuke.php';
 require_auth_any(['admin', 'build', 'uketsuke']);
@@ -9,7 +9,7 @@ if (!uk_valid_id($id)) json_out(['error' => '大会IDが不正です'], 400);
 uk_require_comp($id);   /* 公認番号で開いた大会のみ操作できる */
 
 $rows = json_decode($_POST['events'] ?? '[]', true);
-if (!is_array($rows)) json_out(['error' => '種目データの形式が不正です'], 400);
+if (!is_array($rows)) json_out(['error' => '区分データの形式が不正です'], 400);
 
 $out  = [];
 $seen = [];

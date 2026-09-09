@@ -67,9 +67,9 @@ function uk_write_json($file, $data) {
     return true;
 }
 
-/* ---- 種目コードから種目名を推定する ----
-   CSVには種目名が入っていないため、取込時の仮の名前がコードのままになってしまう。
-   JDSFの種目コードは規則的なので、そこから読める名前を作る（違えば画面で直せる）。
+/* ---- 区分コードから区分名を推定する ----
+   CSVには区分名が入っていないため、取込時の仮の名前がコードのままになってしまう。
+   JDSFの区分コードは規則的なので、そこから読める名前を作る（違えば画面で直せる）。
      級別戦   : [J:一般 / M:シニアII / G:シニアIII / R:シニアIV] + [A-D級] + [S:スタンダード / L:ラテン]
      市民総体 : FK + [W/T/C/R] + [1:一般 / 2:シニア] */
 function uk_guess_event_name($code) {
@@ -86,8 +86,8 @@ function uk_guess_event_name($code) {
     return $c;   /* 規則に当てはまらないコードはそのまま */
 }
 
-/* ---- 前回使った種目コードの記憶 ----
-   競技会ごとに種目構成はほぼ同じなので、前回の並びを覚えておいて次回の取込時に初期表示する。 */
+/* ---- 前回使った区分コードの記憶 ----
+   競技会ごとに区分構成はほぼ同じなので、前回の並びを覚えておいて次回の取込時に初期表示する。 */
 function uk_config_file() { return uk_ensure_root() . '/config.json'; }
 function uk_last_event_codes() {
     $c = uk_read_json(uk_config_file(), []);
@@ -141,24 +141,24 @@ function uk_checkins_file($id) { return uk_dir($id) . '/checkins.jsonl'; }
 function uk_load_events($id) { return uk_read_json(uk_events_file($id), []); }
 function uk_load_roster($id) { return uk_read_json(uk_roster_file($id), []); }
 
-/* チェックイン記録（追記式）を読み、「背番号:種目コード」ごとに最後の行を採用する。
-   受付は種目（区分）単位。受付で押さなかった種目は、そのまま欠場として扱われる。
-   action=checkin（action 無しも同じ）… code があればその種目だけ、無ければその組の全種目
+/* チェックイン記録（追記式）を読み、「背番号:区分コード」ごとに最後の行を採用する。
+   受付は区分単位。受付で押さなかった区分は、そのまま欠場として扱われる。
+   action=checkin（action 無しも同じ）… code があればその区分だけ、無ければその組の全区分
    action=remove  … 同じ単位で取り消す（打ち間違いの訂正用）
    action=clear   … そこまでの記録を破棄する（全員リセット用）
-   action=evstat  … 種目単位の受付にする前の「例外処理」。古い記録を読むためだけに残す。 */
+   action=evstat  … 区分単位の受付にする前の「例外処理」。古い記録を読むためだけに残す。 */
 function uk_load_checkins($id) {
     $file = uk_checkins_file($id);
     if (!is_file($file)) return [];
     $fh = @fopen($file, 'r');
     if (!$fh) return [];
-    /* 種目を持たない記録（種目単位にする前の受付）は、その組のエントリー種目すべてとして読む */
+    /* 区分を持たない記録（区分単位にする前の受付）は、その組のエントリー区分すべてとして読む */
     $entry = [];
     foreach (uk_load_roster($id) as $r) {
         $entry[(int)($r['bib'] ?? 0)] = array_values((array)($r['events'] ?? []));
     }
-    $map = [];   /* "背番号:種目" => 記録 */
-    $all = [];   /* 種目を指定せず受付した組。旧・例外処理を外した記録を戻すのに使う */
+    $map = [];   /* "背番号:区分" => 記録 */
+    $all = [];   /* 区分を指定せず受付した組。旧・例外処理を外した記録を戻すのに使う */
     while (($line = fgets($fh)) !== false) {
         $line = trim($line);
         if ($line === '') continue;
@@ -177,7 +177,7 @@ function uk_load_checkins($id) {
                 $map[$bib . ':' . $code] = ['bib' => $bib, 'code' => $code, 'at' => $at, 'by' => $by];
                 continue;
             }
-            $all[$bib] = ['at' => $at, 'by' => $by];               /* 全種目まとめての受付 */
+            $all[$bib] = ['at' => $at, 'by' => $by];               /* 全区分まとめての受付 */
             foreach (($entry[$bib] ?? []) as $c) {
                 $map[$bib . ':' . $c] = ['bib' => $bib, 'code' => $c, 'at' => $at, 'by' => $by];
             }
@@ -189,7 +189,7 @@ function uk_load_checkins($id) {
             foreach (($entry[$bib] ?? []) as $c) unset($map[$bib . ':' . $c]);
             continue;
         }
-        /* 旧・例外処理。欠場に設定＝その種目は未受付、出場に戻す＝まとめて受付した状態に戻す */
+        /* 旧・例外処理。欠場に設定＝その区分は未受付、出場に戻す＝まとめて受付した状態に戻す */
         if ($action === 'evstat') {
             if ($code === '') continue;
             if (!empty($rec['absent'])) { unset($map[$bib . ':' . $code]); continue; }
@@ -206,7 +206,7 @@ function uk_load_checkins($id) {
 }
 
 /* 受付済みの組（背番号 => その組でいちばん新しい記録）。件数の表示や並べ替えに使う。
-   1種目でも受付していれば「来ている組」なので、組数はこれで数える。 */
+   1区分でも受付していれば「来ている組」なので、組数はこれで数える。 */
 function uk_checked_bibs($checkins) {
     $out = [];
     foreach ($checkins as $c) {

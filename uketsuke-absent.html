@@ -89,7 +89,7 @@ var DATA = null;
 function el(id){ return document.getElementById(id); }
 function esc(s){ if(s===null||s===undefined) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-/* 種目名が未設定（コードのまま）のとき「JAS JAS」と二重に出さない */
+/* 区分名が未設定（コードのまま）のとき「JAS JAS」と二重に出さない */
 function evLabel(e){ var n = (e && e.name) ? String(e.name).trim() : '';
   return (!n || n === e.code) ? esc(e.code) : esc(e.code) + ' ' + esc(n); }
 function qs(k){ var m = new RegExp('[?&]'+k+'=([^&]*)').exec(location.search); return m ? decodeURIComponent(m[1]) : ''; }
@@ -120,8 +120,8 @@ function load(){
     });
 }
 
-/* 受付締切が同じ種目はまとめて呼び出すので、締切ごとに選べるようにする。
-   値は t:<時刻> で締切ごと、e:<コード> で種目ごと。 */
+/* 受付締切が同じ区分はまとめて呼び出すので、締切ごとに選べるようにする。
+   値は t:<時刻> で締切ごと、e:<コード> で区分ごと。 */
 function deadlines(){
   var seen = {}, out = [];
   (DATA.events || []).forEach(function(e){
@@ -138,14 +138,14 @@ function buildPicker(){
   var dl = deadlines();
   var html = '';
   if (dl.length) {
-    html += '<optgroup label="受付締切ごと（その時刻の種目を種目別に表示）">'
+    html += '<optgroup label="受付締切ごと（その時刻の区分をそれぞれ表示）">'
       + dl.map(function(g){
           return '<option value="t:' + esc(g.time) + '">' + esc(g.time) + '　'
             + esc(g.events.map(function(e){ return e.code; }).join(', ')) + '</option>';
         }).join('')
       + '</optgroup>';
   }
-  html += '<optgroup label="種目ごと">'
+  html += '<optgroup label="区分ごと">'
     + (DATA.events || []).map(function(e){
         return '<option value="e:' + esc(e.code) + '">' + evLabel(e)
           + (e.start_time ? '（' + esc(e.start_time) + '）' : '') + '</option>';
@@ -155,9 +155,9 @@ function buildPicker(){
   el('pick').addEventListener('change', render);
 }
 
-/* 指定した種目の欠場者。受付は種目（区分）ごとなので、
+/* 指定した区分の欠場者。受付は区分ごとなので、
    その区分を受付していない組が欠場になる。
-   締切ごとの表示では複数種目にまたがるので、背番号で重複を取り除く。 */
+   締切ごとの表示では複数区分にまたがるので、背番号で重複を取り除く。 */
 function absentFor(codes){
   var done = {};
   (DATA.checkins || []).forEach(function(c){ done[c.bib + ':' + c.code] = true; });
@@ -200,7 +200,7 @@ function bibHtml(r, stock){
     + '</span>';
 }
 
-/* 1種目ぶんの欠場者を出す */
+/* 1区分ぶんの欠場者を出す */
 function blockHtml(e){
   var absent = absentFor([e.code]);
   var total  = entryCount([e.code]);
@@ -220,8 +220,8 @@ function render(){
   var v = el('pick').value;
   var head = '', evs = [];
   if (v.indexOf('t:') === 0) {
-    /* 受付締切で選んだときは、その時刻の種目を種目別に分けて出す。
-       どの種目の欠場かが分からないと、進行席で使えないため。 */
+    /* 受付締切で選んだときは、その時刻の区分をそれぞれ分けて出す。
+       どの区分の欠場かが分からないと、進行席で使えないため。 */
     var t = v.slice(2);
     var g = deadlines().filter(function(x){ return x.time === t; })[0];
     if (!g) { el('out').innerHTML = ''; return; }

@@ -44,7 +44,7 @@
   .bib-input{font-size:40px;text-align:center;padding:18px 12px;letter-spacing:2px;border-width:2px}
   .bib-input:focus{outline:none;border-color:var(--primary)}
   /* 受付でいちばん使う場所。背番号を大きく取り、受付ボタンはその右隣に置く。
-     ほとんどの組は全種目に出るので「受付」を主にし、一部だけの組は「一部受付」から選ぶ。 */
+     ほとんどの組は全区分に出るので「受付」を主にし、一部だけの組は「一部受付」から選ぶ。 */
   .checkin-row{display:flex;gap:12px;align-items:stretch}
   .checkin-row .bib-input{flex:1;min-width:0;font-size:64px;padding:14px 12px}
   .checkin-row .ci-btn{flex:none;font-size:24px;padding:0 34px;white-space:nowrap}
@@ -72,7 +72,7 @@
   /* 受付状況は一度に多く見えることが大事なので、行の上下を詰める */
   table.dense th, table.dense td{padding:4px 8px}
   /* リーダーとパートナーは内容ぶんの幅だけにして、間を詰める。
-     余った幅は所属・種目の列に回る。狭い画面では横スクロールになるので広い画面だけ。 */
+     余った幅は所属・区分の列に回る。狭い画面では横スクロールになるので広い画面だけ。 */
   table.dense .c-leader{padding-right:2px}
   table.dense .c-partner{padding-left:2px}
   @media (min-width:560px){
@@ -83,7 +83,7 @@
   /* 行の高さは「取消」ボタンや入力欄で決まってしまうので、この表の中だけ小さくする */
   table.dense button.small{padding:2px 10px;font-size:12px}
   table.dense input[type=text]{padding:3px 8px;font-size:14px}
-  /* 出場種目のコード。名称は出さず、コードだけを小さく並べる */
+  /* 出場区分のコード。名称は出さず、コードだけを小さく並べる */
   .code-pill{display:inline-block;margin:0 3px 0 0;padding:1px 6px;border-radius:4px;
     font-size:12px;font-weight:700;background:#eef2f7;color:var(--primary)}
   .bib-big{font-size:30px;font-weight:800;vertical-align:-2px}
@@ -95,7 +95,7 @@
   .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;
     background:#eef1f5;color:var(--muted);margin:1px}
   .pill-ok{background:var(--ok-bg);color:var(--ok)}
-  /* 受付は種目（区分）ごとに押す。押しやすい大きさを取り、受付済みは色で分かるようにする */
+  /* 受付は区分ごとに押す。押しやすい大きさを取り、受付済みは色で分かるようにする */
   .ev-grid{display:grid;gap:8px}
   .ev-btn{display:block;width:100%;text-align:left;background:var(--card);color:var(--text);
     border:2px solid var(--border);padding:10px 14px;font-size:15px;font-weight:700}
@@ -236,7 +236,7 @@
         <p class="muted" id="ci-hint" style="margin:6px 0 10px"></p>
         <div id="ci-evs" class="ev-grid"></div>
         <div class="row" style="margin-top:12px">
-          <button type="button" id="ci-all" class="grow">全種目を受付</button>
+          <button type="button" id="ci-all" class="grow">全区分を受付</button>
           <button type="button" id="ci-close" class="secondary">閉じる</button>
         </div>
       </div>
@@ -253,7 +253,7 @@
     <!-- ======== 欠場報告 ======== -->
     <section id="v-rollcall" class="hidden">
       <div class="card">
-        <label class="muted">種目</label>
+        <label class="muted">区分</label>
         <select id="rc-event"></select>
         <div style="height:10px"></div>
         <a class="btn secondary" id="rc-print" href="uketsuke-absent.html" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">欠場者のみのページを開く</a>
@@ -291,12 +291,12 @@
           <div id="detect-banner" class="banner hidden" style="font-size:14px;font-weight:400;text-align:left"></div>
           <label class="checkbox-row"><input type="checkbox" id="has-header"> 1行目を項目名（ヘッダー）として使う</label>
           <div id="map-fields"></div>
-          <h2>種目として扱う列</h2>
+          <h2>区分として扱う列</h2>
           <p class="muted">値が「1」または「◎」なら出場ありとして扱います（空欄・「＿」は出場なし）。
-            CSVには種目コードが入っていないので、DCSの競技内容設定と同じ順にコードを指定してください。</p>
+            CSVには区分コードが入っていないので、DCSの競技内容設定と同じ順にコードを指定してください。</p>
           <div class="row wrap" style="margin-bottom:10px">
             <div class="grow">
-              <label class="muted">種目コードをまとめて入力（DCSの競技内容設定の順に、カンマ区切り）</label>
+              <label class="muted">区分コードをまとめて入力（DCSの競技内容設定の順に、カンマ区切り）</label>
               <input type="text" id="bulk-codes" placeholder="例: JAS,JAL,MAS,GAS,RAS,JBS,JBL,JCS,JCL,JDS,JDL">
             </div>
             <button type="button" id="bulk-apply" class="small" style="align-self:flex-end">割り当てる</button>
@@ -311,25 +311,25 @@
       </div>
       <div id="imp-result" class="banner hidden"></div>
 
-      <h2>種目マスタ</h2>
-      <p class="muted">名簿CSVの取込で未登録の種目コードが見つかると、ここに仮登録（種目名＝コード）されます。名称と受付締切を整えてください。</p>
+      <h2>区分マスタ</h2>
+      <p class="muted">名簿CSVの取込で未登録の区分コードが見つかると、ここに仮登録（区分名＝コード）されます。名称と受付締切を整えてください。</p>
 
       <div class="card">
         <table class="dense">
-          <thead><tr><th>コード</th><th>種目名</th><th>受付締切</th><th></th></tr></thead>
+          <thead><tr><th>コード</th><th>区分名</th><th>受付締切</th><th></th></tr></thead>
           <tbody id="ev-list"></tbody>
         </table>
         <div style="height:10px"></div>
         <div class="row wrap">
           <div style="width:110px"><input type="text" id="ev-code" placeholder="コード"></div>
-          <div class="grow"><input type="text" id="ev-name" placeholder="種目名"></div>
+          <div class="grow"><input type="text" id="ev-name" placeholder="区分名"></div>
           <div style="width:110px"><input type="text" id="ev-time" placeholder="受付締切 10:00"></div>
           <button id="ev-add" class="small">追加</button>
         </div>
         <div style="height:12px"></div>
         <div class="row wrap">
-          <button id="ev-save">種目マスタを保存</button>
-          <button id="ev-guess" class="secondary">コードから種目名を補う</button>
+          <button id="ev-save">区分マスタを保存</button>
+          <button id="ev-guess" class="secondary">コードから区分名を補う</button>
         </div>
         <span class="muted" id="ev-saved"></span>
       </div>
@@ -339,7 +339,7 @@
       <div style="height:8px"></div>
       <table class="dense">
         <thead><tr><th>背番号</th><th class="c-leader">リーダー</th><th class="c-partner">パートナー</th>
-          <th>所属</th><th>種目</th><th></th></tr></thead>
+          <th>所属</th><th>区分</th><th></th></tr></thead>
         <tbody id="rs-list"></tbody>
       </table>
 
@@ -353,7 +353,7 @@
         <div class="row wrap" style="margin-top:8px">
           <div class="grow"><label class="muted">所属（任意）</label><input type="text" id="rs-affiliation"></div>
         </div>
-        <h2>エントリー種目</h2>
+        <h2>エントリー区分</h2>
         <div id="rs-events" class="row wrap"></div>
         <div style="height:12px"></div>
         <div class="row">
@@ -369,7 +369,7 @@
       <h2>管理</h2>
       <div class="card">
         <p class="muted">
-          テスト受付の記録を消して、本番前に初期化したいときに使います。名簿・種目は消えません。<br>
+          テスト受付の記録を消して、本番前に初期化したいときに使います。名簿・区分は消えません。<br>
           受付をやり直せなくなる操作なので、実行には役員ページのパスワードが必要です。
         </p>
         <p class="muted">現在の受付: <b id="ad-count">-</b></p>
@@ -413,7 +413,7 @@ function fmtTime(iso){
   if (isNaN(d.getTime())) return '';
   return d.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
 }
-/* 種目の表示名。仮登録直後は名称がコードのままなので「JAS JAS」と二重に出さない */
+/* 区分の表示名。仮登録直後は名称がコードのままなので「JAS JAS」と二重に出さない */
 function evLabel(e){
   var name = (e && e.name) ? String(e.name).trim() : '';
   return (!name || name === e.code) ? esc(e.code) : esc(e.code) + ' ' + esc(name);
@@ -526,7 +526,7 @@ function loadComps(quiet){
     box.querySelectorAll('[data-del]').forEach(function(b){
       b.addEventListener('click', function(){
         var c = d.competitions.filter(function(x){ return x.id === b.dataset.del; })[0] || {};
-        if (!confirm('「' + (c.name || b.dataset.del) + '」の名簿・種目・受付記録をすべて削除します。\n元に戻せません。よろしいですか？')) return;
+        if (!confirm('「' + (c.name || b.dataset.del) + '」の名簿・区分・受付記録をすべて削除します。\n元に戻せません。よろしいですか？')) return;
         var pw = prompt('削除を実行するには、役員ページのパスワードを入力してください'
           + (IS_LOCAL ? '\n（ローカル動作確認用サーバーのパスワードです。本番のものではありません）' : ''));
         if (pw === null || pw === '') return;
@@ -546,7 +546,7 @@ function loadComps(quiet){
 /* サイトに登録済みの競技会（data/competitions_seibu.json）から選んで入力を省く。
    一覧に無い大会（登録前のものなど）は、これまで通り手入力できる。 */
 var CANDS = [];        /* サイトの競技会一覧（シラバスの競技内容つき） */
-var NC_EVENTS = [];    /* 選んだ大会の種目（シラバスの区分順＝CSVの列順） */
+var NC_EVENTS = [];    /* 選んだ大会の区分（シラバスの区分順＝CSVの列順） */
 function loadCompCandidates(){
   fetch('data/competitions_seibu.json?_=' + Date.now())
     .then(function(r){ return r.json(); })
@@ -562,7 +562,7 @@ function loadCompCandidates(){
       sel.innerHTML = '<option value="">選択して入力する…</option>';   /* 二重に積まないよう作り直す */
       items.forEach(function(x, i){
         var o = document.createElement('option');
-        o.value = String(i);   /* 中身は CANDS[i] から引く（種目一覧まで属性に詰めると長くなるため） */
+        o.value = String(i);   /* 中身は CANDS[i] から引く（区分一覧まで属性に詰めると長くなるため） */
         o.textContent = x.date_iso + '　' + cleanCompName(x.name).slice(0, 40);
         sel.appendChild(o);
       });
@@ -583,28 +583,28 @@ el('nc-pick').addEventListener('change', function(){
   el('nc-code').value = x.comp_no || '';
 });
 
-/* シラバス（大会要項）の「競技内容」から取れた種目を確認用に出す。
+/* シラバス（大会要項）の「競技内容」から取れた区分を確認用に出す。
    この並び順（区分順）が、DCSの選手名簿CSVの競技参加区分の列順そのものなので、
-   そのまま種目マスタとして登録しておけば、名簿の取込で列に自動で割り当てられる。 */
+   そのまま区分マスタとして登録しておけば、名簿の取込で列に自動で割り当てられる。 */
 function renderNcEvents(){
   var box = el('nc-events');
   if (!NC_EVENTS.length) {
     box.innerHTML = el('nc-pick').value === '' ? '' :
-      'この大会はシラバスから競技内容を取得できませんでした。種目は「種目」タブであとから登録できます。';
+      'この大会はシラバスから競技内容を取得できませんでした。区分は「名簿」タブであとから登録できます。';
     box.classList.toggle('hidden', el('nc-pick').value === '');
     return;
   }
-  box.innerHTML = 'シラバスの競技内容から <b>' + NC_EVENTS.length + '種目</b> を区分順で登録します：<br>'
+  box.innerHTML = 'シラバスの競技内容から <b>' + NC_EVENTS.length + '区分</b> を競技内容の順で登録します：<br>'
     + esc(NC_EVENTS.map(function(e){ return e.code; }).join(', ')) + '<br>'
-    + 'この並び順が名簿CSVの競技参加区分の列順になります（受付締切は「種目」タブで入れてください）。';
+    + 'この並び順が名簿CSVの競技参加区分の列順になります（受付締切は「名簿」タブで入れてください）。';
   box.classList.remove('hidden');
 }
 
 el('nc-btn').addEventListener('click', function(){
   if (!el('nc-code').value.trim() &&
       !confirm('公認番号が空です。この大会は誰でも開ける状態になります。よろしいですか？')) return;
-  /* 種目は「コード,種目名」を1行ずつ送る（サーバー側で種目マスタになる）。
-     種目名の区切り文字と衝突しないよう、名前の中のカンマ・タブは空白にしておく。 */
+  /* 区分は「コード,区分名」を1行ずつ送る（サーバー側で区分マスタになる）。
+     区分名の区切り文字と衝突しないよう、名前の中のカンマ・タブは空白にしておく。 */
   var evLines = NC_EVENTS.map(function(e){
     return e.code + ',' + String(e.name || '').replace(/[,\t]+/g, ' ').trim();
   }).join('\n');
@@ -758,7 +758,7 @@ function syncFailed(msg){
   }
 }
 /* サーバーから取り直して、表示中の画面に反映する。
-   名簿・種目マスタは入力欄があり、作り直すと入力中の値が消えるので描き直さない
+   名簿・区分マスタは入力欄があり、作り直すと入力中の値が消えるので描き直さない
    （データ自体は新しくなるので、画面を切り替えた時点で反映される）。 */
 function pollTick(){
   /* 大会一覧の「選手○組／受付済○組」も、開いている間は数え直す。
@@ -815,29 +815,29 @@ function whoHtml(bib, r){
     + (r.affiliation ? '（' + esc(r.affiliation) + '）' : '');
 }
 /* ---------- 受付 ----------
-   記録は種目（区分）単位だが、ほとんどの組は出場種目すべてに出るので、
-   ふだんは「受付」だけで全種目をまとめて受付する。
+   記録は区分単位だが、ほとんどの組は出場区分すべてに出るので、
+   ふだんは「受付」だけで全区分をまとめて受付する。
    一部の区分だけ出る組のときだけ「一部受付」を押し、区分を選ぶ。
    1回目のEnterは照会だけ（打ち間違えた背番号がEnterひとつで受付されるのを防ぐ）。
-   同じ背番号のままもう一度Enterを押すか「受付」を押すと、全種目を受付する。 */
+   同じ背番号のままもう一度Enterを押すか「受付」を押すと、全区分を受付する。 */
 var LOOKED_UP = null;   /* 照会を出し終えた背番号。これと同じならEnterで受付 */
 var PANEL_BIB = null;   /* 区分を選ぶ画面に出している組。次の背番号をすぐ打てるよう入力欄とは別に持つ */
 var LAST_BIB  = null;   /* 直前に扱った組。入力欄が空でも「一部受付」で直せるようにする */
 
-/* 出場種目。照会と受付結果に出して、読み上げ確認に使う。 */
+/* 出場区分。照会と受付結果に出して、読み上げ確認に使う。 */
 function evHtml(codes){
   var evs = (codes || []).map(function(c){
     var m = (DATA.events || []).filter(function(e){ return e.code === c; })[0];
     var nm = (m && m.name && m.name !== c) ? ' ' + m.name : '';
     return '<span class="ev-pill">' + esc(c + nm) + '</span>';
   }).join('');
-  return evs ? '<br>' + evs : '<br><span class="muted">出場種目の登録がありません</span>';
+  return evs ? '<br>' + evs : '<br><span class="muted">出場区分の登録がありません</span>';
 }
 
 function rosterOf(bib){
   return (DATA.roster || []).filter(function(x){ return String(x.bib) === String(bib); })[0];
 }
-/* 受付済みの「背番号:区分」。受付が種目単位なので、判定は必ずこの組み合わせで行う。 */
+/* 受付済みの「背番号:区分」。受付が区分単位なので、判定は必ずこの組み合わせで行う。 */
 function doneMap(){
   var m = {};
   (DATA.checkins || []).forEach(function(c){ m[c.bib + ':' + c.code] = c; });
@@ -852,7 +852,7 @@ el('bib').addEventListener('keydown', function(e){
   if (LOOKED_UP !== null && bib === LOOKED_UP) { doCheckin(bib, null); return; }
   lookupBib();
 });
-/* 「受付」ボタンはその場で全種目を受付する（Enterと違って確認の1手を挟まない） */
+/* 「受付」ボタンはその場で全区分を受付する（Enterと違って確認の1手を挟まない） */
 el('ci-form').addEventListener('submit', function(e){
   e.preventDefault();
   var bib = el('bib').value.trim();
@@ -901,7 +901,7 @@ function notInRoster(bib){
   hidePanel();
   banner('danger', '背番号 ' + esc(bib) + ' は名簿にありません');
 }
-/* 1回目のEnter。受付はせず、誰なのかと出場種目だけを出す。 */
+/* 1回目のEnter。受付はせず、誰なのかと出場区分だけを出す。 */
 function lookupBib(){
   var bib = el('bib').value.trim();
   if (!bib) return;
@@ -916,7 +916,7 @@ function lookupBib(){
   var isDone = (r.events || []).length && !rest.length;
   banner(isDone ? 'warn' : 'info',
     whoHtml(r.bib, r) + evHtml(r.events) + '<br>'
-    + (isDone ? '全種目 受付済みです'
+    + (isDone ? '全区分 受付済みです'
               : '内容が正しければ、もう一度Enterを押すか「受付」を押してください'));
 }
 
@@ -940,9 +940,9 @@ function showPanel(bib, msg){
               ? '受付済み ' + esc(fmtTime(d.at)) + (d.by ? '　' + esc(d.by) : '') + '　押すと取消'
               : 'この区分を受付する') + '</span></button>';
       }).join('')
-    : '<p class="muted">この組は出場種目が登録されていません。</p>';
+    : '<p class="muted">この組は出場区分が登録されていません。</p>';
   var rest = codes.filter(function(c){ return !done[r.bib + ':' + c]; }).length;
-  el('ci-all').textContent = rest ? '全種目を受付（残り ' + rest + '）' : '全種目 受付済み';
+  el('ci-all').textContent = rest ? '全区分を受付（残り ' + rest + '）' : '全区分 受付済み';
   el('ci-all').disabled = !rest;
   el('ci-panel').classList.remove('hidden');
   el('ci-evs').querySelectorAll('[data-code]').forEach(function(b){
@@ -953,8 +953,8 @@ function showPanel(bib, msg){
   });
 }
 
-/* ここで初めて受付が記録される。code を渡すとその区分だけ、null なら全種目。 */
-/* ここで初めて受付が記録される。code を渡すとその区分だけ、null なら全種目。
+/* ここで初めて受付が記録される。code を渡すとその区分だけ、null なら全区分。 */
+/* ここで初めて受付が記録される。code を渡すとその区分だけ、null なら全区分。
    区分を選ぶ画面が出ているときはそのまま開いておき、続けて押せるようにする。 */
 function doCheckin(bib, code){
   LOOKED_UP = null;
@@ -978,16 +978,16 @@ function doCheckin(bib, code){
     })
     .catch(function(err){ banner('danger', esc(err.message)); el('bib').focus(); });
 }
-/* 受付の取消。code を渡すとその区分だけ、null ならその組の全種目。 */
+/* 受付の取消。code を渡すとその区分だけ、null ならその組の全区分。 */
 function doUncheckin(bib, code){
   var r = rosterOf(bib) || {};
   var who = bib + ' ' + (r.leader || '') + (r.partner ? ' / ' + r.partner : '');
-  if (!confirm(who + (code ? '　' + code : '　全種目') + ' の受付を取り消しますか？')) return;
+  if (!confirm(who + (code ? '　' + code : '　全区分') + ' の受付を取り消しますか？')) return;
   var body = {id:COMP.id, bib:bib, by:el('by').value};
   if (code) body.code = code;
   post('api/uketsuke_uncheckin.php', body)
     .then(function(){
-      banner('warn', esc(who) + '<br>' + esc(code ? code + ' の受付を取り消しました' : '全種目の受付を取り消しました'));
+      banner('warn', esc(who) + '<br>' + esc(code ? code + ' の受付を取り消しました' : '全区分の受付を取り消しました'));
       return refresh().then(function(){
         renderRecent();
         if (PANEL_BIB !== null && String(PANEL_BIB) === String(bib)) autoClosePanel(bib);
@@ -1244,19 +1244,19 @@ function renderMap(){
   el('map-events').innerHTML = headers().map(function(h, i){
     return '<div class="checkbox-row"><input type="checkbox" class="ev-col" data-i="' + i + '">'
       + '<span style="width:150px;display:inline-block">' + esc(h) + ' <span class="muted">(' + esc(sampleFor(i)) + ')</span></span>'
-      + '<input type="text" class="ev-code" data-i="' + i + '" placeholder="種目コード" style="width:120px"></div>';
+      + '<input type="text" class="ev-code" data-i="' + i + '" placeholder="区分コード" style="width:120px"></div>';
   }).join('');
   autoDetect();
 }
 el('has-header').addEventListener('change', function(){ if (PREV) renderMap(); });
 
-/* ---------- 種目コードをまとめて割り当てる ---------- */
+/* ---------- 区分コードをまとめて割り当てる ---------- */
 var EV_START = -1;   /* 自動判定で分かった「競技参加区分」の開始列 */
 el('bulk-apply').addEventListener('click', function(){
   if (!PREV) return;
   var codes = el('bulk-codes').value.split(/[,、\s]+/).map(function(s){ return s.trim(); })
     .filter(function(s){ return s !== ''; });
-  if (!codes.length) { alert('種目コードを入力してください（例: JAS,JAL,MAS）'); return; }
+  if (!codes.length) { alert('区分コードを入力してください（例: JAS,JAL,MAS）'); return; }
   var start = EV_START;
   if (start < 0) { alert('競技参加区分の列を判定できていません。チェックとコードを手で指定してください。'); return; }
 
@@ -1272,8 +1272,8 @@ el('bulk-apply').addEventListener('click', function(){
   }
   var b = el('detect-banner');
   b.className = 'banner b-ok';
-  b.innerHTML = '列' + (start+1) + '以降に ' + applied + '種目を割り当てました（' + esc(codes.slice(0, applied).join(', ')) + '）。<br>'
-    + 'サンプル値を見て、種目の順番が合っているか確認してから取り込んでください。';
+  b.innerHTML = '列' + (start+1) + '以降に ' + applied + '区分を割り当てました（' + esc(codes.slice(0, applied).join(', ')) + '）。<br>'
+    + 'サンプル値を見て、区分の順番が合っているか確認してから取り込んでください。';
   b.classList.remove('hidden');
 });
 
@@ -1326,7 +1326,7 @@ function colHasMark(i){
 }
 
 /* この大会に対応するシラバスの競技内容（区分順）を、サイトの競技会一覧から探す。
-   種目マスタがまだ空でも、取込画面だけで正しい列順に割り当てられるようにするため。
+   区分マスタがまだ空でも、取込画面だけで正しい列順に割り当てられるようにするため。
    開催日で突き合わせ、同じ日に複数あるときは大会名が一致するものを優先する。 */
 function syllabusEventsForComp(){
   var date = (DATA && DATA.date) || (COMP && COMP.date) || '';
@@ -1379,17 +1379,17 @@ function autoDetect(){
 
   pick('m-bib', bib); pick('m-leader', leader); pick('m-partner', partner); pick('m-affiliation', affil);
 
-  /* 6) 種目コードを先頭から割り当てる。この大会の種目マスタ（＝DCSの競技内容設定の順）を優先し、
-        まだ種目を登録していない新しい大会では、前回の取込で使った並びをそのまま充てる。
+  /* 6) 区分コードを先頭から割り当てる。この大会の区分マスタ（＝DCSの競技内容設定の順）を優先し、
+        まだ区分を登録していない新しい大会では、前回の取込で使った並びをそのまま充てる。
         （どちらの場合も「割り当てる」を押させずに自動で入れる。順番はサンプル値を見て人が確認する） */
   var master = (DATA.events || []).map(function(e){ return e.code; });
   var syl    = master.length ? [] : syllabusEventsForComp().map(function(e){ return e.code; });
   var codes, src;
-  if (master.length)      { codes = master; src = 'この大会の種目マスタ'; }
+  if (master.length)      { codes = master; src = 'この大会の区分マスタ'; }
   else if (syl.length)    { codes = syl;    src = 'シラバスの競技内容'; }
   else                    { codes = PREV.event_codes || []; src = '前回の取込'; }
   /* DCSは使っていない区分の列も含めて常に40区分ぶん書き出すので、単純に「最後の列まで」を
-     種目数とすると空列を数えてしまう。出場者のマークが入っている最後の列までを実際の種目数とみなす。 */
+     区分数とすると空列を数えてしまう。出場者のマークが入っている最後の列までを実際の区分数とみなす。 */
   var evUsed = 0;
   if (evStart >= 0) {
     for (var i = n - 1; i >= evStart; i--) { if (colHasMark(i)) { evUsed = i - evStart + 1; break; } }
@@ -1406,7 +1406,7 @@ function autoDetect(){
 
   EV_START = evStart;   /* 「まとめて入力」で使う */
 
-  /* まとめて入力欄に、この大会の種目マスタ（無ければ前回取込時の並び）を初期表示しておく。
+  /* まとめて入力欄に、この大会の区分マスタ（無ければ前回取込時の並び）を初期表示しておく。
      毎回コードを打ち直さずに「割り当てる」を押すだけで済むように。 */
   if (codes.length && !el('bulk-codes').value) el('bulk-codes').value = codes.join(',');
 
@@ -1418,15 +1418,15 @@ function autoDetect(){
     + '／所属=' + (affil >= 0 ? '列' + (affil+1) : 'なし'));
   if (evStart >= 0 && assigned > 0) {
     msg.push('競技参加区分は列' + (evStart+1) + '以降と判断し、<b>' + src + '</b>の並び順で '
-      + assigned + '種目を割り当てました（' + codes.slice(0, assigned).join(', ') + '）。');
+      + assigned + '区分を割り当てました（' + codes.slice(0, assigned).join(', ') + '）。');
     if (assigned < evUsed) {
-      msg.push('<b>コードが ' + (evUsed - assigned) + '種目分足りません。</b>出場者のいる列が列' + (evStart + evUsed)
+      msg.push('<b>コードが ' + (evUsed - assigned) + '区分分足りません。</b>出場者のいる列が列' + (evStart + evUsed)
         + 'まであるのに、割り当てられたのは列' + (evStart + assigned) + 'までです。'
-        + '下の「種目コードをまとめて入力」欄に続きのコードを足して <b>「割り当てる」</b> を押してください。');
+        + '下の「区分コードをまとめて入力」欄に続きのコードを足して <b>「割り当てる」</b> を押してください。');
     }
     msg.push('※この順番はDCSの「競技内容設定」の並び順と一致している必要があります。');
   } else if (evStart >= 0) {
-    msg.push('競技参加区分は列' + (evStart+1) + '以降と判断しました。下の「種目コードをまとめて入力」欄に、DCSの競技内容設定の順でコードを入れて <b>「割り当てる」</b> を押してください（取り込み時に種目マスタへ自動登録されます）。');
+    msg.push('競技参加区分は列' + (evStart+1) + '以降と判断しました。下の「区分コードをまとめて入力」欄に、DCSの競技内容設定の順でコードを入れて <b>「割り当てる」</b> を押してください（取り込み時に区分マスタへ自動登録されます）。');
   } else {
     msg.push('競技参加区分の列を判定できませんでした。手動でチェックしてください。');
   }
@@ -1454,7 +1454,7 @@ function readCsvFile(file){
       renderMap();                       /* 画面には出さなくても、判定と割り当てはここで済ませる */
       el('imp-result').classList.add('hidden');
 
-      /* 直すところが無い（背番号・氏名が取れ、種目コードが出場列を全部覆っている）なら、
+      /* 直すところが無い（背番号・氏名が取れ、区分コードが出場列を全部覆っている）なら、
          割り当て画面を見せずにそのまま取り込む。確認を挟んでも手間なだけなので。
          取り込まなかったとき（既存の名簿がある場合の確認でキャンセルしたとき）だけ画面を出す。 */
       if (DETECT_OK) { runImport(true, function(){ showMapping(d.dcs_signature); }); return; }
@@ -1498,7 +1498,7 @@ function runImport(auto, onCancel){
     var code = document.querySelector('.ev-code[data-i="' + i + '"]').value.trim();
     cols.push({i:i, code:code});
   });
-  if (cols.some(function(c){ return !c.code; })) { alert('種目として選んだ列には、種目コードを入力してください'); return; }
+  if (cols.some(function(c){ return !c.code; })) { alert('区分として選んだ列には、区分コードを入力してください'); return; }
 
   var out = [];
   rows.forEach(function(r){
@@ -1523,12 +1523,12 @@ function runImport(auto, onCancel){
 
   post('api/uketsuke_save_roster.php', {
     id: COMP.id, mode: 'replace', roster: JSON.stringify(out),
-    /* エントリー0組の種目も種目マスタに残すため、指定した種目コードを一緒に送る */
+    /* エントリー0組の区分も区分マスタに残すため、指定した区分コードを一緒に送る */
     event_codes: JSON.stringify(cols.map(function(c){ return c.code; }))
   })
     .then(function(d){
       var msg = d.count + '組を取り込みました。';
-      if (d.new_events_created.length) msg += '<br>種目を仮登録しました: ' + esc(d.new_events_created.join(', ')) + '（種目タブで名称・時刻を確認してください）';
+      if (d.new_events_created.length) msg += '<br>区分を仮登録しました: ' + esc(d.new_events_created.join(', ')) + '（名簿タブで名称・時刻を確認してください）';
       if (d.duplicate_bibs.length) msg += '<br>CSV内で背番号が重複していました（後の行を採用）: ' + esc(d.duplicate_bibs.join(', '));
       var b = el('imp-result'); b.className = 'banner b-ok'; b.innerHTML = msg; b.classList.remove('hidden');
       PREV = null;
@@ -1540,7 +1540,7 @@ function runImport(auto, onCancel){
     });
 }
 
-/* ---------- 種目 ----------
+/* ---------- 区分 ----------
    start_time は画面上の「受付締切」。既に保存済みのデータと印刷ページが
    このキーを使っているため、表示名だけ変えてキー名は据え置いている。 */
 var EV = [];
@@ -1557,7 +1557,7 @@ function renderEvents(){
   });
 }
 
-/* 種目コードから種目名を推定する（api/_uketsuke.php の uk_guess_event_name と同じ規則）
+/* 区分コードから区分名を推定する（api/_uketsuke.php の uk_guess_event_name と同じ規則）
    級別戦: [J:一般/M:シニアII/G:シニアIII/R:シニアIV] + [級] + [S:スタンダード/L:ラテン]
    市民総体: FK + [W/T/C/R] + [1:一般/2:シニア] */
 function guessEventName(code){
@@ -1573,7 +1573,7 @@ function guessEventName(code){
   return c;
 }
 
-/* 種目名が未設定（コードのまま）の行だけ、推定した名前で埋める */
+/* 区分名が未設定（コードのまま）の行だけ、推定した名前で埋める */
 el('ev-guess').addEventListener('click', function(){
   var filled = 0;
   document.querySelectorAll('.ev-n').forEach(function(inp){
@@ -1584,14 +1584,14 @@ el('ev-guess').addEventListener('click', function(){
       if (g !== code) { inp.value = g; EV[i].name = g; filled++; }
     }
   });
-  if (!filled) { alert('補える種目名がありませんでした（既に名称が入っているか、規則に当てはまらないコードです）。'); return; }
+  if (!filled) { alert('補える区分名がありませんでした（既に名称が入っているか、規則に当てはまらないコードです）。'); return; }
   el('ev-save').click();
-  el('ev-saved').textContent = filled + '件の種目名を補いました';
+  el('ev-saved').textContent = filled + '件の区分名を補いました';
 });
 
 el('ev-add').addEventListener('click', function(){
   var c = el('ev-code').value.trim();
-  if (!c) { alert('種目コードを入力してください'); return; }
+  if (!c) { alert('区分コードを入力してください'); return; }
   EV.push({code:c, name:el('ev-name').value.trim() || c, start_time:el('ev-time').value.trim()});
   DATA.events = EV;
   el('ev-code').value=''; el('ev-name').value=''; el('ev-time').value='';
@@ -1618,8 +1618,8 @@ function saveEvents(focusIndex){
 }
 el('ev-save').addEventListener('click', function(){ saveEvents(); });
 
-/* 受付締切は上から続けて入れることが多いので、Enterで確定して次の種目の欄へ移る。
-   種目名の欄でEnterを押したときは、同じ行の受付締切へ移る。 */
+/* 受付締切は上から続けて入れることが多いので、Enterで確定して次の区分の欄へ移る。
+   区分名の欄でEnterを押したときは、同じ行の受付締切へ移る。 */
 el('ev-list').addEventListener('keydown', function(e){
   if (e.key !== 'Enter' && e.keyCode !== 13) return;
   var t = e.target;

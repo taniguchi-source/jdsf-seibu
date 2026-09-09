@@ -3,7 +3,7 @@
    mode=replace : 名簿をまるごと置き換える（CSV取込・全体編集）
    mode=upsert  : 送った背番号の行だけ追加・更新する（1組だけの手直し）
    mode=delete  : 送った背番号の行を削除する
-   名簿に無い種目コードが来たら、種目マスタへ仮登録（名称＝コード）する。 */
+   名簿に無い区分コードが来たら、区分マスタへ仮登録（名称＝コード）する。 */
 require __DIR__ . '/_uketsuke.php';
 require_auth_any(['admin', 'build', 'uketsuke']);
 
@@ -59,9 +59,9 @@ if ($mode === 'replace') {
 ksort($merged, SORT_NUMERIC);
 uk_write_json(uk_roster_file($id), array_values($merged));
 
-/* 種目マスタに無いコードを仮登録する。
-   取込画面で指定した種目コード（event_codes）は、エントリーが0組でも登録する。
-   その種目が競技会には存在するのに出場欠場一覧や印刷に出てこない、という事態を防ぐため。 */
+/* 区分マスタに無いコードを仮登録する。
+   取込画面で指定した区分コード（event_codes）は、エントリーが0組でも登録する。
+   その区分が競技会には存在するのに出場欠場一覧や印刷に出てこない、という事態を防ぐため。 */
 $events = uk_load_events($id);
 $known  = [];
 foreach ($events as $e) $known[$e['code'] ?? ''] = true;
@@ -85,7 +85,7 @@ foreach ($wanted as $c) {
 }
 if ($added) uk_write_json(uk_events_file($id), $events);
 
-/* 次回の取込で初期表示するため、指定された種目コードの並びを記憶する */
+/* 次回の取込で初期表示するため、指定された区分コードの並びを記憶する */
 $explicit = [];
 foreach (json_decode($_POST['event_codes'] ?? '[]', true) ?: [] as $c) {
     $c = mb_substr(preg_replace('/[^A-Za-z0-9_-]/', '', (string)$c), 0, 20);

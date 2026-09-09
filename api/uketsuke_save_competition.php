@@ -1,13 +1,13 @@
 <?php
 /* 大会の作成・名称変更・削除。
-   action=create : name,date,code(公認番号),events(種目) から新しい大会を作る（IDは自動採番）
+   action=create : name,date,code(公認番号),events(区分) から新しい大会を作る（IDは自動採番）
    action=rename : id の名称・日付・公認番号を変更
    action=delete : id の大会をデータごと削除 */
 require __DIR__ . '/_uketsuke.php';
 require_auth_any(['admin', 'build', 'uketsuke']);
 
-/* 「コード」「コード,種目名」「コード,種目名,開始時刻」を1行ずつ受け取って種目マスタにする。
-   種目名が省略されたらコードから推定する。 */
+/* 「コード」「コード,区分名」「コード,区分名,開始時刻」を1行ずつ受け取って区分マスタにする。
+   区分名が省略されたらコードから推定する。 */
 function uk_parse_event_lines($text) {
     $out  = [];
     $seen = [];

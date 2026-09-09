@@ -1,5 +1,5 @@
 <?php
-/* 1大会分のデータ（種目・名簿・チェックイン状況）を返す。
+/* 1大会分のデータ（区分・名簿・チェックイン状況）を返す。
    受付画面・出場欠場画面はこれを数秒ごとに取得して最新状態を表示する。 */
 require __DIR__ . '/_uketsuke.php';
 uk_require_read();
@@ -27,7 +27,7 @@ json_out([
     'date'       => $date,
     'events'     => $events,
     'roster'     => $roster,
-    /* 受付は種目単位。1件＝「背番号:種目」ひとつぶんの受付記録 */
+    /* 受付は区分単位。1件＝「背番号:区分」ひとつぶんの受付記録 */
     'checkins'   => array_values($checkins),
     'stock'      => array_values($stock),
     'updated_at' => uk_now(),

@@ -1,8 +1,8 @@
 <?php
-/* 受付のチェックイン。受付は種目（区分）単位で記録する。
-   - code を指定するとその種目だけ、all=1 ならその組のエントリー種目すべてを受付する
-   - 名簿に無い背番号・エントリーしていない種目は受け付けない（幽霊レコードを作らない）
-   - 既に受付済みの種目は二重に書かない（already で返す）
+/* 受付のチェックイン。受付は区分単位で記録する。
+   - code を指定するとその区分だけ、all=1 ならその組のエントリー区分すべてを受付する
+   - 名簿に無い背番号・エントリーしていない区分は受け付けない（幽霊レコードを作らない）
+   - 既に受付済みの区分は二重に書かない（already で返す）
    - 記録は1行ずつの追記なので、複数の受付端末が同時に押しても取りこぼさない */
 require __DIR__ . '/_uketsuke.php';
 require_auth_any(['admin', 'build', 'uketsuke']);
@@ -23,9 +23,9 @@ $entry = array_values((array)($person['events'] ?? []));
 
 $code = uk_str($_POST['code'] ?? '', 20);
 if ($code === '') {
-    /* 種目の指定なしで全種目が入ってしまわないよう、まとめて受付するときは all=1 を必ず付ける */
-    if (empty($_POST['all'])) json_out(['error' => '種目を指定してください'], 400);
-    if (!$entry) json_out(['error' => "背番号 {$bib} は出場種目が登録されていません"], 400);
+    /* 区分の指定なしで全区分が入ってしまわないよう、まとめて受付するときは all=1 を必ず付ける */
+    if (empty($_POST['all'])) json_out(['error' => '区分を指定してください'], 400);
+    if (!$entry) json_out(['error' => "背番号 {$bib} は出場区分が登録されていません"], 400);
     $codes = $entry;
 } else {
     if (!in_array($code, $entry, true)) {
@@ -45,7 +45,7 @@ foreach ($codes as $c) {
     $new[] = $c;
 }
 
-/* いま受付済みの種目。画面はこれを使って、その組の状態をそのまま描き直せる */
+/* いま受付済みの区分。画面はこれを使って、その組の状態をそのまま描き直せる */
 $done = [];
 foreach ($entry as $c) {
     if (in_array($c, $new, true) || isset($checkins[$bib . ':' . $c])) $done[] = $c;
@@ -57,9 +57,9 @@ json_out([
     'leader'      => $person['leader'] ?? '',
     'partner'     => $person['partner'] ?? '',
     'affiliation' => $person['affiliation'] ?? '',
-    'events'      => $entry,      /* エントリー種目（受付で読み上げ確認に使う） */
-    'done'        => $done,       /* うち受付済みの種目 */
-    'new'         => $new,        /* この操作で受付した種目 */
-    'already'     => $already,    /* 既に受付済みだった種目 */
+    'events'      => $entry,      /* エントリー区分（受付で読み上げ確認に使う） */
+    'done'        => $done,       /* うち受付済みの区分 */
+    'new'         => $new,        /* この操作で受付した区分 */
+    'already'     => $already,    /* 既に受付済みだった区分 */
     'at'          => $now,
 ]);

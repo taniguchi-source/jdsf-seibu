@@ -53,7 +53,7 @@
     <button id="b-all" class="secondary">全て選択</button>
     <button id="b-none" class="secondary">全て解除</button>
     <button id="b-print">印刷する</button>
-    <p class="muted" style="margin-bottom:0">種目ごとに改ページして印刷されます。</p>
+    <p class="muted" style="margin-bottom:0">区分ごとに改ページして印刷されます。</p>
   </div>
   <div id="report"></div>
 </main>
@@ -66,7 +66,7 @@ function esc(s){ if(s===null||s===undefined) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function fmtTime(iso){ if(!iso) return ''; var d=new Date(iso); return isNaN(d.getTime()) ? ''
   : d.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
-/* 種目名が未設定（コードのまま）のとき「JAS JAS」と二重に出さない */
+/* 区分名が未設定（コードのまま）のとき「JAS JAS」と二重に出さない */
 function evLabel(e){ var n = (e && e.name) ? String(e.name).trim() : '';
   return (!n || n === e.code) ? esc(e.code) : esc(e.code) + ' ' + esc(n); }
 function qs(k){ var m = new RegExp('[?&]'+k+'=([^&]*)').exec(location.search); return m ? decodeURIComponent(m[1]) : ''; }
@@ -94,7 +94,7 @@ else {
 }
 
 function render(){
-  /* 受付は種目（区分）ごと。その区分を受付した組だけが出場になる */
+  /* 受付は区分ごと。その区分を受付した組だけが出場になる */
   var done = {};
   (DATA.checkins||[]).forEach(function(c){ done[c.bib + ':' + c.code] = c.at; });
   var picked = [];
@@ -127,7 +127,7 @@ function render(){
             + esc(r.partner) + '</td><td>' + esc(r.affiliation) + '</td><td>' + esc(fmtTime(done[r.bib + ':' + e.code])) + '</td></tr>'; }).join('')
            || '<tr><td colspan="5" class="muted">なし</td></tr>')
         + '</tbody></table></div>';
-    }).join('') || '<p class="muted">種目を選択してください</p>';
+    }).join('') || '<p class="muted">区分を選択してください</p>';
 }
 
 el('b-all').addEventListener('click', function(){ document.querySelectorAll('.evc').forEach(function(c){ c.checked=true; }); render(); });

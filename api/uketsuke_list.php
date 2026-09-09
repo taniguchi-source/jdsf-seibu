@@ -17,7 +17,7 @@ foreach ($list as &$c) {
        別ページのタブから戻ってきたときだけ、画面側がこれを見て聞き直さずに開く。 */
     $c['unlocked']      = $has_code ? uk_comp_unlocked($id) : true;
     $c['roster_count']  = count(uk_load_roster($id));
-    /* 受付は種目単位だが、一覧に出すのは「来ている組」の数なので組で数え直す */
+    /* 受付は区分単位だが、一覧に出すのは「来ている組」の数なので組で数え直す */
     $c['checkin_count'] = count(uk_checked_bibs(uk_load_checkins($id)));
 }
 unset($c);
