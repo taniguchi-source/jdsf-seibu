@@ -28,10 +28,13 @@
   li{margin:4px 0}
   .lead{font-size:15px;color:var(--muted)}
   .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin:14px 0}
-  /* 画面写真は本文の幅より広く出す。ヘッダーとタブはそのままに、下の操作部分を大きく見せるため。 */
+  /* 画面写真は本文の幅を越えて、画面いっぱいに近い幅で出す。
+     写真は狭い幅（640px）の画面を倍密度で撮ってあるので、縮めずに並べると実画面の約2倍に見える。 */
   figure{margin:18px 0}
-  @media (min-width:1080px){ figure{margin-left:-90px;margin-right:-90px} }
-  @media (min-width:1320px){ figure{margin-left:-200px;margin-right:-200px} }
+  @media (min-width:1000px){
+    figure{width:calc(100vw - 40px);margin-left:calc(50% - 50vw + 20px);margin-right:0}
+    figcaption{text-align:center}
+  }
   figure img{display:block;width:auto;max-width:100%;height:auto;margin:0 auto;
     border:1px solid var(--border);border-radius:10px;background:#fff}
   figcaption{font-size:13px;color:var(--muted);margin-top:6px}
@@ -76,7 +79,8 @@
     h2{page-break-after:avoid;font-size:14pt;margin:18pt 0 6pt}
     h3{page-break-after:avoid;font-size:11.5pt}
     figure,table,.note,.warn,.ok,.card{page-break-inside:avoid}
-    figure{margin-left:0 !important;margin-right:0 !important}
+    figure{width:auto !important;margin-left:0 !important;margin-right:0 !important}
+    figcaption{text-align:left}
     figure img{border:1px solid #999;width:auto;max-width:100%}
     .video{display:none}
     section{page-break-before:always}
