@@ -1452,6 +1452,10 @@
             if (el) el.innerHTML = renderContentChips(k);
           });
         }
+        /* トップページのチップ枠(#content-chips-top)は #nav-cards の外にある固定カードなので
+           renderNavCards() では描画されない。読み込み後に必ず描画する。 */
+        var _topChips = document.getElementById('content-chips-top');
+        if (_topChips) _topChips.innerHTML = renderContentChips('top');
       })
       .catch(function(){
         ['top','1','2','3','4','5'].forEach(function(k){
