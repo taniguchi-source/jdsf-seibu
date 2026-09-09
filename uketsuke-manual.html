@@ -58,6 +58,9 @@
   .video{background:#0e131b;color:#fff;border-radius:12px;padding:18px 20px;margin:16px 0}
   .video a{color:#9ecbff;font-weight:700}
   .video .muted{color:#9aa4b2;font-size:13px}
+  /* 動画は幅に合わせて16:9で入れる */
+  .video-frame{position:relative;padding-top:56.25%;border-radius:8px;overflow:hidden;background:#000}
+  .video-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
   .foot{margin-top:50px;padding-top:14px;border-top:1px solid var(--border);color:var(--muted);font-size:13px}
   .print-only{display:none}
   @media print{
@@ -92,9 +95,14 @@
 </p>
 
 <div class="video web-only">
-  <b>解説動画（約9分）</b>
-  <div id="video-link">準備でき次第、ここにリンクを掲載します。</div>
-  <div class="muted">動画で全体をつかんでから、細かいところをこのマニュアルで確認すると分かりやすくなります。</div>
+  <b>解説動画（10分34秒）</b>
+  <div class="muted" style="margin-bottom:10px">動画で全体をつかんでから、細かいところをこのマニュアルで確認すると分かりやすくなります。</div>
+  <div class="video-frame">
+    <iframe src="https://player.vimeo.com/video/1225125074?h=bf4e3545b0"
+            title="競技会受付システム 操作マニュアル" loading="lazy"
+            allow="fullscreen; picture-in-picture" allowfullscreen></iframe>
+  </div>
+  <div style="margin-top:10px"><a href="https://vimeo.com/1225125074/bf4e3545b0" target="_blank" rel="noopener">Vimeo で開く →</a></div>
 </div>
 
 <div class="toc web-only">
