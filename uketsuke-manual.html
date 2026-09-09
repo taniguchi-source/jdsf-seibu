@@ -32,7 +32,8 @@
   figure{margin:18px 0}
   @media (min-width:1080px){ figure{margin-left:-90px;margin-right:-90px} }
   @media (min-width:1320px){ figure{margin-left:-200px;margin-right:-200px} }
-  figure img{width:100%;border:1px solid var(--border);border-radius:10px;display:block;background:#fff}
+  figure img{display:block;width:auto;max-width:100%;height:auto;margin:0 auto;
+    border:1px solid var(--border);border-radius:10px;background:#fff}
   figcaption{font-size:13px;color:var(--muted);margin-top:6px}
   .note{border-left:5px solid var(--primary);background:#eef2f8;padding:12px 16px;border-radius:0 8px 8px 0;
     margin:14px 0}
@@ -76,7 +77,7 @@
     h3{page-break-after:avoid;font-size:11.5pt}
     figure,table,.note,.warn,.ok,.card{page-break-inside:avoid}
     figure{margin-left:0 !important;margin-right:0 !important}
-    figure img{border:1px solid #999;width:100%}
+    figure img{border:1px solid #999;width:auto;max-width:100%}
     .video{display:none}
     section{page-break-before:always}
     section:first-of-type{page-break-before:auto}
@@ -314,7 +315,7 @@
 
 <figure>
   <img src="images/uketsuke-manual/10_part_done.jpg" alt="一部受付の結果">
-  <figcaption>押した区分だけが受付され、この画面は自動で閉じます。受付状況に「JAS（灰色） JBL（緑）」のように残ります。</figcaption>
+  <figcaption>押した区分だけが受付され、この画面は自動で閉じます。受付状況には、5番のように「JAS（灰色＝未受付）／JBL（緑＝受付済み）」と残ります。</figcaption>
 </figure>
 
 <ul>
