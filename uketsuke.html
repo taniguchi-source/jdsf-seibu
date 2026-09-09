@@ -856,6 +856,11 @@ el('bib').addEventListener('keydown', function(e){
   lookupBib();
 });
 /* 「受付」ボタンはその場で全区分を受付する（Enterと違って確認の1手を挟まない） */
+/* 次の組の背番号を打ち始めたら、前の組の区分の画面は閉じる */
+el('bib').addEventListener('input', function(){
+  var v = el('bib').value.trim();
+  if (PANEL_BIB !== null && v !== '' && v !== String(PANEL_BIB)) hidePanel();
+});
 el('ci-form').addEventListener('submit', function(e){
   e.preventDefault();
   var bib = el('bib').value.trim();
@@ -871,7 +876,7 @@ el('ci-part').addEventListener('click', function(){
   LOOKED_UP = null;
   el('ci-banner').classList.add('hidden');
   LAST_BIB = String(bib);
-  showPanel(bib, '出場する区分だけを押してください。押さなかった区分は欠場になります。');
+  showPanel(bib, '出場する区分だけを押してください（複数でも続けて押せます）。押さなかった区分は欠場になります。');
   /* 次の組をすぐ打てるように入力欄は空にする（区分ボタンは表示中の組で動く） */
   el('bib').value = '';
   el('ci-panel').scrollIntoView({block:'nearest'});
@@ -892,13 +897,14 @@ function hidePanel(){
   PANEL_BIB = null;
   el('ci-panel').classList.add('hidden');
 }
-/* 受付が済んだ組は受付状況の一覧に出て、そこで確かめられる。
-   選択画面を出したままにすると画面が長くなるだけなので自動で閉じる。
-   まだ1区分も受付していない組（全部取り消した直後など）は、押し直せるよう開いておく。 */
-function autoClosePanel(bib){
-  var done = doneMap();
-  var any = ((rosterOf(bib) || {}).events || []).some(function(c){ return !!done[bib + ':' + c]; });
-  if (any) hidePanel(); else showPanel(bib, '');
+/* 区分を押したあとの選択画面。
+   1組が3区分・4区分にエントリーしていて、そのうち2つ3つに出ることがあるので、
+   1つ押しただけでは閉じない（閉じると押し直しになる）。
+   画面を出したままにしないよう、次の組の背番号を打ち始めた時点で閉じる。 */
+function afterPanelAction(bib){
+  if (PANEL_BIB === null) return;
+  if (String(PANEL_BIB) !== String(bib)) { hidePanel(); return; }   /* 別の組を受付した */
+  showPanel(bib, '続けて他の区分も押せます。次の組の背番号を入れると閉じます。');
 }
 function notInRoster(bib){
   hidePanel();
@@ -973,7 +979,7 @@ function doCheckin(bib, code){
                       : '既に受付済みです：' + esc((r.already || []).join('・'))));
       return refresh().then(function(){
         renderRecent();
-        if (PANEL_BIB !== null && String(PANEL_BIB) === String(bib)) autoClosePanel(bib);
+        afterPanelAction(bib);
         /* 次の組をすぐ打てるように入力欄は空にする */
         el('bib').value = '';
         el('bib').focus();
@@ -993,7 +999,7 @@ function doUncheckin(bib, code){
       banner('warn', esc(who) + '<br>' + esc(code ? code + ' の受付を取り消しました' : '全区分の受付を取り消しました'));
       return refresh().then(function(){
         renderRecent();
-        if (PANEL_BIB !== null && String(PANEL_BIB) === String(bib)) autoClosePanel(bib);
+        afterPanelAction(bib);
       });
     })
     .catch(function(e){ alert(e.message); });
