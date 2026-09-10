@@ -535,7 +535,7 @@ function loadComps(quiet){
         if (pw === null || pw === '') return;
         post('api/uketsuke_save_competition.php', {action:'delete', id:b.dataset.del, password:pw})
           .then(function(){
-            if (COMP && COMP.id === b.dataset.del) { COMP = null; el('hd-comp').textContent = ''; }
+            if (COMP && COMP.id === b.dataset.del) { COMP = null; renderBy(); el('hd-comp').textContent = ''; }
             try { if (localStorage.getItem('uk_last_comp') === b.dataset.del) localStorage.removeItem('uk_last_comp'); } catch (e) {}
             loadComps();
           })
@@ -661,6 +661,7 @@ function openComp(id, needCode, keepView){
     .then(function(){ return refresh(id); })
     .then(function(){
       COMP = {id:id, name:DATA.name, date:DATA.date};
+      renderBy();
       el('hd-comp').textContent = DATA.name + (DATA.date ? '（' + DATA.date + '）' : '');
       try { localStorage.setItem('uk_last_comp', id); } catch (e) {}
       clearWorkState();
@@ -754,6 +755,7 @@ function syncFailed(msg){
   if (/見つかりません|Forbidden|公認番号/.test(SYNC_ERR)) {
     if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
     COMP = null;
+    renderBy();
     el('hd-comp').textContent = '';
     try { localStorage.removeItem('uk_last_comp'); } catch (e) {}
     alert('この大会を開けなくなりました（' + SYNC_ERR + '）。\n大会を選び直してください。');
@@ -795,8 +797,9 @@ window.addEventListener('online', function(){ pollTick(); });
 el('by').value = localStorage.getItem('uk_by') || '';
 function renderBy(){
   var v = el('by').value.trim();
-  /* 誰の名前で受付しているかは常に見えている必要があるので、受付タブに出す */
-  el('tab-checkin').textContent = '受付（' + (v || '未設定') + '）';
+  /* 誰の名前で受付しているかは常に見えている必要があるので、受付タブに出す。
+     ただし大会を開く前は受付そのものができないので、名前は出さない。 */
+  el('tab-checkin').textContent = COMP ? '受付（' + (v || '未設定') + '）' : '受付';
 }
 function saveBy(v){
   el('by').value = String(v || '').trim();
