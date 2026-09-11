@@ -231,11 +231,13 @@
     <section id="v-checkin" class="hidden">
       <!-- 誰の名前で受付しているかは常に見えている必要があるが、入力欄を出しっぱなしにすると
            背番号の邪魔になるので、名前の表示と「変更」ボタンだけを置く -->
-      <!-- 担当者名はタブに出しているので、ここには変更の入口だけ置く。
+      <!-- 誰の名前で受付しているかは、タブとこの行の両方に出す。
            記録に付ける値は #by が持つ（この端末の localStorage に記憶する）。 -->
       <input type="hidden" id="by">
       <div class="row" style="margin-bottom:10px">
-        <button type="button" class="small secondary" id="ci-by-edit" style="margin-left:auto">受付担当者名を変更</button>
+        <span class="muted" style="margin-left:auto">受付担当者</span>
+        <b id="ci-by-name">未設定</b>
+        <button type="button" class="small secondary" id="ci-by-edit">受付担当者名を変更</button>
       </div>
 
       <form class="card" id="ci-form">
@@ -845,6 +847,7 @@ function renderBy(){
   /* 誰の名前で受付しているかは常に見えている必要があるので、受付タブに出す。
      ただし大会を開く前は受付そのものができないので、名前は出さない。 */
   el('tab-checkin').textContent = COMP ? '受付（' + (v || '未設定') + '）' : '受付';
+  el('ci-by-name').textContent = v || '未設定';
 }
 function saveBy(v){
   el('by').value = String(v || '').trim();
