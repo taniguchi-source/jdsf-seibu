@@ -398,12 +398,12 @@ function post(url, obj){
   Object.keys(obj || {}).forEach(function(k){ fd.append(k, obj[k]); });
   return fetch(url, {method:'POST', body:fd, headers:{'X-CSRF-Token': CSRF}})
     .then(function(r){ return r.json().catch(function(){ return {error:'通信エラー'}; }); })
-    .then(function(j){ if (j && j.error) throw new Error(j.error); return j; });
+    .then(function(j){ if (j && j.error) throw new Error(j.message || j.error); return j; });
 }
 function get(url){
   return fetch(url, {headers:{'X-CSRF-Token': CSRF}})
     .then(function(r){ return r.json().catch(function(){ return {error:'通信エラー'}; }); })
-    .then(function(j){ if (j && j.error) throw new Error(j.error); return j; });
+    .then(function(j){ if (j && j.error) throw new Error(j.message || j.error); return j; });
 }
 function esc(s){
   if (s === null || s === undefined) return '';
@@ -530,16 +530,22 @@ function loadComps(quiet){
       b.addEventListener('click', function(){
         var c = d.competitions.filter(function(x){ return x.id === b.dataset.del; })[0] || {};
         if (!confirm('「' + (c.name || b.dataset.del) + '」の名簿・区分・受付記録をすべて削除します。\n元に戻せません。よろしいですか？')) return;
-        var pw = prompt('削除を実行するには、役員ページのパスワードを入力してください'
-          + (IS_LOCAL ? '\n（ローカル動作確認用サーバーのパスワードです。本番のものではありません）' : ''));
-        if (pw === null || pw === '') return;
-        post('api/uketsuke_save_competition.php', {action:'delete', id:b.dataset.del, password:pw})
-          .then(function(){
-            if (COMP && COMP.id === b.dataset.del) { COMP = null; renderBy(); el('hd-comp').textContent = ''; }
-            try { if (localStorage.getItem('uk_last_comp') === b.dataset.del) localStorage.removeItem('uk_last_comp'); } catch (e) {}
-            loadComps();
-          })
-          .catch(function(e){ alert(e.message); });
+        /* サーバーは「開いていない大会」の削除を拒むので、鍵のかかった大会はまず開いてもらう */
+        var need = c.need_code && !(COMP && COMP.id === c.id);
+        var step = need ? openComp(c.id, true, true) : Promise.resolve();
+        step.then(function(){
+          if (need && !(COMP && COMP.id === c.id)) return;   /* 公認番号が違う／取り消した */
+          var pw = prompt('削除を実行するには、役員ページのパスワードを入力してください'
+            + (IS_LOCAL ? '\n（ローカル動作確認用サーバーのパスワードです。本番のものではありません）' : ''));
+          if (pw === null || pw === '') return;
+          post('api/uketsuke_save_competition.php', {action:'delete', id:b.dataset.del, password:pw})
+            .then(function(){
+              if (COMP && COMP.id === b.dataset.del) { COMP = null; renderBy(); el('hd-comp').textContent = ''; }
+              try { if (localStorage.getItem('uk_last_comp') === b.dataset.del) localStorage.removeItem('uk_last_comp'); } catch (e) {}
+              loadComps();
+            })
+            .catch(function(e){ alert(e.message); });
+        });
       });
     });
     restoreLastComp(d.competitions);
