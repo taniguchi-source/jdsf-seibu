@@ -58,6 +58,8 @@
   .checkbox-row input[type=checkbox]{width:20px;height:20px}
   /* チェックが入るまで OK は押せない。押せないことが見て分かるようにする */
   button:disabled{opacity:.4;cursor:not-allowed}
+  .modal-box .alert{background:#fef3c7;color:#b45309;border-left:5px solid #b45309;
+    padding:10px 12px;border-radius:0 8px 8px 0;margin-top:12px;font-weight:700;font-size:14px}
   .print-only{display:none}
   @media print{
     header,.no-print{display:none !important}
@@ -104,6 +106,7 @@
 <div id="asg-dlg" class="modal hidden no-print">
   <div class="modal-box">
     <h2 id="asg-title"></h2>
+    <div id="asg-warn" class="alert hidden"></div>
     <div class="q">あなたは ST ですか</div>
     <label class="checkbox-row"><input type="checkbox" id="asg-c1"><span>はい、私が ST です</span></label>
     <div class="q" id="asg-q2"></div>
@@ -255,15 +258,28 @@ function bindAssign(){
     b.addEventListener('click', function(){
       var code = b.dataset.assign;
       var a = assignMap()[code];
-      openAssignDlg(code, !a, function(){ sendAssign(b, code, !a); });
+      /* 本当に来ていないかを確かめないまま振分を締めてしまわないよう、押す前に知らせる */
+      var warn = '';
+      if (!a) {
+        var stock = stockMap();
+        var un = absentFor([code]).filter(function(r){ return !stock[r.bib]; })
+                                  .map(function(r){ return r.bib; });
+        if (un.length) {
+          warn = '背番号在庫のチェックが入っていない組があります（背番号 ' + un.join('・') + '）';
+          alert(warn + '。\n本当に来ていないかを確かめてから進めてください。');
+        }
+      }
+      openAssignDlg(code, !a, function(){ sendAssign(b, code, !a); }, warn);
     });
   });
 }
 /* 押し間違えるとその区分の受付が止まるので、はい/いいえ ではなく
    「自分がSTであること」「振分が済んだこと」の2つにチェックを入れてもらう。 */
 var ASG_RUN = null;
-function openAssignDlg(code, on, run){
+function openAssignDlg(code, on, run, warn){
   ASG_RUN = run;
+  el('asg-warn').textContent = warn || '';
+  el('asg-warn').classList.toggle('hidden', !warn);
   el('asg-title').textContent = on
     ? code + ' の ST初期振分を「完了」にします'
     : code + ' の ST初期振分を「未」に戻します';
