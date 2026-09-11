@@ -19,15 +19,10 @@ if (mb_strlen($new) < 8) json_out(['error' => '新しいパスワードは8文�
 
 /* ===== 担当者用（競技予定）: data/schedule_auth.php ===== */
 if ($role === 'schedule') {
-    /* 役員（admin/build）またはログイン中の担当者が変更可。実質のゲートは「現在の値」。 */
+    /* サイト構築/役員でログイン済みなら現在PW不要（信頼済み操作）。担当者自身のセッションでも可。 */
     if (empty($_SESSION['auth']['build']) && empty($_SESSION['auth']['admin']) && empty($_SESSION['auth']['schedule'])) {
         json_out(['error' => 'Forbidden'], 403);
     }
-    $stored = load_schedule_auth();
-    if ($stored !== '') {                 // 既に設定済み → 現在のパスワードを照合
-        if (!password_verify($cur, $stored)) json_out(['error' => '現在のパスワードが正しくありません'], 403);
-        if ($new === $cur)                   json_out(['error' => '現在のパスワードと異なるものにしてください'], 400);
-    }                                     // 未設定（初回）は現PW不要
     if (!save_schedule_auth(password_hash($new, PASSWORD_DEFAULT))) json_out(['error' => '保存に失敗しました'], 500);
     json_out(['ok' => true]);
 }
@@ -37,26 +32,25 @@ if ($role === 'uketsuke') {
     if (empty($_SESSION['auth']['build']) && empty($_SESSION['auth']['admin']) && empty($_SESSION['auth']['uketsuke'])) {
         json_out(['error' => 'Forbidden'], 403);
     }
-    $stored = load_uketsuke_auth();
-    if ($stored !== '') {
-        if (!password_verify($cur, $stored)) json_out(['error' => '現在のパスワードが正しくありません'], 403);
-        if ($new === $cur)                   json_out(['error' => '現在のパスワードと異なるものにしてください'], 400);
-    }
     if (!save_uketsuke_auth(password_hash($new, PASSWORD_DEFAULT))) json_out(['error' => '保存に失敗しました'], 500);
     json_out(['ok' => true]);
 }
 
-/* ===== 役員用 / サイト構築ページ用: data/auth.php =====
-   build セッションがあれば admin/build どちらのPWも変更可（変更には対象PWの現在値が必須）。
-   従来どおり対象ロール自身のセッションでも可。 */
-if (empty($_SESSION['auth']['build']) && empty($_SESSION['auth'][$role])) json_out(['error' => 'Forbidden'], 403);
-if ($new === $cur) json_out(['error' => '現在のパスワードと異なるものにしてください'], 400);
-
+/* ===== 役員用(admin) / サイト構築用(build): data/auth.php =====
+   役員用は、サイト構築/役員でログイン済みなら現在PW不要（信頼済み操作）。
+   サイト構築用(build)は入口のパスワードのため、従来どおり現在PWが必要。 */
 $auth = load_auth();
-if (empty($auth[$role]) || !password_verify($cur, $auth[$role])) {
-    json_out(['error' => '現在のパスワードが正しくありません'], 403);
+if ($role === 'admin') {
+    if (empty($_SESSION['auth']['build']) && empty($_SESSION['auth']['admin'])) json_out(['error' => 'Forbidden'], 403);
+    $auth['admin'] = password_hash($new, PASSWORD_DEFAULT);
+} else { /* build */
+    if (empty($_SESSION['auth']['build'])) json_out(['error' => 'Forbidden'], 403);
+    if ($new === $cur) json_out(['error' => '現在のパスワードと異なるものにしてください'], 400);
+    if (empty($auth['build']) || !password_verify($cur, $auth['build'])) {
+        json_out(['error' => '現在のパスワードが正しくありません'], 403);
+    }
+    $auth['build'] = password_hash($new, PASSWORD_DEFAULT);
 }
-$auth[$role] = password_hash($new, PASSWORD_DEFAULT);
 if (!save_auth($auth)) json_out(['error' => '保存に失敗しました'], 500);
 
 // 私用シートへ書き戻し（ベストエフォート。失敗してもローカルのPW変更は成立）
