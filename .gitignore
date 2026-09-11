@@ -19,3 +19,7 @@ data/auth_secret.php
 data/login_attempts.php
 data/schedule_auth.php
 data/special_auth.php
+data/uketsuke_auth.php
+
+# サーバー側で編集する参考資料データ（officers画面で追加・削除・競技用表示を管理）
+data/references.json
