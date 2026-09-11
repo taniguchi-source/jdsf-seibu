@@ -175,7 +175,6 @@
     <button data-view="roster">名簿</button>
     <button data-view="checkin" id="tab-checkin">受付</button>
     <button data-view="rollcall">欠場報告</button>
-    <button data-view="admin">管理</button>
   </nav>
 
   <main>
@@ -408,19 +407,6 @@
     </section>
 
 
-    <!-- ======== 管理 ======== -->
-    <section id="v-admin" class="hidden">
-      <h2>管理</h2>
-      <div class="card">
-        <p class="muted">
-          テスト受付の記録を消して、本番前に初期化したいときに使います。名簿・区分は消えません。<br>
-          受付をやり直せなくなる操作なので、実行には役員ページのパスワードが必要です。
-        </p>
-        <p class="muted">現在の受付: <b id="ad-count">-</b></p>
-        <button class="danger" id="ci-reset">全員の受付を解除</button>
-      </div>
-    </section>
-
  </main>
 </div>
 
@@ -492,7 +478,7 @@ function doLogin(){
 }
 
 /* ---------- タブ切替 ---------- */
-var views = ['comp','checkin','rollcall','roster','admin'];
+var views = ['comp','checkin','rollcall','roster'];
 /* 欠場者一覧など別ページのタブから「uketsuke.html#画面名」で戻ってきたら、その画面を開く。
    公認番号を求められる大会では、番号を入れて大会を開いた時点で切り替える（それまで覚えておく）。 */
 var HASH_VIEW = (location.hash || '').replace(/^#/, '');
@@ -534,7 +520,6 @@ function switchView(v){
   if (v === 'checkin') { renderRecent(); el('bib').focus(); }
   if (v === 'rollcall') renderRollcall();
   if (v === 'roster') { renderEvents(); renderRoster(); renderEventChecks(); }
-  if (v === 'admin') renderAdmin();
   /* 受付以外の画面にいても更新を続ける。ヘッダーの更新時刻が動いていることが、
      その端末が最新であることの目印になるため。 */
   startPolling(true);
@@ -827,7 +812,6 @@ function pollTick(){
     renderSync();
     if (!el('v-checkin').classList.contains('hidden')) renderRecent();
     if (!el('v-rollcall').classList.contains('hidden')) renderRollcall();
-    if (!el('v-admin').classList.contains('hidden')) renderAdmin();
   }).catch(function(e){ syncFailed(e && e.message); });
 }
 function startPolling(on){
@@ -1156,33 +1140,6 @@ function renderRecent(){
     btn.addEventListener('click', function(){ doUncheckin(btn.dataset.uncheck, null); });
   });
 }
-el('ci-reset').addEventListener('click', function(){
-  var n = adminCounts();
-  if (!confirm('現在 ' + n.bibs + ' 組（' + n.events + ' 区分）の受付記録があります。'
-    + '\nすべて解除して受付前の状態に戻しますか？')) return;
-  /* 受付をやり直せなくなるので、大会の削除と同じく役員ページのパスワードを求める（サーバー側でも照合する） */
-  var pw = prompt('解除を実行するには、役員ページのパスワードを入力してください'
-    + (IS_LOCAL ? '\n（ローカル動作確認用サーバーのパスワードです。本番のものではありません）' : ''));
-  if (pw === null || pw === '') return;
-  post('api/uketsuke_reset_checkins.php', {id:COMP.id, by:el('by').value, password:pw})
-    .then(function(d){
-      alert(d.cleared + ' 組（' + d.cleared_events + ' 区分）を解除しました');
-      return refresh().then(function(){ renderRecent(); renderAdmin(); });
-    })
-    .catch(function(e){ alert(e.message); });
-});
-
-/* 管理画面の件数。受付は区分ごとに記録するので、組と区分の両方を出す。 */
-function adminCounts(){
-  var bibs = {};
-  (DATA.checkins || []).forEach(function(c){ bibs[c.bib] = 1; });
-  return {bibs: Object.keys(bibs).length, events: (DATA.checkins || []).length};
-}
-function renderAdmin(){
-  var n = adminCounts();
-  el('ad-count').textContent = n.bibs + ' 組（' + n.events + ' 区分）';
-}
-
 /* ---------- 欠場報告 ----------
    背番号在庫のチェックは受付とは別の人が担当するので、名前も受付担当者とは別に持つ。 */
 function absentBy(){
