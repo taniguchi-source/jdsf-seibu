@@ -98,6 +98,8 @@
   /* 照会と受付結果の帯に出す出場区分。読み上げ確認に使うので、1つずつ離して大きく出す */
   .ev-pill{display:inline-block;margin:3px 4px 0;padding:3px 10px;border-radius:999px;
     font-size:14px;font-weight:700;background:#fff;border:1px solid var(--border);color:var(--text)}
+  /* ST初期振分が済んだ区分は自動では受付できないので、取り消し線で分かるようにする */
+  .ev-pill.ev-locked{text-decoration:line-through;color:var(--muted);background:#f2f3f5}
   /* 受付は区分ごとに押す。押しやすい大きさを取り、受付済みは色で分かるようにする */
   .ev-grid{display:grid;gap:8px}
   .ev-btn{display:block;width:100%;text-align:left;background:var(--card);color:var(--text);
@@ -856,10 +858,11 @@ var LAST_BIB  = null;   /* 直前に扱った組。入力欄が空でも「一�
 
 /* 出場区分。照会と受付結果に出して、読み上げ確認に使う。 */
 function evHtml(codes){
+  var asg = assignMap();
   var evs = (codes || []).map(function(c){
     var m = (DATA.events || []).filter(function(e){ return e.code === c; })[0];
     var nm = (m && m.name && m.name !== c) ? ' ' + m.name : '';
-    return '<span class="ev-pill">' + esc(c + nm) + '</span>';
+    return '<span class="ev-pill' + (asg[c] ? ' ev-locked' : '') + '">' + esc(c + nm) + '</span>';
   }).join('');
   return evs ? '<br>' + evs : '<br><span class="muted">出場区分の登録がありません</span>';
 }
@@ -950,10 +953,17 @@ function lookupBib(){
   var done  = doneMap();
   var rest  = (r.events || []).filter(function(c){ return !done[r.bib + ':' + c]; });
   var isDone = (r.events || []).length && !rest.length;
-  banner(isDone ? 'warn' : 'info',
+  /* ST初期振分が済んだ区分は受付できない。押す前に分かるように理由を書く。 */
+  var asg = assignMap();
+  var locked = (r.events || []).filter(function(c){ return asg[c]; });
+  var canDo  = rest.filter(function(c){ return !asg[c]; });
+  banner(isDone ? 'warn' : (locked.length ? 'warn' : 'info'),
     whoHtml(r.bib, r) + evHtml(r.events) + '<br>'
+    + (locked.length ? '<b>' + esc(locked.join('・')) + ' は初期振分が済んでいるため、自動では受付できません（手動対応してください）</b><br>' : '')
     + (isDone ? '全区分 受付済みです'
-              : '内容が正しければ、もう一度Enterを押すか「受付」を押してください'));
+       : canDo.length ? '内容が正しければ、もう一度Enterを押すか「受付」を押してください'
+                        + (locked.length ? '（' + esc(canDo.join('・')) + ' だけ受付します）' : '')
+       : '受付できる区分がありません'));
 }
 
 /* 表示中の組の区分ボタンを描く。受付済みの区分は緑になり、押すと取消になる。 */
