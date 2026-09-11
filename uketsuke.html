@@ -262,12 +262,12 @@
         <label class="muted">区分</label>
         <select id="rc-event"></select>
         <div style="height:10px"></div>
-        <a class="btn secondary" id="rc-print" href="uketsuke-absent.html" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">欠場者のみのページを開く</a>
-        <div style="height:14px"></div>
         <div class="row wrap">
-          <button type="button" class="small secondary" id="rc-assign">ST初期振分：未</button>
-          <span class="muted" id="rc-assign-note"></span>
+          <a class="btn secondary" id="rc-print" href="uketsuke-absent.html" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">欠場者のみのページを開く</a>
+          <button type="button" class="secondary" id="rc-assign" style="margin-left:auto">ST初期振分：未</button>
         </div>
+        <div style="height:8px"></div>
+        <span class="muted" id="rc-assign-note"></span>
       </div>
       <div class="row wrap">
         <span class="pill" id="rc-a-count">欠場 0</span>
@@ -1156,7 +1156,7 @@ function renderAssign(code){
   var a = assignMap()[code];
   var b = el('rc-assign');
   b.textContent = 'ST初期振分：' + (a ? '完了' : '未');
-  b.className = 'small ' + (a ? 'assign-done' : 'secondary');
+  b.className = (a ? 'assign-done' : 'secondary');
   b.dataset.code = code || '';
   el('rc-assign-note').textContent = a
     ? '完了 ' + fmtTime(a.at) + (a.by ? '（' + a.by + '）' : '') + '　この区分の受付・取消はできません'
