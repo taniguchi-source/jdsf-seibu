@@ -844,9 +844,8 @@ function loadBy(){
 }
 function renderBy(){
   var v = el('by').value.trim();
-  /* 誰の名前で受付しているかは常に見えている必要があるので、受付タブに出す。
-     ただし大会を開く前は受付そのものができないので、名前は出さない。 */
-  el('tab-checkin').textContent = COMP ? '受付（' + (v || '未設定') + '）' : '受付';
+  /* 誰の名前で受付しているかは、受付画面の上（変更ボタンの左）に出す。
+     タブは「受付」のままにしておく。 */
   el('ci-by-name').textContent = v || '未設定';
 }
 function saveBy(v){
