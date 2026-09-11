@@ -263,12 +263,12 @@ function showApp(){
 }
 function changeMyPassword(){
   var cur=document.getElementById('cpw-current'), nw=document.getElementById('cpw-new'), nw2=document.getElementById('cpw-new2'), msg=document.getElementById('cpw-msg');
-  function show(t,err){ msg.style.display='block'; msg.style.color=err?'#C53030':'#276749'; msg.textContent=t; }
+  function show(t,err){ msg.style.display='block'; msg.style.color=err?'#C53030':'#276749'; msg.style.fontWeight='700'; msg.style.padding='8px 12px'; msg.style.borderRadius='6px'; msg.style.background=err?'#FEE2E2':'#DCFCE7'; msg.textContent=t; }
   if(!nw.value||nw.value.length<8) return show('新しいパスワードは8文字以上にしてください。',true);
   if(nw.value!==nw2.value) return show('新しいパスワード（確認）が一致しません。',true);
   var rSel=document.querySelector('input[name="cpw-role"]:checked'); var role=rSel?rSel.value:'build';
   var fd=new FormData(); fd.append('role',role); fd.append('current',cur.value); fd.append('new',nw.value);
-  fetch('api/change_password.php',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(res){ if(res&&res.ok){show('✅ パスワードを変更しました。',false); cur.value=nw.value=nw2.value='';} else show('⚠ '+((res&&res.error)||'変更に失敗しました'),true); }).catch(function(){show('⚠ 通信エラー',true);});
+  fetch('api/change_password.php',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(res){ if(res&&res.ok){ cur.value=nw.value=nw2.value=''; show('✅ パスワードを変更しました。',false); var rs=document.querySelector('input[name="cpw-role"]:checked'); var rn={admin:'役員用',build:'サイト構築ページ用',schedule:'担当者用（競技予定）',uketsuke:'受付システム用'}[rs?rs.value:'']||''; alert('✅ '+(rn?rn+'の':'')+'パスワードを変更しました。'); } else show('⚠ '+((res&&res.error)||'変更に失敗しました'),true); }).catch(function(){show('⚠ 通信エラー',true);});
 }
 function openPwModal(){ var e=document.getElementById('cpw-msg'); if(e)e.style.display='none'; ['cpw-current','cpw-new','cpw-new2'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';}); var rb=document.querySelector('input[name="cpw-role"][value="build"]'); if(rb)rb.checked=true; document.getElementById('pw-modal').style.display='flex'; }
 function closePwModal(){ document.getElementById('pw-modal').style.display='none'; }
