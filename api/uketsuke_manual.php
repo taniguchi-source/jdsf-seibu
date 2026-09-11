@@ -4,7 +4,7 @@
    uketsuke_checkin.php / uketsuke_uncheckin.php が書く。
    チェックインと同じ追記方式なので、複数端末で同時に操作しても記録が壊れない。
      op=add  : 背番号と区分を指定して1件足す（電話で欠場連絡が来たときなど）
-     op=note : その件のメモを書く（メモが入った件は対応済みとして扱う。空にすると未対応へ戻る） */
+     op=note : その件の「理由」と「メモ」を書く（メモが入った件は対応済みとして扱う。空にすると未対応へ戻る） */
 require __DIR__ . '/_uketsuke.php';
 require_auth_any(['admin', 'build', 'uketsuke']);
 
@@ -44,10 +44,13 @@ if ($op === 'add') {
 }
 
 if ($op === 'note') {
-    $note = uk_str($_POST['note'] ?? '', 200);
+    /* reason = なぜ手動対応が要るのか（例：初期振分の終了後に受付希望）
+       note   = どう対応したか。note が入っていれば対応済みとして扱う。 */
+    $reason = uk_str($_POST['reason'] ?? '', 300);
+    $note   = uk_str($_POST['note'] ?? '', 300);
     uk_append_checkin($id, ['action' => 'manual_note', 'bib' => $bib, 'code' => $code,
-                            'note' => $note, 'at' => uk_now(), 'by' => $by]);
-    json_out(['ok' => true, 'bib' => $bib, 'code' => $code, 'note' => $note]);
+                            'reason' => $reason, 'note' => $note, 'at' => uk_now(), 'by' => $by]);
+    json_out(['ok' => true, 'bib' => $bib, 'code' => $code, 'reason' => $reason, 'note' => $note]);
 }
 
 json_out(['error' => 'op が不正です'], 400);

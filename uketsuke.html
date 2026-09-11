@@ -36,8 +36,13 @@
   #mn-list td:nth-child(1),#mn-list td:nth-child(5),#mn-list td:nth-child(6){white-space:nowrap}
   #mn-list td:first-child{font-size:13px;color:var(--muted)}
   #mn-list td:nth-child(2){font-size:20px;font-weight:800;color:var(--primary);width:1%}
-  #mn-list td:nth-child(7){width:36%}
-  #mn-list .mn-note{width:100%;min-width:90px}
+  /* 1件を2行で出す。上の行が誰のどの区分か、下の行が理由とメモ（広く書けるように全幅） */
+  #mn-list tr.mn-r1 td{border-bottom:none;padding-bottom:2px}
+  #mn-list tr.mn-r2 td{padding-top:2px}
+  #mn-list .mn-fields{display:flex;flex-direction:column;gap:6px}
+  #mn-list .mn-line{display:flex;align-items:center;gap:8px}
+  #mn-list .mn-lab{flex:none;width:3.2em;font-size:12px;color:var(--muted);font-weight:700}
+  #mn-list .mn-note,#mn-list .mn-reason{flex:1 1 auto;width:100%}
   #mn-list .mn-ev{font-weight:700}
   #mn-list .mn-sub{display:block;font-size:12px;color:var(--muted)}
   #v-manual th{white-space:nowrap}
@@ -360,11 +365,11 @@
       <div class="print-only" id="mn-print-head"></div>
       <p class="muted no-print">
         ST初期振分が済んだあとに受付・取消をしようとして止まった件が、ここに自動でたまります。
-        対応したら、どうしたかを<b>メモ</b>に書いてください。書いた件は対応済みになり、タブの件数から外れます。
+1件ごとに<b>理由</b>（なぜ手動対応が要るのか）と<b>メモ</b>（どう対応したか）を書けます。
+        <b>メモを書いた件は対応済み</b>になり、タブの件数から外れます。
       </p>
       <table class="dense">
-        <thead><tr><th>時刻</th><th>背番号</th><th>選手</th><th>区分</th><th>操作</th><th>担当</th>
-          <th>メモ</th></tr></thead>
+        <thead><tr><th>時刻</th><th>背番号</th><th>選手</th><th>区分</th><th>操作</th><th>担当</th></tr></thead>
         <tbody id="mn-list"></tbody>
       </table>
 
@@ -1386,7 +1391,10 @@ function renderManual(){
     var ev = (DATA.events || []).filter(function(e){ return e.code === m.code; })[0] || {code:m.code};
     var note = String(m.note || '');
     var key = ' data-bib="' + esc(m.bib) + '" data-code="' + esc(m.code) + '"';
-    return '<tr class="' + (note.trim() ? 'mn-done' : 'mn-todo') + '">'
+    var cls = note.trim() ? 'mn-done' : 'mn-todo';
+    var reason = String(m.reason || '');
+    /* 1件目の行は「誰のどの区分か」、2行目は理由とメモ。1行では書ききれないため。 */
+    return '<tr class="' + cls + ' mn-r1">'
       + '<td>' + esc(fmtTime(m.last_at || m.at))
       + (m.count > 1 ? ' <span class="muted">' + m.count + '回</span>' : '') + '</td>'
       + '<td><b>' + esc(m.bib) + '</b></td>'
@@ -1396,21 +1404,28 @@ function renderManual(){
       + (ev.name && ev.name !== m.code ? '<span class="mn-sub">' + esc(ev.name) + '</span>' : '') + '</td>'
       + '<td>' + esc(MN_KIND[m.kind] || m.kind || '') + '</td>'
       + '<td class="muted">' + esc(m.by || '') + '</td>'
-      + '<td><span class="row no-print">'
-      + '<input type="text" class="mn-note"' + key + ' value="' + esc(note) + '" placeholder="どう対応したか">'
-      + '<button type="button" class="small secondary mn-save"' + key + '>保存</button></span>'
-      + '<span class="print-only">' + esc(note) + '</span></td>'
-      + '</tr>';
-  }).join('') || '<tr><td colspan="7" class="muted">ありません</td></tr>';
+      + '</tr>'
+      + '<tr class="' + cls + ' mn-r2">'
+      + '<td colspan="6"><div class="mn-fields">'
+      + '<div class="mn-line no-print"><span class="mn-lab">理由</span>'
+      + '<input type="text" class="mn-reason"' + key + ' value="' + esc(reason) + '"'
+      + ' placeholder="例：初期振分の終了後に受付希望"></div>'
+      + '<div class="mn-line no-print"><span class="mn-lab">メモ</span>'
+      + '<input type="text" class="mn-note"' + key + ' value="' + esc(note) + '"'
+      + ' placeholder="どう対応したか">'
+      + '<button type="button" class="small secondary mn-save"' + key + '>保存</button></div>'
+      + '<div class="print-only">理由：' + esc(reason) + '　メモ：' + esc(note) + '</div>'
+      + '</div></td></tr>';
+  }).join('') || '<tr><td colspan="6" class="muted">ありません</td></tr>';
 
   el('mn-list').querySelectorAll('.mn-save').forEach(function(btn){
     btn.addEventListener('click', function(){ saveManualNote(btn); });
   });
-  el('mn-list').querySelectorAll('.mn-note').forEach(function(inp){
+  el('mn-list').querySelectorAll('.mn-note,.mn-reason').forEach(function(inp){
     inp.addEventListener('keydown', function(e){
       if (e.key === 'Enter' || e.keyCode === 13) {
         e.preventDefault();
-        saveManualNote(inp.parentElement.querySelector('.mn-save'));
+        saveManualNote(inp.closest('td').querySelector('.mn-save'));
       }
     });
   });
@@ -1424,10 +1439,12 @@ function renderManual(){
 }
 function saveManualNote(btn){
   if (!btn) return;
-  var inp = btn.parentElement.querySelector('.mn-note');
+  var cell = btn.closest('td');
+  var note = cell.querySelector('.mn-note');
+  var reason = cell.querySelector('.mn-reason');
   btn.disabled = true;
   post('api/uketsuke_manual.php', {id:COMP.id, op:'note', bib:btn.dataset.bib, code:btn.dataset.code,
-                                   note:inp.value, by:el('by').value})
+                                   reason:reason.value, note:note.value, by:el('by').value})
     .then(function(){ return refresh().then(renderManual); })
     .catch(function(e){ btn.disabled = false; alert(e.message); });
 }

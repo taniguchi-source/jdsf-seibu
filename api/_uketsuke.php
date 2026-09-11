@@ -273,7 +273,8 @@ function uk_load_assign($id) {
 /* 手動対応が要る件（初期振分が済んだあとに受付・取消をしようとして止まった件）。
    その場の画面に出すだけでは伝え漏れるので、止まった時点で1行残して一覧で片づける。
    同じ「背番号:区分」は1件にまとめ、回数と最後の時刻を持つ。
-   メモ（manual_note）が入った件は対応済みとして扱う。 */
+   1件につき「なぜ手動対応が要るのか（reason）」と「どう対応したか（note）」を持つ。
+   メモ（note）が入った件は対応済みとして扱う。 */
 function uk_load_manual($id) {
     $file = uk_checkins_file($id);
     if (!is_file($file)) return [];
@@ -298,7 +299,7 @@ function uk_load_manual($id) {
             if (!isset($map[$key])) {
                 $map[$key] = ['bib' => $bib, 'code' => $code, 'kind' => (string)($rec['kind'] ?? ''),
                               'at' => $at, 'last_at' => $at, 'by' => $by, 'count' => 1,
-                              'note' => '', 'note_at' => '', 'note_by' => ''];
+                              'reason' => '', 'note' => '', 'note_at' => '', 'note_by' => ''];
             } else {
                 $map[$key]['count']++;
                 $map[$key]['last_at'] = $at;
@@ -310,9 +311,10 @@ function uk_load_manual($id) {
         if (!isset($map[$key])) {
             $map[$key] = ['bib' => $bib, 'code' => $code, 'kind' => 'add',
                           'at' => $at, 'last_at' => $at, 'by' => $by, 'count' => 0,
-                          'note' => '', 'note_at' => '', 'note_by' => ''];
+                          'reason' => '', 'note' => '', 'note_at' => '', 'note_by' => ''];
         }
-        $map[$key]['note']    = uk_str($rec['note'] ?? '', 200);
+        $map[$key]['reason']  = uk_str($rec['reason'] ?? '', 300);
+        $map[$key]['note']    = uk_str($rec['note'] ?? '', 300);
         $map[$key]['note_at'] = $at;
         $map[$key]['note_by'] = $by;
     }
