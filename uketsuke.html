@@ -521,6 +521,10 @@ function switchView(v){
     switchView('comp');
     return;
   }
+  /* いまの画面をURLに残す。読み込み直し（Ctrl+F5）で同じ画面に戻ってくるため。
+     履歴は増やさない（戻るボタンでタブを1枚ずつ遡ることにならないように）。 */
+  try { history.replaceState(null, '', location.pathname + location.search + '#' + v); } catch (e) {}
+
   /* 画面を開いた時点で描画する（ポーリング待ちで数秒空欄になるのを防ぐ） */
   /* 大会一覧の「選手○組／受付済○組」は取込や受付で増えるので、開くたびに数え直す */
   if (v === 'comp') loadComps();
