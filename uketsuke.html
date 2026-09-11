@@ -46,6 +46,16 @@
   #mn-list .mn-ev{font-weight:700}
   #mn-list .mn-sub{display:block;font-size:12px;color:var(--muted)}
   #v-manual th{white-space:nowrap}
+  /* 当日に見る一覧なので、他より少し大きい字で出す */
+  #v-manual table{font-size:16px}
+  #v-manual th,#v-manual td{padding:8px 10px}
+  #v-manual .muted{font-size:14px}
+  #mn-list td:first-child{font-size:14px}
+  #mn-list td:nth-child(2){font-size:24px}
+  #mn-list .mn-sub{font-size:13px}
+  #mn-list .mn-lab{width:3.4em;font-size:14px}
+  #mn-list input[type=text]{font-size:16px;padding:7px 10px}
+  #mn-list .mn-save{font-size:14px;padding:6px 14px}
   tr.mn-done td{color:var(--muted)}
   .print-only{display:none}
   #mn-print-head{margin:4px 0 10px;font-size:12px;color:var(--muted)}
@@ -1409,7 +1419,7 @@ function renderManual(){
       + '<td colspan="6"><div class="mn-fields">'
       + '<div class="mn-line no-print"><span class="mn-lab">理由</span>'
       + '<input type="text" class="mn-reason"' + key + ' value="' + esc(reason) + '"'
-      + ' placeholder="例：初期振分の終了後に受付希望"></div>'
+      + ' placeholder="なぜ手動対応が要るのか"></div>'
       + '<div class="mn-line no-print"><span class="mn-lab">メモ</span>'
       + '<input type="text" class="mn-note"' + key + ' value="' + esc(note) + '"'
       + ' placeholder="どう対応したか">'
