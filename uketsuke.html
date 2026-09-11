@@ -108,7 +108,20 @@
     border:2px solid var(--border);padding:10px 14px;font-size:15px;font-weight:700}
   .ev-btn .c{font-size:20px;font-weight:800;color:var(--primary);margin-right:6px}
   .ev-btn .s{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-top:3px}
-  button.assign-done{background:var(--ok-bg);border-color:var(--ok);color:var(--ok);font-weight:700}
+  /* ST初期振分。押すとその区分の受付が止まる大事な操作なので、目立つ色にする */
+  button.assign-todo{background:#c2410c;color:#fff;border:2px solid #9a3412}
+  button.assign-done{background:var(--ok);color:#fff;border:2px solid #0f5f2e}
+  /* 押し間違えると受付が止まるので、確認は はい/いいえ ではなくチェックで確かめる */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;
+    justify-content:center;padding:16px;z-index:50}
+  .modal-box{background:var(--card);border-radius:14px;padding:20px 22px;max-width:540px;width:100%;
+    box-shadow:0 20px 60px -20px rgba(0,0,0,.6)}
+  .modal-box h2{margin:0 0 10px;font-size:19px}
+  .modal-box .q{font-weight:700;margin-top:14px}
+  .modal-box .checkbox-row{font-size:15px}
+  .modal-box input[type=checkbox]{width:20px;height:20px}
+  /* チェックが入るまで OK は押せない。押せないことが見て分かるようにする */
+  button:disabled{opacity:.4;cursor:not-allowed}
   .ev-btn.done{background:var(--ok-bg);border-color:var(--ok)}
   .ev-btn.done .c{color:var(--ok)}
   .ev-btn:active{background:#e8eef7}
@@ -292,6 +305,21 @@
         <tbody id="rc-present"></tbody>
       </table>
     </section>
+
+    <!-- ST初期振分の確認。押すとその区分の受付が止まるので、チェックを入れないとOKを押せない -->
+    <div id="asg-dlg" class="modal hidden">
+      <div class="modal-box">
+        <h2 id="asg-title"></h2>
+        <div class="q">あなたは ST ですか</div>
+        <label class="checkbox-row"><input type="checkbox" id="asg-c1"><span>はい、私が ST です</span></label>
+        <div class="q" id="asg-q2"></div>
+        <label class="checkbox-row"><input type="checkbox" id="asg-c2"><span id="asg-c2-label"></span></label>
+        <div class="row" style="margin-top:18px">
+          <button id="asg-ok" disabled>OK</button>
+          <button class="secondary" id="asg-cancel">キャンセル</button>
+        </div>
+      </div>
+    </div>
 
     <!-- ======== 名簿 ======== -->
     <section id="v-roster" class="hidden">
@@ -1174,25 +1202,56 @@ function renderAssign(code){
   var a = assignMap()[code];
   var b = el('rc-assign');
   b.textContent = 'ST初期振分：' + (a ? '完了' : '未');
-  b.className = (a ? 'assign-done' : 'secondary');
+  b.className = (a ? 'assign-done' : 'assign-todo');
   b.dataset.code = code || '';
   el('rc-assign-note').textContent = a
     ? '完了 ' + fmtTime(a.at) + (a.by ? '（' + a.by + '）' : '') + '　この区分の受付・取消はできません'
     : '初期振分を済ませたら押してください。以後この区分の受付・取消を止めます。';
 }
+/* 押し間違えるとその区分の受付が止まるので、はい/いいえ ではなく
+   「自分がSTであること」「振分が済んだこと」の2つにチェックを入れてもらう。 */
+var ASG_RUN = null;
+function openAssignDlg(code, on, run){
+  ASG_RUN = run;
+  el('asg-title').textContent = on
+    ? code + ' の ST初期振分を「完了」にします'
+    : code + ' の ST初期振分を「未」に戻します';
+  el('asg-q2').textContent = on ? '初期振分は済みましたか' : 'この区分の受付を再開しますか';
+  el('asg-c2-label').textContent = on
+    ? 'はい、済みました（以後この区分の受付・取消はできません）'
+    : 'はい、初期振分をやり直します（この区分の受付・取消をできる状態に戻します）';
+  el('asg-c1').checked = false;
+  el('asg-c2').checked = false;
+  el('asg-ok').disabled = true;
+  el('asg-dlg').classList.remove('hidden');
+}
+function closeAssignDlg(){ ASG_RUN = null; el('asg-dlg').classList.add('hidden'); }
+function syncAsgOk(){ el('asg-ok').disabled = !(el('asg-c1').checked && el('asg-c2').checked); }
+el('asg-c1').addEventListener('change', syncAsgOk);
+el('asg-c2').addEventListener('change', syncAsgOk);
+el('asg-cancel').addEventListener('click', closeAssignDlg);
+el('asg-dlg').addEventListener('click', function(e){ if (e.target === el('asg-dlg')) closeAssignDlg(); });
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape' && !el('asg-dlg').classList.contains('hidden')) closeAssignDlg();
+});
+el('asg-ok').addEventListener('click', function(){
+  var run = ASG_RUN;
+  closeAssignDlg();
+  if (run) run();
+});
+
 el('rc-assign').addEventListener('click', function(){
   var b = el('rc-assign');
   var code = b.dataset.code;
   if (!code) return;
   var a = assignMap()[code];
-  if (!confirm(a
-      ? code + ' の ST初期振分を「未」に戻します。よろしいですか？'
-      : code + ' の ST初期振分を「完了」にします。以後この区分の受付と取消はできなくなります。よろしいですか？')) return;
-  b.disabled = true;
-  post('api/uketsuke_assign.php', {id:COMP.id, code:code, on:a ? '0' : '1', by:absentBy() || el('by').value})
-    .then(function(){ return refresh().then(renderRollcall); })
-    .catch(function(e){ alert(e.message); })
-    .then(function(){ b.disabled = false; });
+  openAssignDlg(code, !a, function(){
+    b.disabled = true;
+    post('api/uketsuke_assign.php', {id:COMP.id, code:code, on:a ? '0' : '1', by:absentBy() || el('by').value})
+      .then(function(){ return refresh().then(renderRollcall); })
+      .catch(function(e){ alert(e.message); })
+      .then(function(){ b.disabled = false; });
+  });
 });
 
 function renderRollcall(){
