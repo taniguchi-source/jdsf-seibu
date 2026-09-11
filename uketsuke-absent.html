@@ -42,8 +42,14 @@
   .bib .who.none{color:var(--muted)}
   .block{margin-bottom:16px}
   .no-break{padding-bottom:8px}
+  /* ST初期振分。済んだ区分は受付システム側の受付・取消を止める。 */
+  button.assign{font-size:13px;padding:5px 10px;margin-left:10px;vertical-align:middle;
+    background:var(--card);color:var(--text);border:1px solid var(--border)}
+  button.assign.done{background:#f0fdf4;border-color:#16a34a;color:#16a34a}
+  .print-only{display:none}
   @media print{
     header,.no-print{display:none !important}
+    .print-only{display:inline}
     body{background:#fff}
     main{max-width:none;padding:0}
     .card{border:none;padding:0}
@@ -86,6 +92,7 @@
 <script>
 'use strict';
 var DATA = null;
+var CSRF = '';
 function el(id){ return document.getElementById(id); }
 function esc(s){ if(s===null||s===undefined) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -109,6 +116,7 @@ function load(){
       if (d.error) throw new Error(d.error);
       var first = (DATA === null);
       DATA = d;
+      CSRF = d.csrf || '';
       el('comp-name').textContent = d.name + (d.date ? '（' + d.date + '）' : '');
       if (first) buildPicker();
       el('updated').textContent = '最終更新 ' + new Date().toLocaleTimeString('ja-JP');
@@ -200,6 +208,47 @@ function bibHtml(r, stock){
     + '</span>';
 }
 
+/* ST初期振分（区分ごと）。済みにすると、受付システム側でその区分の受付・取消を止める。 */
+function assignMap(){
+  var m = {};
+  (DATA.assign || []).forEach(function(a){ m[a.code] = a; });
+  return m;
+}
+/* 欠場処理チェック担当者名（受付システム側で大会ごとに端末に記憶している） */
+function absentBy(){
+  try { return localStorage.getItem('uk_by_absent:' + id) || ''; } catch (e) { return ''; }
+}
+function assignHtml(code){
+  var a = assignMap()[code];
+  return '<button type="button" class="assign no-print' + (a ? ' done' : '') + '" data-assign="' + esc(code) + '">'
+    + 'ST初期振分：' + (a ? '完了' : '未') + '</button>'
+    + '<span class="print-only muted">　ST初期振分：' + (a ? '完了' : '未') + '</span>';
+}
+function bindAssign(){
+  el('out').querySelectorAll('[data-assign]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var code = b.dataset.assign;
+      var a = assignMap()[code];
+      if (!confirm(a
+          ? code + ' の ST初期振分を「未」に戻します。よろしいですか？'
+          : code + ' の ST初期振分を「完了」にします。以後この区分の受付と取消はできなくなります。よろしいですか？')) return;
+      b.disabled = true;
+      var fd = new FormData();
+      fd.append('id', id);
+      fd.append('code', code);
+      fd.append('on', a ? '0' : '1');
+      fd.append('by', absentBy());
+      fetch('api/uketsuke_assign.php', {method:'POST', body:fd, headers:{'X-CSRF-Token': CSRF}})
+        .then(function(r){ return r.json().catch(function(){ return {error:'通信エラー'}; }); })
+        .then(function(j){
+          if (j && j.error) throw new Error(j.message || j.error);
+          return load();
+        })
+        .catch(function(e){ b.disabled = false; alert(e.message); });
+    });
+  });
+}
+
 /* 1区分ぶんの欠場者を出す */
 function blockHtml(e){
   var absent = absentFor([e.code]);
@@ -207,7 +256,8 @@ function blockHtml(e){
   var stock  = stockMap();
   var checked = absent.filter(function(r){ return stock[r.bib]; }).length;
   return '<div class="card block">'
-    + '<h2>' + evLabel(e) + (e.start_time ? '　<span class="muted">受付締切 ' + esc(e.start_time) + '</span>' : '') + '</h2>'
+    + '<h2>' + evLabel(e) + (e.start_time ? '　<span class="muted">受付締切 ' + esc(e.start_time) + '</span>' : '')
+    + assignHtml(e.code) + '</h2>'
     + '<div class="muted">欠場 <b>' + absent.length + '</b> / エントリー ' + total + ' 組'
     + '　背番号在庫の確認済み ' + checked + ' / ' + absent.length + ' 組</div>'
     + (absent.length
@@ -241,6 +291,7 @@ function render(){
       + (DATA.date ? '（' + esc(DATA.date) + '）' : '') + '</div></div>';
   }
   el('out').innerHTML = head + evs.map(blockHtml).join('');
+  bindAssign();
 }
 
 el('b-reload').addEventListener('click', function(){ load(); });

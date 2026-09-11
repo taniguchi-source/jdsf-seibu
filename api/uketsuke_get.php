@@ -12,6 +12,7 @@ $events   = uk_load_events($id);
 $roster   = uk_load_roster($id);
 $checkins = uk_load_checkins($id);
 $stock    = uk_load_stock($id);
+$assign   = uk_load_assign($id);
 
 /* 一覧から大会名を引く */
 $name = '';
@@ -30,5 +31,10 @@ json_out([
     /* 受付は区分単位。1件＝「背番号:区分」ひとつぶんの受付記録 */
     'checkins'   => array_values($checkins),
     'stock'      => array_values($stock),
+    /* 区分ごとの「ST初期振分が済んだ」記録 */
+    'assign'     => array_values($assign),
+    /* 欠場者一覧ページ（読むだけのページ）から初期振分を記録できるようにトークンを渡す。
+       書き込みAPI側のロール確認は従来どおり効く。 */
+    'csrf'       => issue_csrf(),
     'updated_at' => uk_now(),
 ]);

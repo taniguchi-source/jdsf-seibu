@@ -34,6 +34,16 @@ if ($code === '') {
     $codes = [$code];
 }
 
+/* 初期振分が済んだ区分は受付しない。まだの区分だけ受け付けて、済みの区分は人の判断に回す。 */
+$assign  = uk_load_assign($id);
+$blocked = [];
+$pass    = [];
+foreach ($codes as $c) {
+    if (isset($assign[$c])) $blocked[] = $c; else $pass[] = $c;
+}
+if (!$pass) json_out(['error' => uk_assigned_message($blocked)], 409);
+$codes = $pass;
+
 $checkins = uk_load_checkins($id);
 $now = uk_now();
 $by  = uk_str($_POST['by'] ?? '', 20);   /* 受付担当者名（表示用） */
@@ -61,5 +71,7 @@ json_out([
     'done'        => $done,       /* うち受付済みの区分 */
     'new'         => $new,        /* この操作で受付した区分 */
     'already'     => $already,    /* 既に受付済みだった区分 */
+    'blocked'     => $blocked,    /* 初期振分が済んでいて受付しなかった区分 */
+    'blocked_message' => $blocked ? uk_assigned_message($blocked) : '',
     'at'          => $now,
 ]);

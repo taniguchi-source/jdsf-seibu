@@ -26,6 +26,20 @@ if ($code !== '') {
     if (!$has) json_out(['error' => "背番号 {$bib} は受付されていません"], 404);
 }
 
+/* 初期振分が済んだ区分は、取り消しても DCS 側は自動では直らないので止める。 */
+$assign  = uk_load_assign($id);
+$blocked = [];
+if ($code !== '') {
+    if (isset($assign[$code])) $blocked[] = $code;
+} else {
+    foreach ($checkins as $c) {
+        if ((int)($c['bib'] ?? 0) !== $bib) continue;
+        $cc = (string)($c['code'] ?? '');
+        if ($cc !== '' && isset($assign[$cc]) && !in_array($cc, $blocked, true)) $blocked[] = $cc;
+    }
+}
+if ($blocked) json_out(['error' => uk_assigned_message($blocked)], 409);
+
 $rec = ['action' => 'remove', 'bib' => $bib];
 if ($code !== '') $rec['code'] = $code;
 $rec['at'] = uk_now();

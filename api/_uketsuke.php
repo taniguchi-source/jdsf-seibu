@@ -242,6 +242,39 @@ function uk_load_stock($id) {
     return $map;
 }
 
+/* 区分ごとの「ST初期振分が済んだか」。
+   DCSで初期振分をしてしまうと、あとから受付した組は自動では組み込めないので、
+   済んだ区分は受付システム側でも受付を止める。
+   在庫チェックと同じく checkins.jsonl に action=assign として追記する
+   （全員解除で一緒に消えるように、また複数端末から同時に押しても壊れないように）。 */
+function uk_load_assign($id) {
+    $file = uk_checkins_file($id);
+    if (!is_file($file)) return [];
+    $fh = @fopen($file, 'r');
+    if (!$fh) return [];
+    $map = [];
+    while (($line = fgets($fh)) !== false) {
+        $line = trim($line);
+        if ($line === '') continue;
+        $rec = json_decode($line, true);
+        if (!is_array($rec)) continue;
+        $action = (string)($rec['action'] ?? '');
+        if ($action === 'clear') { $map = []; continue; }
+        if ($action !== 'assign') continue;
+        $code = uk_str($rec['code'] ?? '', 20);
+        if ($code === '') continue;
+        if (empty($rec['on'])) { unset($map[$code]); continue; }   /* 未に戻した */
+        $map[$code] = ['code' => $code, 'at' => (string)($rec['at'] ?? ''), 'by' => (string)($rec['by'] ?? '')];
+    }
+    fclose($fh);
+    return $map;
+}
+
+/* 初期振分が済んだ区分を受付しようとしたときの文言。画面にそのまま出す。 */
+function uk_assigned_message($codes) {
+    return implode('・', (array)$codes) . '：すでに初期振分済です。どのようにするか手動対応してください';
+}
+
 /* 1行追記（同時書き込みでも取りこぼさない） */
 function uk_append_checkin($id, $rec) {
     $file = uk_checkins_file($id);

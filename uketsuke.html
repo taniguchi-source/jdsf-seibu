@@ -104,6 +104,7 @@
     border:2px solid var(--border);padding:10px 14px;font-size:15px;font-weight:700}
   .ev-btn .c{font-size:20px;font-weight:800;color:var(--primary);margin-right:6px}
   .ev-btn .s{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-top:3px}
+  button.assign-done{background:var(--ok-bg);border-color:var(--ok);color:var(--ok);font-weight:700}
   .ev-btn.done{background:var(--ok-bg);border-color:var(--ok)}
   .ev-btn.done .c{color:var(--ok)}
   .ev-btn:active{background:#e8eef7}
@@ -260,6 +261,11 @@
         <select id="rc-event"></select>
         <div style="height:10px"></div>
         <a class="btn secondary" id="rc-print" href="uketsuke-absent.html" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">欠場者のみのページを開く</a>
+        <div style="height:14px"></div>
+        <div class="row wrap">
+          <button type="button" class="small secondary" id="rc-assign">ST初期振分：未</button>
+          <span class="muted" id="rc-assign-note"></span>
+        </div>
       </div>
       <div class="row wrap">
         <span class="pill" id="rc-a-count">欠場 0</span>
@@ -959,10 +965,17 @@ function showPanel(bib, msg){
   var codes = r.events || [];
   el('ci-who').innerHTML = whoHtml(r.bib, r);
   el('ci-hint').textContent = msg || '出場する区分だけを押してください。押さなかった区分は欠場になります。';
+  var asg = assignMap();
   el('ci-evs').innerHTML = codes.length
     ? codes.map(function(c){
         var m = (DATA.events || []).filter(function(e){ return e.code === c; })[0] || {code:c};
         var d = done[r.bib + ':' + c];
+        if (asg[c]) {
+          return '<button type="button" class="ev-btn" data-code="' + esc(c) + '">'
+            + '<span class="c">' + esc(c) + '</span>'
+            + esc((m.name && m.name !== c) ? m.name : '')
+            + '<span class="s">ST初期振分が済んでいます（受付・取消はできません）</span></button>';
+        }
         return '<button type="button" class="ev-btn' + (d ? ' done' : '') + '" data-code="' + esc(c) + '">'
           + '<span class="c">' + esc(c) + '</span>'
           + esc((m.name && m.name !== c) ? m.name : '')
@@ -996,10 +1009,13 @@ function doCheckin(bib, code){
   post('api/uketsuke_checkin.php', body)
     .then(function(r){
       var did = (r['new'] || []);
-      banner(did.length ? 'ok' : 'warn',
-        whoHtml(r.bib, r) + evHtml(r.done) + '<br>'
-        + (did.length ? '受付しました：' + esc(did.join('・'))
-                      : '既に受付済みです：' + esc((r.already || []).join('・'))));
+      var lines = [];
+      if (did.length) lines.push('受付しました：' + esc(did.join('・')));
+      if (!did.length && (r.already || []).length) lines.push('既に受付済みです：' + esc(r.already.join('・')));
+      /* 初期振分が済んでいて受付しなかった区分。人の判断に回してもらう。 */
+      if (r.blocked_message) lines.push('<b>' + esc(r.blocked_message) + '</b>');
+      banner(r.blocked_message ? 'danger' : (did.length ? 'ok' : 'warn'),
+        whoHtml(r.bib, r) + evHtml(r.done) + '<br>' + lines.join('<br>'));
       return refresh().then(function(){
         renderRecent();
         afterPanelAction(bib);
@@ -1118,6 +1134,39 @@ el('rc-by-edit').addEventListener('click', function(){
 });
 
 /* ---------- 欠場報告 ---------- */
+/* ---------- ST初期振分（区分ごと） ----------
+   DCSで初期振分をすると、あとから受付した組は自動では組み込めない。
+   済みにした区分は、受付も取消もサーバー側で止める。 */
+function assignMap(){
+  var m = {};
+  (DATA.assign || []).forEach(function(a){ m[a.code] = a; });
+  return m;
+}
+function renderAssign(code){
+  var a = assignMap()[code];
+  var b = el('rc-assign');
+  b.textContent = 'ST初期振分：' + (a ? '完了' : '未');
+  b.className = 'small ' + (a ? 'assign-done' : 'secondary');
+  b.dataset.code = code || '';
+  el('rc-assign-note').textContent = a
+    ? '完了 ' + fmtTime(a.at) + (a.by ? '（' + a.by + '）' : '') + '　この区分の受付・取消はできません'
+    : '初期振分を済ませたら押してください。以後この区分の受付・取消を止めます。';
+}
+el('rc-assign').addEventListener('click', function(){
+  var b = el('rc-assign');
+  var code = b.dataset.code;
+  if (!code) return;
+  var a = assignMap()[code];
+  if (!confirm(a
+      ? code + ' の ST初期振分を「未」に戻します。よろしいですか？'
+      : code + ' の ST初期振分を「完了」にします。以後この区分の受付と取消はできなくなります。よろしいですか？')) return;
+  b.disabled = true;
+  post('api/uketsuke_assign.php', {id:COMP.id, code:code, on:a ? '0' : '1', by:absentBy() || el('by').value})
+    .then(function(){ return refresh().then(renderRollcall); })
+    .catch(function(e){ alert(e.message); })
+    .then(function(){ b.disabled = false; });
+});
+
 function renderRollcall(){
   var sel = el('rc-event');
   var cur = sel.value;
@@ -1141,6 +1190,7 @@ function renderRollcall(){
   absent.sort(function(a,b){ return a.bib - b.bib; });
 
   renderAbsentBy();
+  renderAssign(code);
   el('rc-p-count').textContent = '出場 ' + present.length;
   el('rc-a-count').textContent = '欠場 ' + absent.length;
   el('rc-present').innerHTML = present.map(function(p){
