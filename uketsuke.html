@@ -540,7 +540,7 @@ function loadComps(quiet){
           if (pw === null || pw === '') return;
           post('api/uketsuke_save_competition.php', {action:'delete', id:b.dataset.del, password:pw})
             .then(function(){
-              if (COMP && COMP.id === b.dataset.del) { COMP = null; renderBy(); el('hd-comp').textContent = ''; }
+              if (COMP && COMP.id === b.dataset.del) { COMP = null; loadBy(); el('hd-comp').textContent = ''; }
               try { if (localStorage.getItem('uk_last_comp') === b.dataset.del) localStorage.removeItem('uk_last_comp'); } catch (e) {}
               loadComps();
             })
@@ -667,7 +667,7 @@ function openComp(id, needCode, keepView){
     .then(function(){ return refresh(id); })
     .then(function(){
       COMP = {id:id, name:DATA.name, date:DATA.date};
-      renderBy();
+      loadBy();
       el('hd-comp').textContent = DATA.name + (DATA.date ? '（' + DATA.date + '）' : '');
       try { localStorage.setItem('uk_last_comp', id); } catch (e) {}
       clearWorkState();
@@ -761,7 +761,7 @@ function syncFailed(msg){
   if (/見つかりません|Forbidden|公認番号/.test(SYNC_ERR)) {
     if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
     COMP = null;
-    renderBy();
+    loadBy();
     el('hd-comp').textContent = '';
     try { localStorage.removeItem('uk_last_comp'); } catch (e) {}
     alert('この大会を開けなくなりました（' + SYNC_ERR + '）。\n大会を選び直してください。');
@@ -799,8 +799,17 @@ window.addEventListener('focus', function(){ pollTick(); });
 window.addEventListener('online', function(){ pollTick(); });
 
 /* ---------- 受付 ---------- */
-/* ---------- 受付担当者名（この端末に記憶する） ---------- */
-el('by').value = localStorage.getItem('uk_by') || '';
+/* ---------- 受付担当者名（この端末に、大会ごとに記憶する） ----------
+   別の大会を開いたときに前の大会の担当者名が残っていると、その名前のまま
+   受付が記録されてしまう。大会ごとに分けて覚え、大会を開くたびに読み直す。 */
+function byKey(pre){ return pre + (COMP ? COMP.id : ''); }
+function loadBy(){
+  var v = '';
+  try { if (COMP) v = localStorage.getItem(byKey('uk_by:')) || ''; } catch (e) {}
+  el('by').value = v;
+  renderBy();
+  renderAbsentBy();
+}
 function renderBy(){
   var v = el('by').value.trim();
   /* 誰の名前で受付しているかは常に見えている必要があるので、受付タブに出す。
@@ -809,16 +818,19 @@ function renderBy(){
 }
 function saveBy(v){
   el('by').value = String(v || '').trim();
-  try { localStorage.setItem('uk_by', el('by').value); } catch (e) {}
+  try { if (COMP) localStorage.setItem(byKey('uk_by:'), el('by').value); } catch (e) {}
   renderBy();
 }
-/* 受付画面から名前を変える。設定用のページは持たず、ここだけで完結させる。 */
-el('ci-by-edit').addEventListener('click', function(){
-  var v = prompt('受付担当者名を入力してください。\n受付・取消・在庫確認の記録に残ります（この端末に記憶されます）。',
+/* 受付画面から名前を変える。設定用のページは持たず、ここだけで完結させる。
+   名前が入っていないまま受付すると誰が受けたか記録に残らないので、受付の前にも呼ぶ。 */
+function askBy(){
+  var v = prompt('受付担当者名を入力してください。\n受付・取消・在庫確認の記録に残ります（この大会のあいだ、この端末に記憶されます）。',
                  el('by').value || '');
-  if (v === null) return;
+  if (v === null) return false;
   saveBy(v);
-});
+  return el('by').value !== '';
+}
+el('ci-by-edit').addEventListener('click', function(){ askBy(); });
 renderBy();
 
 /* 背番号・氏名・所属の1行 */
@@ -975,6 +987,8 @@ function showPanel(bib, msg){
 /* ここで初めて受付が記録される。code を渡すとその区分だけ、null なら全区分。
    区分を選ぶ画面が出ているときはそのまま開いておき、続けて押せるようにする。 */
 function doCheckin(bib, code){
+  /* 誰が受けたか記録に残らなくなるので、名前が未設定なら先に聞く */
+  if (el('by').value.trim() === '' && !askBy()) return;
   LOOKED_UP = null;
   LAST_BIB  = String(bib);
   var body = {id:COMP.id, bib:bib, by:el('by').value};
@@ -1093,13 +1107,13 @@ function renderAdmin(){
 /* ---------- 欠場報告 ----------
    背番号在庫のチェックは受付とは別の人が担当するので、名前も受付担当者とは別に持つ。 */
 function absentBy(){
-  try { return localStorage.getItem('uk_by_absent') || ''; } catch (e) { return ''; }
+  try { return (COMP ? localStorage.getItem(byKey('uk_by_absent:')) : '') || ''; } catch (e) { return ''; }
 }
 function renderAbsentBy(){ el('rc-by').textContent = absentBy() || '未設定'; }
 el('rc-by-edit').addEventListener('click', function(){
-  var v = prompt('欠場処理チェック担当者名を入力してください。\n背番号在庫のチェック記録に残ります（この端末に記憶されます）。', absentBy());
+  var v = prompt('欠場処理チェック担当者名を入力してください。\n背番号在庫のチェック記録に残ります（この大会のあいだ、この端末に記憶されます）。', absentBy());
   if (v === null) return;
-  try { localStorage.setItem('uk_by_absent', v.trim()); } catch (e) {}
+  try { if (COMP) localStorage.setItem(byKey('uk_by_absent:'), v.trim()); } catch (e) {}
   renderAbsentBy();
 });
 
