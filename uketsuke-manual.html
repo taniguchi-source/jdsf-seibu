@@ -28,11 +28,11 @@
   li{margin:4px 0}
   .lead{font-size:15px;color:var(--muted)}
   .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin:14px 0}
-  /* 画面写真は本文と同じ幅にそろえる。
+  /* 画面写真は本文の幅より少し狭く出す。
      写真は狭い幅（640px）の画面を倍密度（1240px）で撮ってあるので、
-     本文幅（約830px）に収めると実画面の約1.3倍で、縦横とも撮った大きさの3分の2ほどになる。 */
+     680px に収めると実画面と同じくらいの大きさになる。 */
   figure{margin:18px 0}
-  figure img{display:block;width:auto;max-width:100%;height:auto;margin:0 auto;
+  figure img{display:block;width:auto;max-width:min(100%, 680px);height:auto;margin:0 auto;
     border:1px solid var(--border);border-radius:10px;background:#fff}
   figcaption{font-size:13px;color:var(--muted);margin-top:6px}
   .note{border-left:5px solid var(--primary);background:#eef2f8;padding:12px 16px;border-radius:0 8px 8px 0;
