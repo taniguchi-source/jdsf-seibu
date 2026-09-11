@@ -270,6 +270,56 @@ function uk_load_assign($id) {
     return $map;
 }
 
+/* 手動対応が要る件（初期振分が済んだあとに受付・取消をしようとして止まった件）。
+   その場の画面に出すだけでは伝え漏れるので、止まった時点で1行残して一覧で片づける。
+   同じ「背番号:区分」は1件にまとめ、回数と最後の時刻を持つ。
+   メモ（manual_note）が入った件は対応済みとして扱う。 */
+function uk_load_manual($id) {
+    $file = uk_checkins_file($id);
+    if (!is_file($file)) return [];
+    $fh = @fopen($file, 'r');
+    if (!$fh) return [];
+    $map = [];
+    while (($line = fgets($fh)) !== false) {
+        $line = trim($line);
+        if ($line === '') continue;
+        $rec = json_decode($line, true);
+        if (!is_array($rec)) continue;
+        $action = (string)($rec['action'] ?? '');
+        if ($action === 'clear') { $map = []; continue; }
+        if ($action !== 'manual' && $action !== 'manual_note') continue;
+        $bib  = isset($rec['bib']) ? (int)$rec['bib'] : 0;
+        $code = uk_str($rec['code'] ?? '', 20);
+        if ($bib <= 0 || $code === '') continue;
+        $key = $bib . ':' . $code;
+        $at  = (string)($rec['at'] ?? '');
+        $by  = (string)($rec['by'] ?? '');
+        if ($action === 'manual') {
+            if (!isset($map[$key])) {
+                $map[$key] = ['bib' => $bib, 'code' => $code, 'kind' => (string)($rec['kind'] ?? ''),
+                              'at' => $at, 'last_at' => $at, 'by' => $by, 'count' => 1,
+                              'note' => '', 'note_at' => '', 'note_by' => ''];
+            } else {
+                $map[$key]['count']++;
+                $map[$key]['last_at'] = $at;
+                $map[$key]['by'] = $by;
+            }
+            continue;
+        }
+        /* メモ。止まった記録より先に書かれることは無いが、順序が崩れても拾えるようにしておく */
+        if (!isset($map[$key])) {
+            $map[$key] = ['bib' => $bib, 'code' => $code, 'kind' => 'add',
+                          'at' => $at, 'last_at' => $at, 'by' => $by, 'count' => 0,
+                          'note' => '', 'note_at' => '', 'note_by' => ''];
+        }
+        $map[$key]['note']    = uk_str($rec['note'] ?? '', 200);
+        $map[$key]['note_at'] = $at;
+        $map[$key]['note_by'] = $by;
+    }
+    fclose($fh);
+    return $map;
+}
+
 /* 初期振分が済んだ区分を受付しようとしたときの文言。画面にそのまま出す。 */
 function uk_assigned_message($codes) {
     return implode('・', (array)$codes) . '：すでに初期振分済です。どのようにするか手動対応してください';

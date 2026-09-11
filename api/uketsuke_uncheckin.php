@@ -38,7 +38,15 @@ if ($code !== '') {
         if ($cc !== '' && isset($assign[$cc]) && !in_array($cc, $blocked, true)) $blocked[] = $cc;
     }
 }
-if ($blocked) json_out(['error' => uk_assigned_message($blocked)], 409);
+if ($blocked) {
+    /* 止まった件は「手動対応」の一覧に残す。その場の画面だけでは伝え漏れるため。 */
+    foreach ($blocked as $c) {
+        uk_append_checkin($id, ['action' => 'manual', 'bib' => $bib, 'code' => $c,
+                                'kind' => 'uncheckin', 'at' => uk_now(),
+                                'by' => uk_str($_POST['by'] ?? '', 20)]);
+    }
+    json_out(['error' => uk_assigned_message($blocked)], 409);
+}
 
 $rec = ['action' => 'remove', 'bib' => $bib];
 if ($code !== '') $rec['code'] = $code;
