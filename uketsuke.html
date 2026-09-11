@@ -517,9 +517,9 @@ function loadComps(quiet){
       return '<div class="comp-item">'
         + '<div class="grow"><div class="nm">' + esc(c.name) + '</div>'
         + '<div class="muted">' + esc(c.date || '') + '　選手 ' + (c.roster_count||0) + '組／受付済 ' + (c.checkin_count||0) + '組'
-        + (c.need_code ? '　🔒 公認番号が必要' : '') + '</div></div>'
-        + '<button class="small" data-open="' + esc(c.id) + '" data-need="' + (c.need_code ? '1' : '') + '">開く</button>'
-        + '<button class="small secondary" data-edit="' + esc(c.id) + '" data-need="' + (c.need_code ? '1' : '') + '">編集</button>'
+        + (c.need_code ? (c.unlocked ? '　🔓 公認番号は確認済み' : '　🔒 公認番号が必要') : '') + '</div></div>'
+        + '<button class="small" data-open="' + esc(c.id) + '" data-need="' + (c.need_code && !c.unlocked ? '1' : '') + '">開く</button>'
+        + '<button class="small secondary" data-edit="' + esc(c.id) + '" data-need="' + (c.need_code && !c.unlocked ? '1' : '') + '">編集</button>'
         + '<button class="small danger" data-del="' + esc(c.id) + '">削除</button></div>';
     }).join('');
     box.querySelectorAll('[data-open]').forEach(function(b){
@@ -541,7 +541,7 @@ function loadComps(quiet){
         var c = d.competitions.filter(function(x){ return x.id === b.dataset.del; })[0] || {};
         if (!confirm('「' + (c.name || b.dataset.del) + '」の名簿・区分・受付記録をすべて削除します。\n元に戻せません。よろしいですか？')) return;
         /* サーバーは「開いていない大会」の削除を拒むので、鍵のかかった大会はまず開いてもらう */
-        var need = c.need_code && !(COMP && COMP.id === c.id);
+        var need = c.need_code && !c.unlocked && !(COMP && COMP.id === c.id);
         var step = need ? openComp(c.id, true, true) : Promise.resolve();
         step.then(function(){
           if (need && !(COMP && COMP.id === c.id)) return;   /* 公認番号が違う／取り消した */
@@ -737,10 +737,11 @@ function restoreLastComp(list){
   var c = (list || []).filter(function(x){ return x.id === id; })[0];
   if (!c) return;
   /* 公認番号の要らない大会はそのまま開き直す。
-     公認番号つきの大会は開くたびに番号を求めるが、別ページのタブから戻ってきたとき
-     （#画面名つき）で、このセッションが既にその大会を開いていれば聞き直さない。
-     受付の途中で欠場者一覧などへ行き来するたびに止められると仕事にならないため。 */
-  if (!c.need_code || (hasPendingView() && c.unlocked)) openComp(id, false, true);
+     公認番号つきの大会も、このセッションで既に番号を通していれば（unlocked）聞き直さない。
+     サーバーはその記録を持っていて再読み込みでも消えないので、聞き直しても守りにはならず、
+     受付の途中で画面を更新するたびに止められると仕事にならないため。 */
+  /* 画面は #画面名 があればそこへ、無ければ受付へ（読み込み直したら受付に戻るのが自然） */
+  if (!c.need_code || c.unlocked) openComp(id, false, false);
 }
 
 /* ---------- データ取得（ポーリング） ---------- */
