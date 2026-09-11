@@ -97,6 +97,7 @@
     <div class="row">
       <button id="b-reload" class="secondary">最新にする</button>
       <button id="b-print">印刷する</button>
+      <button id="b-assign-all" class="assign hidden">ST初期振分（この時刻すべて）</button>
       <span class="muted" id="updated"></span>
     </div>
   </div>
@@ -309,21 +310,60 @@ if (el('asg-dlg')) {   /* 大会IDが無いときはページの中身ごと差�
   });
 }
 
-function sendAssign(b, code, on){
-  b.disabled = true;
+function postAssign(code, on){
   var fd = new FormData();
   fd.append('id', id);
   fd.append('code', code);
   fd.append('on', on ? '1' : '0');
   fd.append('by', absentBy());
-  fetch('api/uketsuke_assign.php', {method:'POST', body:fd, headers:{'X-CSRF-Token': CSRF}})
+  return fetch('api/uketsuke_assign.php', {method:'POST', body:fd, headers:{'X-CSRF-Token': CSRF}})
     .then(function(r){ return r.json().catch(function(){ return {error:'通信エラー'}; }); })
-    .then(function(j){
-      if (j && j.error) throw new Error(j.message || j.error);
-      return load();
-    })
+    .then(function(j){ if (j && j.error) throw new Error(j.message || j.error); return j; });
+}
+function sendAssign(b, code, on){
+  b.disabled = true;
+  postAssign(code, on)
+    .then(function(){ return load(); })
     .catch(function(e){ b.disabled = false; alert(e.message); });
 }
+
+/* 受付締切ごとに出しているときは、その時刻の区分をまとめて完了にできるようにする。
+   同じ時刻の区分は同時に初期振分をするので、1つずつ押すのは手間なため。 */
+var ASG_ALL = [];
+function renderAssignAll(evs){
+  var b = el('b-assign-all');
+  ASG_ALL = (evs || []).map(function(e){ return e.code; });
+  if (!ASG_ALL.length) { b.classList.add('hidden'); return; }
+  var asg = assignMap();
+  var rest = ASG_ALL.filter(function(c){ return !asg[c]; });
+  b.classList.remove('hidden');
+  b.textContent = rest.length ? 'ST初期振分（この時刻すべて）' : 'ST初期振分：この時刻はすべて完了';
+  b.className = 'assign' + (rest.length ? '' : ' done');
+  b.disabled = !rest.length;
+}
+/* 大会IDが無いときはページの中身ごと差し替えているので、その時は何もしない */
+if (el('b-assign-all')) el('b-assign-all').addEventListener('click', function(){
+  var asg = assignMap();
+  var rest = ASG_ALL.filter(function(c){ return !asg[c]; });
+  if (!rest.length) return;
+  /* 本当に来ていないかを確かめないまま振分を締めてしまわないよう、押す前に知らせる */
+  var stock = stockMap();
+  var un = absentFor(rest).filter(function(r){ return !stock[r.bib]; }).map(function(r){ return r.bib; });
+  var warn = '';
+  if (un.length) {
+    warn = '背番号在庫のチェックが入っていない組があります（背番号 ' + un.join('・') + '）';
+    alert(warn + '。\n本当に来ていないかを確かめてから進めてください。');
+  }
+  openAssignDlg(rest.join('・'), true, function(){
+    var b = el('b-assign-all');
+    b.disabled = true;
+    rest.reduce(function(chain, code){
+      return chain.then(function(){ return postAssign(code, true); });
+    }, Promise.resolve())
+      .catch(function(e){ alert(e.message); })
+      .then(function(){ return load(); });
+  }, warn);
+});
 
 /* 1区分ぶんの欠場者を出す */
 function blockHtml(e){
@@ -368,6 +408,8 @@ function render(){
   }
   el('out').innerHTML = head + evs.map(blockHtml).join('');
   bindAssign();
+  /* 区分ごとに出しているときは、その区分のボタンが見出しにあるのでまとめボタンは出さない */
+  renderAssignAll(v.indexOf('t:') === 0 ? evs : null);
 }
 
 el('b-reload').addEventListener('click', function(){ load(); });
