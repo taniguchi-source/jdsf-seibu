@@ -26,6 +26,8 @@ function uk_dcs_parse_info($raw) {
         return ['error' => 'SSS__I.dat ではないようです（1行目が #DCSsys で始まっていません）'];
     }
     $cut  = function ($s) { return uk_dcs_s(preg_replace('/\/\/-.*$/s', '', $s)); };
+    /* 2行目は大会番号（データフォルダの名前。例 260914）。公認番号として使う。 */
+    $comp_no = preg_replace('/[^0-9A-Za-z]/', '', uk_dcs_s($rows[1] ?? ''));
     $name = $cut($rows[2] ?? '');
     if ($name === '') return ['error' => '大会名称を読み取れませんでした'];
 
@@ -71,7 +73,8 @@ function uk_dcs_parse_info($raw) {
         }
     }
 
-    return ['name' => $name, 'date' => $date, 'venue' => $cut($rows[5] ?? ''),
+    return ['name' => $name, 'date' => $date, 'comp_no' => $comp_no,
+            'venue' => $cut($rows[5] ?? ''),
             'host' => $cut($rows[4] ?? ''), 'events' => $events];
 }
 

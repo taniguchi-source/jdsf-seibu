@@ -21,6 +21,7 @@ json_out([
     'ok'     => true,
     'name'   => $r['name'],
     'date'   => $r['date'],
+    'comp_no' => $r['comp_no'],   /* DCSの大会番号。公認番号として使う */
     'venue'  => $r['venue'],
     'events' => $r['events'],     /* コード・名称・並び順（受付締切は空） */
     'roster' => $r['roster'],     /* 背番号・氏名・所属・出場区分 */
