@@ -686,7 +686,10 @@ function loadComps(quiet){
           if (pw === null || pw === '') return;
           post('api/uketsuke_save_competition.php', {action:'delete', id:b.dataset.del, password:pw})
             .then(function(){
-              if (COMP && COMP.id === b.dataset.del) { COMP = null; loadBy(); el('hd-comp').textContent = ''; }
+              if (COMP && COMP.id === b.dataset.del) {
+              startPolling(false);        /* 消した大会を取りに行かせない */
+              COMP = null; loadBy(); el('hd-comp').textContent = '';
+            }
               try { if (localStorage.getItem('uk_last_comp') === b.dataset.del) localStorage.removeItem('uk_last_comp'); } catch (e) {}
               loadComps();
             })
@@ -944,6 +947,8 @@ function renderSync(){
 }
 /* 大会が消えている・権限が切れている場合は、古い画面を見せ続けても意味がないので大会選択へ戻す */
 function syncFailed(msg){
+  /* 自分で大会を消した／閉じた直後は、巡回の取り直しが空振りするだけなので黙って終わる */
+  if (!COMP) { SYNC_ERR = ''; renderSync(); return; }
   SYNC_ERR = msg || '通信エラー';
   renderSync();
   if (/見つかりません|Forbidden|公認番号/.test(SYNC_ERR)) {
