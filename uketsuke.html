@@ -263,6 +263,18 @@
           <input type="file" id="nc-csv" accept=".csv,.CSV,.txt,text/csv">
           <div class="muted" style="margin-top:4px">大会を作ると同時に取り込んで、名簿に反映します。</div>
         </div>
+        <div style="margin-top:12px">
+          <label class="muted">DCSのフォルダから取り込む（任意）　CSVを書き出さずに、大会名・開催日・区分・名簿をまとめて入れられます</label>
+          <div class="row wrap">
+            <input type="file" id="nc-dcs-i" accept=".dat,.DAT">
+            <input type="file" id="nc-dcs-m" accept=".dat,.DAT">
+            <button type="button" class="small secondary" id="nc-dcs-btn">読み込む</button>
+          </div>
+          <div class="muted" style="margin-top:4px" id="nc-dcs-note">
+            大会番号のフォルダ（例 260914）にある <b>SSS__I.dat</b>（大会と区分）と
+            <b>SSS__MEM.dat</b>（名簿）の2つを選んでください。公認番号と受付締切は手で入れます。
+          </div>
+        </div>
         <div style="height:10px"></div>
         <button id="nc-btn">作成する</button>
       </div>
@@ -688,6 +700,7 @@ function loadComps(quiet){
    一覧に無い大会（登録前のものなど）は、これまで通り手入力できる。 */
 var CANDS = [];        /* サイトの競技会一覧（シラバスの競技内容つき） */
 var NC_EVENTS = [];    /* 選んだ大会の区分（シラバスの区分順＝CSVの列順） */
+var NC_EV_SRC = 'syllabus';   /* 区分をどこから取ったか（syllabus / dcs） */
 function loadCompCandidates(){
   fetch('data/competitions_seibu.json?_=' + Date.now())
     .then(function(r){ return r.json(); })
@@ -717,6 +730,7 @@ function cleanCompName(name){
 el('nc-pick').addEventListener('change', function(){
   var x = this.value === '' ? null : CANDS[Number(this.value)];
   NC_EVENTS = x ? (x.events || []) : [];
+  NC_EV_SRC = 'syllabus';
   renderNcEvents();
   if (!x) return;
   el('nc-name').value = cleanCompName(x.name);
@@ -735,11 +749,43 @@ function renderNcEvents(){
     box.classList.toggle('hidden', el('nc-pick').value === '');
     return;
   }
-  box.innerHTML = 'シラバスの競技内容から <b>' + NC_EVENTS.length + '区分</b> を競技内容の順で登録します：<br>'
+  box.innerHTML = (NC_EV_SRC === 'dcs' ? 'DCSの大会情報から <b>' : 'シラバスの競技内容から <b>')
+    + NC_EVENTS.length + '区分</b> を競技内容の順で登録します：<br>'
     + esc(NC_EVENTS.map(function(e){ return e.code; }).join(', ')) + '<br>'
     + 'この並び順が名簿CSVの競技参加区分の列順になります（受付締切は「名簿」タブで入れてください）。';
   box.classList.remove('hidden');
 }
+
+/* DCSの2ファイルから、大会名・開催日・区分・名簿をまとめて読む。
+   区分のコードと並び順がDCSの原本から取れるので、シラバスが未公開でも登録できる。
+   名簿は画面が持っておき、大会を作ったあとに保存する（CSV取込と同じ流れ）。 */
+var NC_ROSTER = null;
+el('nc-dcs-btn').addEventListener('click', function(){
+  var fi = el('nc-dcs-i').files[0], fm = el('nc-dcs-m').files[0];
+  if (!fi || !fm) { alert('SSS__I.dat と SSS__MEM.dat の2つを選んでください'); return; }
+  var fd = new FormData();
+  fd.append('info', fi);
+  fd.append('mem', fm);
+  var btn = el('nc-dcs-btn');
+  btn.disabled = true;
+  fetch('api/uketsuke_dcs_preview.php', {method:'POST', body:fd, headers:{'X-CSRF-Token': CSRF}})
+    .then(function(r){ return r.json().catch(function(){ return {error:'通信エラー'}; }); })
+    .then(function(d){
+      if (d && d.error) throw new Error(d.message || d.error);
+      NC_ROSTER = d.roster;
+      NC_EVENTS = d.events;
+      NC_EV_SRC = 'dcs';
+      renderNcEvents();
+      el('nc-name').value = d.name || '';
+      el('nc-date').value = d.date || '';
+      el('nc-pick').value = '';
+      el('nc-dcs-note').innerHTML = '読み込みました：<b>' + esc(d.name) + '</b>（' + esc(d.date) + '）'
+        + '　区分 ' + d.events.length + '／名簿 <b>' + d.roster.length + '組</b>。'
+        + '<b>公認番号</b>を入れて「作成する」を押してください。';
+    })
+    .catch(function(e){ alert(e.message); })
+    .then(function(){ btn.disabled = false; });
+});
 
 el('nc-btn').addEventListener('click', function(){
   if (!el('nc-code').value.trim() &&
@@ -754,8 +800,11 @@ el('nc-btn').addEventListener('click', function(){
     events: evLines
   })
     .then(function(d){
-      /* 大会を開くと入力欄の状態が消えるので、CSVは先に取り出しておく */
+      /* 大会を開くと入力欄の状態が消えるので、CSVとDCSの名簿は先に取り出しておく */
       var csv = el('nc-csv').files[0];
+      var dcs = NC_ROSTER;
+      NC_ROSTER = null;
+      el('nc-dcs-i').value = ''; el('nc-dcs-m').value = '';
       el('nc-name').value = ''; el('nc-code').value = ''; el('nc-pick').value = '';
       el('nc-csv').value = '';
       NC_EVENTS = []; renderNcEvents();
@@ -765,6 +814,18 @@ el('nc-btn').addEventListener('click', function(){
         .then(function(){
           if (!(COMP && COMP.id === d.id)) return;
           switchView('roster');
+          if (dcs) {
+            return post('api/uketsuke_save_roster.php', {
+              id: COMP.id, mode: 'replace', roster: JSON.stringify(dcs),
+              /* エントリー0組の区分も残すため、区分コードを一緒に送る */
+              event_codes: JSON.stringify(NC_EVENTS.map(function(e){ return e.code; }))
+            }).then(function(r){
+              return refresh().then(function(){
+                renderEvents(); renderRoster(); renderEventChecks();
+                alert(r.count + '組を取り込みました。受付締切の時刻は区分マスタで入れてください。');
+              });
+            }).catch(function(e){ alert(e.message); });
+          }
           if (csv) return readCsvFile(csv).catch(function(e){ alert(e.message); });
         });
     })
