@@ -613,6 +613,7 @@ function loadComps(quiet){
         + (c.need_code ? (c.unlocked ? '　🔓 公認番号は確認済み' : '　🔒 公認番号が必要') : '') + '</div></div>'
         + '<button class="small" data-open="' + esc(c.id) + '" data-need="' + (c.need_code && !c.unlocked ? '1' : '') + '">開く</button>'
         + '<button class="small secondary" data-edit="' + esc(c.id) + '" data-need="' + (c.need_code && !c.unlocked ? '1' : '') + '">編集</button>'
+        + '<button class="small secondary" data-copy="' + esc(c.id) + '">複製</button>'
         + '<button class="small danger" data-del="' + esc(c.id) + '">削除</button></div>';
     }).join('');
     box.querySelectorAll('[data-open]').forEach(function(b){
@@ -627,6 +628,34 @@ function loadComps(quiet){
         step.then(function(){ if (COMP || b.dataset.need !== '1') openEditor(c); });
       });
     });
+    /* 複製は練習用の大会を作るためのもの。名簿と区分だけを引き継ぎ、受付記録は引き継がない。
+       元の大会を開いていることが条件なので、公認番号を知らない人は名簿を複製できない。 */
+    box.querySelectorAll('[data-copy]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var c = d.competitions.filter(function(x){ return x.id === b.dataset.copy; })[0] || {};
+        var need = c.need_code && !c.unlocked && !(COMP && COMP.id === c.id);
+        var step = need ? openComp(c.id, true, true) : Promise.resolve();
+        step.then(function(){
+          if (need && !(COMP && COMP.id === c.id)) return;   /* 公認番号が違う／取り消した */
+          var name = prompt('複製してできる大会の名前を入れてください。' +
+            '（名簿と区分はそのまま、受付記録は空の状態で作ります）', '受付システム練習用競技会');
+          if (name === null || name.trim() === '') return;
+          var code = prompt('この大会を開くときの公認番号を入れてください。' +
+            '（練習用なら、覚えやすい番号で構いません）', '');
+          if (code === null || code.trim() === '') return;
+          b.disabled = true;
+          post('api/uketsuke_duplicate.php', {id:c.id, name:name, code:code})
+            .then(function(r){
+              alert('「' + r.name + '」を作りました。' +
+                    '名簿 ' + r.roster + ' 組／区分 ' + r.events + ' 件を引き継いでいます。' +
+                    '受付記録は空です。');
+              return loadComps();
+            })
+            .catch(function(e){ b.disabled = false; alert(e.message); });
+        });
+      });
+    });
+
     /* 削除は名簿も受付記録もまとめて消えるため、大会名の確認に加えて
        役員ページのパスワードを求める（サーバー側でも照合する） */
     box.querySelectorAll('[data-del]').forEach(function(b){
