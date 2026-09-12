@@ -491,20 +491,6 @@
         <span class="muted" id="ev-saved"></span>
       </div>
 
-      <div class="card">
-        <h3 style="margin:0 0 6px">DCSのフォルダから名簿を取り込む</h3>
-        <p class="muted" style="margin-top:0">
-          大会番号のフォルダ（例 260914）にある <b>SSS__I.dat</b> と <b>SSS__MEM.dat</b> を選ぶと、
-          この大会の<b>名簿と区分を入れ直します</b>。受付の記録はそのまま残ります。
-        </p>
-        <div class="row wrap">
-          <input type="file" id="rs-dcs-i" accept=".dat,.DAT">
-          <input type="file" id="rs-dcs-m" accept=".dat,.DAT">
-          <button type="button" class="small secondary" id="rs-dcs-btn">取り込む</button>
-        </div>
-        <div class="muted" id="rs-dcs-note" style="margin-top:6px"></div>
-      </div>
-
       <h2>一覧 <span class="muted" id="rs-count"></span></h2>
       <input type="text" id="rs-search" placeholder="背番号・氏名・所属で検索">
       <div style="height:8px"></div>
@@ -1669,56 +1655,6 @@ function renderRoster(){
     });
   });
 }
-/* すでにある大会に、DCSのファイルから名簿を入れ直す。
-   大会を作るときに取り込みそこねたときや、DCS側で名簿が変わったときに使う。
-   区分は名称と並び順も入れ直すが、入力済みの受付締切は残す。 */
-el('rs-dcs-btn').addEventListener('click', function(){
-  if (!COMP) return;
-  var fi = el('rs-dcs-i').files[0], fm = el('rs-dcs-m').files[0];
-  if (!fi || !fm) { alert('SSS__I.dat と SSS__MEM.dat の2つを選んでください'); return; }
-  var fd = new FormData();
-  fd.append('info', fi);
-  fd.append('mem', fm);
-  var btn = el('rs-dcs-btn');
-  btn.disabled = true;
-  el('rs-dcs-note').textContent = '読み込んでいます…';
-  fetch('api/uketsuke_dcs_preview.php', {method:'POST', body:fd, headers:{'X-CSRF-Token': CSRF}})
-    .then(function(r){ return r.json().catch(function(){ return {error:'通信エラー'}; }); })
-    .then(function(d){
-      if (d && d.error) throw new Error(d.message || d.error);
-      var now = (DATA.roster || []).length;
-      if (!confirm(d.roster.length + '組を取り込みます。'
-          + (now ? 'いまの名簿（' + now + '組）は置き換わります。' : '')
-          + '受付の記録はそのまま残ります。よろしいですか？')) {
-        el('rs-dcs-note').textContent = '';
-        return;
-      }
-      /* 受付締切は画面で入れたものを残す */
-      var keep = {};
-      (DATA.events || []).forEach(function(e){ keep[e.code] = e.start_time || ''; });
-      var evs = d.events.map(function(e){
-        return {code:e.code, name:e.name, start_time: keep[e.code] || ''};
-      });
-      return post('api/uketsuke_save_events.php', {id:COMP.id, events:JSON.stringify(evs)})
-        .then(function(){
-          return post('api/uketsuke_save_roster.php', {
-            id: COMP.id, mode: 'replace', roster: JSON.stringify(d.roster),
-            event_codes: JSON.stringify(evs.map(function(e){ return e.code; }))
-          });
-        })
-        .then(function(r){
-          el('rs-dcs-i').value = ''; el('rs-dcs-m').value = '';
-          return refresh().then(function(){
-            renderEvents(); renderRoster(); renderEventChecks();
-            el('rs-dcs-note').innerHTML = '<b>' + r.count + '組</b>を取り込みました（区分 ' + evs.length + '）。'
-              + '受付締切の時刻は上の区分マスタで確認してください。';
-          });
-        });
-    })
-    .catch(function(e){ el('rs-dcs-note').textContent = '取り込めませんでした：' + e.message; alert(e.message); })
-    .then(function(){ btn.disabled = false; });
-});
-
 el('rs-search').addEventListener('input', renderRoster);
 
 function renderEventChecks(){
