@@ -461,6 +461,20 @@
         <span class="muted" id="ev-saved"></span>
       </div>
 
+      <div class="card">
+        <h3 style="margin:0 0 6px">DCSのフォルダから名簿を取り込む</h3>
+        <p class="muted" style="margin-top:0">
+          大会番号のフォルダ（例 260914）にある <b>SSS__I.dat</b> と <b>SSS__MEM.dat</b> を選ぶと、
+          この大会の<b>名簿と区分を入れ直します</b>。受付の記録はそのまま残ります。
+        </p>
+        <div class="row wrap">
+          <input type="file" id="rs-dcs-i" accept=".dat,.DAT">
+          <input type="file" id="rs-dcs-m" accept=".dat,.DAT">
+          <button type="button" class="small secondary" id="rs-dcs-btn">取り込む</button>
+        </div>
+        <div class="muted" id="rs-dcs-note" style="margin-top:6px"></div>
+      </div>
+
       <h2>一覧 <span class="muted" id="rs-count"></span></h2>
       <input type="text" id="rs-search" placeholder="背番号・氏名・所属で検索">
       <div style="height:8px"></div>
@@ -760,15 +774,18 @@ function renderNcEvents(){
    区分のコードと並び順がDCSの原本から取れるので、シラバスが未公開でも登録できる。
    名簿は画面が持っておき、大会を作ったあとに保存する（CSV取込と同じ流れ）。 */
 var NC_ROSTER = null;
-el('nc-dcs-btn').addEventListener('click', function(){
+/* 2つとも選ばれていれば読み込む。CSVの欄は選ぶだけで取り込まれるので、
+   こちらも「選んだら読み込む」に合わせる（読み込まないまま作成して名簿が空、を防ぐ）。 */
+function loadDcsFiles(){
   var fi = el('nc-dcs-i').files[0], fm = el('nc-dcs-m').files[0];
-  if (!fi || !fm) { alert('SSS__I.dat と SSS__MEM.dat の2つを選んでください'); return; }
+  if (!fi || !fm) return Promise.resolve(false);
   var fd = new FormData();
   fd.append('info', fi);
   fd.append('mem', fm);
   var btn = el('nc-dcs-btn');
   btn.disabled = true;
-  fetch('api/uketsuke_dcs_preview.php', {method:'POST', body:fd, headers:{'X-CSRF-Token': CSRF}})
+  el('nc-dcs-note').textContent = '読み込んでいます…';
+  return fetch('api/uketsuke_dcs_preview.php', {method:'POST', body:fd, headers:{'X-CSRF-Token': CSRF}})
     .then(function(r){ return r.json().catch(function(){ return {error:'通信エラー'}; }); })
     .then(function(d){
       if (d && d.error) throw new Error(d.message || d.error);
@@ -782,12 +799,33 @@ el('nc-dcs-btn').addEventListener('click', function(){
       el('nc-dcs-note').innerHTML = '読み込みました：<b>' + esc(d.name) + '</b>（' + esc(d.date) + '）'
         + '　区分 ' + d.events.length + '／名簿 <b>' + d.roster.length + '組</b>。'
         + '<b>公認番号</b>を入れて「作成する」を押してください。';
+      btn.disabled = false;
+      return true;
     })
-    .catch(function(e){ alert(e.message); })
-    .then(function(){ btn.disabled = false; });
+    .catch(function(e){
+      btn.disabled = false;
+      el('nc-dcs-note').textContent = '読み込めませんでした：' + e.message;
+      throw e;
+    });
+}
+el('nc-dcs-i').addEventListener('change', function(){ loadDcsFiles().catch(function(e){ alert(e.message); }); });
+el('nc-dcs-m').addEventListener('change', function(){ loadDcsFiles().catch(function(e){ alert(e.message); }); });
+el('nc-dcs-btn').addEventListener('click', function(){
+  if (!el('nc-dcs-i').files[0] || !el('nc-dcs-m').files[0]) {
+    alert('SSS__I.dat と SSS__MEM.dat の2つを選んでください');
+    return;
+  }
+  loadDcsFiles().catch(function(e){ alert(e.message); });
 });
 
 el('nc-btn').addEventListener('click', function(){
+  /* DCSのファイルを選んだのに読み込んでいなければ、先に読み込んでから作る */
+  var pre = (!NC_ROSTER && el('nc-dcs-i').files[0] && el('nc-dcs-m').files[0])
+    ? loadDcsFiles() : Promise.resolve(false);
+  pre.then(function(){ createCompetition(); }).catch(function(e){ alert(e.message); });
+});
+
+function createCompetition(){
   if (!el('nc-code').value.trim() &&
       !confirm('公認番号が空です。この大会は誰でも開ける状態になります。よろしいですか？')) return;
   /* 区分は「コード,区分名」を1行ずつ送る（サーバー側で区分マスタになる）。
@@ -795,6 +833,7 @@ el('nc-btn').addEventListener('click', function(){
   var evLines = NC_EVENTS.map(function(e){
     return e.code + ',' + String(e.name || '').replace(/[,\t]+/g, ' ').trim();
   }).join('\n');
+  var evCodes = NC_EVENTS.map(function(e){ return e.code; });   /* 入力欄を空にする前に控える */
   post('api/uketsuke_save_competition.php', {
     action: 'create', name: el('nc-name').value, date: el('nc-date').value, code: el('nc-code').value,
     events: evLines
@@ -818,7 +857,7 @@ el('nc-btn').addEventListener('click', function(){
             return post('api/uketsuke_save_roster.php', {
               id: COMP.id, mode: 'replace', roster: JSON.stringify(dcs),
               /* エントリー0組の区分も残すため、区分コードを一緒に送る */
-              event_codes: JSON.stringify(NC_EVENTS.map(function(e){ return e.code; }))
+              event_codes: JSON.stringify(evCodes)
             }).then(function(r){
               return refresh().then(function(){
                 renderEvents(); renderRoster(); renderEventChecks();
@@ -830,7 +869,7 @@ el('nc-btn').addEventListener('click', function(){
         });
     })
     .catch(function(e){ alert(e.message); });
-});
+}
 
 /* 前の大会で作業していた内容を画面から消す。
    別の大会に切り替えたのに、背番号や照会結果、読み込み途中のCSVが残っていると、
@@ -1609,6 +1648,56 @@ function renderRoster(){
     });
   });
 }
+/* すでにある大会に、DCSのファイルから名簿を入れ直す。
+   大会を作るときに取り込みそこねたときや、DCS側で名簿が変わったときに使う。
+   区分は名称と並び順も入れ直すが、入力済みの受付締切は残す。 */
+el('rs-dcs-btn').addEventListener('click', function(){
+  if (!COMP) return;
+  var fi = el('rs-dcs-i').files[0], fm = el('rs-dcs-m').files[0];
+  if (!fi || !fm) { alert('SSS__I.dat と SSS__MEM.dat の2つを選んでください'); return; }
+  var fd = new FormData();
+  fd.append('info', fi);
+  fd.append('mem', fm);
+  var btn = el('rs-dcs-btn');
+  btn.disabled = true;
+  el('rs-dcs-note').textContent = '読み込んでいます…';
+  fetch('api/uketsuke_dcs_preview.php', {method:'POST', body:fd, headers:{'X-CSRF-Token': CSRF}})
+    .then(function(r){ return r.json().catch(function(){ return {error:'通信エラー'}; }); })
+    .then(function(d){
+      if (d && d.error) throw new Error(d.message || d.error);
+      var now = (DATA.roster || []).length;
+      if (!confirm(d.roster.length + '組を取り込みます。'
+          + (now ? 'いまの名簿（' + now + '組）は置き換わります。' : '')
+          + '受付の記録はそのまま残ります。よろしいですか？')) {
+        el('rs-dcs-note').textContent = '';
+        return;
+      }
+      /* 受付締切は画面で入れたものを残す */
+      var keep = {};
+      (DATA.events || []).forEach(function(e){ keep[e.code] = e.start_time || ''; });
+      var evs = d.events.map(function(e){
+        return {code:e.code, name:e.name, start_time: keep[e.code] || ''};
+      });
+      return post('api/uketsuke_save_events.php', {id:COMP.id, events:JSON.stringify(evs)})
+        .then(function(){
+          return post('api/uketsuke_save_roster.php', {
+            id: COMP.id, mode: 'replace', roster: JSON.stringify(d.roster),
+            event_codes: JSON.stringify(evs.map(function(e){ return e.code; }))
+          });
+        })
+        .then(function(r){
+          el('rs-dcs-i').value = ''; el('rs-dcs-m').value = '';
+          return refresh().then(function(){
+            renderEvents(); renderRoster(); renderEventChecks();
+            el('rs-dcs-note').innerHTML = '<b>' + r.count + '組</b>を取り込みました（区分 ' + evs.length + '）。'
+              + '受付締切の時刻は上の区分マスタで確認してください。';
+          });
+        });
+    })
+    .catch(function(e){ el('rs-dcs-note').textContent = '取り込めませんでした：' + e.message; alert(e.message); })
+    .then(function(){ btn.disabled = false; });
+});
+
 el('rs-search').addEventListener('input', renderRoster);
 
 function renderEventChecks(){
