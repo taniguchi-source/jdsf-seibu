@@ -38,6 +38,8 @@
 
   /* ── 紙の見た目。画面でも刷り上がりに近い形で見せる ── */
   #paper{background:#fff;padding:14mm 12mm;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+  /* 紙を縮小して見せるときの入れもの（縮小したぶんの余白を切り詰める） */
+  #sheet{overflow:hidden}
   .sheet-head{font-size:13px;font-weight:700;margin:0 0 10px}
   .sheet-head .date{font-weight:400;color:var(--muted);margin-left:10px}
 
@@ -65,16 +67,19 @@
   .blk .ttl .dance .k{font-size:11px;margin-right:7px;font-weight:700}
   .blk .none{font-size:12px;color:var(--muted);padding:2px 0 6px}
   table.pg{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
-  table.pg th,table.pg td{border:1px solid var(--rule);padding:2px 4px;
+  /* 行の高さは line-height で決まる。日本語フォントの既定（normal）は 1.7 前後あり、
+     それだけで1行 8mm 近くになってしまうので、紙でも画面でも詰めた値を明示する。 */
+  table.pg th,table.pg td{border:1px solid var(--rule);padding:2px 4px;line-height:var(--pf-lh);
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  table.pg th{background:#f2f2f2;font-weight:600;text-align:center;font-size:11px}
+  /* 見出しは列に入る言い方をJSが選ぶので、万一あふれても「…」は出さない */
+  table.pg th{background:#f2f2f2;font-weight:600;text-align:center;font-size:11px;text-overflow:clip}
   /* 呼び出しにも照合にも使うので、背番号と氏名は大きく太く。
      氏名は切らずに折り返す（長い名前でも最後まで読めるようにする）。 */
   table.pg td.bib{text-align:center;font-weight:800;font-size:15px}
   table.pg td.nmc{font-weight:700;font-size:13.5px;white-space:normal;
-    word-break:break-all;line-height:1.25}
+    word-break:break-all}
   /* 所属も切らずに折り返す（クラブ名が途中で切れると誰の所属か分からない） */
-  table.pg td.aff{white-space:normal;word-break:break-all;line-height:1.25}
+  table.pg td.aff{white-space:normal;word-break:break-all}
   /* 記入欄は当日ペンで書き込む列。中身は空のままにする。 */
   table.pg td.memo{background:#fff}
   /* 左右の段のあいだ。罫線を引かない。 */
@@ -96,7 +101,9 @@
     --pf-aff:calc(8.5pt * var(--ps));  --pf-head:calc(11pt * var(--ps));
     --pf-ttl:calc(12pt * var(--ps));   --pf-dan:calc(10pt * var(--ps));
     --pf-dk:calc(8.5pt * var(--ps));   --pf-pad:calc(1px * var(--ps));
-    --pf-tpad:calc(3px * var(--ps));   --pf-gap:calc(5mm * var(--ps));
+    --pf-tpad:calc(2px * var(--ps));   --pf-gap:calc(3mm * var(--ps));
+    /* 行の高さ。1.15 は日本語でも上下がぶつからない範囲でいちばん詰まる値。 */
+    --pf-lh:1.15;
   }
   #paper.pm{width:190mm;padding:0;box-shadow:none}
   /* 掲示用。1段組・大きい字・1区分＝1ページ。離れて見る貼り紙や、
@@ -108,6 +115,8 @@
     --pf-ttl:calc(14pt * var(--ps));   --pf-dan:calc(12pt * var(--ps));
     --pf-dk:calc(9.5pt * var(--ps));   --pf-pad:calc(2px * var(--ps));
     --pf-tpad:calc(5px * var(--ps));   --pf-gap:calc(6mm * var(--ps));
+    /* 掲示用は離れて見る紙なので、行間は詰めない */
+    --pf-lh:1.25;
   }
   /* 画面でも掲示用は大きく見せる。枚数を測っている間（.pm）と紙は上の変数を使うので、
      ここは画面だけに効かせる。 */
@@ -139,7 +148,8 @@
     body{background:#fff}
     main{max-width:none;padding:0}
     /* 紙では用紙の幅いっぱいに使う（190mm の指定は画面で測るときだけのもの） */
-    #paper,#paper.pm{padding:0;box-shadow:none;width:auto}
+    #paper,#paper.pm{padding:0;box-shadow:none;width:auto;transform:none !important}
+    #sheet{overflow:visible;height:auto !important}
     table.pg{font-size:var(--pf-tbl)}
     /* 見出しは「記入欄」「背番号」が切れない大きさまで小さくする */
     table.pg th{font-size:var(--pf-th)}
@@ -199,7 +209,7 @@
     <div class="muted" id="fit-note" style="margin-top:8px"></div>
     <div class="muted" id="syl-note" style="margin-top:6px"></div>
   </div>
-  <div id="paper"></div>
+  <div id="sheet"><div id="paper"></div></div>
 </main>
 
 <script>
@@ -280,6 +290,7 @@ function load(){
       if (d.error) throw new Error(d.error);
       var first = (DATA === null);
       DATA = d;
+      NEED = null;   /* 名簿が変わったら列幅を測り直す */
       el('hd-comp').textContent = d.name + (d.date ? '（' + d.date + '）' : '');
       el('nav-absent').href = 'uketsuke-absent.html?id=' + encodeURIComponent(id);
       if (first) buildPicker();
@@ -367,25 +378,103 @@ function cells(r, memo){
     + '<td class="aff">' + esc(r.affiliation) + '</td>';
 }
 
-function headCells(memo){
-  return (memo ? '<th>記入欄</th>' : '')
-    + '<th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th>';
+/* 見出しの言い方。列に入りきるものを左から順に選ぶ。
+   幅の狭い列で「記入欄」「背番号」と書くと「記…」「背…」と切れて出てしまうため、
+   切って出すのではなく、短い言い方に替える。 */
+var HEAD_WORDS = [
+  ['記入欄', '記入', '記', ''],           /* 記入欄（memo があるときだけ） */
+  ['背番号', '番号', '№'],
+  ['リーダー', 'ﾘｰﾀﾞｰ', 'L'],
+  ['パートナー', 'ﾊﾟｰﾄﾅｰ', 'P'],
+  ['所属', '所']
+];
+var HCTX = null;
+/* 幅 wPx（px）に収まる言い方を返す。pt は見出しの文字の大きさ。 */
+function fitWord(cands, wPx, pt){
+  if (!HCTX) HCTX = document.createElement('canvas').getContext('2d');
+  HCTX.font = '600 ' + (pt * PS).toFixed(2) + 'pt ' + getComputedStyle(document.body).fontFamily;
+  for (var i = 0; i < cands.length; i++) {
+    if (HCTX.measureText(cands[i]).width + 5 <= wPx) return cands[i];
+  }
+  return cands[cands.length - 1];
+}
+function headCells(memo, cw){
+  var words = memo ? HEAD_WORDS : HEAD_WORDS.slice(1);
+  return words.map(function(cands, i){
+    return '<th>' + esc(cw ? fitWord(cands, cw.px[i], cw.th) : cands[0]) + '</th>';
+  }).join('');
 }
 
-/* 列幅。記入欄のあり・なしと、1段組か2段組かで割り振りを変える（合計 100%） */
-function colGroup(memo){
+/* ── 列幅 ──
+   氏名も所属も、幅が足りないと2行になり、そのぶん行が高くなって枚数が増える。
+   名前やクラブ名の長さは大会ごとに違うので、実際の文字の幅を測ってから割り振る。
+   （固定の割合だと「京都Ｄアスリートクラブ」のような所属でほぼ全行が2行になっていた） */
+var MEMO_MM = 7;      /* 記入欄。丸やレ点を書ける最小の幅 */
+var NEED = null;      /* 測った必要幅（px。--ps が 1 のときの大きさ） */
+
+function nth(arr, q){
+  if (!arr.length) return 0;
+  arr.sort(function(a, b){ return a - b; });
+  return arr[Math.min(arr.length - 1, Math.floor(arr.length * q))];
+}
+/* 氏名は上位5%、所属は上位10%だけ2行になってよい、という割り切りで幅を決める。
+   いちばん長い1件に合わせると、そのために全体が小さくなってしまうため。 */
+function measureNeeds(){
+  var fam = getComputedStyle(document.body).fontFamily;
+  var ctx = document.createElement('canvas').getContext('2d');
+  function w(font, s){ ctx.font = font; return ctx.measureText(String(s == null ? '' : s)).width; }
+  var names = [], affs = [], bibs = [0];
+  (DATA.roster || []).forEach(function(r){
+    names.push(w('700 11pt ' + fam, r.leader));
+    names.push(w('700 11pt ' + fam, r.partner));
+    affs.push(w('8.5pt ' + fam, r.affiliation));
+    bibs.push(w('800 13pt ' + fam, r.bib));
+  });
+  NEED = {bib: Math.max.apply(null, bibs), name: nth(names, 0.95), aff: nth(affs, 0.90)};
+}
+
+/* 1組ぶんの列幅。%（表に対する割合）と、実際の幅（px）の両方を返す。
+   実寸は見出しの言い方を選ぶのに使う。
+   文字は --ps で縮むが、枠線と左右の余白は縮まない。縮めたときに背番号が
+   「1…」と切れたことがあるので、いまの縮尺での必要幅で割り振る。 */
+function colWidths(memo, cols){
+  /* 掲示用は1段組・決め打ちの割合 */
   if (isPoster()) {
     var pw = memo ? [8, 8, 26, 26, 32] : [9, 28, 28, 35];
-    return '<colgroup>' + pw.map(function(x){ return '<col style="width:' + x + '%">'; }).join('') + '</colgroup>';
+    return {gap: 0, pct: pw, th: 9,
+            px: pw.map(function(p){ return p / 100 * (190 * MM); })};
   }
-  var w = memo ? [5, 5, 13.5, 13.5, 11.5] : [5.5, 15, 15, 13];
-  var cols = w.map(function(x){ return '<col style="width:' + x + '%">'; }).join('');
-  return '<colgroup>' + cols + '<col style="width:3%">' + cols + '</colgroup>';
+  if (!NEED) measureNeeds();
+  var gap  = cols > 2 ? 2 : 3;                   /* 段のあいだ（%） */
+  var sect = (100 - gap * (cols - 1)) / cols;    /* 1段ぶんの幅（%） */
+  var FIX  = 6;                                  /* 枠線と左右の余白（px。縮まない） */
+  var need = [];
+  /* 記入欄は手で書き込む列なので、縮めすぎない */
+  if (memo) need.push(Math.max(5, MEMO_MM * PS) * 96 / 25.4);
+  /* 背番号は切れると呼び出しに使えないので、1割の余裕を持たせる */
+  need.push(NEED.bib * PS * 1.1, NEED.name * PS, NEED.name * PS, NEED.aff * PS);
+  need = need.map(function(x){ return x + FIX; });
+  var sum = need.reduce(function(a, b){ return a + b; }, 0);
+  var pct = need.map(function(x){ return sect * x / sum; });
+  /* 見出しの言い方は紙での幅で決める（画面の幅で決めると、
+     掲示用と行き来したときに言い方が入れ替わってしまう） */
+  var tw = 190 * MM;
+  return {gap: gap, pct: pct, th: 7.5, px: pct.map(function(p){ return p / 100 * tw; })};
+}
+
+/* 列幅（合計 100%）。cols は段組の数。 */
+function colGroup(memo, cols, cw){
+  var one = cw.pct.map(function(x){ return '<col style="width:' + x.toFixed(3) + '%">'; }).join('');
+  var out = '';
+  for (var i = 0; i < cols; i++) out += (i ? '<col style="width:' + cw.gap + '%">' : '') + one;
+  return '<colgroup>' + out + '</colgroup>';
 }
 
 /* ── 何ページに収めるか ──
-   指定がなければそのままの大きさで刷る。ページ数を入れたら、その枚数に収まる
-   いちばん大きい文字になるよう全体を縮める（文字も行間も一緒に縮む）。 */
+   指定がなければ2段組・そのままの大きさで刷る。ページ数を入れたら、
+   「段組を増やす」→「全体を縮める」の順で、その枚数に収める。
+   段組を増やしても字の大きさは変わらない（横幅だけ狭くなる）ので、
+   字を小さくするより先に段組で詰めたほうが読みやすい紙になる。 */
 var MM = 96 / 25.4;                 /* 1mm ぶんのピクセル数（CSSの決まりで 96dpi） */
 var PAGE_H = 277 * MM;              /* A4縦 297mm から上下の余白 10mm ずつを引いた高さ */
 var MIN_PS = 0.5;                   /* これ以上は小さくしない */
@@ -394,6 +483,13 @@ var MIN_PS = 0.5;                   /* これ以上は小さくしない */
    区分は途中で切らない指定なので、入りきらなければ次のページへ送る。 */
 function measurePages(){
   var paper = el('paper'), had = paper.classList.contains('pm');
+  /* 画面用に縮小表示しているときは、そのままでは測れないので一旦もどす */
+  var tf = paper.style.transform; paper.style.transform = '';
+  var pages = countPages(paper, had);
+  paper.style.transform = tf;
+  return pages;
+}
+function countPages(paper, had){
   paper.classList.add('pm');
   var blksAll = paper.querySelectorAll('.blk');
   /* 掲示用は1区分＝1ページ。入りきらない区分だけ枚数が増える。 */
@@ -428,53 +524,107 @@ function measurePages(){
 }
 
 /* --pf-* は :root で組み立てているので、--ps も :root に入れないと効かない
-   （変数の計算は、使う場所ではなく書いてある場所で行われるため） */
-function setPs(v){ document.documentElement.style.setProperty('--ps', v); }
+   （変数の計算は、使う場所ではなく書いてある場所で行われるため）。
+   列幅の計算にも使うので、同じ値を PS に控えておく。 */
+var PS = 1;
+function setPs(v){ PS = v; document.documentElement.style.setProperty('--ps', v); }
 
-/* 指定ページ数に収まる、いちばん大きい縮尺を探す */
-function fitPages(target){
-  setPs(1);
-  var natural = measurePages();
-  if (!target || natural <= target) return {scale: 1, pages: natural};
+/* 段数を決め打ちにして、指定ページ数に収まるいちばん大きい縮尺を探す。
+   列幅は縮尺によって変わるので、試すたびに組み直す。 */
+function fitScale(target){
+  function pagesAt(v){ setPs(v); draw(); return measurePages(); }
+  if (pagesAt(1) <= target) return {scale: 1, pages: measurePages()};
   var lo = MIN_PS, hi = 1, best = null;
-  for (var i = 0; i < 14; i++) {
+  for (var i = 0; i < 10; i++) {
     var mid = (lo + hi) / 2;
-    setPs(mid);
-    if (measurePages() <= target) { best = mid; lo = mid; } else { hi = mid; }
+    if (pagesAt(mid) <= target) { best = mid; lo = mid; } else { hi = mid; }
   }
-  if (best === null) { setPs(MIN_PS); return {scale: MIN_PS, pages: measurePages(), over: true}; }
-  setPs(best);
-  return {scale: best, pages: measurePages()};
+  if (best === null) return {scale: MIN_PS, pages: pagesAt(MIN_PS), over: true};
+  return {scale: best, pages: pagesAt(best)};
+}
+
+var COLS    = 2;            /* いま組んでいる段数 */
+var COL_TRY = [2, 3, 4];    /* 試す段数 */
+
+/* 段数と縮尺の組み合わせのうち、いちばん字が大きくなるものを選ぶ */
+function fitLayout(target){
+  if (!target) { COLS = 2; setPs(1); draw(); return {cols: COLS, scale: 1, pages: measurePages()}; }
+  var best = null;
+  COL_TRY.forEach(function(c){
+    COLS = c;
+    var r = fitScale(target);
+    r.cols = c; r.over = !!r.over;
+    var better;
+    if (!best)                       better = true;
+    else if (best.over && r.over)    better = r.pages < best.pages;   /* どちらも収まらないなら枚数が少ないほう */
+    else if (best.over !== r.over)   better = best.over;              /* 収まるほうを採る */
+    /* 段を増やすと1組あたりの横幅は狭くなるので、字が1割以上大きくなるときだけ乗り換える */
+    else                             better = r.scale > best.scale * 1.1;
+    if (better) best = r;
+  });
+  COLS = best.cols; setPs(best.scale); draw();
+  best.pages = measurePages();
+  return best;
 }
 
 function updateFit(){
   if (!DATA) return;
   /* 掲示用は1区分＝1ページなので、ページ数の指定は使わない */
   if (isPoster()) {
-    setPs(1);
+    COLS = 1; setPs(1);
     el('pages').disabled = true;
     el('fit-note').textContent = '掲示用は1区分＝1ページです（全部で ' + measurePages() + 'ページ）。';
+    showAsPaper(false);
     return;
   }
   el('pages').disabled = false;
   var t = parseInt(el('pages').value, 10);
   if (!(t > 0)) t = 0;
-  var r = fitPages(t);
+  var r = fitLayout(t);
   var pct = Math.round(r.scale * 100);
+  /* 段組や文字を変えたとき、また画面が紙より狭いときは、刷り上がりそのものを出す。
+     （狭い画面で紙と違う組み方をすると、背番号が「1…」と切れて見えてしまう） */
+  showAsPaper(r.cols > 2 || r.scale < 1 || el('sheet').clientWidth < 190 * MM);
   if (!t) {
     el('pages').placeholder = String(r.pages);
-    el('fit-note').textContent = 'このままの大きさで ' + r.pages + 'ページです。'
-      + '減らしたいときは「ページ数」に入れてください（文字と行間が縮みます）。';
+    el('fit-note').textContent = 'このままの大きさ（2段組）で ' + r.pages + 'ページです。'
+      + '減らしたいときは「ページ数」に入れてください'
+      + '（まず段組を増やし、それでも入らないときだけ文字を縮めます）。';
   } else if (r.over) {
     el('fit-note').textContent = t + 'ページには収まりませんでした。'
-      + 'いちばん小さい大きさ（文字 ' + pct + '%）で ' + r.pages + 'ページです。';
+      + r.cols + '段組・いちばん小さい大きさ（文字 ' + pct + '%）で ' + r.pages + 'ページです。';
   } else {
-    el('fit-note').textContent = t + 'ページに収めます'
-      + (pct < 100 ? '（文字と行間を ' + pct + '% に縮めます）' : '（そのままの大きさで収まります）');
+    el('fit-note').textContent = t + 'ページに収めます（' + r.cols + '段組'
+      + (pct < 100 ? '・文字と行間は ' + pct + '%' : '・文字はそのままの大きさ') + '）。';
   }
 }
 
-function render(){
+/* ── 画面の「紙」の見せ方 ──
+   段組を増やしたり文字を縮めたりしたときは、画面の見た目と刷り上がりが食い違うと
+   本当に収まったのかを確かめられない。そこで紙と同じ大きさ（.pm）で組み、
+   画面に入りきらない分だけ全体を縮小して、刷り上がりそのものを見せる。 */
+function showAsPaper(on){
+  var p = el('paper'), s = el('sheet');
+  p.style.transform = ''; s.style.height = '';
+  if (!on) { p.classList.remove('pm'); return; }
+  p.classList.add('pm');
+  var k = Math.min(1, s.clientWidth / p.offsetWidth);
+  if (k < 1) {
+    p.style.transformOrigin = 'top left';
+    p.style.transform = 'scale(' + k.toFixed(4) + ')';
+    s.style.height = Math.ceil(p.offsetHeight * k) + 'px';
+  }
+}
+/* 窓の幅が変わったら、縮小率を取り直す */
+window.addEventListener('resize', function(){
+  if (el('paper').classList.contains('pm')) showAsPaper(true);
+});
+
+/* 組み直してから、収まり具合を測り直す */
+function render(){ draw(); updateFit(); }
+
+/* 紙の中身を組む（枚数の計算はしない） */
+function draw(){
   var only  = el('pick').value;
   var memo  = el('c-memo').checked;
   el('paper').classList.toggle('poster', isPoster());
@@ -496,24 +646,33 @@ function render(){
       return h + '<div class="none">エントリーはありません。</div></section>';
     }
     /* プログラムの選手名簿と同じで、左の段に前半、右の段に後半を入れる。
-       掲示用は1段組なので、上から順にそのまま並べる。 */
-    var poster = isPoster();
-    var half  = poster ? list.length : Math.ceil(list.length / 2);
-    var left  = list.slice(0, half);
-    var right = poster ? [] : list.slice(half);
-    var body = '';
-    for (var i = 0; i < half; i++) {
-      body += '<tr>' + cells(left[i], memo)
-            + (poster ? '' : '<td class="gap"></td>' + cells(right[i], memo)) + '</tr>';
+       段数が増えても同じで、左から順に詰める。掲示用は1段組。
+       どの区分も同じ段数・同じ列幅にそろえたいので、端数は左の段から1組ずつ配る
+       （4組を3段なら 2・1・1。段ごとに幅が変わると、紙の見た目がばらつくため）。 */
+    var cols = isPoster() ? 1 : COLS;
+    var rows = Math.ceil(list.length / cols);
+    var base = Math.floor(list.length / cols), rem = list.length % cols;
+    var part = [], at = 0;
+    for (var c = 0; c < cols; c++) {
+      var take = base + (c < rem ? 1 : 0);
+      part.push(list.slice(at, at + take));
+      at += take;
     }
-    return h + '<table class="pg">' + colGroup(memo)
-      + '<thead><tr>' + headCells(memo)
-      + (poster ? '' : '<th class="gap"></th>' + headCells(memo)) + '</tr></thead>'
+    var body = '';
+    for (var i = 0; i < rows; i++) {
+      var tr = '';
+      for (var c2 = 0; c2 < cols; c2++) tr += (c2 ? '<td class="gap"></td>' : '') + cells(part[c2][i], memo);
+      body += '<tr>' + tr + '</tr>';
+    }
+    var cw = colWidths(memo, cols);
+    var hd = '';
+    for (var c3 = 0; c3 < cols; c3++) hd += (c3 ? '<th class="gap"></th>' : '') + headCells(memo, cw);
+    return h + '<table class="pg">' + colGroup(memo, cols, cw)
+      + '<thead><tr>' + hd + '</tr></thead>'
       + '<tbody>' + body + '</tbody></table></section>';
   }).join('');
 
   el('paper').innerHTML = html;
-  updateFit();
 }
 </script>
 </body>
