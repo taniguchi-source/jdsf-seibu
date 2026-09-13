@@ -378,25 +378,36 @@ def main():
         print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:30]}... → 会場:{info['venue'] or '(なし)'} 締切:{info['entry_deadline'] or '(なし)'} {entry_status}")
         time.sleep(0.5)  # polite delay
 
-    # シラバス（大会要項）の「競技内容」から種目（区分順）を取得する。
-    # 受付システムのCSV取込で、競技参加区分の列に種目コードを割り当てるのに使う。
-    # シラバスは一度出れば内容が変わらないので、取れているものは二度と取りに行かない。
+    # シラバス（大会要項）の「競技内容」から区分（並び順）と種目を取得する。
+    # 受付システムのCSV取込で競技参加区分の列に区分コードを割り当てるのと、
+    # 出場選手一覧に区分ごとの種目を出すのに使う。
+    # シラバスは一度出れば内容が変わらないので、取れているものは取り直さない。
+    # ただし種目（dances）を足す前に取った古い形のものは、直近の大会に限り取り直す。
     prev_events = load_prev_events()
     syllabus_from = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
     print("")
     print("競技内容（シラバス）を取得中... (※トップページの直近競技会情報に出るもののみ／取得済みは取り直さない)")
     kept = fetched = 0
     for i, c in enumerate(unique):
+        prev = prev_events.get(c['comp_no'])
+        # 種目が入っていないものは、この項目を足す前に取った古い形
+        old_form = bool(prev) and not any('dances' in e for e in prev)
         # すでに取れている分はそのまま引き継ぐ（過去分のデータも消さない）
-        if prev_events.get(c['comp_no']):
-            c['events'] = prev_events[c['comp_no']]
+        if prev and not old_form:
+            c['events'] = prev
             kept += 1
             continue
-        # まだ取れていないものだけ取りに行く。シラバス未公開なら次回また試す。
+        # まだ取れていないもの（と古い形のもの）だけ取りに行く。
+        # 直近に出ていない大会は取りに行けないので、持っているものをそのまま使う。
         if not is_recent_competition(c, syllabus_from) or not c.get('syllabus_url'):
-            c['events'] = []
+            c['events'] = prev or []
+            if prev:
+                kept += 1
             continue
         c['events'] = fetch_syllabus_events(c['syllabus_url'])
+        # 取り直しに失敗したときに、前に取れていたものを捨てない
+        if not c['events'] and prev:
+            c['events'] = prev
         fetched += 1
         codes = ','.join(e['code'] for e in c['events'])
         print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:24]}... → {len(c['events'])}種目 {codes[:60]}")
