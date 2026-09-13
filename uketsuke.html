@@ -454,14 +454,17 @@
         <b id="rc-by">未設定</b>
         <button type="button" class="small secondary" id="rc-by-edit">変更</button>
       </div>
-      <p class="muted">「背番号在庫」は、その背番号が受付に残っている（本当に来ていない）ことを確認したときにチェックします。</p>
+      <p class="muted">「背番号在庫」は、その背番号が受付に残っている（本当に来ていない）ことを確認したときにチェックします。<br>
+        「他の区分」は、その組がこの区分のほかに申し込んでいる区分です。<b>受付が済んだ区分は緑</b>になります。</p>
       <table>
-        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>背番号在庫</th></tr></thead>
+        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>背番号在庫</th>
+          <th>他の区分</th></tr></thead>
         <tbody id="rc-absent"></tbody>
       </table>
       <h2>出場（この区分を受付した組）</h2>
       <table>
-        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>受付</th><th>時刻</th></tr></thead>
+        <thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>受付</th><th>時刻</th>
+          <th>他の区分</th></tr></thead>
         <tbody id="rc-present"></tbody>
       </table>
     </section>
@@ -1787,6 +1790,17 @@ el('rc-assign').addEventListener('click', function(){
   }, warn);
 });
 
+/* その組が申し込んでいる、いま見ている区分以外の区分。
+   受付が済んだものは色を付ける。欠場の組でも他の区分には来ていることがあり、
+   出場の組でもまだ受付していない区分が残っていることがあるので、その場で分かるようにする。 */
+function otherEvents(r, code, done){
+  var list = (r.events || []).filter(function(c){ return c !== code; });
+  if (!list.length) return '<span class="muted">—</span>';
+  return list.map(function(c){
+    return '<span class="code-pill' + (done[r.bib + ':' + c] ? ' on' : '') + '">' + esc(c) + '</span>';
+  }).join('');
+}
+
 function renderRollcall(){
   var sel = el('rc-event');
   var cur = sel.value;
@@ -1816,8 +1830,9 @@ function renderRollcall(){
   el('rc-present').innerHTML = present.map(function(p){
     return '<tr><td>' + esc(p[0].bib) + '</td><td>' + esc(p[0].leader) + '</td><td>' + esc(p[0].partner)
       + '</td><td>' + esc(p[0].affiliation) + '</td><td class="muted">' + esc(p[1].by || '') + '</td>'
-      + '<td>' + esc(fmtTime(p[1].at)) + '</td></tr>';
-  }).join('') || '<tr><td colspan="6" class="muted">なし</td></tr>';
+      + '<td>' + esc(fmtTime(p[1].at)) + '</td>'
+      + '<td>' + otherEvents(p[0], code, done) + '</td></tr>';
+  }).join('') || '<tr><td colspan="7" class="muted">なし</td></tr>';
   var stock = {};
   (DATA.stock || []).forEach(function(s){ stock[s.bib] = s; });
   el('rc-absent').innerHTML = absent.map(function(r){
@@ -1826,8 +1841,9 @@ function renderRollcall(){
       + '</td><td>' + esc(r.affiliation) + '</td>'
       + '<td><label class="checkbox-row"><input type="checkbox" class="stock-check" data-bib="' + esc(r.bib) + '"'
       + (s ? ' checked' : '') + '>'
-      + (s && s.by ? '<span class="muted">' + esc(s.by) + '</span>' : '') + '</label></td></tr>';
-  }).join('') || '<tr><td colspan="5" class="muted">なし</td></tr>';
+      + (s && s.by ? '<span class="muted">' + esc(s.by) + '</span>' : '') + '</label></td>'
+      + '<td>' + otherEvents(r, code, done) + '</td></tr>';
+  }).join('') || '<tr><td colspan="6" class="muted">なし</td></tr>';
 
   /* 背番号が受付に残っているかの確認。複数端末で共有するのでサーバーに記録する */
   el('rc-absent').querySelectorAll('.stock-check').forEach(function(cb){
