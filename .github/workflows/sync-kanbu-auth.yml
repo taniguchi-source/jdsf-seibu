@@ -11,6 +11,10 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    # 失敗をIssueに残すために必要（新しいシークレットは要らない）
+    permissions:
+      contents: read
+      issues: write
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -28,3 +32,25 @@ jobs:
           AUTH_MASTER_SECRET: ${{ secrets.AUTH_MASTER_SECRET }}
           SSH_PRIVATE_KEY_B64: ${{ secrets.SSH_PRIVATE_KEY_B64 }}
         run: python scripts/sync_kanbu_auth.py
+
+      # 失敗しても誰も気づけないと、構築PWを変えた日に幹部会フォルダだけ
+      # 古いPWのまま残る。気づけるようにIssueへ書き残す（同じIssueを使い回す）。
+      - name: 失敗をIssueに残す
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          TITLE="幹部会Basic認証の同期が失敗しています"
+          NUM=$(gh issue list --state open --search "$TITLE in:title" --json number --jq '.[0].number // empty')
+          BODY="同期が失敗しました: $RUN_URL
+
+          構築PWを変えた直後に失敗していた場合、幹部会フォルダは古いPWのままです。
+          Actions の「Sync Kanbu Basic Auth」→ Run workflow で手動実行すれば直ります。
+
+          原因の多くはエックスサーバーへのSSH接続タイムアウトで、同期する内容とは関係ありません。"
+          if [ -n "$NUM" ]; then
+            gh issue comment "$NUM" --body "また失敗しました（$(date -u '+%Y-%m-%d %H:%M UTC')）: $RUN_URL"
+          else
+            gh issue create --title "$TITLE" --body "$BODY"
+          fi

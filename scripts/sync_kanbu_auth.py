@@ -20,6 +20,7 @@
 import os
 import sys
 import io
+import time
 import base64
 import pathlib
 
@@ -107,6 +108,51 @@ def _key_from_text(text: str):
     sys.exit(f"[ERROR] SSH鍵(B64)の読み込みに失敗: {last}")
 
 
+def connect_with_retry(key, attempts=3, wait=20):
+    """エックスサーバーのSSHは接続タイムアウトでよく落ちる（3回に1回ほど）。
+    同期する中身とは無関係な失敗なので、間隔を空けて数回試す。"""
+    last = None
+    for i in range(1, attempts + 1):
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        try:
+            client.connect(HOST, port=PORT, username=USER, pkey=key, timeout=30)
+            if i > 1:
+                print(f"[OK] {i}回目の接続で成功しました")
+            return client
+        except Exception as e:
+            last = e
+            try:
+                client.close()
+            except Exception:
+                pass
+            print(f"  [retry] 接続できませんでした（{i}/{attempts}）: {e}")
+            if i < attempts:
+                time.sleep(wait)
+    sys.exit(f"[ERROR] SSH接続に{attempts}回失敗しました: {last}")
+
+
+def put_atomic(sftp, remote_path, content):
+    """一時ファイルに書いてから置き換える。
+    .htpasswd を直接上書きすると、書いている途中で接続が切れたときに
+    空のファイルが残り、幹部会フォルダに誰も入れなくなる。"""
+    tmp = remote_path + ".tmp"
+    with sftp.open(tmp, "w") as f:
+        f.write(content)
+    try:
+        sftp.chmod(tmp, 0o644)
+    except Exception:
+        pass
+    try:
+        sftp.posix_rename(tmp, remote_path)      # 同名があっても置き換わる
+    except Exception:
+        try:
+            sftp.remove(remote_path)
+        except Exception:
+            pass
+        sftp.rename(tmp, remote_path)
+
+
 def main():
     print("=" * 50)
     print(" 幹部会 Basic認証 同期（構築PW → .htpasswd）")
@@ -118,20 +164,12 @@ def main():
     print(f"[OK] 構築PW取得済み（user={BASIC_USER}、値は非表示）")
 
     key = load_ssh_key()
-    client = paramiko.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(HOST, port=PORT, username=USER, pkey=key, timeout=30)
+    client = connect_with_retry(key)
     sftp = client.open_sftp()
     print(f"[OK] SFTP接続: {USER}@{HOST}:{PORT}")
 
     for name, content in ((".htpasswd", htpasswd), (".htaccess", htaccess)):
-        remote_path = f"{REMOTE_DIR}/{name}"
-        with sftp.open(remote_path, "w") as f:
-            f.write(content)
-        try:
-            sftp.chmod(remote_path, 0o644)
-        except Exception:
-            pass
+        put_atomic(sftp, f"{REMOTE_DIR}/{name}", content)
         print(f"  [up] {name}")
 
     sftp.close()
