@@ -41,6 +41,7 @@
   .ev-comp{font-size:12px;color:var(--muted);margin-bottom:6px}
   /* 区分の系統ごとの色。帯の地色（--band）と左の罫・文字（--bar）を切り替える。
      選手もお客様も、色でどの系統の競技かをひと目で見分けられるようにする。 */
+  .k-ten   {--band:#e4f5e9;--bar:#15803d}   /* 10ダンス系  … 淡い緑（あれば一番はじめ） */
   .k-latin {--band:#fce8ef;--bar:#be185d}   /* ラテン      … 淡いピンク */
   .k-std   {--band:#e7eefb;--bar:#1e3a8a}   /* スタンダード … 淡い青 */
   .k-senior{--band:#f1e8fb;--bar:#6d28d9}   /* シニア系    … 淡い紫（種目を問わない） */
@@ -167,15 +168,19 @@ function normName(s){
    シニア・ジュニアは、スタンダードかラテンかを問わずその系統として扱う。 */
 function evKind(e){
   var n = String((e && e.name) || '') + ' ' + String((e && e.code) || '');
+  /* 10ダンスは、シニアやユースの名前が一緒に入っていても10ダンス系として扱う
+     （例「全日本ユース１０ダンス選手権」「全日本シニアⅢ10ダンス選手権」）。 */
+  if (/10ダンス|１０ダンス|10ﾀﾞﾝｽ|１０ﾀﾞﾝｽ|テンダンス|ﾃﾝﾀﾞﾝｽ/.test(n)) return 'ten';
   if (/シニア|ｼﾆｱ/.test(n))                       return 'senior';
   if (/ジュニア|ジュブナイル|ユース|キッズ|少年/.test(n)) return 'junior';
   if (/ラテン/.test(n))                            return 'latin';
   if (/スタンダード|モダン/.test(n))                 return 'std';
   return 'other';
 }
-/* 大会プログラムの並び。ラテン → スタンダード → シニア系 → ジュニア系 → その他。
+/* 大会プログラムの並び。
+   10ダンス系 → ラテン → スタンダード → シニア系 → ジュニア系 → その他。
    同じ系統の中は、DCSの並び（＝競技の順）をそのまま残す。 */
-var KIND_ORDER = {latin: 0, std: 1, senior: 2, junior: 3, other: 4};
+var KIND_ORDER = {ten: 0, latin: 1, std: 2, senior: 3, junior: 4, other: 5};
 function sortEvents(list){
   return (list || []).map(function(e, i){ return {e: e, i: i}; })
     .sort(function(a, b){
