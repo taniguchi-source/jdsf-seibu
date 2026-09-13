@@ -4,88 +4,81 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>出場選手一覧 | 競技会受付システム</title>
+<title>出場選手 印刷用 | 競技会受付システム</title>
 <link rel="icon" href="favicon.ico">
 <style>
-  :root{--primary:#123262;--bg:#f4f5f7;--card:#fff;--text:#1a1a1a;--muted:#6b7280;--border:#e0e2e7}
+  :root{--primary:#123262;--bg:#f4f5f7;--card:#fff;--text:#1a1a1a;--muted:#6b7280;--border:#e0e2e7;
+        --rule:#333}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);
     font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,-apple-system,"Segoe UI",sans-serif}
   header{background:var(--primary);color:#fff;padding:12px 16px;display:flex;gap:12px;align-items:center}
   header h1{font-size:16px;margin:0}
   header a{color:#fff;font-size:13px;text-decoration:none;opacity:.85}
-  /* 受付システムと同じ並びのタブ。別ページなので中身はリンクで、押すと受付システムのその画面が開く。 */
   nav.tabs{display:flex;gap:2px;background:var(--card);border-bottom:1px solid var(--border);
     padding:6px 8px 0;overflow-x:auto}
   nav.tabs a,nav.tabs span{flex:none;padding:10px 14px;color:var(--muted);font-weight:700;font-size:14px;
     border-bottom:3px solid transparent;text-decoration:none;white-space:nowrap}
   nav.tabs a:hover{color:var(--text)}
   nav.tabs .active{color:var(--primary);border-bottom-color:var(--primary)}
-  main{max-width:900px;margin:0 auto;padding:16px}
+  main{max-width:960px;margin:0 auto;padding:16px}
   .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
   button{font-size:15px;font-weight:700;padding:10px 16px;border:none;border-radius:8px;
     background:var(--primary);color:#fff;cursor:pointer}
   button.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
   select{font-size:16px;padding:10px;border:1px solid var(--border);border-radius:8px;width:100%;background:#fff}
-  label{display:block;color:var(--muted);font-size:13px;margin-bottom:4px}
+  label.lab{display:block;color:var(--muted);font-size:13px;margin-bottom:4px}
   .muted{color:var(--muted);font-size:13px}
   .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .checkbox-row{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text)}
 
-  /* ── 区分ごとのかたまり。印刷では1区分＝1ページにする ── */
-  .ev{background:var(--card);border:1px solid var(--border);border-radius:12px;
-    padding:16px 18px;margin-bottom:16px}
-  /* 印刷した紙だけを見ても、どの大会のものか分かるようにする */
-  .ev-comp{font-size:12px;color:var(--muted);margin-bottom:6px}
-  .ev-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
-    border-bottom:2px solid var(--primary);padding-bottom:6px}
-  .ev-head .code{font-size:22px;font-weight:800;color:var(--primary);letter-spacing:.04em}
-  .ev-head .nm{font-size:17px;font-weight:700}
-  .ev-head .cnt{margin-left:auto;font-size:14px;font-weight:700;color:var(--muted);white-space:nowrap}
-  /* 種目（ワルツ・タンゴなど）はシラバスの「競技内容」から取る。区分名とは別物。 */
-  .ev-sub{display:flex;gap:18px;flex-wrap:wrap;margin:8px 0 10px;font-size:14px}
-  .ev-sub .k{color:var(--muted);margin-right:6px}
-  .ev-sub .dance{font-weight:700;letter-spacing:.02em}
-  .ev-none{color:var(--muted);font-size:14px;padding:10px 0}
+  /* ── 紙の見た目。画面でも刷り上がりに近い形で見せる ── */
+  #paper{background:#fff;padding:14mm 12mm;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+  .sheet-head{font-size:13px;font-weight:700;margin:0 0 10px}
+  .sheet-head .date{font-weight:400;color:var(--muted);margin-left:10px}
 
-  table{width:100%;border-collapse:collapse;font-size:14px;background:#fff}
-  th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border)}
-  th{background:#fafafa;color:var(--muted);font-weight:600;white-space:nowrap}
-  /* 背番号は呼び出しにも照合にも使うので、どの表でも大きく太字にする */
-  td.bib{font-size:20px;font-weight:800;color:var(--primary);width:1%;white-space:nowrap;text-align:right}
-  th.bib{text-align:right}
-  td.aff{color:var(--text)}
-  @media (max-width:560px){ td.bib{font-size:17px} table{font-size:13px} }
+  /* 区分ごとのかたまり。プログラムの選手名簿と同じ、左右2段組。 */
+  .blk{margin-bottom:14px}
+  .blk .ttl{font-size:13px;font-weight:700;margin:0 0 3px}
+  .blk .ttl .dance{margin-left:1.2em;font-weight:700}
+  .blk .none{font-size:12px;color:var(--muted);padding:2px 0 6px}
+  table.pg{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+  table.pg th,table.pg td{border:1px solid var(--rule);padding:2px 4px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  table.pg th{background:#f2f2f2;font-weight:600;text-align:center;font-size:11px}
+  table.pg td.bib{text-align:center;font-weight:700}
+  /* 記入欄は当日ペンで書き込む列。中身は空のままにする。 */
+  table.pg td.memo{background:#fff}
+  /* 左右の段のあいだ。罫線を引かない。 */
+  table.pg th.gap,table.pg td.gap{border:none;background:transparent}
+  /* 右の段が余ったところ。罫線を引かない。 */
+  table.pg td.blank{border:none;background:transparent}
 
   .hidden{display:none !important}
-  .print-only{display:none}
 
   @media print{
-    @page{size:A4 portrait;margin:12mm}
+    @page{size:A4 portrait;margin:10mm}
     header,nav.tabs,.no-print{display:none !important}
-    .print-only{display:block}
-    body{background:#fff;font-size:11pt}
+    body{background:#fff}
     main{max-width:none;padding:0}
-    .ev{border:none;border-radius:0;padding:0;margin:0}
-    /* 1区分＝1ページ。表の途中で切れると照合しづらい。
-       末尾に空白ページが出ないよう、後ろで切らず「2つ目以降の前で改ページ」にする。 */
-    .ev + .ev{break-before:page;page-break-before:always}
-    /* 1区分が1枚に収まるよう、紙では少し詰める（30組程度までA4 1枚） */
-    table{font-size:10pt}
-    th,td{padding:2.5px 6px;border-bottom:1px solid #bbb}
-    th{background:#f0f0f0;color:#333}
-    td.bib{font-size:12pt}
-    .ev-comp{margin-bottom:4px}
-    .ev-sub{margin:6px 0 6px}
-    /* 行が途中で切れないようにする */
-    tr{break-inside:avoid;page-break-inside:avoid}
+    #paper{padding:0;box-shadow:none}
+    table.pg{font-size:9pt}
+    /* 紙はA4の幅しかないので、見出しは小さく、余白も詰めて名前の幅を確保する */
+    table.pg th{font-size:8pt}
+    table.pg th,table.pg td{padding:1px 2px}
+    /* 所属は略称でも長いことがあるので、ここだけ少し小さくする */
+    table.pg td.aff{font-size:8.5pt}
+    .blk{margin-bottom:5mm}
+    .blk .ttl{font-size:10pt}
+    /* 区分が紙の途中で切れないようにする（1区分が1ページに入りきらないときは分かれる） */
+    .blk{break-inside:avoid;page-break-inside:avoid}
     thead{display:table-header-group}
   }
 </style>
 </head>
 <body>
 <header>
-  <h1>出場選手一覧</h1>
+  <h1>出場選手 印刷用</h1>
   <a href="uketsuke-manual.html" target="_blank" rel="noopener" style="margin-left:auto">マニュアル</a>
   <a href="uketsuke.html" style="margin-left:14px">← 受付システムへ戻る</a>
 </header>
@@ -97,26 +90,27 @@
   <a href="uketsuke.html#rollcall">欠場報告</a>
   <a href="uketsuke.html#manual">手動対応</a>
   <a id="nav-absent" href="uketsuke.html#rollcall">欠場者一覧</a>
-  <span class="active">出場選手一覧</span>
-  <a id="nav-program" href="uketsuke.html#roster">出場選手 印刷用</a>
+  <a id="nav-entries" href="uketsuke.html#roster">出場選手一覧</a>
+  <span class="active">出場選手 印刷用</span>
 </nav>
 
 <main>
   <div class="card no-print">
     <div id="comp-name" class="muted"></div>
     <div style="height:8px"></div>
-    <label for="pick">表示する区分</label>
+    <label class="lab" for="pick">表示する区分</label>
     <select id="pick"></select>
     <div style="height:12px"></div>
     <div class="row">
       <button id="b-print">印刷する</button>
       <button id="b-reload" class="secondary">最新にする</button>
+      <label class="checkbox-row"><input type="checkbox" id="c-memo" checked><span>記入欄を付ける</span></label>
       <label class="checkbox-row"><input type="checkbox" id="c-empty"><span>エントリー0組の区分も出す</span></label>
       <span class="muted" id="updated" style="margin-left:auto"></span>
     </div>
     <div class="muted" id="syl-note" style="margin-top:10px"></div>
   </div>
-  <div id="out"></div>
+  <div id="paper"></div>
 </main>
 
 <script>
@@ -144,6 +138,15 @@ function normName(s){
     .replace(/\s+/g, '')
     .toUpperCase();
 }
+/* シラバスの「W,T,(最終:V),F,Q」を、プログラムの書き方「W・T・最終予選よりV・F・Q」に直す */
+function danceText(s){
+  if (!s) return '';
+  return String(s).split(',').map(function(t){
+    t = t.trim();
+    var m = /^[(（]\s*最終\s*[:：]\s*(.+?)\s*[)）]$/.exec(t);
+    return m ? '最終予選より' + m[1] : t;
+  }).filter(function(t){ return t; }).join('・');
+}
 
 var id = qs('id');
 if (!id) {
@@ -162,7 +165,7 @@ function load(){
       DATA = d;
       el('comp-name').textContent = d.name + (d.date ? '（' + d.date + '）' : '');
       el('nav-absent').href  = 'uketsuke-absent.html?id='  + encodeURIComponent(id);
-      el('nav-program').href = 'uketsuke-program.html?id=' + encodeURIComponent(id);
+      el('nav-entries').href = 'uketsuke-entries.html?id=' + encodeURIComponent(id);
       if (first) buildPicker();
       el('updated').textContent = '最終更新 ' + new Date().toLocaleTimeString('ja-JP');
       return loadSyllabus();
@@ -205,14 +208,13 @@ function loadSyllabus(){
 }
 
 function buildPicker(){
-  var html = '<option value="">すべての区分</option>'
+  el('pick').innerHTML = '<option value="">すべての区分</option>'
     + (DATA.events || []).map(function(e){
         var n = evName(e);
-        return '<option value="' + esc(e.code) + '">' + esc(e.code) + (n ? '　' + esc(n) : '')
-          + (e.start_time ? '（' + esc(e.start_time) + '）' : '') + '</option>';
+        return '<option value="' + esc(e.code) + '">' + esc(e.code) + (n ? '　' + esc(n) : '') + '</option>';
       }).join('');
-  el('pick').innerHTML = html;
   el('pick').addEventListener('change', render);
+  el('c-memo').addEventListener('change', render);
   el('c-empty').addEventListener('change', render);
   el('b-reload').addEventListener('click', load);
   el('b-print').addEventListener('click', function(){ window.print(); });
@@ -225,43 +227,67 @@ function entriesFor(code){
     .sort(function(a, b){ return (Number(a.bib) || 0) - (Number(b.bib) || 0); });
 }
 
+/* 1組ぶんのセル。無い側は枠だけ残す。 */
+function cells(r, memo){
+  if (!r) {
+    /* 右の段が余ったところは、枠を出さずに空けておく（元の様式に合わせる） */
+    var n = memo ? 5 : 4, out = '';
+    while (n--) out += '<td class="blank"></td>';
+    return out;
+  }
+  var m = memo ? '<td class="memo"></td>' : '';
+  return m
+    + '<td class="bib">' + esc(r.bib) + '</td>'
+    + '<td>' + esc(r.leader) + '</td>'
+    + '<td>' + esc(r.partner) + '</td>'
+    + '<td class="aff">' + esc(r.affiliation) + '</td>';
+}
+
+function headCells(memo){
+  return (memo ? '<th>記入欄</th>' : '')
+    + '<th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th>';
+}
+
+/* 列幅。記入欄のあり・なしで割り振りを変える（合計 100%） */
+function colGroup(memo){
+  var w = memo ? [5.5, 5.5, 12, 12, 13.5] : [6, 14, 14, 14.5];
+  var cols = w.map(function(x){ return '<col style="width:' + x + '%">'; }).join('');
+  return '<colgroup>' + cols + '<col style="width:3%">' + cols + '</colgroup>';
+}
+
 function render(){
   var only  = el('pick').value;
+  var memo  = el('c-memo').checked;
   var withEmpty = el('c-empty').checked;
-  var comp  = esc(DATA.name) + (DATA.date ? '（' + esc(DATA.date) + '）' : '');
   var evs   = (DATA.events || []).filter(function(e){ return !only || e.code === only; });
 
-  var html = evs.map(function(e){
+  var html = '<div class="sheet-head">' + esc(DATA.name)
+    + (DATA.date ? '<span class="date">' + esc(DATA.date) + '</span>' : '') + '</div>';
+
+  html += evs.map(function(e){
     var list = entriesFor(e.code);
     if (!list.length && !withEmpty) return '';
-    var n = evName(e), dance = (SYL && SYL[e.code]) || '';
-    var h = '<section class="ev">'
-      + '<div class="ev-comp">' + comp + '</div>'
-      + '<div class="ev-head"><span class="code">' + esc(e.code) + '</span>'
-      + (n ? '<span class="nm">' + esc(n) + '</span>' : '')
-      + '<span class="cnt">' + list.length + '組</span></div>'
-      + '<div class="ev-sub">'
-      + '<span><span class="k">種目</span><span class="dance">' + (dance ? esc(dance) : '—') + '</span></span>'
-      + (e.start_time ? '<span><span class="k">受付締切</span>' + esc(e.start_time) + '</span>' : '')
-      + '</div>';
+    var n = evName(e) || e.code;
+    var dance = danceText((SYL && SYL[e.code]) || '');
+    var h = '<section class="blk"><div class="ttl">' + esc(n)
+      + (dance ? '<span class="dance">' + esc(dance) + '</span>' : '') + '</div>';
     if (!list.length) {
-      h += '<div class="ev-none">この区分のエントリーはありません。</div></section>';
-      return h;
+      return h + '<div class="none">エントリーはありません。</div></section>';
     }
-    h += '<table><thead><tr><th class="bib">背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th></tr></thead><tbody>'
-      + list.map(function(r){
-          return '<tr><td class="bib">' + esc(r.bib) + '</td>'
-            + '<td>' + esc(r.leader) + '</td>'
-            + '<td>' + esc(r.partner) + '</td>'
-            + '<td class="aff">' + esc(r.affiliation) + '</td></tr>';
-        }).join('')
-      + '</tbody></table></section>';
-    return h;
+    /* プログラムの選手名簿と同じで、左の段に前半、右の段に後半を入れる */
+    var half  = Math.ceil(list.length / 2);
+    var left  = list.slice(0, half);
+    var right = list.slice(half);
+    var body = '';
+    for (var i = 0; i < half; i++) {
+      body += '<tr>' + cells(left[i], memo) + '<td class="gap"></td>' + cells(right[i], memo) + '</tr>';
+    }
+    return h + '<table class="pg">' + colGroup(memo)
+      + '<thead><tr>' + headCells(memo) + '<th class="gap"></th>' + headCells(memo) + '</tr></thead>'
+      + '<tbody>' + body + '</tbody></table></section>';
   }).join('');
 
-  el('out').innerHTML = html
-    || '<div class="card"><div class="muted">出せる区分がありません。'
-       + '「エントリー0組の区分も出す」を入れると、申込の無かった区分も表示します。</div></div>';
+  el('paper').innerHTML = html;
 }
 </script>
 </body>
