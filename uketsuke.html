@@ -102,6 +102,20 @@
     .checkin-row{flex-wrap:wrap}
     .checkin-row .ci-part{width:100%;padding:8px 12px}
   }
+  /* 受付の進み具合。区分ごとに受付済みと未受付の組数を出す。
+     背番号の入力欄の上に置くので、区分はコードだけにして3列に詰める。 */
+  #ci-prog{padding:10px 12px;margin-bottom:10px}
+  #ci-prog .head{font-size:12px;color:var(--muted);margin-bottom:6px}
+  #ci-prog .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px}
+  @media (max-width:560px){ #ci-prog .grid{grid-template-columns:repeat(2,1fr)} }
+  .ci-pr{display:flex;align-items:baseline;gap:8px;padding:3px 8px;border-radius:6px;
+    background:#f3f6fa;font-size:13px;white-space:nowrap}
+  .ci-pr .c{font-weight:800;color:var(--primary);font-size:15px;min-width:3.4em}
+  .ci-pr .d{color:var(--ok);font-weight:700}
+  /* 残りがある区分は目に付く色にする。ここが0になれば、その区分は受付が終わっている。 */
+  .ci-pr .r{margin-left:auto;color:#c2410c;font-weight:800}
+  .ci-pr.fin{background:var(--ok-bg)}
+  .ci-pr.fin .r{color:var(--ok)}
   .row{display:flex;gap:8px;align-items:center}
   .row.wrap{flex-wrap:wrap}
   .grow{flex:1;min-width:120px}
@@ -364,6 +378,9 @@
         <b id="ci-by-name">未設定</b>
         <button type="button" class="small secondary" id="ci-by-edit">受付担当者名を変更</button>
       </div>
+
+      <!-- 区分ごとの受付済み／未受付。受付しながら残りが見えるよう、背番号欄のすぐ上に置く。 -->
+      <div class="card" id="ci-prog"></div>
 
       <form class="card" id="ci-form">
         <label class="muted" for="bib">背番号</label>
@@ -1551,7 +1568,44 @@ function banner(kind, html){
 
 /* 受付状況。記録は区分ごとだが、一覧は組ごとにまとめ、どの区分を受付したかを並べる。
    受付していない区分もグレーで出す（取りこぼしがその場で見えるようにするため）。 */
+/* 区分ごとの受付済み／未受付の組数。
+   受付は区分単位なので、その区分にエントリーしている組のうち、
+   その区分を受付した組が「済」、していない組が「未」になる。
+   エントリーが0組の区分は出さない（当日の見た目の邪魔になるだけなので）。 */
+function renderProgress(){
+  var box = el('ci-prog');
+  if (!box) return;
+  var done = doneMap();
+  var cnt = {};
+  (DATA.events || []).forEach(function(e){ cnt[e.code] = {n: 0, d: 0}; });
+  (DATA.roster || []).forEach(function(r){
+    (r.events || []).forEach(function(c){
+      var k = cnt[c];
+      if (!k) return;
+      k.n++;
+      if (done[r.bib + ':' + c]) k.d++;
+    });
+  });
+  var rows = (DATA.events || []).filter(function(e){ return cnt[e.code].n > 0; });
+  if (!rows.length) { box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+
+  var sd = 0, sn = 0;
+  rows.forEach(function(e){ sd += cnt[e.code].d; sn += cnt[e.code].n; });
+  box.innerHTML = '<div class="head">区分ごとの受付　済 <b>' + sd + '</b>／未 <b>' + (sn - sd)
+      + '</b>（のべ ' + sn + '）</div><div class="grid">'
+    + rows.map(function(e){
+        var k = cnt[e.code], rest = k.n - k.d;
+        return '<div class="ci-pr' + (rest === 0 ? ' fin' : '') + '">'
+          + '<span class="c">' + esc(e.code) + '</span>'
+          + '<span class="d">済 ' + k.d + '</span>'
+          + '<span class="r">未 ' + rest + '</span></div>';
+      }).join('')
+    + '</div>';
+}
+
 function renderRecent(){
+  renderProgress();
   var map = {};
   (DATA.roster || []).forEach(function(r){ map[r.bib] = r; });
   var done  = doneMap();
