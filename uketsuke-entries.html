@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>出場選手一覧 | 競技会受付システム</title>
+<link rel="icon" href="favicon.ico">
+<style>
+  :root{--primary:#123262;--bg:#f4f5f7;--card:#fff;--text:#1a1a1a;--muted:#6b7280;--border:#e0e2e7}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,-apple-system,"Segoe UI",sans-serif}
+  header{background:var(--primary);color:#fff;padding:12px 16px;display:flex;gap:12px;align-items:center}
+  header h1{font-size:16px;margin:0}
+  header a{color:#fff;font-size:13px;text-decoration:none;opacity:.85}
+  /* 受付システムと同じ並びのタブ。別ページなので中身はリンクで、押すと受付システムのその画面が開く。 */
+  nav.tabs{display:flex;gap:2px;background:var(--card);border-bottom:1px solid var(--border);
+    padding:6px 8px 0;overflow-x:auto}
+  nav.tabs a,nav.tabs span{flex:none;padding:10px 14px;color:var(--muted);font-weight:700;font-size:14px;
+    border-bottom:3px solid transparent;text-decoration:none;white-space:nowrap}
+  nav.tabs a:hover{color:var(--text)}
+  nav.tabs .active{color:var(--primary);border-bottom-color:var(--primary)}
+  main{max-width:900px;margin:0 auto;padding:16px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
+  button{font-size:15px;font-weight:700;padding:10px 16px;border:none;border-radius:8px;
+    background:var(--primary);color:#fff;cursor:pointer}
+  button.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+  select{font-size:16px;padding:10px;border:1px solid var(--border);border-radius:8px;width:100%;background:#fff}
+  label{display:block;color:var(--muted);font-size:13px;margin-bottom:4px}
+  .muted{color:var(--muted);font-size:13px}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .checkbox-row{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--text)}
+
+  /* ── 区分ごとのかたまり。印刷では1区分＝1ページにする ── */
+  .ev{background:var(--card);border:1px solid var(--border);border-radius:12px;
+    padding:16px 18px;margin-bottom:16px}
+  /* 印刷した紙だけを見ても、どの大会のものか分かるようにする */
+  .ev-comp{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .ev-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+    border-bottom:2px solid var(--primary);padding-bottom:6px}
+  .ev-head .code{font-size:22px;font-weight:800;color:var(--primary);letter-spacing:.04em}
+  .ev-head .nm{font-size:17px;font-weight:700}
+  .ev-head .cnt{margin-left:auto;font-size:14px;font-weight:700;color:var(--muted);white-space:nowrap}
+  /* 種目（ワルツ・タンゴなど）はシラバスの「競技内容」から取る。区分名とは別物。 */
+  .ev-sub{display:flex;gap:18px;flex-wrap:wrap;margin:8px 0 10px;font-size:14px}
+  .ev-sub .k{color:var(--muted);margin-right:6px}
+  .ev-sub .dance{font-weight:700;letter-spacing:.02em}
+  .ev-none{color:var(--muted);font-size:14px;padding:10px 0}
+
+  table{width:100%;border-collapse:collapse;font-size:14px;background:#fff}
+  th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border)}
+  th{background:#fafafa;color:var(--muted);font-weight:600;white-space:nowrap}
+  /* 背番号は呼び出しにも照合にも使うので、どの表でも大きく太字にする */
+  td.bib{font-size:20px;font-weight:800;color:var(--primary);width:1%;white-space:nowrap;text-align:right}
+  th.bib{text-align:right}
+  td.aff{color:var(--text)}
+  @media (max-width:560px){ td.bib{font-size:17px} table{font-size:13px} }
+
+  .hidden{display:none !important}
+  .print-only{display:none}
+
+  @media print{
+    @page{size:A4 portrait;margin:12mm}
+    header,nav.tabs,.no-print{display:none !important}
+    .print-only{display:block}
+    body{background:#fff;font-size:11pt}
+    main{max-width:none;padding:0}
+    .ev{border:none;border-radius:0;padding:0;margin:0}
+    /* 1区分＝1ページ。表の途中で切れると照合しづらい。
+       末尾に空白ページが出ないよう、後ろで切らず「2つ目以降の前で改ページ」にする。 */
+    .ev + .ev{break-before:page;page-break-before:always}
+    /* 1区分が1枚に収まるよう、紙では少し詰める（30組程度までA4 1枚） */
+    table{font-size:10pt}
+    th,td{padding:2.5px 6px;border-bottom:1px solid #bbb}
+    th{background:#f0f0f0;color:#333}
+    td.bib{font-size:12pt}
+    .ev-comp{margin-bottom:4px}
+    .ev-sub{margin:6px 0 6px}
+    /* 行が途中で切れないようにする */
+    tr{break-inside:avoid;page-break-inside:avoid}
+    thead{display:table-header-group}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>出場選手一覧</h1>
+  <a href="uketsuke-manual.html" target="_blank" rel="noopener" style="margin-left:auto">マニュアル</a>
+  <a href="uketsuke.html" style="margin-left:14px">← 受付システムへ戻る</a>
+</header>
+
+<nav class="tabs no-print">
+  <a href="uketsuke.html#comp">大会</a>
+  <a href="uketsuke.html#roster">名簿</a>
+  <a href="uketsuke.html#checkin">受付</a>
+  <a href="uketsuke.html#rollcall">欠場報告</a>
+  <a href="uketsuke.html#manual">手動対応</a>
+  <a id="nav-absent" href="uketsuke.html#rollcall">欠場者一覧</a>
+  <span class="active">出場選手一覧</span>
+</nav>
+
+<main>
+  <div class="card no-print">
+    <div id="comp-name" class="muted"></div>
+    <div style="height:8px"></div>
+    <label for="pick">表示する区分</label>
+    <select id="pick"></select>
+    <div style="height:12px"></div>
+    <div class="row">
+      <button id="b-print">印刷する</button>
+      <button id="b-reload" class="secondary">最新にする</button>
+      <label class="checkbox-row"><input type="checkbox" id="c-empty"><span>エントリー0組の区分も出す</span></label>
+      <span class="muted" id="updated" style="margin-left:auto"></span>
+    </div>
+    <div class="muted" id="syl-note" style="margin-top:10px"></div>
+  </div>
+  <div id="out"></div>
+</main>
+
+<script>
+'use strict';
+var DATA = null;     /* 大会のデータ（区分・名簿） */
+var SYL  = null;     /* シラバスの競技内容（区分ごとの種目）。取れないこともある */
+
+function el(id){ return document.getElementById(id); }
+function esc(s){ if (s === null || s === undefined) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function qs(k){ var m = new RegExp('[?&]' + k + '=([^&]*)').exec(location.search);
+  return m ? decodeURIComponent(m[1]) : ''; }
+/* 区分名が未設定（コードのまま）のとき「JAS JAS」と二重に出さない */
+function evName(e){ var n = (e && e.name) ? String(e.name).trim() : '';
+  return (!n || n === e.code) ? '' : n; }
+
+/* 一覧の大会名には注意書きが続いていることがあるので、案内文以降を落とす */
+function cleanCompName(name){
+  return String(name || '').split('※')[0].split(' 詳細')[0].replace(/【[^】]*】/g, '').trim();
+}
+/* DCSは大会名に全角数字を使い（２０２６）、サイトの一覧は半角（2026）。そろえてから比べる。 */
+function normName(s){
+  return cleanCompName(s)
+    .replace(/[０-９Ａ-Ｚａ-ｚ]/g, function(ch){ return String.fromCharCode(ch.charCodeAt(0) - 0xFEE0); })
+    .replace(/\s+/g, '')
+    .toUpperCase();
+}
+
+var id = qs('id');
+if (!id) {
+  document.body.innerHTML = '<p style="padding:20px">大会が指定されていません。'
+    + '<a href="uketsuke.html">受付システム</a>から開いてください。</p>';
+} else {
+  load();
+}
+
+function load(){
+  return fetch('api/uketsuke_get.php?id=' + encodeURIComponent(id) + '&_=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d.error) throw new Error(d.error);
+      var first = (DATA === null);
+      DATA = d;
+      el('comp-name').textContent = d.name + (d.date ? '（' + d.date + '）' : '');
+      el('nav-absent').href = 'uketsuke-absent.html?id=' + encodeURIComponent(id);
+      if (first) buildPicker();
+      el('updated').textContent = '最終更新 ' + new Date().toLocaleTimeString('ja-JP');
+      return loadSyllabus();
+    })
+    .then(render)
+    .catch(function(e){
+      document.body.innerHTML = '<p style="padding:20px">読み込めませんでした（' + esc(e.message)
+        + '）。<a href="uketsuke.html">受付システム</a>でログインしてから開いてください。</p>';
+    });
+}
+
+/* 種目（ワルツ・タンゴなど）はDCSのファイルに入っていないので、シラバス（大会要項）から取る。
+   サイトが毎朝取り込んでいる競技会一覧を使うので、JDSFのサイトへは見に行かない。
+   公認番号は画面に返していないため、開催日と大会名で引き当てる。 */
+function loadSyllabus(){
+  if (SYL !== null) return Promise.resolve();
+  return fetch('data/competitions_seibu.json?_=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var items = (d && d.competitions) || [];
+      var same  = items.filter(function(x){
+        return (x.events || []).length && x.date_iso === DATA.date;
+      });
+      var hit = same.filter(function(x){ return normName(x.name) === normName(DATA.name); })[0]
+             || (same.length === 1 ? same[0] : null);
+      SYL = {};
+      if (hit) {
+        (hit.events || []).forEach(function(e){ SYL[e.code] = e.dances || ''; });
+        var n = Object.keys(SYL).filter(function(c){ return SYL[c]; }).length;
+        el('syl-note').innerHTML = n
+          ? '種目はシラバス（大会要項）から取りました：<a href="' + esc(hit.syllabus_url)
+            + '" target="_blank" rel="noopener">' + esc(cleanCompName(hit.name)) + '</a>'
+          : 'シラバスは見つかりましたが、種目の記載を読み取れませんでした。';
+      } else {
+        el('syl-note').textContent = 'この大会のシラバスが競技会一覧に見つからないため、種目は出せません。'
+          + '（区分と名簿はそのまま使えます）';
+      }
+    })
+    .catch(function(){ SYL = {}; el('syl-note').textContent = ''; });
+}
+
+function buildPicker(){
+  var html = '<option value="">すべての区分</option>'
+    + (DATA.events || []).map(function(e){
+        var n = evName(e);
+        return '<option value="' + esc(e.code) + '">' + esc(e.code) + (n ? '　' + esc(n) : '')
+          + (e.start_time ? '（' + esc(e.start_time) + '）' : '') + '</option>';
+      }).join('');
+  el('pick').innerHTML = html;
+  el('pick').addEventListener('change', render);
+  el('c-empty').addEventListener('change', render);
+  el('b-reload').addEventListener('click', load);
+  el('b-print').addEventListener('click', function(){ window.print(); });
+}
+
+/* その区分にエントリーしている組を背番号順に返す */
+function entriesFor(code){
+  return (DATA.roster || [])
+    .filter(function(r){ return (r.events || []).indexOf(code) >= 0; })
+    .sort(function(a, b){ return (Number(a.bib) || 0) - (Number(b.bib) || 0); });
+}
+
+function render(){
+  var only  = el('pick').value;
+  var withEmpty = el('c-empty').checked;
+  var comp  = esc(DATA.name) + (DATA.date ? '（' + esc(DATA.date) + '）' : '');
+  var evs   = (DATA.events || []).filter(function(e){ return !only || e.code === only; });
+
+  var html = evs.map(function(e){
+    var list = entriesFor(e.code);
+    if (!list.length && !withEmpty) return '';
+    var n = evName(e), dance = (SYL && SYL[e.code]) || '';
+    var h = '<section class="ev">'
+      + '<div class="ev-comp">' + comp + '</div>'
+      + '<div class="ev-head"><span class="code">' + esc(e.code) + '</span>'
+      + (n ? '<span class="nm">' + esc(n) + '</span>' : '')
+      + '<span class="cnt">' + list.length + '組</span></div>'
+      + '<div class="ev-sub">'
+      + '<span><span class="k">種目</span><span class="dance">' + (dance ? esc(dance) : '—') + '</span></span>'
+      + (e.start_time ? '<span><span class="k">受付締切</span>' + esc(e.start_time) + '</span>' : '')
+      + '</div>';
+    if (!list.length) {
+      h += '<div class="ev-none">この区分のエントリーはありません。</div></section>';
+      return h;
+    }
+    h += '<table><thead><tr><th class="bib">背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th></tr></thead><tbody>'
+      + list.map(function(r){
+          return '<tr><td class="bib">' + esc(r.bib) + '</td>'
+            + '<td>' + esc(r.leader) + '</td>'
+            + '<td>' + esc(r.partner) + '</td>'
+            + '<td class="aff">' + esc(r.affiliation) + '</td></tr>';
+        }).join('')
+      + '</tbody></table></section>';
+    return h;
+  }).join('');
+
+  el('out').innerHTML = html
+    || '<div class="card"><div class="muted">出せる区分がありません。'
+       + '「エントリー0組の区分も出す」を入れると、申込の無かった区分も表示します。</div></div>';
+}
+</script>
+</body>
+</html>

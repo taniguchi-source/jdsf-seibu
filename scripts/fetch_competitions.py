@@ -103,8 +103,13 @@ def fetch_syllabus_events(syllabus_url):
     （2026-09-23 京都府選手権の実CSVで、参加者の背番号集合まで突き合わせて確認済み）。
     受付システムのCSV取込で列に種目コードを割り当てるのに使う。
 
+    「種目」の列（W,T,(最終:V),F,Q のような踊る種目）も一緒に取る。
+    受付システムの出場選手一覧に、区分ごとの種目として出すため。
+    ※ダンススポーツでは「区分」＝A級スタンダードなど、「種目」＝ワルツ・タンゴなど。
+
     スマホ用の表（sp-only）は略称の列が無いので、略称を持つ表だけを見る。
-    Returns: [{'no': 1, 'code': 'JAS', 'name': 'JDSF A級スタンダード'}, ...]
+    Returns: [{'no': 1, 'code': 'JAS', 'name': 'JDSF A級スタンダード',
+               'dances': 'W,T,(最終:V),F,Q'}, ...]
     """
     events = []
     if not syllabus_url or '/syllabus/' not in syllabus_url:
@@ -120,12 +125,13 @@ def fetch_syllabus_events(syllabus_url):
                 continue
             i_no   = heads.index('区分')
             i_code = heads.index('略称')
-            i_name = heads.index('競技名') if '競技名' in heads else -1
+            i_name  = heads.index('競技名') if '競技名' in heads else -1
+            i_dance = heads.index('種目')   if '種目'   in heads else -1
 
             seen = set()
             for tr in table.find_all('tr'):
                 tds = tr.find_all('td')
-                if len(tds) <= max(i_no, i_code, i_name):
+                if len(tds) <= max(i_no, i_code, i_name, i_dance):
                     continue
                 code = tds[i_code].get_text(strip=True).upper()
                 if not re.match(r'^[A-Z0-9]{2,6}$', code) or code in seen:
@@ -133,11 +139,13 @@ def fetch_syllabus_events(syllabus_url):
                 seen.add(code)
                 name = tds[i_name].get_text(' ', strip=True) if i_name >= 0 else ''
                 name = re.sub(r'\s+', ' ', name).strip()
+                dances = tds[i_dance].get_text(' ', strip=True) if i_dance >= 0 else ''
+                dances = re.sub(r'\s+', ' ', dances).strip()
                 try:
                     no = int(tds[i_no].get_text(strip=True))
                 except ValueError:
                     no = len(events) + 1
-                events.append({'no': no, 'code': code, 'name': name})
+                events.append({'no': no, 'code': code, 'name': name, 'dances': dances})
             if events:
                 break
 

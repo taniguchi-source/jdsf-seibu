@@ -528,6 +528,10 @@
       </div>
 
       <h2>一覧 <span class="muted" id="rs-count"></span></h2>
+      <div class="row wrap" style="margin-bottom:8px">
+        <a class="btn secondary" id="rs-entries" href="uketsuke-entries.html" target="_blank" rel="noopener"
+           style="display:inline-block;text-decoration:none">区分ごとの出場選手一覧を開く（印刷用）</a>
+      </div>
       <input type="text" id="rs-search" placeholder="背番号・氏名・所属で検索">
       <div style="height:8px"></div>
       <table class="dense">
@@ -1833,6 +1837,8 @@ el('mn-print').addEventListener('click', function(){ window.print(); });
 
 /* ---------- 名簿 ---------- */
 function renderRoster(){
+  /* 別ページなので、いま開いている大会のIDを付け直す */
+  el('rs-entries').href = 'uketsuke-entries.html?id=' + encodeURIComponent(COMP ? COMP.id : '');
   var q = el('rs-search').value.trim().toLowerCase();
   var rows = (DATA.roster || []).filter(function(r){
     if (!q) return true;
