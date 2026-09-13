@@ -113,7 +113,9 @@
   .ci-pr .c{font-weight:800;color:var(--primary);font-size:15px;min-width:3.4em}
   .ci-pr .d{color:var(--ok);font-weight:700}
   /* 残りがある区分は目に付く色にする。ここが0になれば、その区分は受付が終わっている。 */
-  .ci-pr .r{margin-left:auto;color:#c2410c;font-weight:800}
+  .ci-pr .r{color:#c2410c;font-weight:800}
+  /* エントリーの総数。済と未の答え合わせに使うので、右端に控えめに置く。 */
+  .ci-pr .t{margin-left:auto;color:var(--muted);font-weight:700}
   .ci-pr.fin{background:var(--ok-bg)}
   .ci-pr.fin .r{color:var(--ok)}
   .row{display:flex;gap:8px;align-items:center}
@@ -1593,13 +1595,14 @@ function renderProgress(){
   var sd = 0, sn = 0;
   rows.forEach(function(e){ sd += cnt[e.code].d; sn += cnt[e.code].n; });
   box.innerHTML = '<div class="head">区分ごとの受付　済 <b>' + sd + '</b>／未 <b>' + (sn - sd)
-      + '</b>（のべ ' + sn + '）</div><div class="grid">'
+      + '</b>／計 <b>' + sn + '</b>（のべ）</div><div class="grid">'
     + rows.map(function(e){
         var k = cnt[e.code], rest = k.n - k.d;
         return '<div class="ci-pr' + (rest === 0 ? ' fin' : '') + '">'
           + '<span class="c">' + esc(e.code) + '</span>'
           + '<span class="d">済 ' + k.d + '</span>'
-          + '<span class="r">未 ' + rest + '</span></div>';
+          + '<span class="r">未 ' + rest + '</span>'
+          + '<span class="t">計 ' + k.n + '</span></div>';
       }).join('')
     + '</div>';
 }
