@@ -274,8 +274,7 @@
     <button data-view="rollcall">欠場報告</button>
     <button data-view="manual" id="tab-manual">手動対応</button>
     <!-- 別ページなので、タブの見た目のままリンクにする（新しいタブで開く） -->
-    <a id="tab-entries" href="uketsuke-entries.html" target="_blank" rel="noopener">出場選手一覧</a>
-    <a id="tab-program" href="uketsuke-program.html" target="_blank" rel="noopener">出場選手 印刷用</a>
+    <a id="tab-program" href="uketsuke-program.html" target="_blank" rel="noopener">出場選手一覧</a>
   </nav>
 
   <main>
@@ -483,10 +482,8 @@
     <!-- ======== 名簿 ======== -->
     <section id="v-roster" class="hidden">
       <div class="row wrap" style="margin:4px 0 10px">
-        <a class="btn secondary" id="rs-entries" href="uketsuke-entries.html" target="_blank" rel="noopener"
-           style="display:inline-block;text-decoration:none">区分ごとの出場選手一覧を開く</a>
         <a class="btn secondary" id="rs-program" href="uketsuke-program.html" target="_blank" rel="noopener"
-           style="display:inline-block;text-decoration:none">出場選手 印刷用（プログラムの様式）を開く</a>
+           style="display:inline-block;text-decoration:none">区分ごとの出場選手一覧を開く（印刷用）</a>
       </div>
       <!-- CSV取込の画面部品。ふだんは出さない。
            名簿CSVは大会を作るときに取り込むので、ここに入口は置かない。
@@ -668,22 +665,17 @@ document.querySelectorAll('nav.tabs button').forEach(function(b){
    画面を切り替えるたびと、押した瞬間の両方で入れ直す。 */
 function syncEntriesLinks(){
   var q = '?id=' + encodeURIComponent(COMP ? COMP.id : '');
-  ['tab-entries', 'rs-entries'].forEach(function(k){
-    var a = el(k); if (a) a.href = 'uketsuke-entries.html' + q;
-  });
   ['tab-program', 'rs-program'].forEach(function(k){
     var a = el(k); if (a) a.href = 'uketsuke-program.html' + q;
   });
 }
-['tab-entries', 'tab-program'].forEach(function(k){
-  el(k).addEventListener('click', function(e){
-    if (!COMP) {
-      e.preventDefault();
-      alert('先に「大会」タブで大会を開いてください（一覧の「開く」を押します）');
-      return;
-    }
-    syncEntriesLinks();
-  });
+el('tab-program').addEventListener('click', function(e){
+  if (!COMP) {
+    e.preventDefault();
+    alert('先に「大会」タブで大会を開いてください（一覧の「開く」を押します）');
+    return;
+  }
+  syncEntriesLinks();
 });
 
 function switchView(v){

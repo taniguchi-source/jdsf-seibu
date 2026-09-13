@@ -84,8 +84,7 @@
   <a href="uketsuke.html#checkin">受付</a>
   <a href="uketsuke.html#rollcall">欠場報告</a>
   <a href="uketsuke.html#manual">手動対応</a>
-  <a id="nav-entries" href="uketsuke.html#roster">出場選手一覧</a>
-  <a id="nav-program" href="uketsuke.html#roster">出場選手 印刷用</a>
+  <a id="nav-program" href="uketsuke.html#roster">出場選手一覧</a>
   <span class="active">欠場者一覧</span>
 </nav>
 
@@ -150,7 +149,6 @@ function load(){
       DATA = d;
       CSRF = d.csrf || '';
       el('comp-name').textContent = d.name + (d.date ? '（' + d.date + '）' : '');
-      el('nav-entries').href = 'uketsuke-entries.html?id=' + encodeURIComponent(id);
       el('nav-program').href = 'uketsuke-program.html?id=' + encodeURIComponent(id);
       if (first) buildPicker();
       el('updated').textContent = '最終更新 ' + new Date().toLocaleTimeString('ja-JP');

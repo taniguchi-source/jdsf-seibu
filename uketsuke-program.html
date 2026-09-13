@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>出場選手 印刷用 | 競技会受付システム</title>
+<title>出場選手一覧 | 競技会受付システム</title>
 <link rel="icon" href="favicon.ico">
 <style>
   :root{--primary:#123262;--bg:#f4f5f7;--card:#fff;--text:#1a1a1a;--muted:#6b7280;--border:#e0e2e7;
@@ -97,6 +97,27 @@
     --pf-tpad:calc(3px * var(--ps));   --pf-gap:calc(5mm * var(--ps));
   }
   #paper.pm{width:190mm;padding:0;box-shadow:none}
+  /* 掲示用。1段組・大きい字・1区分＝1ページ。離れて見る貼り紙や、
+     進行席・審判席に配る紙のための出し方。紙の大きさの数値をまとめて置き換える。 */
+  .poster{
+    --pf-tbl:calc(11pt * var(--ps));   --pf-th:calc(9pt * var(--ps));
+    --pf-bib:calc(14.5pt * var(--ps)); --pf-nm:calc(12pt * var(--ps));
+    --pf-aff:calc(10pt * var(--ps));   --pf-head:calc(11pt * var(--ps));
+    --pf-ttl:calc(14pt * var(--ps));   --pf-dan:calc(12pt * var(--ps));
+    --pf-dk:calc(9.5pt * var(--ps));   --pf-pad:calc(2px * var(--ps));
+    --pf-tpad:calc(5px * var(--ps));   --pf-gap:calc(6mm * var(--ps));
+  }
+  /* 画面でも掲示用は大きく見せる。枚数を測っている間（.pm）と紙は上の変数を使うので、
+     ここは画面だけに効かせる。 */
+  @media screen{
+    #paper.poster:not(.pm) table.pg{font-size:16px}
+    #paper.poster:not(.pm) table.pg th{font-size:13px}
+    #paper.poster:not(.pm) table.pg th,#paper.poster:not(.pm) table.pg td{padding:4px 8px}
+    #paper.poster:not(.pm) table.pg td.bib{font-size:23px}
+    #paper.poster:not(.pm) table.pg td.nmc{font-size:18px}
+    #paper.poster:not(.pm) table.pg td.aff{font-size:15px}
+    #paper.poster:not(.pm) .blk .ttl .nm{font-size:20px}
+  }
   .pm table.pg{font-size:var(--pf-tbl)}
   .pm table.pg th{font-size:var(--pf-th)}
   .pm table.pg th,.pm table.pg td{padding:var(--pf-pad) 2px}
@@ -133,13 +154,15 @@
     .blk .ttl .dance .k{font-size:var(--pf-dk);margin-right:5px}
     /* 区分が紙の途中で切れないようにする（1区分が1ページに入りきらないときは分かれる） */
     .blk{break-inside:avoid;page-break-inside:avoid}
+    /* 掲示用は1区分＝1ページ */
+    .poster .blk + .blk{break-before:page;page-break-before:always}
     thead{display:table-header-group}
   }
 </style>
 </head>
 <body>
 <header>
-  <h1>出場選手 印刷用</h1>
+  <h1>出場選手一覧</h1>
   <a href="uketsuke-manual.html" target="_blank" rel="noopener" style="margin-left:auto">マニュアル</a>
   <a href="uketsuke.html" style="margin-left:14px">← 受付システムへ戻る</a>
 </header>
@@ -151,8 +174,7 @@
   <a href="uketsuke.html#rollcall">欠場報告</a>
   <a href="uketsuke.html#manual">手動対応</a>
   <a id="nav-absent" href="uketsuke.html#rollcall">欠場者一覧</a>
-  <a id="nav-entries" href="uketsuke.html#roster">出場選手一覧</a>
-  <span class="active">出場選手 印刷用</span>
+  <span class="active">出場選手一覧</span>
 </nav>
 
 <main>
@@ -168,6 +190,7 @@
         <input type="number" id="pages" min="1" max="40" step="1" placeholder="自動"
                style="width:72px;font-size:15px;padding:7px 8px;border:1px solid var(--border);border-radius:8px"></label>
       <button id="b-reload" class="secondary">最新にする</button>
+      <label class="checkbox-row"><input type="checkbox" id="c-poster"><span>掲示用（1段組・大きい字）</span></label>
       <label class="checkbox-row"><input type="checkbox" id="c-memo" checked><span>記入欄を付ける</span></label>
       <label class="checkbox-row"><input type="checkbox" id="c-empty"><span>エントリー0組の区分も出す</span></label>
       <span class="muted" id="updated" style="margin-left:auto"></span>
@@ -257,8 +280,7 @@ function load(){
       var first = (DATA === null);
       DATA = d;
       el('comp-name').textContent = d.name + (d.date ? '（' + d.date + '）' : '');
-      el('nav-absent').href  = 'uketsuke-absent.html?id='  + encodeURIComponent(id);
-      el('nav-entries').href = 'uketsuke-entries.html?id=' + encodeURIComponent(id);
+      el('nav-absent').href = 'uketsuke-absent.html?id=' + encodeURIComponent(id);
       if (first) buildPicker();
       el('updated').textContent = '最終更新 ' + new Date().toLocaleTimeString('ja-JP');
       return loadSyllabus();
@@ -307,6 +329,7 @@ function buildPicker(){
         return '<option value="' + esc(e.code) + '">' + esc(e.code) + (n ? '　' + esc(n) : '') + '</option>';
       }).join('');
   el('pick').addEventListener('change', render);
+  el('c-poster').addEventListener('change', render);
   el('c-memo').addEventListener('change', render);
   el('c-empty').addEventListener('change', render);
   el('b-reload').addEventListener('click', load);
@@ -323,6 +346,9 @@ function entriesFor(code){
     .filter(function(r){ return (r.events || []).indexOf(code) >= 0; })
     .sort(function(a, b){ return (Number(a.bib) || 0) - (Number(b.bib) || 0); });
 }
+
+/* 掲示用（1段組・大きい字）かどうか */
+function isPoster(){ return el('c-poster').checked; }
 
 /* 1組ぶんのセル。無い側は枠だけ残す。 */
 function cells(r, memo){
@@ -345,8 +371,12 @@ function headCells(memo){
     + '<th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th>';
 }
 
-/* 列幅。記入欄のあり・なしで割り振りを変える（合計 100%） */
+/* 列幅。記入欄のあり・なしと、1段組か2段組かで割り振りを変える（合計 100%） */
 function colGroup(memo){
+  if (isPoster()) {
+    var pw = memo ? [8, 8, 26, 26, 32] : [9, 28, 28, 35];
+    return '<colgroup>' + pw.map(function(x){ return '<col style="width:' + x + '%">'; }).join('') + '</colgroup>';
+  }
   var w = memo ? [5, 5, 13.5, 13.5, 11.5] : [5.5, 15, 15, 13];
   var cols = w.map(function(x){ return '<col style="width:' + x + '%">'; }).join('');
   return '<colgroup>' + cols + '<col style="width:3%">' + cols + '</colgroup>';
@@ -364,6 +394,16 @@ var MIN_PS = 0.5;                   /* これ以上は小さくしない */
 function measurePages(){
   var paper = el('paper'), had = paper.classList.contains('pm');
   paper.classList.add('pm');
+  var blksAll = paper.querySelectorAll('.blk');
+  /* 掲示用は1区分＝1ページ。入りきらない区分だけ枚数が増える。 */
+  if (paper.classList.contains('poster')) {
+    var t = 0;
+    for (var k = 0; k < blksAll.length; k++) {
+      t += Math.max(1, Math.ceil(blksAll[k].getBoundingClientRect().height / PAGE_H));
+    }
+    if (!had) paper.classList.remove('pm');
+    return t || 1;
+  }
   var pages = 1, y = 0;
   var head = paper.querySelector('.sheet-head');
   if (head) y = head.getBoundingClientRect().height
@@ -408,6 +448,14 @@ function fitPages(target){
 
 function updateFit(){
   if (!DATA) return;
+  /* 掲示用は1区分＝1ページなので、ページ数の指定は使わない */
+  if (isPoster()) {
+    setPs(1);
+    el('pages').disabled = true;
+    el('fit-note').textContent = '掲示用は1区分＝1ページです（全部で ' + measurePages() + 'ページ）。';
+    return;
+  }
+  el('pages').disabled = false;
   var t = parseInt(el('pages').value, 10);
   if (!(t > 0)) t = 0;
   var r = fitPages(t);
@@ -428,6 +476,7 @@ function updateFit(){
 function render(){
   var only  = el('pick').value;
   var memo  = el('c-memo').checked;
+  el('paper').classList.toggle('poster', isPoster());
   var withEmpty = el('c-empty').checked;
   var evs   = sortEvents(DATA.events).filter(function(e){ return !only || e.code === only; });
 
@@ -445,16 +494,20 @@ function render(){
     if (!list.length) {
       return h + '<div class="none">エントリーはありません。</div></section>';
     }
-    /* プログラムの選手名簿と同じで、左の段に前半、右の段に後半を入れる */
-    var half  = Math.ceil(list.length / 2);
+    /* プログラムの選手名簿と同じで、左の段に前半、右の段に後半を入れる。
+       掲示用は1段組なので、上から順にそのまま並べる。 */
+    var poster = isPoster();
+    var half  = poster ? list.length : Math.ceil(list.length / 2);
     var left  = list.slice(0, half);
-    var right = list.slice(half);
+    var right = poster ? [] : list.slice(half);
     var body = '';
     for (var i = 0; i < half; i++) {
-      body += '<tr>' + cells(left[i], memo) + '<td class="gap"></td>' + cells(right[i], memo) + '</tr>';
+      body += '<tr>' + cells(left[i], memo)
+            + (poster ? '' : '<td class="gap"></td>' + cells(right[i], memo)) + '</tr>';
     }
     return h + '<table class="pg">' + colGroup(memo)
-      + '<thead><tr>' + headCells(memo) + '<th class="gap"></th>' + headCells(memo) + '</tr></thead>'
+      + '<thead><tr>' + headCells(memo)
+      + (poster ? '' : '<th class="gap"></th>' + headCells(memo)) + '</tr></thead>'
       + '<tbody>' + body + '</tbody></table></section>';
   }).join('');
 
