@@ -28,6 +28,10 @@
   nav.tabs button{flex:none;padding:10px 14px;border:none;background:none;color:var(--muted);
     font-weight:700;font-size:14px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
   nav.tabs button.active{color:var(--primary);border-bottom-color:var(--primary)}
+  /* 別ページを開くタブ。押しても中身が切り替わるわけではないので、印は付けない。 */
+  nav.tabs a{flex:none;padding:10px 14px;color:var(--muted);font-weight:700;font-size:14px;
+    border-bottom:3px solid transparent;text-decoration:none;white-space:nowrap}
+  nav.tabs a:hover{color:var(--text)}
   /* 手動対応が残っているときは、タブの色を変えて気づけるようにする */
   nav.tabs button.has-todo{color:#c2410c}
   /* 手動対応の一覧。未対応を目立たせ、済んだものは薄く */
@@ -269,6 +273,8 @@
     <button data-view="checkin" id="tab-checkin">受付</button>
     <button data-view="rollcall">欠場報告</button>
     <button data-view="manual" id="tab-manual">手動対応</button>
+    <!-- 別ページなので、タブの見た目のままリンクにする（新しいタブで開く） -->
+    <a id="tab-entries" href="uketsuke-entries.html" target="_blank" rel="noopener">出場選手一覧</a>
   </nav>
 
   <main>
@@ -475,6 +481,10 @@
 
     <!-- ======== 名簿 ======== -->
     <section id="v-roster" class="hidden">
+      <div class="row wrap" style="margin:4px 0 10px">
+        <a class="btn secondary" id="rs-entries" href="uketsuke-entries.html" target="_blank" rel="noopener"
+           style="display:inline-block;text-decoration:none">区分ごとの出場選手一覧を開く（印刷用）</a>
+      </div>
       <!-- CSV取込の画面部品。ふだんは出さない。
            名簿CSVは大会を作るときに取り込むので、ここに入口は置かない。
            自動で判定できなかったときだけ、下の割り当て画面を出して人に直してもらう。 -->
@@ -528,10 +538,6 @@
       </div>
 
       <h2>一覧 <span class="muted" id="rs-count"></span></h2>
-      <div class="row wrap" style="margin-bottom:8px">
-        <a class="btn secondary" id="rs-entries" href="uketsuke-entries.html" target="_blank" rel="noopener"
-           style="display:inline-block;text-decoration:none">区分ごとの出場選手一覧を開く（印刷用）</a>
-      </div>
       <input type="text" id="rs-search" placeholder="背番号・氏名・所属で検索">
       <div style="height:8px"></div>
       <table class="dense">
@@ -655,6 +661,21 @@ function openViewFromHash(){
 document.querySelectorAll('nav.tabs button').forEach(function(b){
   b.addEventListener('click', function(){ switchView(b.dataset.view); });
 });
+/* 出場選手一覧は別ページなので、いま開いている大会のIDを付け直す。
+   画面を切り替えるたびと、押した瞬間の両方で入れ直す。 */
+function syncEntriesLinks(){
+  var u = 'uketsuke-entries.html?id=' + encodeURIComponent(COMP ? COMP.id : '');
+  ['tab-entries', 'rs-entries'].forEach(function(k){ var a = el(k); if (a) a.href = u; });
+}
+el('tab-entries').addEventListener('click', function(e){
+  if (!COMP) {
+    e.preventDefault();
+    alert('先に「大会」タブで大会を開いてください（一覧の「開く」を押します）');
+    return;
+  }
+  syncEntriesLinks();
+});
+
 function switchView(v){
   document.querySelectorAll('nav.tabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.view === v); });
   views.forEach(function(x){ el('v-' + x).classList.toggle('hidden', x !== v); });
@@ -675,6 +696,7 @@ function switchView(v){
   if (v === 'rollcall') renderRollcall();
   if (v === 'manual') renderManual();
   if (v === 'roster') { renderEvents(); renderRoster(); renderEventChecks(); }
+  syncEntriesLinks();
   /* 受付以外の画面にいても更新を続ける。ヘッダーの更新時刻が動いていることが、
      その端末が最新であることの目印になるため。 */
   startPolling(true);
@@ -1837,8 +1859,7 @@ el('mn-print').addEventListener('click', function(){ window.print(); });
 
 /* ---------- 名簿 ---------- */
 function renderRoster(){
-  /* 別ページなので、いま開いている大会のIDを付け直す */
-  el('rs-entries').href = 'uketsuke-entries.html?id=' + encodeURIComponent(COMP ? COMP.id : '');
+  syncEntriesLinks();
   var q = el('rs-search').value.trim().toLowerCase();
   var rows = (DATA.roster || []).filter(function(r){
     if (!q) return true;
