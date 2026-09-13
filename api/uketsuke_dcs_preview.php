@@ -23,6 +23,8 @@ json_out([
     'date'   => $r['date'],
     'comp_no' => $r['comp_no'],   /* DCSの大会番号。公認番号として使う */
     'venue'  => $r['venue'],
+    'host'   => $r['host'],       /* 主催。確認表で「別の大会では？」に気づくために出す */
+    'long_names' => $r['long_names'],   /* 16バイト超の氏名を別欄から復元した件数 */
     'events' => $r['events'],     /* コード・名称・並び順（受付締切は空） */
     'roster' => $r['roster'],     /* 背番号・氏名・所属・出場区分 */
 ]);

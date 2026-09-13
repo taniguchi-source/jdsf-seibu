@@ -85,14 +85,18 @@ function uk_dcs_parse_info($raw) {
 function uk_dcs_parse_members($raw, $codes) {
     $rows = uk_dcs_rows($raw);
     if (count($rows) < 100) return ['error' => 'SSS__MEM.dat ではないようです（行数が少なすぎます）'];
-    $n   = count($codes);
-    $out = [];
+    $n    = count($codes);
+    $out  = [];
+    /* 16バイトに収まらない名前が何件あったかを数える（確認表に出す） */
+    $long = 0;
     for ($i = 0; $i < 1000 && $i < count($rows); $i++) {
         $r = $rows[$i];
         if (trim($r) === '') continue;
         $leader  = uk_dcs_s(substr($r, 0, 16));
         $partner = uk_dcs_s(substr($r, 16, 16));
         if ($leader === '*' || $partner === '*') {
+            if ($leader  === '*') $long++;
+            if ($partner === '*') $long++;
             $ext = [];
             for ($o = 96; $o < strlen($r); $o += 32) {
                 $v = uk_dcs_s(substr($r, $o, 32));
@@ -110,7 +114,7 @@ function uk_dcs_parse_members($raw, $codes) {
                   'affiliation' => uk_dcs_s(substr($r, 32, 24)), 'events' => $events];
     }
     if (!$out) return ['error' => '名簿が1組も読み取れませんでした'];
-    return ['roster' => $out];
+    return ['roster' => $out, 'long_names' => $long];
 }
 
 /* アップロードされた1ファイルを読む（共通の入口） */
@@ -132,6 +136,7 @@ function uk_dcs_read_pair($raw_info, $raw_mem) {
     if (isset($info['error'])) return $info;
     $mem = uk_dcs_parse_members($raw_mem, array_column($info['events'], 'code'));
     if (isset($mem['error'])) return $mem;
-    $info['roster'] = $mem['roster'];
+    $info['roster']     = $mem['roster'];
+    $info['long_names'] = $mem['long_names'];
     return $info;
 }

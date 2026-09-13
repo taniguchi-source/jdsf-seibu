@@ -67,6 +67,8 @@
     main{max-width:none;padding:0}
     table{font-size:10.5pt}
     tr.mn-todo td{background:#fff}
+    /* 「この確認表を印刷」を押したときは、取り込む内容の確認だけを紙に出す */
+    body.pr-check #v-comp > :not(#nc-check){display:none !important}
   }
   main{max-width:820px;margin:0 auto;padding:16px;padding-bottom:80px}
   h2{font-size:16px;margin:22px 0 8px;color:var(--muted)}
@@ -203,8 +205,33 @@
     color:var(--primary);font-size:13px;line-height:1.7}
   .nc-note.ok{background:var(--ok-bg);color:#15803d}
   .nc-note.ng{background:var(--danger-bg);color:var(--danger)}
-  .nc-ev{margin-top:8px;font-size:13px;color:var(--muted);line-height:1.7}
   .nc-foot{margin:14px 0 0;font-size:12px;color:var(--muted);line-height:1.7}
+  /* 取り込む内容の確認。読み込んだDCSの中身を全部見せ、シラバスとも突き合わせる */
+  #nc-check h2{margin-top:22px}
+  .ck-head{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 12px}
+  .ck-head div{min-width:150px}
+  .ck-head .k{font-size:12px;color:var(--muted)}
+  .ck-head .v{font-size:15px;font-weight:700}
+  .ck-sec{font-size:13px;font-weight:700;color:var(--muted);margin:18px 0 6px}
+  .ck-p{margin:0;font-size:13px;line-height:1.8}
+  /* 左の区分表は行が多く区分名も長いので、右のチェック欄より広く取る */
+  .ck-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;align-items:start}
+  @media (max-width:680px){.ck-grid{grid-template-columns:1fr}}
+  table.ck{font-size:13px}
+  table.ck th,table.ck td{padding:4px 8px}
+  table.ck th{white-space:nowrap}
+  table.ck td.num{text-align:right;font-weight:700;width:1%;white-space:nowrap}
+  table.ck tr.sum td{background:#f3f6fa;font-weight:800;border-top:2px solid var(--border)}
+  table.ck td.zero{color:var(--muted)}
+  /* シラバスと食い違った区分は、行ごと赤くして見落とさないようにする */
+  table.ck tr.bad td{background:var(--danger-bg)}
+  .ck-list{list-style:none;margin:0;padding:0;font-size:13px;line-height:1.9}
+  .ck-list li{display:flex;gap:8px;align-items:baseline}
+  .ck-list .m{flex:none;width:1.4em;font-weight:800}
+  .ck-list .m.ok{color:var(--ok)}
+  .ck-list li.ng,.ck-list .m.ng{color:var(--danger)}
+  .ck-peek{margin-top:6px}
+  .ck-peek .gap td{text-align:center;color:var(--muted);background:#fafafa}
   .hidden{display:none !important}
 </style>
 </head>
@@ -298,16 +325,25 @@
         </label>
 
         <div class="nc-note" id="nc-dcs-note">2つのファイルを選ぶと、その場で読み込みます。</div>
-        <div id="nc-events" class="nc-ev hidden"></div>
-
-        <div style="height:14px"></div>
-        <button id="nc-btn" style="min-width:200px">作成する</button>
 
         <p class="nc-foot">
           公認番号には<b>大会番号（データフォルダの名前）</b>が自動で入ります（あとから「編集」で変えられます）。
           受付締切の時刻は「名簿」タブの区分マスタで入れてください。
         </p>
       </div>
+
+      <!-- 2つのファイルを読み込めたときだけ出る。作ってしまう前に中身を全部見せ、
+           シラバス（大会要項）とも突き合わせる。「作成する」はこの下にある。 -->
+      <section id="nc-check" class="hidden">
+        <h2>取り込む内容の確認</h2>
+        <div class="card">
+          <div id="nc-check-body"></div>
+          <div class="row wrap no-print" style="margin-top:18px">
+            <button id="nc-btn" style="min-width:200px">作成する</button>
+            <button type="button" id="nc-print" class="secondary small">この確認表を印刷</button>
+          </div>
+        </div>
+      </section>
     </section>
 
     <!-- ======== 受付 ======== -->
@@ -752,20 +788,193 @@ function cleanCompName(name){
   return String(name || '').split('※')[0].split(' 詳細')[0].replace(/【[^】]*】/g, '').trim();
 }
 
-/* シラバス（大会要項）の「競技内容」から取れた区分を確認用に出す。
-   この並び順（区分順）が、DCSの選手名簿CSVの競技参加区分の列順そのものなので、
-   そのまま区分マスタとして登録しておけば、名簿の取込で列に自動で割り当てられる。 */
-function renderNcEvents(){
-  var box = el('nc-events');
-  if (!NC_EVENTS.length) {
-    box.innerHTML = '';
+/* ---- 取り込む内容の確認 ----
+   DCSのファイルを読んだ時点で、何が入ろうとしているのかを全部見せる。
+   間違ったフォルダや古いファイルを選んでいたら、大会を作ってしまう前に気づけるようにする。 */
+
+/* DCSは大会名に全角数字を使い（２０２６）、サイトの一覧は半角（2026）。
+   そのままでは必ず食い違うので、英数字と空白をそろえてから比べる。 */
+function ncNorm(s){
+  return cleanCompName(String(s || ''))
+    .replace(/[０-９Ａ-Ｚａ-ｚ]/g, function(ch){
+      return String.fromCharCode(ch.charCodeAt(0) - 0xFEE0);
+    })
+    .replace(/\s+/g, '')   /* JSの \s は全角スペースも含む */
+    .toUpperCase();
+}
+
+/* 大会番号（DCSの2行目）で、サイトが毎朝取り込んでいる競技会一覧を引く。
+   JDSFのサイトへは見に行かない（連続アクセスで遮断されるため）。 */
+function ncFindSyllabus(){
+  if (!NC_INFO || !NC_INFO.comp_no) return null;
+  return CANDS.filter(function(x){
+    return String(x.comp_no || '') === String(NC_INFO.comp_no);
+  })[0] || null;
+}
+
+function ncMark(ok){
+  return ok ? '<span class="m ok">&#10003;</span>' : '<span class="m ng">&#10007;</span>';
+}
+function ncLine(ok, html){
+  return '<li class="' + (ok ? 'ok' : 'ng') + '">' + ncMark(ok) + '<span>' + html + '</span></li>';
+}
+/* 背番号の一覧は長くなるので、先頭10件だけ出して残りは件数で言う */
+function ncBibs(list){
+  var head = list.slice(0, 10).join(', ');
+  return head + (list.length > 10 ? ' ほか' + (list.length - 10) + '件' : '');
+}
+
+function renderNcCheck(){
+  var box = el('nc-check'), body = el('nc-check-body');
+  if (!NC_ROSTER || !NC_INFO || !NC_EVENTS.length) {
     box.classList.add('hidden');
+    body.innerHTML = '';
     return;
   }
-  box.innerHTML = 'DCSの大会情報から <b>' + NC_EVENTS.length + '区分</b> を競技内容の順で登録します：<br>'
-    + esc(NC_EVENTS.map(function(e){ return e.code; }).join(', '));
+  var info = NC_INFO, roster = NC_ROSTER, evs = NC_EVENTS;
+  var codes = evs.map(function(e){ return e.code; });
+
+  /* 区分ごとのエントリー数と、名簿のおかしなところを一度に数える */
+  var cnt = {}; codes.forEach(function(c){ cnt[c] = 0; });
+  var seen = {}, dup = [], noEvent = [], noName = [], starName = [], noAff = [];
+  var maxBib = 0;
+  roster.forEach(function(r){
+    var b = Number(r.bib) || 0;
+    if (b > maxBib) maxBib = b;
+    if (seen[b]) dup.push(b);
+    seen[b] = true;
+    var lead = String(r.leader || '').trim(), part = String(r.partner || '').trim();
+    if (lead === '*' || part === '*') starName.push(b);
+    else if (!lead || !part) noName.push(b);
+    if (!String(r.affiliation || '').trim()) noAff.push(b);
+    if (!(r.events || []).length) noEvent.push(b);
+    (r.events || []).forEach(function(c){ if (cnt[c] !== undefined) cnt[c]++; });
+  });
+  var missing = [];
+  for (var b2 = 1; b2 <= maxBib; b2++) if (!seen[b2]) missing.push(b2);
+  var sum = codes.reduce(function(a, c){ return a + cnt[c]; }, 0);
+  var empty = codes.filter(function(c){ return cnt[c] === 0; });
+
+  /* シラバス（大会要項）の区分。あれば並び順まで突き合わせる */
+  var syl = ncFindSyllabus();
+  var sc  = syl ? (syl.events || []).map(function(e){ return e.code; }) : [];
+  var sameOrder = sc.length > 0 && sc.length === codes.length
+    && codes.every(function(c, i){ return c === sc[i]; });
+
+  var h = '';
+
+  /* --- 大会そのもの --- */
+  h += '<div class="ck-head"><div style="flex:1 1 100%"><span class="k">大会名</span><br>'
+     + '<span class="v">' + esc(info.name) + '</span></div></div>'
+     + '<div class="ck-head">'
+     + '<div><span class="k">開催日</span><br><span class="v">' + esc(info.date || '—') + '</span></div>'
+     + '<div><span class="k">会場</span><br><span class="v">' + esc(info.venue || '—') + '</span></div>'
+     + '<div><span class="k">主催</span><br><span class="v">' + esc(info.host || '—') + '</span></div>'
+     + '<div><span class="k">大会番号 &rarr; 公認番号</span><br><span class="v">' + esc(info.comp_no || '—') + '</span></div>'
+     + '</div>';
+
+  /* --- シラバスとの照合 --- */
+  h += '<p class="ck-sec">シラバス（大会要項）との照合</p>';
+  if (!syl) {
+    h += '<p class="muted ck-p">大会番号 <b>' + esc(info.comp_no) + '</b> の大会が、サイトの競技会一覧に見つかりませんでした。'
+       + 'この照合は行いません（下の確認には影響しません）。</p>';
+  } else if (!sc.length) {
+    h += '<p class="muted ck-p">この大会のシラバスは見つかりましたが、競技内容（区分）がまだ取り込まれていません。'
+       + '大会名と開催日だけ照合します。</p>';
+  }
+  if (syl) {
+    var okName  = ncNorm(info.name)  === ncNorm(syl.name);
+    var okDate  = String(info.date)  === String(syl.date_iso);
+    var okVenue = ncNorm(info.venue) === ncNorm(syl.venue);
+    h += '<ul class="ck-list">'
+       + ncLine(okName, '大会名　' + (okName ? '一致'
+           : '<b>不一致</b>　シラバスは「' + esc(cleanCompName(syl.name)) + '」'))
+       + ncLine(okDate, '開催日　' + (okDate ? esc(info.date) + '　一致'
+           : '<b>不一致</b>　シラバスは ' + esc(syl.date_iso || '—')))
+       + ncLine(okVenue, '会場　　' + (okVenue ? '一致'
+           : '<b>不一致</b>　シラバスは「' + esc(syl.venue || '—') + '」'));
+    if (sc.length) {
+      var why = sc.length !== codes.length
+        ? 'シラバス ' + sc.length + '区分／DCS ' + codes.length + '区分'
+        : 'コードか並び順が違います';
+      h += ncLine(sameOrder, '区分　　' + (sameOrder ? codes.length + '区分・コードと並び順が一致'
+          : '<b>不一致</b>　' + why + '（下の表の赤い行を確認してください）'));
+    }
+    h += '</ul>';
+    if (sameOrder) {
+      h += '<p class="muted ck-p">区分の並び順が合っているので、出場区分の読み取り（区分ごとのエントリー）も正しく入ります。</p>';
+    }
+  }
+
+  /* --- 区分の一覧 --- */
+  h += '<div class="ck-grid"><div>'
+     + '<p class="ck-sec">区分とエントリー数（DCSの並び順）</p>'
+     + '<table class="ck"><thead><tr><th>#</th>'
+     + (sc.length ? '<th>シラバス</th>' : '')
+     + '<th>DCS</th><th>区分名</th><th>組</th></tr></thead><tbody>';
+  var rowsN = Math.max(codes.length, sc.length);
+  for (var i = 0; i < rowsN; i++) {
+    var dc = codes[i], s2 = sc[i];
+    var bad = sc.length ? (dc !== s2) : false;
+    h += '<tr' + (bad ? ' class="bad"' : '') + '>'
+       + '<td class="num">' + (i + 1) + '</td>'
+       + (sc.length ? '<td>' + (s2 ? '<span class="code-pill">' + esc(s2) + '</span>' : '—') + '</td>' : '')
+       + '<td>' + (dc ? '<span class="code-pill">' + esc(dc) + '</span>' : '—') + '</td>'
+       + '<td>' + esc(dc ? (evs[i].name || '') : '') + '</td>'
+       + '<td class="num' + (dc && cnt[dc] === 0 ? ' zero' : '') + '">' + (dc ? cnt[dc] : '') + '</td>'
+       + '</tr>';
+  }
+  h += '<tr class="sum"><td colspan="' + (sc.length ? 4 : 3) + '">'
+     + codes.length + '区分／のべ</td><td class="num">' + sum + '</td></tr>'
+     + '</tbody></table></div>';
+
+  /* --- 自動チェック --- */
+  h += '<div><p class="ck-sec">名簿の自動チェック</p><ul class="ck-list">'
+     + ncLine(!missing.length && !dup.length,
+         '名簿 <b>' + roster.length + '組</b>'
+         + (!missing.length && !dup.length ? '（背番号 1〜' + maxBib + '、欠番・重複なし）'
+            : '　' + (missing.length ? '<b>欠番</b> ' + ncBibs(missing) + '　' : '')
+                   + (dup.length ? '<b>重複</b> ' + ncBibs(dup) : '')))
+     + ncLine(!noName.length, '氏名が空の組　' + (noName.length ? '<b>' + noName.length + '組</b>　背番号 ' + ncBibs(noName) : 'なし'))
+     + ncLine(!starName.length, '長い氏名の読み取り　'
+         + (starName.length ? '<b>' + starName.length + '組が読めていません</b>　背番号 ' + ncBibs(starName)
+            : (info.long_names ? info.long_names + '件をすべて復元' : '該当なし')))
+     + ncLine(!noAff.length, '所属が空の組　' + (noAff.length ? '<b>' + noAff.length + '組</b>　背番号 ' + ncBibs(noAff) : 'なし'))
+     + ncLine(!noEvent.length, '出場区分が0の組　' + (noEvent.length ? '<b>' + noEvent.length + '組</b>　背番号 ' + ncBibs(noEvent) : 'なし'))
+     + '</ul>';
+  if (empty.length) {
+    h += '<p class="muted ck-p">エントリーが0組の区分：' + esc(empty.join(', '))
+       + '　（要項にあって申込が無かった区分です。異常ではありません）</p>';
+  }
+  h += '<p class="ck-sec" style="margin-top:14px">つき合わせ</p>'
+     + '<p class="muted ck-p">DCSの区分別エントリー数や発番表と、左の「組」の列がそろっていれば'
+     + '取り込みは正しくできています。</p></div></div>';
+
+  /* --- 名簿の見本 --- */
+  var pick = roster.length > 6
+    ? roster.slice(0, 3).concat([null]).concat(roster.slice(-3))
+    : roster.slice(0, 6);
+  h += '<div class="ck-peek"><p class="ck-sec">名簿の最初と最後（文字化けの確認）</p>'
+     + '<table class="dense"><thead><tr><th>背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th><th>区分</th></tr></thead><tbody>'
+     + pick.map(function(r){
+         if (!r) return '<tr class="gap"><td colspan="5">… 中略（' + (roster.length - 6) + '組）…</td></tr>';
+         return '<tr><td>' + esc(r.bib) + '</td><td>' + esc(r.leader) + '</td><td>' + esc(r.partner) + '</td>'
+              + '<td>' + esc(r.affiliation) + '</td><td>'
+              + (r.events || []).map(function(c){ return '<span class="code-pill">' + esc(c) + '</span>'; }).join('')
+              + '</td></tr>';
+       }).join('')
+     + '</tbody></table></div>';
+
+  body.innerHTML = h;
   box.classList.remove('hidden');
 }
+
+/* 紙に出してDCSの画面と突き合わせられるようにする。この確認表だけを印刷する。 */
+el('nc-print').addEventListener('click', function(){
+  document.body.classList.add('pr-check');
+  window.print();
+});
+window.addEventListener('afterprint', function(){ document.body.classList.remove('pr-check'); });
 
 /* DCSの2ファイルから、大会名・開催日・区分・名簿をまとめて読む。
    区分のコードと並び順がDCSの原本から取れるので、シラバスが未公開でも登録できる。
@@ -788,15 +997,16 @@ function loadDcsFiles(){
       if (d && d.error) throw new Error(d.message || d.error);
       NC_ROSTER = d.roster;
       NC_EVENTS = d.events;
-      NC_INFO   = {name: d.name || '', date: d.date || '', comp_no: d.comp_no || ''};
-      renderNcEvents();
+      NC_INFO   = {name: d.name || '', date: d.date || '', comp_no: d.comp_no || '',
+                   venue: d.venue || '', host: d.host || '', long_names: d.long_names || 0};
+      renderNcCheck();
       el('nc-dcs-note').className = 'nc-note ok';
-      el('nc-dcs-note').innerHTML = '読み込みました：<b>' + esc(d.name) + '</b>（' + esc(d.date) + '）'
-        + '　区分 ' + d.events.length + '／名簿 <b>' + d.roster.length + '組</b>'
-        + '　公認番号 <b>' + esc(d.comp_no) + '</b>。このまま「作成する」を押してください。';
+      el('nc-dcs-note').textContent = '読み込みました。下の内容を確かめてから「作成する」を押してください。';
       return true;
     })
     .catch(function(e){
+      NC_ROSTER = null; NC_INFO = null; NC_EVENTS = [];
+      renderNcCheck();
       el('nc-dcs-note').className = 'nc-note ng';
       el('nc-dcs-note').textContent = '読み込めませんでした：' + e.message;
       throw e;
@@ -816,6 +1026,9 @@ function ncMarkPick(id){
 ['nc-dcs-i','nc-dcs-m'].forEach(function(id){
   el(id).addEventListener('change', function(){
     ncMarkPick(id);
+    /* 選び直している途中の確認表は、前のファイルのものなので消す */
+    NC_ROSTER = null; NC_INFO = null; NC_EVENTS = [];
+    renderNcCheck();
     loadDcsFiles().catch(function(e){ alert(e.message); });
   });
 });
@@ -848,7 +1061,7 @@ function createCompetition(){
   })
     .then(function(d){
       NC_ROSTER = null; NC_INFO = null;
-      NC_EVENTS = []; renderNcEvents();
+      NC_EVENTS = []; renderNcCheck();
       el('nc-dcs-i').value = ''; el('nc-dcs-m').value = '';
       ncMarkPick('nc-dcs-i'); ncMarkPick('nc-dcs-m');
       el('nc-dcs-note').className = 'nc-note';
