@@ -4,7 +4,11 @@
    大会を作ったあとに uketsuke_save_roster.php へ名簿を送る（CSV取込と同じ流れ）。 */
 require __DIR__ . '/_uketsuke.php';
 require __DIR__ . '/_uketsuke_dcs.php';
-require_auth('admin');
+/* 受付システムの他のAPIと同じ顔ぶれ。受付（競技用）のパスワードでも
+   大会の作成・名簿の保存はできるので、その元になるファイルの読み取りだけを
+   役員に限る理由がない。ここが admin だけだと、受付のパスワードで入った人は
+   「読み込めませんでした：Forbidden」になって大会を作れない。 */
+require_auth_any(['admin', 'build', 'uketsuke']);
 
 $a = uk_dcs_upload('info', 'SSS__I.dat');
 $b = uk_dcs_upload('mem',  'SSS__MEM.dat');

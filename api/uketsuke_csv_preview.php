@@ -8,7 +8,11 @@
    ・文字コードは Shift_JIS(cp932)
    なので、認識コード行を読み飛ばし、ヘッダー無しとして扱えるようにする。 */
 require __DIR__ . '/_uketsuke.php';
-require_auth('admin');
+/* 受付システムの他のAPIと同じ顔ぶれ。受付（競技用）のパスワードでも
+   大会の作成・名簿の保存はできるので、その元になるファイルの読み取りだけを
+   役員に限る理由がない。ここが admin だけだと、受付のパスワードで入った人は
+   「読み込めませんでした：Forbidden」になって大会を作れない。 */
+require_auth_any(['admin', 'build', 'uketsuke']);
 
 $id_for_check = $_POST['id'] ?? '';
 if (uk_valid_id($id_for_check)) uk_require_comp($id_for_check);   /* 公認番号で開いた大会のみ */
