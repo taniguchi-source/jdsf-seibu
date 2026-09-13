@@ -95,6 +95,12 @@
   .checkin-row .bib-input{flex:1;min-width:0;font-size:64px;padding:14px 12px}
   .checkin-row .ci-btn{flex:none;font-size:24px;padding:0 34px;white-space:nowrap}
   .checkin-row .ci-part{flex:none;font-size:13px;padding:0 12px;white-space:nowrap}
+  /* 受付締切が入っていないときの足止め。受付を始める前に必ず目に入る強さで出す。 */
+  #ci-gate{border:2px solid var(--warn);background:var(--warn-bg)}
+  #ci-gate .ttl{font-size:19px;font-weight:800;color:var(--warn);margin-bottom:6px}
+  #ci-gate .codes{margin:8px 0;font-size:15px;font-weight:700;line-height:1.8;color:var(--text)}
+  #ci-gate .codes span{display:inline-block;background:#fff;border:1px solid var(--border);
+    border-radius:6px;padding:2px 8px;margin-right:6px}
   /* 「背番号」の見出しの行。右端に直近の受付締切までの残り時間を出す。 */
   /* 狭い画面では残り時間を次の行に回す（背番号の見出しを押し出さない） */
   .ci-head{display:flex;align-items:center;gap:6px 10px;margin-bottom:4px;flex-wrap:wrap}
@@ -431,6 +437,11 @@
         <button type="button" class="small secondary" id="ci-by-edit">受付担当者名を変更</button>
       </div>
 
+      <!-- 受付締切が入っていない区分があるときの足止め。
+           締切が無いと「受付締切処理」で止められず、出場選手一覧の並びも決まらないので、
+           受付を始める前に必ず入れてもらう。 -->
+      <div class="card hidden" id="ci-gate"></div>
+
       <!-- 区分ごとの受付済み／未受付。受付しながら残りが見えるよう、背番号欄のすぐ上に置く。 -->
       <div class="card" id="ci-prog"></div>
 
@@ -602,7 +613,7 @@
       </div>
       <div id="imp-result" class="banner hidden"></div>
 
-      <h2>区分マスタ</h2>
+      <h2 id="ev-master">区分マスタ</h2>
       <p class="muted">名簿CSVの取込で未登録の区分コードが見つかると、ここに仮登録（区分名＝コード）されます。名称と受付締切を整えてください。</p>
 
       <div class="card">
@@ -782,7 +793,8 @@ function switchView(v){
   /* 画面を開いた時点で描画する（ポーリング待ちで数秒空欄になるのを防ぐ） */
   /* 大会一覧の「選手○組／受付済○組」は取込や受付で増えるので、開くたびに数え直す */
   if (v === 'comp') loadComps();
-  if (v === 'checkin') { renderRecent(); el('bib').focus(); }
+  /* 受付締切が入っていない区分があるときは、受付の入力欄を出さない（足止め中は焦点も当てない） */
+  if (v === 'checkin') { renderRecent(); if (checkinReady()) el('bib').focus(); }
   if (v === 'rollcall') renderRollcall();
   if (v === 'deadline') renderDeadline();
   if (v === 'manual') renderManual();
@@ -1526,6 +1538,8 @@ el('bib').addEventListener('input', function(){
 });
 el('ci-form').addEventListener('submit', function(e){
   e.preventDefault();
+  /* 受付締切が未設定のうちは受付させない（画面は隠しているが、念のためここでも止める） */
+  if (!checkinReady()) { renderCheckinGate(); return; }
   var bib = el('bib').value.trim();
   if (!bib) { el('bib').focus(); return; }
   if (!rosterOf(bib)) { notInRoster(bib); return; }
@@ -1533,6 +1547,7 @@ el('ci-form').addEventListener('submit', function(e){
 });
 /* 一部の区分だけ受付する組のときだけ、区分を選ぶ画面を出す */
 el('ci-part').addEventListener('click', function(){
+  if (!checkinReady()) { renderCheckinGate(); return; }
   var bib = el('bib').value.trim() || LAST_BIB;
   if (!bib) { banner('warn', '先に背番号を入力してください'); el('bib').focus(); return; }
   if (!rosterOf(bib)) { notInRoster(bib); return; }
@@ -1757,6 +1772,53 @@ function renderProgress(){
       }).join('');
 }
 
+/* ── 受付締切が入っていない区分の足止め ──
+   締切が無いと「受付締切処理」でその区分を止められず、出場選手一覧の並びも決まらない。
+   あとから入れるつもりで受付を始めてしまうと直す機会を失うので、
+   エントリーのある区分に1つでも締切が無いうちは、受付の画面を出さない。 */
+function eventsWithoutDeadline(){
+  var out = [];
+  (DATA.events || []).forEach(function(e){
+    if (String(e.start_time || '').trim() !== '') return;
+    var n = 0;
+    (DATA.roster || []).forEach(function(r){ if ((r.events || []).indexOf(e.code) >= 0) n++; });
+    if (n > 0) out.push(e);       /* エントリー0組の区分は受付しないので数えない */
+  });
+  return out;
+}
+/* 受付できる状態か。足止め中は false。 */
+function checkinReady(){
+  return !!DATA && eventsWithoutDeadline().length === 0;
+}
+function renderCheckinGate(){
+  var gate = el('ci-gate'), form = el('ci-form');
+  if (!gate || !form) return true;
+  var miss = DATA ? eventsWithoutDeadline() : [];
+  var ok = (miss.length === 0);
+  form.classList.toggle('hidden', !ok);
+  if (!ok) el('ci-panel').classList.add('hidden');   /* 一部受付の選択画面も閉じる */
+  gate.classList.toggle('hidden', ok);
+  if (ok) return true;
+  gate.innerHTML = '<div class="ttl">まず受付締切を設定してください</div>'
+    + '<p class="muted" style="margin:0">次の区分に受付締切の時刻が入っていません。'
+    + '締切が無いと、その区分の受付を締め切る操作（「受付締切処理」タブ）ができません。</p>'
+    + '<div class="codes">'
+    + miss.map(function(e){
+        return '<span>' + esc(e.code) + (evName2(e) ? '　' + esc(evName2(e)) : '') + '</span>';
+      }).join('')
+    + '</div>'
+    + '<button type="button" id="ci-gate-go">「名簿」タブの区分マスタへ移動する</button>'
+    + '<p class="muted" style="margin:8px 0 0">'
+    + '区分マスタの「受付締切」に時刻（例 10:30）を入れて「区分マスタを保存」を押すと、'
+    + 'この画面から受付を始められます。</p>';
+  el('ci-gate-go').addEventListener('click', function(){
+    switchView('roster');
+    var h = el('ev-master');
+    if (h) h.scrollIntoView({block: 'start'});
+  });
+  return false;
+}
+
 /* ── 直近の受付締切まであと何分 ──
    受付に集中していると次の締切を見落とすので、背番号の欄の右に出しておく。
    出すのは「まだ停止していない締切のうち、いちばん早いもの」。
@@ -1823,6 +1885,7 @@ setInterval(function(){
 
 function renderRecent(){
   renderProgress();
+  renderCheckinGate();
   renderDeadlineClock();
   var map = {};
   (DATA.roster || []).forEach(function(r){ map[r.bib] = r; });
