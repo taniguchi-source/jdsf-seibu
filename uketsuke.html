@@ -95,6 +95,14 @@
   .checkin-row .bib-input{flex:1;min-width:0;font-size:64px;padding:14px 12px}
   .checkin-row .ci-btn{flex:none;font-size:24px;padding:0 34px;white-space:nowrap}
   .checkin-row .ci-part{flex:none;font-size:13px;padding:0 12px;white-space:nowrap}
+  /* 区分マスタ側の注意書き。受付締切が空の欄は枠を赤くして、その場で分かるようにする。 */
+  #ev-warn{border:2px solid var(--warn);background:var(--warn-bg);border-radius:10px;
+    padding:12px 14px;margin-bottom:12px;font-size:14px;color:#7c3a06}
+  #ev-warn b{font-size:16px;color:var(--warn)}
+  #ev-warn .codes{margin-top:6px;font-weight:700;line-height:1.9}
+  #ev-warn .codes span{display:inline-block;background:#fff;border:1px solid var(--border);
+    border-radius:6px;padding:1px 8px;margin-right:6px}
+  input.ev-t.need{border-color:var(--warn);border-width:2px;background:#fffbeb}
   /* 受付締切が入っていないときの足止め。受付を始める前に必ず目に入る強さで出す。 */
   #ci-gate{border:2px solid var(--warn);background:var(--warn-bg)}
   #ci-gate .ttl{font-size:19px;font-weight:800;color:var(--warn);margin-bottom:6px}
@@ -615,6 +623,8 @@
 
       <h2 id="ev-master">区分マスタ</h2>
       <p class="muted">名簿CSVの取込で未登録の区分コードが見つかると、ここに仮登録（区分名＝コード）されます。名称と受付締切を整えてください。</p>
+      <!-- 受付締切が空の区分をその場で知らせる（受付タブへ行くまで気づけないのを防ぐ） -->
+      <div id="ev-warn" class="hidden"></div>
 
       <div class="card">
         <table class="dense">
@@ -1406,6 +1416,7 @@ function pollTick(){
     if (!el('v-rollcall').classList.contains('hidden')) renderRollcall();
     if (!el('v-manual').classList.contains('hidden')) renderManual();
     renderManualTab();   /* 他の画面にいても件数は最新にする */
+    renderCheckinTab();  /* 受付できない状態（締切未設定）も他の画面から分かるようにする */
   }).catch(function(e){ syncFailed(e && e.message); });
 }
 function startPolling(on){
@@ -1790,7 +1801,16 @@ function eventsWithoutDeadline(){
 function checkinReady(){
   return !!DATA && eventsWithoutDeadline().length === 0;
 }
+/* 受付タブにも印を出す。別のタブを見ていても、受付できない状態だと分かるようにする。 */
+function renderCheckinTab(){
+  var b = el('tab-checkin');
+  if (!b || !DATA) return;
+  var blocked = !checkinReady();
+  b.textContent = blocked ? '受付 ⚠' : '受付';
+  b.classList.toggle('has-todo', blocked);
+}
 function renderCheckinGate(){
+  renderCheckinTab();
   var gate = el('ci-gate'), form = el('ci-form');
   if (!gate || !form) return true;
   var miss = DATA ? eventsWithoutDeadline() : [];
@@ -2706,6 +2726,41 @@ function renderEvents(){
   el('ev-list').querySelectorAll('button[data-i]').forEach(function(b){
     b.addEventListener('click', function(){ EV.splice(Number(b.dataset.i), 1); DATA.events = EV; renderEvents(); });
   });
+  updateEventWarn();
+}
+
+/* その区分にエントリーしている組数 */
+function entryCount(code){
+  var n = 0;
+  (DATA.roster || []).forEach(function(r){ if ((r.events || []).indexOf(code) >= 0) n++; });
+  return n;
+}
+/* 受付締切が空の区分を、区分マスタの画面でその場で知らせる。
+   入力中の値を見るので、打ち込んだ時点・消した時点で表示が変わる（保存前でも分かる）。 */
+function updateEventWarn(){
+  var box = el('ev-warn');
+  if (!box) return;
+  var miss = [], unsaved = false;
+  document.querySelectorAll('input.ev-t').forEach(function(inp){
+    var e = EV[Number(inp.dataset.i)] || {};
+    var empty = inp.value.trim() === '';
+    var need  = empty && entryCount(e.code) > 0;
+    inp.classList.toggle('need', need);
+    if (need) miss.push(e);
+    if (inp.value.trim() !== String(e.start_time || '').trim()) unsaved = true;
+  });
+  box.classList.toggle('hidden', miss.length === 0);
+  if (!miss.length) return;
+  box.innerHTML = '<b>受付締切が入っていない区分があります</b>'
+    + '<div class="codes">'
+    + miss.map(function(e){
+        return '<span>' + esc(e.code) + (evName2(e) ? '　' + esc(evName2(e)) : '')
+          + '　' + entryCount(e.code) + '組</span>';
+      }).join('')
+    + '</div>'
+    + '時刻（例 10:30）を入れて<b>「区分マスタを保存」</b>を押してください。'
+    + 'この区分の受付締切が空のあいだは、「受付」タブで受付を始められません。'
+    + (unsaved ? '<br>※いまの入力はまだ保存されていません。' : '');
 }
 
 /* 区分コードから区分名を推定する（api/_uketsuke.php の uk_guess_event_name と同じ規則）
@@ -2760,6 +2815,7 @@ function saveEvents(focusIndex){
       setTimeout(function(){ el('ev-saved').textContent = ''; }, 2000);
       return refresh().then(function(){
         renderEvents();
+        renderCheckinTab();   /* 締切を入れ終わったら、受付タブの印もその場で消す */
         if (focusIndex === undefined) return;
         var next = document.querySelector('.ev-t[data-i="' + focusIndex + '"]');
         if (next) { next.focus(); next.select(); }
@@ -2768,6 +2824,11 @@ function saveEvents(focusIndex){
     .catch(function(e){ alert(e.message); });
 }
 el('ev-save').addEventListener('click', function(){ saveEvents(); });
+
+/* 打ち込んだ・消した時点で注意書きを出し直す（保存を待たずに分かるように） */
+el('ev-list').addEventListener('input', function(e){
+  if (e.target && e.target.classList.contains('ev-t')) updateEventWarn();
+});
 
 /* 受付締切は上から続けて入れることが多いので、Enterで確定して次の区分の欄へ移る。
    区分名の欄でEnterを押したときは、同じ行の受付締切へ移る。 */
