@@ -19,8 +19,9 @@ if (empty($comp['code_hash'])) {
     json_out(['ok' => true, 'id' => $id, 'need_code' => false]);
 }
 
-$code = uk_norm_code($_POST['code'] ?? '');
-if ($code === '') json_out(['error' => '公認番号を入力してください'], 400);
+$raw  = (string)($_POST['code'] ?? '');          /* 役員パスワードの照合に使う（大小文字はそのまま） */
+$code = uk_norm_code($raw);                      /* 合言葉の照合に使う（全角・空白・大小文字を吸収） */
+if ($code === '') json_out(['error' => '合言葉を入力してください'], 400);
 
 /* 総当たりを避けるため、ログインと同じ仕組みで失敗回数を制限する */
 $af = auth_data_dir() . '/login_attempts.php';
@@ -33,12 +34,23 @@ if (($rec['until'] ?? 0) > $now) {
     json_out(['error' => '試行回数が多すぎます。しばらく待ってから試してください', 'retry' => $rec['until'] - $now], 429);
 }
 
-if (!password_verify($code, $comp['code_hash'])) {
+/* 合言葉のほかに、役員ページのパスワードでも開ける。
+   合言葉は大会ごとに決めるものなので、忘れると誰もその大会を開けなくなってしまう
+   （編集も削除も「開いていること」が条件のため、戻す手段が無くなる）。
+   役員パスワードを知っている人はもともと全大会を扱えるので、これで弱くはならない。
+   合言葉は大文字小文字を区別しない（uk_norm_code）が、パスワードは区別するので、
+   役員パスワードの照合には入力されたままの文字列を使う。 */
+$auth  = load_auth();
+$admin = (string)($auth['admin'] ?? '');
+$ok = password_verify($code, $comp['code_hash'])
+   || ($admin !== '' && password_verify($raw, $admin));
+
+if (!$ok) {
     $rec['n'] = ($rec['n'] ?? 0) + 1;
     if ($rec['n'] >= 8) { $rec['until'] = $now + 300; $rec['n'] = 0; }
     $attempts[$key] = $rec;
     @file_put_contents($af, "<?php\nreturn " . var_export($attempts, true) . ";\n", LOCK_EX);
-    json_out(['error' => '公認番号が違います'], 401);
+    json_out(['error' => '合言葉が違います'], 401);
 }
 
 unset($attempts[$key]);

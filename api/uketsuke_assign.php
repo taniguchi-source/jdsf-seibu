@@ -8,7 +8,7 @@ require_auth_any(['admin', 'build', 'uketsuke']);
 
 $id = $_POST['id'] ?? '';
 if (!uk_valid_id($id)) json_out(['error' => '大会IDが不正です'], 400);
-uk_require_comp($id);   /* 公認番号で開いた大会のみ操作できる */
+uk_require_comp($id);   /* 合言葉で開いた大会のみ操作できる */
 
 $code = uk_str($_POST['code'] ?? '', 20);
 if ($code === '') json_out(['error' => '区分を指定してください'], 400);

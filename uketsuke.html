@@ -347,14 +347,17 @@
 
       <!-- 一覧の「編集」を押したときだけ出す -->
       <div class="card hidden" id="ed-box">
-        <p class="muted">大会名・開催日・公認番号を変更します。<b>公認番号は空欄のままなら、いまの設定を変えません。</b></p>
+        <p class="muted">大会名・開催日・合言葉を変更します。<b>合言葉は空欄のままなら、いまの設定を変えません。</b></p>
         <div class="row wrap">
           <div class="grow"><label class="muted">大会名</label><input type="text" id="ed-name"></div>
           <div style="width:170px"><label class="muted">開催日</label><input type="date" id="ed-date"></div>
         </div>
         <div style="margin-top:8px">
-          <label class="muted">公認番号（この大会を開くときの合言葉になります）</label>
+          <label class="muted">合言葉（この大会を開くときの鍵）</label>
           <input type="text" id="ed-code" placeholder="変更しないときは空欄のまま">
+          <p class="muted" style="margin:4px 0 0">
+            公認番号（大会番号）は競技会一覧やシラバスで公開されているので、合言葉には使わないでください。
+            当日の担当者にだけ伝える言葉にします。忘れたときは役員ページのパスワードでも開けます。</p>
         </div>
         <div style="height:10px"></div>
         <div class="row wrap">
@@ -395,7 +398,8 @@
         <div class="nc-note" id="nc-dcs-note">2つのファイルを選ぶと、その場で読み込みます。</div>
 
         <p class="nc-foot">
-          公認番号には<b>大会番号（データフォルダの名前）</b>が自動で入ります（あとから「編集」で変えられます）。
+          読み込んだあと、<b>この大会を開くときの合言葉</b>を決めます（候補が出るので、そのままでも構いません）。
+          公認番号は公開されている番号なので合言葉には使いません。
           受付締切の時刻は「名簿」タブの区分マスタで入れてください。
         </p>
       </div>
@@ -724,7 +728,7 @@ function doLogin(){
 /* ---------- タブ切替 ---------- */
 var views = ['comp','checkin','rollcall','deadline','manual','roster'];
 /* 欠場者一覧など別ページのタブから「uketsuke.html#画面名」で戻ってきたら、その画面を開く。
-   公認番号を求められる大会では、番号を入れて大会を開いた時点で切り替える（それまで覚えておく）。 */
+   合言葉を求められる大会では、合言葉を入れて大会を開いた時点で切り替える（それまで覚えておく）。 */
 var HASH_VIEW = (location.hash || '').replace(/^#/, '');
 /* 取り出したらURLからも消す。一度きりにして、あとでタブを押したときに引き戻されないようにする。 */
 function takeHashView(){
@@ -801,7 +805,7 @@ function loadComps(quiet){
       return '<div class="comp-item">'
         + '<div class="grow"><div class="nm">' + esc(c.name) + '</div>'
         + '<div class="muted">' + esc(c.date || '') + '　選手 ' + (c.roster_count||0) + '組／受付済 ' + (c.checkin_count||0) + '組'
-        + (c.need_code ? (c.unlocked ? '　🔓 公認番号は確認済み' : '　🔒 公認番号が必要') : '') + '</div></div>'
+        + (c.need_code ? (c.unlocked ? '　🔓 合言葉は確認済み' : '　🔒 合言葉が必要') : '') + '</div></div>'
         + '<button class="small" data-open="' + esc(c.id) + '" data-need="' + (c.need_code && !c.unlocked ? '1' : '') + '">開く</button>'
         + '<button class="small secondary" data-edit="' + esc(c.id) + '" data-need="' + (c.need_code && !c.unlocked ? '1' : '') + '">編集</button>'
         + '<button class="small secondary" data-copy="' + esc(c.id) + '">複製</button>'
@@ -810,7 +814,7 @@ function loadComps(quiet){
     box.querySelectorAll('[data-open]').forEach(function(b){
       b.addEventListener('click', function(){ openComp(b.dataset.open, b.dataset.need === '1'); });
     });
-    /* 編集は公認番号の差し替えができるので、鍵のかかった大会はまず開いてもらう
+    /* 編集は合言葉の差し替えができるので、鍵のかかった大会はまず開いてもらう
        （サーバー側でも、開いていない大会の変更は拒否する） */
     box.querySelectorAll('[data-edit]').forEach(function(b){
       b.addEventListener('click', function(){
@@ -820,20 +824,20 @@ function loadComps(quiet){
       });
     });
     /* 複製は練習用の大会を作るためのもの。名簿と区分だけを引き継ぎ、受付記録は引き継がない。
-       元の大会を開いていることが条件なので、公認番号を知らない人は名簿を複製できない。 */
+       元の大会を開いていることが条件なので、合言葉を知らない人は名簿を複製できない。 */
     box.querySelectorAll('[data-copy]').forEach(function(b){
       b.addEventListener('click', function(){
         var c = d.competitions.filter(function(x){ return x.id === b.dataset.copy; })[0] || {};
         var need = c.need_code && !c.unlocked && !(COMP && COMP.id === c.id);
         var step = need ? openComp(c.id, true, true) : Promise.resolve();
         step.then(function(){
-          if (need && !(COMP && COMP.id === c.id)) return;   /* 公認番号が違う／取り消した */
+          if (need && !(COMP && COMP.id === c.id)) return;   /* 合言葉が違う／取り消した */
           var name = prompt('複製してできる大会の名前を入れてください。' +
             '（名簿と区分はそのまま、受付記録は空の状態で作ります）', '受付システム練習用競技会');
           if (name === null || name.trim() === '') return;
-          var code = prompt('この大会を開くときの公認番号を入れてください。' +
-            '（練習用なら、覚えやすい番号で構いません）', '');
-          if (code === null || code.trim() === '') return;
+          var code = askPass('この大会を開くときの合言葉を決めてください。\n'
+            + '（練習用なら、覚えやすい言葉で構いません）');
+          if (code === null) return;
           b.disabled = true;
           post('api/uketsuke_duplicate.php', {id:c.id, name:name, code:code})
             .then(function(r){
@@ -857,7 +861,7 @@ function loadComps(quiet){
         var need = c.need_code && !c.unlocked && !(COMP && COMP.id === c.id);
         var step = need ? openComp(c.id, true, true) : Promise.resolve();
         step.then(function(){
-          if (need && !(COMP && COMP.id === c.id)) return;   /* 公認番号が違う／取り消した */
+          if (need && !(COMP && COMP.id === c.id)) return;   /* 合言葉が違う／取り消した */
           var pw = prompt('削除を実行するには、役員ページのパスワードを入力してください'
             + (IS_LOCAL ? '\n（ローカル動作確認用サーバーのパスワードです。本番のものではありません）' : ''));
           if (pw === null || pw === '') return;
@@ -983,7 +987,7 @@ function renderNcCheck(){
      + '<div><span class="k">開催日</span><br><span class="v">' + esc(info.date || '—') + '</span></div>'
      + '<div><span class="k">会場</span><br><span class="v">' + esc(info.venue || '—') + '</span></div>'
      + '<div><span class="k">主催</span><br><span class="v">' + esc(info.host || '—') + '</span></div>'
-     + '<div><span class="k">大会番号 &rarr; 公認番号</span><br><span class="v">' + esc(info.comp_no || '—') + '</span></div>'
+     + '<div><span class="k">大会番号</span><br><span class="v">' + esc(info.comp_no || '—') + '</span></div>'
      + '</div>';
 
   /* --- シラバスとの照合 --- */
@@ -1153,11 +1157,44 @@ el('nc-btn').addEventListener('click', function(){
   pre.then(function(){ createCompetition(); }).catch(function(e){ alert(e.message); });
 });
 
+/* ---- 大会ごとの合言葉 ----
+   大会を開くときの鍵。以前は公認番号（大会番号）を自動で入れていたが、
+   公認番号は競技会一覧やシラバスで公開しているので鍵にならない。
+   当日の担当者にだけ伝える言葉を、大会を作るときに決める。 */
+var PASS_WORDS = ['sakura','tsubaki','kaede','hotaru','yuzu','kirin','komugi','nagomi',
+                  'hinata','shirasagi','momiji','wakaba','suzuran','kosumosu','ajisai',
+                  'himawari','kaguya','shiokaze','asagiri','tsuzumi'];
+function makePass(){
+  var w = PASS_WORDS[Math.floor(Math.random() * PASS_WORDS.length)];
+  return w + (1000 + Math.floor(Math.random() * 9000));
+}
+/* 合言葉を決めてもらう。公開されている番号をそのまま入れようとしたら止める。 */
+function askPass(msg, suggest){
+  for (;;) {
+    var v = prompt(msg, suggest === undefined ? makePass() : suggest);
+    if (v === null) return null;
+    v = v.trim();
+    if (v === '') { alert('合言葉を入れてください。'); continue; }
+    if (/^[0-9]{4,8}$/.test(v)) {
+      if (!confirm('「' + v + '」は数字だけです。公認番号（大会番号）は公開されているので、'
+        + '鍵になりません。\nこのまま使いますか？（キャンセルで入れ直せます）')) continue;
+    }
+    return v;
+  }
+}
+
+var NC_PASS = '';
 function createCompetition(){
   if (!NC_ROSTER || !NC_EVENTS.length || !NC_INFO) {
     alert('SSS__I.dat と SSS__MEM.dat の2つを選んでください');
     return;
   }
+  /* 鍵を決めてから作る。控えられるよう、作成後のお知らせにも出す。 */
+  var pass = askPass('この大会を開くときの合言葉を決めてください。\n'
+    + '当日の担当者にだけ伝えます（公認番号は公開されているので使いません）。\n'
+    + '下の候補をそのまま使っても構いません。');
+  if (pass === null) return;
+  NC_PASS = pass;
   /* 区分は「コード,区分名」を1行ずつ送る（サーバー側で区分マスタになる）。
      区分名の区切り文字と衝突しないよう、名前の中のカンマ・タブは空白にしておく。 */
   var evLines = NC_EVENTS.map(function(e){
@@ -1168,8 +1205,8 @@ function createCompetition(){
   var roster  = NC_ROSTER;
   post('api/uketsuke_save_competition.php', {
     action: 'create', name: info.name, date: info.date,
-    /* 公認番号はDCSの大会番号。あとから「編集」で変えられる。 */
-    code: info.comp_no,
+    /* 合言葉。公開されている公認番号は使わず、その場で決めてもらう。 */
+    code: NC_PASS,
     events: evLines
   })
     .then(function(d){
@@ -1194,7 +1231,9 @@ function createCompetition(){
               renderEvents(); renderRoster(); renderEventChecks();
               alert('「' + info.name + '」を作りました。'
                 + r.count + '組・' + evCodes.length + '区分を取り込みました。'
-                + '公認番号は ' + info.comp_no + ' です。受付締切の時刻は区分マスタで入れてください。');
+                + 'この大会を開くときの合言葉は「' + NC_PASS + '」です。'
+                + '当日の担当者に伝えてください（忘れたときは役員パスワードでも開けます）。'
+                + '受付締切の時刻は区分マスタで入れてください。');
             });
           }).catch(function(e){ alert(e.message); });
         });
@@ -1218,11 +1257,12 @@ function clearWorkState(){
   el('rs-search').value = '';
 }
 
-/* 大会を開く。公認番号が設定されていれば、まずそれを照合する（サーバー側で確認する）。 */
+/* 大会を開く。合言葉が設定されていれば、まずそれを照合する（サーバー側で確認する）。 */
 function openComp(id, needCode, keepView){
   var step = Promise.resolve();
   if (needCode) {
-    var code = prompt('この大会の公認番号を入力してください');
+    var code = prompt('この大会の合言葉を入力してください。'
+      + '（分からないときは、役員ページのパスワードでも開けます）');
     if (code === null) return Promise.resolve();
     step = post('api/uketsuke_open.php', {id:id, code:code});
   }
@@ -1241,7 +1281,7 @@ function openComp(id, needCode, keepView){
     .catch(function(e){ alert(e.message); return loadComps(); });
 }
 
-/* ---------- 大会の編集（名称・開催日・公認番号） ---------- */
+/* ---------- 大会の編集（名称・開催日・合言葉） ---------- */
 var ED_ID = null;
 function openEditor(c){
   ED_ID = c.id;
@@ -1260,6 +1300,11 @@ el('ed-cancel').addEventListener('click', function(){
 el('ed-save').addEventListener('click', function(){
   if (!ED_ID) return;
   if (!el('ed-name').value.trim()) { alert('大会名を入力してください'); return; }
+  /* 合言葉を数字だけ（＝公開されている公認番号）にしようとしたら、一度止める */
+  var newCode = el('ed-code').value.trim();
+  if (/^[0-9]{4,8}$/.test(newCode)
+      && !confirm('合言葉「' + newCode + '」は数字だけです。公認番号（大会番号）は公開されているので、'
+        + '鍵になりません。\nこのまま保存しますか？')) return;
   post('api/uketsuke_save_competition.php', {
     action: 'rename', id: ED_ID,
     name: el('ed-name').value, date: el('ed-date').value, code: el('ed-code').value
@@ -1280,7 +1325,7 @@ el('ed-save').addEventListener('click', function(){
 
 /* 直前に開いていた大会を開き直す。
    画面を再読み込みしただけで大会が閉じてしまい、受付に進めなくなるのを防ぐ。
-   公認番号の確認が済んでいる（need_code=false）ものだけ自動で開き、
+   合言葉の確認が済んでいる（need_code=false）ものだけ自動で開き、
    いま見ている画面は変えない。 */
 function restoreLastComp(list){
   if (COMP) { openViewFromHash(); return; }
@@ -1289,8 +1334,8 @@ function restoreLastComp(list){
   if (!id) return;
   var c = (list || []).filter(function(x){ return x.id === id; })[0];
   if (!c) return;
-  /* 公認番号の要らない大会はそのまま開き直す。
-     公認番号つきの大会も、このセッションで既に番号を通していれば（unlocked）聞き直さない。
+  /* 合言葉の要らない大会はそのまま開き直す。
+     合言葉つきの大会も、このセッションで既に通していれば（unlocked）聞き直さない。
      サーバーはその記録を持っていて再読み込みでも消えないので、聞き直しても守りにはならず、
      受付の途中で画面を更新するたびに止められると仕事にならないため。 */
   /* 画面は #画面名 があればそこへ、無ければ受付へ（読み込み直したら受付に戻るのが自然） */
@@ -1324,7 +1369,7 @@ function syncFailed(msg){
   if (!COMP) { SYNC_ERR = ''; renderSync(); return; }
   SYNC_ERR = msg || '通信エラー';
   renderSync();
-  if (/見つかりません|Forbidden|公認番号/.test(SYNC_ERR)) {
+  if (/見つかりません|Forbidden|合言葉|公認番号/.test(SYNC_ERR)) {
     if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
     COMP = null;
     loadBy();

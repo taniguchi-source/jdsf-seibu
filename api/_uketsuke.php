@@ -101,10 +101,14 @@ function uk_save_last_event_codes($codes) {
     return uk_write_json(uk_config_file(), $c);
 }
 
-/* ---- 大会ごとの公認番号（パスコード） ----
+/* ---- 大会ごとの合言葉（パスコード） ----
    役員ページのログインは全府県で共通のため、大会のデータを開くときに
-   その大会の公認番号を入力させ、担当外の大会を誤って触らないようにする。
-   照合はサーバー側で行い、通った大会だけをセッションに記録する。 */
+   その大会の合言葉を入力させ、担当外の大会を触れないようにする。
+   照合はサーバー側で行い、通った大会だけをセッションに記録する。
+
+   合言葉に公認番号（大会番号）を使わないこと。公認番号は競技会一覧
+   （data/competitions_seibu.json）やシラバスで公開しているので鍵にならない。
+   合言葉を忘れたときは役員ページのパスワードでも開ける（uketsuke_open.php）。 */
 function uk_norm_code($s) {
     $s = mb_convert_kana((string)$s, 'as');          /* 全角英数・全角空白を半角に */
     $s = preg_replace('/\s+/u', '', $s);             /* 空白は無視する */
@@ -123,7 +127,7 @@ function uk_require_comp($id) {
         if (($c['id'] ?? '') !== $id) continue;
         if (empty($c['code_hash'])) return true;      /* 未設定の大会は誰でも開ける */
         if (uk_comp_unlocked($id)) return true;
-        json_out(['error' => 'locked', 'message' => 'この大会の公認番号を入力してください'], 403);
+        json_out(['error' => 'locked', 'message' => 'この大会の合言葉を入力してください'], 403);
     }
     json_out(['error' => '大会が見つかりません'], 404);
 }

@@ -14,7 +14,7 @@ uk_require_comp($src);
 $name = uk_str($_POST['name'] ?? '', 60);
 if ($name === '') json_out(['error' => '大会名を入力してください'], 400);
 $code = uk_norm_code($_POST['code'] ?? '');
-if ($code === '') json_out(['error' => '公認番号を入力してください'], 400);
+if ($code === '') json_out(['error' => '合言葉を入力してください'], 400);
 
 $list = uk_load_list();
 $from = null;
