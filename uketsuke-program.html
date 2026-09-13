@@ -66,7 +66,13 @@
   table.pg th,table.pg td{border:1px solid var(--rule);padding:2px 4px;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   table.pg th{background:#f2f2f2;font-weight:600;text-align:center;font-size:11px}
-  table.pg td.bib{text-align:center;font-weight:700}
+  /* 呼び出しにも照合にも使うので、背番号と氏名は大きく太く。
+     氏名は切らずに折り返す（長い名前でも最後まで読めるようにする）。 */
+  table.pg td.bib{text-align:center;font-weight:800;font-size:15px}
+  table.pg td.nmc{font-weight:700;font-size:13.5px;white-space:normal;
+    word-break:break-all;line-height:1.25}
+  /* 所属も切らずに折り返す（クラブ名が途中で切れると誰の所属か分からない） */
+  table.pg td.aff{white-space:normal;word-break:break-all;line-height:1.25}
   /* 記入欄は当日ペンで書き込む列。中身は空のままにする。 */
   table.pg td.memo{background:#fff}
   /* 左右の段のあいだ。罫線を引かない。 */
@@ -84,9 +90,12 @@
     #paper{padding:0;box-shadow:none}
     table.pg{font-size:9pt}
     /* 紙はA4の幅しかないので、見出しは小さく、余白も詰めて名前の幅を確保する */
-    table.pg th{font-size:8pt}
+    /* 見出しは「記入欄」「背番号」が切れない大きさまで小さくする */
+    table.pg th{font-size:7.5pt}
     table.pg th,table.pg td{padding:1px 2px}
-    /* 所属は略称でも長いことがあるので、ここだけ少し小さくする */
+    table.pg td.bib{font-size:13pt}
+    table.pg td.nmc{font-size:11pt}
+    /* 所属は略称でも長いことがあるので、小さめにしたうえで折り返して全部出す */
     table.pg td.aff{font-size:8.5pt}
     .blk{margin-bottom:5mm}
     .blk .ttl{padding:3px 8px;margin-bottom:3px}
@@ -289,8 +298,8 @@ function cells(r, memo){
   var m = memo ? '<td class="memo"></td>' : '';
   return m
     + '<td class="bib">' + esc(r.bib) + '</td>'
-    + '<td>' + esc(r.leader) + '</td>'
-    + '<td>' + esc(r.partner) + '</td>'
+    + '<td class="nmc">' + esc(r.leader) + '</td>'
+    + '<td class="nmc">' + esc(r.partner) + '</td>'
     + '<td class="aff">' + esc(r.affiliation) + '</td>';
 }
 
@@ -301,7 +310,7 @@ function headCells(memo){
 
 /* 列幅。記入欄のあり・なしで割り振りを変える（合計 100%） */
 function colGroup(memo){
-  var w = memo ? [5.5, 5.5, 12, 12, 13.5] : [6, 14, 14, 14.5];
+  var w = memo ? [5, 5, 13.5, 13.5, 11.5] : [5.5, 15, 15, 13];
   var cols = w.map(function(x){ return '<col style="width:' + x + '%">'; }).join('');
   return '<colgroup>' + cols + '<col style="width:3%">' + cols + '</colgroup>';
 }

@@ -68,11 +68,12 @@
   table{width:100%;border-collapse:collapse;font-size:14px;background:#fff}
   th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border)}
   th{background:#fafafa;color:var(--muted);font-weight:600;white-space:nowrap}
-  /* 背番号は呼び出しにも照合にも使うので、どの表でも大きく太字にする */
-  td.bib{font-size:20px;font-weight:800;color:var(--primary);width:1%;white-space:nowrap;text-align:right}
+  /* 背番号と氏名は呼び出しにも照合にも使うので、大きく太字にする */
+  td.bib{font-size:22px;font-weight:800;color:var(--primary);width:1%;white-space:nowrap;text-align:right}
   th.bib{text-align:right}
+  td.nmc{font-size:17px;font-weight:700}
   td.aff{color:var(--text)}
-  @media (max-width:560px){ td.bib{font-size:17px} table{font-size:13px} }
+  @media (max-width:560px){ td.bib{font-size:18px} td.nmc{font-size:15px} table{font-size:13px} }
 
   .hidden{display:none !important}
   .print-only{display:none}
@@ -89,9 +90,10 @@
     .ev + .ev{break-before:page;page-break-before:always}
     /* 1区分が1枚に収まるよう、紙では少し詰める（30組程度までA4 1枚） */
     table{font-size:10pt}
-    th,td{padding:2.5px 6px;border-bottom:1px solid #bbb}
+    th,td{padding:2px 6px;border-bottom:1px solid #bbb}
     th{background:#f0f0f0;color:#333}
-    td.bib{font-size:12pt}
+    td.bib{font-size:13pt}
+    td.nmc{font-size:11pt}
     .ev-comp{margin-bottom:4px}
     .ev-sub{margin:6px 0 6px}
     /* 行が途中で切れないようにする */
@@ -308,8 +310,8 @@ function render(){
     h += '<table><thead><tr><th class="bib">背番号</th><th>リーダー</th><th>パートナー</th><th>所属</th></tr></thead><tbody>'
       + list.map(function(r){
           return '<tr><td class="bib">' + esc(r.bib) + '</td>'
-            + '<td>' + esc(r.leader) + '</td>'
-            + '<td>' + esc(r.partner) + '</td>'
+            + '<td class="nmc">' + esc(r.leader) + '</td>'
+            + '<td class="nmc">' + esc(r.partner) + '</td>'
             + '<td class="aff">' + esc(r.affiliation) + '</td></tr>';
         }).join('')
       + '</tbody></table></section>';
