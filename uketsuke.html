@@ -95,12 +95,25 @@
   .checkin-row .bib-input{flex:1;min-width:0;font-size:64px;padding:14px 12px}
   .checkin-row .ci-btn{flex:none;font-size:24px;padding:0 34px;white-space:nowrap}
   .checkin-row .ci-part{flex:none;font-size:13px;padding:0 12px;white-space:nowrap}
+  /* 「背番号」の見出しの行。右端に直近の受付締切までの残り時間を出す。 */
+  /* 狭い画面では残り時間を次の行に回す（背番号の見出しを押し出さない） */
+  .ci-head{display:flex;align-items:center;gap:6px 10px;margin-bottom:4px;flex-wrap:wrap}
+  /* 受付をしている間ずっと目に入る場所に置く。締切が近い・過ぎたら色で知らせる。 */
+  .dl-clock{margin-left:auto;font-size:14px;font-weight:700;white-space:nowrap;
+    background:#eef4ff;border:1px solid #cfe0ff;color:#1e3a8a;border-radius:8px;padding:5px 12px}
+  .dl-clock .tm{font-size:17px;margin:0 2px}
+  .dl-clock .rest{font-size:19px;margin:0 2px}
+  .dl-clock.warn{background:#fff4e5;border-color:#f3c07a;color:#92400e}
+  .dl-clock.over{background:#fdecec;border-color:#f0aeae;color:#b91c1c}
+  .dl-clock.fin{background:transparent;border-color:transparent;color:var(--muted);font-weight:400}
   @media (max-width:560px){
     .checkin-row .bib-input{font-size:44px;padding:12px 8px}
     .checkin-row .ci-btn{font-size:17px;padding:0 16px}
     /* 狭い画面では「一部受付」を受付ボタンの下に回す（背番号の幅を削らない） */
     .checkin-row{flex-wrap:wrap}
     .checkin-row .ci-part{width:100%;padding:8px 12px}
+    .dl-clock{font-size:13px;padding:4px 8px}
+    .dl-clock .rest{font-size:16px}
   }
   /* 受付の進み具合。区分ごとに受付済みと未受付の組数を出す。
      背番号の入力欄の上に置くので、区分はコードだけにして3列に詰める。 */
@@ -418,7 +431,11 @@
       <div class="card" id="ci-prog"></div>
 
       <form class="card" id="ci-form">
-        <label class="muted" for="bib">背番号</label>
+        <div class="ci-head">
+          <label class="muted" for="bib">背番号</label>
+          <!-- 直近の受付締切まであと何分。受付しながら見えるよう、背番号の見出しの右端に置く。 -->
+          <span id="ci-dl" class="dl-clock hidden"></span>
+        </div>
         <div class="checkin-row">
           <input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="bib" class="bib-input" placeholder="0">
           <button type="submit" class="ci-btn">受付</button>
@@ -1695,8 +1712,73 @@ function renderProgress(){
       }).join('');
 }
 
+/* ── 直近の受付締切まであと何分 ──
+   受付に集中していると次の締切を見落とすので、背番号の欄の右に出しておく。
+   出すのは「まだ停止していない締切のうち、いちばん早いもの」。
+   停止（＝受付締切処理タブでST初期振分を記録）まで出し続け、過ぎたら赤で経過を出す。 */
+function nextDeadline(){
+  var asg = assignMap();
+  var groups = [], byTime = {};
+  (DATA.events || []).forEach(function(e){
+    var t = String(e.start_time || '').trim();
+    if (!t) return;                       /* 締切を入れていない区分は対象外 */
+    var n = 0;
+    (DATA.roster || []).forEach(function(r){ if ((r.events || []).indexOf(e.code) >= 0) n++; });
+    if (!n) return;                       /* エントリー0組の区分は数えない */
+    if (!byTime[t]) { byTime[t] = {t: t, open: 0}; groups.push(byTime[t]); }
+    if (!asg[e.code]) byTime[t].open++;   /* まだ受付を止めていない区分 */
+  });
+  groups.sort(byDeadline);
+  return {any: groups.length > 0,
+          next: groups.filter(function(g){ return g.open > 0; })[0] || null};
+}
+/* 大会当日かどうか。前日までの準備中に「あと9時間」と出ても邪魔なだけなので、
+   当日だけ出す（日付が分からない大会では出す）。 */
+function isCompDay(){
+  var d = String((DATA && DATA.date) || '').trim();
+  if (!d) return true;
+  function p2(n){ return (n < 10 ? '0' : '') + n; }
+  var n = new Date();
+  return d === n.getFullYear() + '-' + p2(n.getMonth() + 1) + '-' + p2(n.getDate());
+}
+/* 残りの分数を「1時間23分」「23分」の形にする */
+function restText(m){
+  if (m >= 60) return Math.floor(m / 60) + '時間' + (m % 60) + '分';
+  return m + '分';
+}
+function renderDeadlineClock(){
+  var box = el('ci-dl');
+  if (!box) return;
+  var r = (DATA && DATA.events) ? nextDeadline() : {any: false, next: null};
+  box.className = 'dl-clock';
+  if (!r.any || !isCompDay()) { box.classList.add('hidden'); return; }
+  if (!r.next) {
+    box.innerHTML = '受付はすべて締切済み';
+    box.classList.add('fin');
+    return;
+  }
+  var now  = new Date();
+  var rest = timeKey(r.next.t) - (now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60);
+  if (rest > 0) {
+    var m = Math.ceil(rest);
+    box.innerHTML = '次の受付締切 <span class="tm">' + esc(r.next.t) + '</span>'
+      + '　あと <span class="rest">' + restText(m) + '</span>';
+    if (m <= 10) box.classList.add('warn');
+  } else {
+    box.innerHTML = '受付締切 <span class="tm">' + esc(r.next.t) + '</span>'
+      + ' から <span class="rest">' + restText(Math.floor(-rest)) + '</span> 経過';
+    box.classList.add('over');
+  }
+}
+/* 受付が動いていない時間帯（通信が止まっているときなど）でも分は進むので、
+   巡回とは別に、この表示だけ定期的に書き直す。 */
+setInterval(function(){
+  if (!el('v-checkin').classList.contains('hidden')) renderDeadlineClock();
+}, 15000);
+
 function renderRecent(){
   renderProgress();
+  renderDeadlineClock();
   var map = {};
   (DATA.roster || []).forEach(function(r){ map[r.bib] = r; });
   var done  = doneMap();
