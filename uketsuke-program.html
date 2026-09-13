@@ -16,6 +16,8 @@
     font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,-apple-system,"Segoe UI",sans-serif}
   header{background:var(--primary);color:#fff;padding:12px 16px;display:flex;gap:12px;align-items:center}
   header h1{font-size:16px;margin:0}
+  /* どの大会を見ているのかは常に見えている必要があるので、受付システム本体と同じ場所に出す */
+  header .comp{font-size:13px;opacity:.9}
   header a{color:#fff;font-size:13px;text-decoration:none;opacity:.85}
   nav.tabs{display:flex;gap:2px;background:var(--card);border-bottom:1px solid var(--border);
     padding:6px 8px 0;overflow-x:auto}
@@ -163,6 +165,7 @@
 <body>
 <header>
   <h1>出場選手一覧</h1>
+  <span class="comp" id="hd-comp"></span>
   <a href="uketsuke-manual.html" target="_blank" rel="noopener" style="margin-left:auto">マニュアル</a>
   <a href="uketsuke.html" style="margin-left:14px">← 受付システムへ戻る</a>
 </header>
@@ -179,8 +182,6 @@
 
 <main>
   <div class="card no-print">
-    <div id="comp-name" class="muted"></div>
-    <div style="height:8px"></div>
     <label class="lab" for="pick">表示する区分</label>
     <select id="pick"></select>
     <div style="height:12px"></div>
@@ -279,7 +280,7 @@ function load(){
       if (d.error) throw new Error(d.error);
       var first = (DATA === null);
       DATA = d;
-      el('comp-name').textContent = d.name + (d.date ? '（' + d.date + '）' : '');
+      el('hd-comp').textContent = d.name + (d.date ? '（' + d.date + '）' : '');
       el('nav-absent').href = 'uketsuke-absent.html?id=' + encodeURIComponent(id);
       if (first) buildPicker();
       el('updated').textContent = '最終更新 ' + new Date().toLocaleTimeString('ja-JP');
