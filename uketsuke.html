@@ -1424,6 +1424,23 @@ function evHtml(codes, bib, doneCodes){
 function rosterOf(bib){
   return (DATA.roster || []).filter(function(x){ return String(x.bib) === String(bib); })[0];
 }
+/* 受付締切の時刻を「その日の何分」になおす。
+   文字の並びで比べると「9:30」が「10:30」「12:00」より後になってしまうので、
+   並べ替えは必ずこの値で行う。時刻が入っていない区分はいちばん後ろ。 */
+function timeKey(t){
+  var s = String(t || '').replace(/[０-９]/g, function(ch){
+    return String.fromCharCode(ch.charCodeAt(0) - 0xFEE0);
+  });
+  var m = /(\d{1,2})\s*[:：時]\s*(\d{1,2})?/.exec(s) || /^\s*(\d{1,2})\s*$/.exec(s);
+  if (!m) return Infinity;
+  return Number(m[1]) * 60 + Number(m[2] || 0);
+}
+/* 受付締切の早い順（時刻なしは最後） */
+function byDeadline(a, b){
+  var x = timeKey(a.t), y = timeKey(b.t);
+  return x === y ? 0 : (x < y ? -1 : 1);
+}
+
 /* 受付済みの「背番号:区分」。受付が区分単位なので、判定は必ずこの組み合わせで行う。 */
 function doneMap(){
   var m = {};
@@ -1649,11 +1666,7 @@ function renderProgress(){
     if (!byTime[t]) { byTime[t] = {t: t, list: []}; groups.push(byTime[t]); }
     byTime[t].list.push(e);
   });
-  groups.sort(function(a, b){
-    if (!a.t) return 1;
-    if (!b.t) return -1;
-    return a.t < b.t ? -1 : (a.t > b.t ? 1 : 0);
-  });
+  groups.sort(byDeadline);
 
   var sd = 0, sn = 0;
   rows.forEach(function(e){ sd += cnt[e.code].d; sn += cnt[e.code].n; });
@@ -1817,11 +1830,7 @@ function dlGroups(){
     if (!byTime[t]) { byTime[t] = {t: t, list: []}; groups.push(byTime[t]); }
     byTime[t].list.push({e: e, n: n, d: d, a: asg[e.code] || null});
   });
-  groups.sort(function(a, b){
-    if (!a.t) return 1;
-    if (!b.t) return -1;
-    return a.t < b.t ? -1 : (a.t > b.t ? 1 : 0);
-  });
+  groups.sort(byDeadline);
   return groups;
 }
 
