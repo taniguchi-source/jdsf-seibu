@@ -82,26 +82,55 @@
 
   .hidden{display:none !important}
 
+  /* ── 紙のときの大きさ ──
+     数値は変数にまとめ、--ps 倍して縮める（1 がそのままの大きさ）。
+     --ps は「ページ数」の指定に合わせてJSが #paper に入れる。
+     画面で刷り上がりの枚数を測るときは #paper に .pm を付けて紙と同じ大きさにする。
+     紙のほうは JS を待たずに必ずこの大きさになるよう、@media print にも同じ指定を置く。 */
+  :root{
+    --ps:1;
+    --pf-tbl:calc(9pt * var(--ps));    --pf-th:calc(7.5pt * var(--ps));
+    --pf-bib:calc(13pt * var(--ps));   --pf-nm:calc(11pt * var(--ps));
+    --pf-aff:calc(8.5pt * var(--ps));  --pf-head:calc(11pt * var(--ps));
+    --pf-ttl:calc(12pt * var(--ps));   --pf-dan:calc(10pt * var(--ps));
+    --pf-dk:calc(8.5pt * var(--ps));   --pf-pad:calc(1px * var(--ps));
+    --pf-tpad:calc(3px * var(--ps));   --pf-gap:calc(5mm * var(--ps));
+  }
+  #paper.pm{width:190mm;padding:0;box-shadow:none}
+  .pm table.pg{font-size:var(--pf-tbl)}
+  .pm table.pg th{font-size:var(--pf-th)}
+  .pm table.pg th,.pm table.pg td{padding:var(--pf-pad) 2px}
+  .pm table.pg td.bib{font-size:var(--pf-bib)}
+  .pm table.pg td.nmc{font-size:var(--pf-nm)}
+  .pm table.pg td.aff{font-size:var(--pf-aff)}
+  .pm .sheet-head{font-size:var(--pf-head)}
+  .pm .blk{margin-bottom:var(--pf-gap)}
+  .pm .blk .ttl{padding:var(--pf-tpad) 8px;margin-bottom:var(--pf-tpad)}
+  .pm .blk .ttl .nm{font-size:var(--pf-ttl)}
+  .pm .blk .ttl .dance{font-size:var(--pf-dan);padding:0 7px}
+  .pm .blk .ttl .dance .k{font-size:var(--pf-dk);margin-right:5px}
+
   @media print{
     @page{size:A4 portrait;margin:10mm}
     header,nav.tabs,.no-print{display:none !important}
     body{background:#fff}
     main{max-width:none;padding:0}
-    #paper{padding:0;box-shadow:none}
-    table.pg{font-size:9pt}
-    /* 紙はA4の幅しかないので、見出しは小さく、余白も詰めて名前の幅を確保する */
+    /* 紙では用紙の幅いっぱいに使う（190mm の指定は画面で測るときだけのもの） */
+    #paper,#paper.pm{padding:0;box-shadow:none;width:auto}
+    table.pg{font-size:var(--pf-tbl)}
     /* 見出しは「記入欄」「背番号」が切れない大きさまで小さくする */
-    table.pg th{font-size:7.5pt}
-    table.pg th,table.pg td{padding:1px 2px}
-    table.pg td.bib{font-size:13pt}
-    table.pg td.nmc{font-size:11pt}
+    table.pg th{font-size:var(--pf-th)}
+    table.pg th,table.pg td{padding:var(--pf-pad) 2px}
+    table.pg td.bib{font-size:var(--pf-bib)}
+    table.pg td.nmc{font-size:var(--pf-nm)}
     /* 所属は略称でも長いことがあるので、小さめにしたうえで折り返して全部出す */
-    table.pg td.aff{font-size:8.5pt}
-    .blk{margin-bottom:5mm}
-    .blk .ttl{padding:3px 8px;margin-bottom:3px}
-    .blk .ttl .nm{font-size:12pt}
-    .blk .ttl .dance{font-size:10pt;padding:0 7px}
-    .blk .ttl .dance .k{font-size:8.5pt;margin-right:5px}
+    table.pg td.aff{font-size:var(--pf-aff)}
+    .sheet-head{font-size:var(--pf-head)}
+    .blk{margin-bottom:var(--pf-gap)}
+    .blk .ttl{padding:var(--pf-tpad) 8px;margin-bottom:var(--pf-tpad)}
+    .blk .ttl .nm{font-size:var(--pf-ttl)}
+    .blk .ttl .dance{font-size:var(--pf-dan);padding:0 7px}
+    .blk .ttl .dance .k{font-size:var(--pf-dk);margin-right:5px}
     /* 区分が紙の途中で切れないようにする（1区分が1ページに入りきらないときは分かれる） */
     .blk{break-inside:avoid;page-break-inside:avoid}
     thead{display:table-header-group}
@@ -135,12 +164,16 @@
     <div style="height:12px"></div>
     <div class="row">
       <button id="b-print">印刷する</button>
+      <label class="checkbox-row"><span>ページ数</span>
+        <input type="number" id="pages" min="1" max="40" step="1" placeholder="自動"
+               style="width:72px;font-size:15px;padding:7px 8px;border:1px solid var(--border);border-radius:8px"></label>
       <button id="b-reload" class="secondary">最新にする</button>
       <label class="checkbox-row"><input type="checkbox" id="c-memo" checked><span>記入欄を付ける</span></label>
       <label class="checkbox-row"><input type="checkbox" id="c-empty"><span>エントリー0組の区分も出す</span></label>
       <span class="muted" id="updated" style="margin-left:auto"></span>
     </div>
-    <div class="muted" id="syl-note" style="margin-top:10px"></div>
+    <div class="muted" id="fit-note" style="margin-top:8px"></div>
+    <div class="muted" id="syl-note" style="margin-top:6px"></div>
   </div>
   <div id="paper"></div>
 </main>
@@ -277,7 +310,11 @@ function buildPicker(){
   el('c-memo').addEventListener('change', render);
   el('c-empty').addEventListener('change', render);
   el('b-reload').addEventListener('click', load);
-  el('b-print').addEventListener('click', function(){ window.print(); });
+  el('pages').addEventListener('input', updateFit);
+  el('b-print').addEventListener('click', function(){
+    updateFit();
+    window.print();
+  });
 }
 
 /* その区分にエントリーしている組を背番号順に返す */
@@ -315,6 +352,79 @@ function colGroup(memo){
   return '<colgroup>' + cols + '<col style="width:3%">' + cols + '</colgroup>';
 }
 
+/* ── 何ページに収めるか ──
+   指定がなければそのままの大きさで刷る。ページ数を入れたら、その枚数に収まる
+   いちばん大きい文字になるよう全体を縮める（文字も行間も一緒に縮む）。 */
+var MM = 96 / 25.4;                 /* 1mm ぶんのピクセル数（CSSの決まりで 96dpi） */
+var PAGE_H = 277 * MM;              /* A4縦 297mm から上下の余白 10mm ずつを引いた高さ */
+var MIN_PS = 0.5;                   /* これ以上は小さくしない */
+
+/* いまの大きさで何ページになるかを数える。
+   区分は途中で切らない指定なので、入りきらなければ次のページへ送る。 */
+function measurePages(){
+  var paper = el('paper'), had = paper.classList.contains('pm');
+  paper.classList.add('pm');
+  var pages = 1, y = 0;
+  var head = paper.querySelector('.sheet-head');
+  if (head) y = head.getBoundingClientRect().height
+               + (parseFloat(getComputedStyle(head).marginBottom) || 0);
+  var blks = paper.querySelectorAll('.blk');
+  for (var i = 0; i < blks.length; i++) {
+    var h = blks[i].getBoundingClientRect().height
+          + (parseFloat(getComputedStyle(blks[i]).marginBottom) || 0);
+    if (h > PAGE_H) {                       /* 1枚に入りきらない区分 */
+      if (y > 0) { pages++; y = 0; }
+      var n = Math.ceil(h / PAGE_H);
+      pages += n - 1;
+      y = h - (n - 1) * PAGE_H;
+      continue;
+    }
+    if (y + h > PAGE_H) { pages++; y = 0; }
+    y += h;
+  }
+  if (!had) paper.classList.remove('pm');
+  return pages;
+}
+
+/* --pf-* は :root で組み立てているので、--ps も :root に入れないと効かない
+   （変数の計算は、使う場所ではなく書いてある場所で行われるため） */
+function setPs(v){ document.documentElement.style.setProperty('--ps', v); }
+
+/* 指定ページ数に収まる、いちばん大きい縮尺を探す */
+function fitPages(target){
+  setPs(1);
+  var natural = measurePages();
+  if (!target || natural <= target) return {scale: 1, pages: natural};
+  var lo = MIN_PS, hi = 1, best = null;
+  for (var i = 0; i < 14; i++) {
+    var mid = (lo + hi) / 2;
+    setPs(mid);
+    if (measurePages() <= target) { best = mid; lo = mid; } else { hi = mid; }
+  }
+  if (best === null) { setPs(MIN_PS); return {scale: MIN_PS, pages: measurePages(), over: true}; }
+  setPs(best);
+  return {scale: best, pages: measurePages()};
+}
+
+function updateFit(){
+  if (!DATA) return;
+  var t = parseInt(el('pages').value, 10);
+  if (!(t > 0)) t = 0;
+  var r = fitPages(t);
+  var pct = Math.round(r.scale * 100);
+  if (!t) {
+    el('pages').placeholder = String(r.pages);
+    el('fit-note').textContent = 'このままの大きさで ' + r.pages + 'ページです。'
+      + '減らしたいときは「ページ数」に入れてください（文字と行間が縮みます）。';
+  } else if (r.over) {
+    el('fit-note').textContent = t + 'ページには収まりませんでした。'
+      + 'いちばん小さい大きさ（文字 ' + pct + '%）で ' + r.pages + 'ページです。';
+  } else {
+    el('fit-note').textContent = t + 'ページに収めます'
+      + (pct < 100 ? '（文字と行間を ' + pct + '% に縮めます）' : '（そのままの大きさで収まります）');
+  }
+}
+
 function render(){
   var only  = el('pick').value;
   var memo  = el('c-memo').checked;
@@ -349,6 +459,7 @@ function render(){
   }).join('');
 
   el('paper').innerHTML = html;
+  updateFit();
 }
 </script>
 </body>
