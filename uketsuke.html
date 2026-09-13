@@ -108,8 +108,21 @@
   #ci-prog .head{font-size:12px;color:var(--muted);margin-bottom:6px}
   #ci-prog .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px}
   @media (max-width:560px){ #ci-prog .grid{grid-template-columns:repeat(2,1fr)} }
+  /* 受付は締切の時刻ごとに区切って進めるので、時刻でまとめて見出しを立てる。
+     当日いちばん知りたいのは「この時刻はあと何組か」なので、それを右端に大きく出す。 */
+  #ci-prog .gp{margin-bottom:10px}
+  #ci-prog .gp:last-child{margin-bottom:0}
+  #ci-prog .gh{display:flex;align-items:baseline;gap:8px;margin-bottom:5px;padding:3px 9px;
+    border-left:5px solid var(--primary);background:#e7eefb;border-radius:3px}
+  #ci-prog .gh .tm{font-size:17px;font-weight:800;color:var(--primary);letter-spacing:.02em}
+  #ci-prog .gh .sm{font-size:12px;color:var(--muted);font-weight:700}
+  #ci-prog .gh .rest{margin-left:auto;font-size:14px;font-weight:800;color:#c2410c}
+  #ci-prog .gh.fin{background:var(--ok-bg);border-left-color:var(--ok)}
+  #ci-prog .gh.fin .tm,#ci-prog .gh.fin .rest{color:var(--ok)}
   .ci-pr{display:flex;align-items:baseline;gap:8px;padding:3px 8px;border-radius:6px;
     background:#f3f6fa;font-size:13px;white-space:nowrap}
+  /* 区分の前にも締切の時刻を小さく置く（1枠だけ見ても、どの時刻のものか分かるように） */
+  .ci-pr .tm{font-size:11px;color:var(--muted);font-weight:700}
   .ci-pr .c{font-weight:800;color:var(--primary);font-size:15px;min-width:3.4em}
   .ci-pr .d{color:var(--ok);font-weight:700}
   /* 残りがある区分は目に付く色にする。ここが0になれば、その区分は受付が終わっている。 */
@@ -1592,19 +1605,45 @@ function renderProgress(){
   if (!rows.length) { box.classList.add('hidden'); return; }
   box.classList.remove('hidden');
 
+  /* 同じ受付締切の区分はまとめて呼び出すので、時刻ごとに区切って出す。
+     時刻を入れていない区分は最後に「未設定」でまとめる。 */
+  var groups = [], byTime = {};
+  rows.forEach(function(e){
+    var t = String(e.start_time || '').trim();
+    if (!byTime[t]) { byTime[t] = {t: t, list: []}; groups.push(byTime[t]); }
+    byTime[t].list.push(e);
+  });
+  groups.sort(function(a, b){
+    if (!a.t) return 1;
+    if (!b.t) return -1;
+    return a.t < b.t ? -1 : (a.t > b.t ? 1 : 0);
+  });
+
   var sd = 0, sn = 0;
   rows.forEach(function(e){ sd += cnt[e.code].d; sn += cnt[e.code].n; });
   box.innerHTML = '<div class="head">区分ごとの受付　済 <b>' + sd + '</b>／未 <b>' + (sn - sd)
-      + '</b>／計 <b>' + sn + '</b>（のべ）</div><div class="grid">'
-    + rows.map(function(e){
-        var k = cnt[e.code], rest = k.n - k.d;
-        return '<div class="ci-pr' + (rest === 0 ? ' fin' : '') + '">'
-          + '<span class="c">' + esc(e.code) + '</span>'
-          + '<span class="d">済 ' + k.d + '</span>'
-          + '<span class="r">未 ' + rest + '</span>'
-          + '<span class="t">計 ' + k.n + '</span></div>';
-      }).join('')
-    + '</div>';
+      + '</b>／計 <b>' + sn + '</b>（のべ）</div>'
+    + groups.map(function(g){
+        var gd = 0, gn = 0;
+        g.list.forEach(function(e){ gd += cnt[e.code].d; gn += cnt[e.code].n; });
+        var grest = gn - gd;
+        return '<div class="gp"><div class="gh' + (grest === 0 ? ' fin' : '') + '">'
+          + '<span class="sm">受付締切</span>'
+          + '<span class="tm">' + esc(g.t || '未設定') + '</span>'
+          + '<span class="sm">済 ' + gd + '／計 ' + gn + '</span>'
+          + '<span class="rest">' + (grest === 0 ? '完了' : '残り ' + grest + '組') + '</span>'
+          + '</div><div class="grid">'
+          + g.list.map(function(e){
+              var k = cnt[e.code], rest = k.n - k.d;
+              return '<div class="ci-pr' + (rest === 0 ? ' fin' : '') + '">'
+                + '<span class="tm">' + esc(g.t || '—') + '</span>'
+                + '<span class="c">' + esc(e.code) + '</span>'
+                + '<span class="d">済 ' + k.d + '</span>'
+                + '<span class="r">未 ' + rest + '</span>'
+                + '<span class="t">計 ' + k.n + '</span></div>';
+            }).join('')
+          + '</div></div>';
+      }).join('');
 }
 
 function renderRecent(){
