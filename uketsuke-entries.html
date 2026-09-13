@@ -39,10 +39,19 @@
     padding:16px 18px;margin-bottom:16px}
   /* 印刷した紙だけを見ても、どの大会のものか分かるようにする */
   .ev-comp{font-size:12px;color:var(--muted);margin-bottom:6px}
+  /* 区分の系統ごとの色。帯の地色（--band）と左の罫・文字（--bar）を切り替える。
+     選手もお客様も、色でどの系統の競技かをひと目で見分けられるようにする。 */
+  .k-latin {--band:#fce8ef;--bar:#be185d}   /* ラテン      … 淡いピンク */
+  .k-std   {--band:#e7eefb;--bar:#1e3a8a}   /* スタンダード … 淡い青 */
+  .k-senior{--band:#f1e8fb;--bar:#6d28d9}   /* シニア系    … 淡い紫（種目を問わない） */
+  .k-junior{--band:#cddffb;--bar:#1d4ed8}   /* ジュニア系  … 少し濃いめの青 */
+  .k-other {--band:#fdedd8;--bar:#c2650a}   /* その他      … 淡いオレンジ */
   .ev-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
-    border-bottom:2px solid var(--primary);padding-bottom:6px}
-  .ev-head .code{font-size:22px;font-weight:800;color:var(--primary);letter-spacing:.04em}
-  .ev-head .nm{font-size:19px;font-weight:800;color:var(--primary)}
+    background:var(--band,#eef2f7);border-left:7px solid var(--bar,var(--primary));
+    border-bottom:2px solid var(--bar,var(--primary));padding:7px 12px;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .ev-head .code{font-size:22px;font-weight:800;color:var(--bar,var(--primary));letter-spacing:.04em}
+  .ev-head .nm{font-size:19px;font-weight:800;color:var(--bar,var(--primary))}
   .ev-head .cnt{margin-left:auto;font-size:14px;font-weight:700;color:var(--muted);white-space:nowrap}
   /* 種目（ワルツ・タンゴなど）はシラバスの「競技内容」から取る。区分名とは別物。
      掲示して選手・お客様が見るものなので、区分名の濃紺とは別の色の枠に入れて切り分ける。 */
@@ -152,6 +161,30 @@ function normName(s){
     .toUpperCase();
 }
 
+/* 区分の系統。色分けと並び順に使う。
+   DCSの区分名には「シニアⅡ Ａ級戦 スタンダード」のように系統が入っているので、
+   名前で見分ける（読み取れないときはコードも見る）。
+   シニア・ジュニアは、スタンダードかラテンかを問わずその系統として扱う。 */
+function evKind(e){
+  var n = String((e && e.name) || '') + ' ' + String((e && e.code) || '');
+  if (/シニア|ｼﾆｱ/.test(n))                       return 'senior';
+  if (/ジュニア|ジュブナイル|ユース|キッズ|少年/.test(n)) return 'junior';
+  if (/ラテン/.test(n))                            return 'latin';
+  if (/スタンダード|モダン/.test(n))                 return 'std';
+  return 'other';
+}
+/* 大会プログラムの並び。ラテン → スタンダード → シニア系 → ジュニア系 → その他。
+   同じ系統の中は、DCSの並び（＝競技の順）をそのまま残す。 */
+var KIND_ORDER = {latin: 0, std: 1, senior: 2, junior: 3, other: 4};
+function sortEvents(list){
+  return (list || []).map(function(e, i){ return {e: e, i: i}; })
+    .sort(function(a, b){
+      var d = KIND_ORDER[evKind(a.e)] - KIND_ORDER[evKind(b.e)];
+      return d !== 0 ? d : a.i - b.i;
+    })
+    .map(function(x){ return x.e; });
+}
+
 /* シラバスの「W,T,(最終:V),F,Q」を、プログラムの書き方「W・T・最終予選よりV・F・Q」に直す */
 function danceText(s){
   if (!s) return '';
@@ -223,7 +256,7 @@ function loadSyllabus(){
 
 function buildPicker(){
   var html = '<option value="">すべての区分</option>'
-    + (DATA.events || []).map(function(e){
+    + sortEvents(DATA.events).map(function(e){
         var n = evName(e);
         return '<option value="' + esc(e.code) + '">' + esc(e.code) + (n ? '　' + esc(n) : '')
           + (e.start_time ? '（' + esc(e.start_time) + '）' : '') + '</option>';
@@ -246,7 +279,7 @@ function render(){
   var only  = el('pick').value;
   var withEmpty = el('c-empty').checked;
   var comp  = esc(DATA.name) + (DATA.date ? '（' + esc(DATA.date) + '）' : '');
-  var evs   = (DATA.events || []).filter(function(e){ return !only || e.code === only; });
+  var evs   = sortEvents(DATA.events).filter(function(e){ return !only || e.code === only; });
 
   var html = evs.map(function(e){
     var list = entriesFor(e.code);
@@ -254,7 +287,7 @@ function render(){
     var n = evName(e), dance = danceText((SYL && SYL[e.code]) || '');
     var h = '<section class="ev">'
       + '<div class="ev-comp">' + comp + '</div>'
-      + '<div class="ev-head"><span class="code">' + esc(e.code) + '</span>'
+      + '<div class="ev-head k-' + evKind(e) + '"><span class="code">' + esc(e.code) + '</span>'
       + (n ? '<span class="nm">' + esc(n) + '</span>' : '')
       + '<span class="cnt">' + list.length + '組</span></div>'
       + '<div class="ev-sub">'
