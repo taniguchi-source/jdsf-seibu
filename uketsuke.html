@@ -623,6 +623,25 @@
       <!-- 受付締切が空の区分をその場で知らせる（受付タブへ行くまで気づけないのを防ぐ） -->
       <div id="ev-warn" class="hidden"></div>
 
+      <!-- 一覧の「編集」を押したときだけ出す。コードの直しと、区分そのものの削除はここから。 -->
+      <div class="card hidden" id="evx-box">
+        <div class="row wrap" style="align-items:flex-end">
+          <div style="width:130px"><label class="muted">コード</label>
+            <input type="text" id="evx-code"></div>
+          <div class="grow" style="min-width:220px"><label class="muted">区分名</label>
+            <input type="text" id="evx-name"></div>
+          <div style="width:130px"><label class="muted">受付締切</label>
+            <input type="text" id="evx-time" placeholder="10:30"></div>
+        </div>
+        <p class="muted" id="evx-note" style="margin:8px 0 0"></p>
+        <div style="height:10px"></div>
+        <div class="row wrap">
+          <button id="evx-save">この区分を保存</button>
+          <button type="button" id="evx-cancel" class="secondary">キャンセル</button>
+          <button type="button" id="evx-del" class="danger" style="margin-left:auto">この区分を削除</button>
+        </div>
+      </div>
+
       <div class="card">
         <table class="dense">
           <thead><tr><th>コード</th><th>区分名</th><th>受付締切</th><th></th></tr></thead>
@@ -668,6 +687,9 @@
         <div class="row">
           <button type="submit" class="grow">保存</button>
           <button type="button" id="rs-clear" class="secondary">クリア</button>
+          <!-- 名簿から消すのは「編集」で呼び出しているときだけ。
+               一覧に削除ボタンを置くと、並んでいる行の隣で押し間違えるため。 -->
+          <button type="button" id="rs-del" class="danger hidden">この組を名簿から削除</button>
         </div>
       </form>
     </section>
@@ -2320,30 +2342,53 @@ function renderRoster(){
       + '<td class="c-leader">' + esc(r.leader) + '</td><td class="c-partner">' + esc(r.partner) + '</td>'
       + '<td>' + esc(r.affiliation) + '</td><td>'
       + (r.events||[]).map(function(c){ return '<span class="code-pill">' + esc(c) + '</span>'; }).join('')
-      + '</td><td><button class="small secondary" data-edit="' + esc(r.bib) + '">編集</button> '
-      + '<button class="small danger" data-del="' + esc(r.bib) + '">削除</button></td></tr>';
+      + '</td><td><button class="small secondary" data-edit="' + esc(r.bib) + '">編集</button></td></tr>';
   }).join('');
 
   el('rs-list').querySelectorAll('[data-edit]').forEach(function(b){
     b.addEventListener('click', function(){
       var r = (DATA.roster||[]).filter(function(x){ return String(x.bib) === b.dataset.edit; })[0];
       if (!r) return;
+      RS_EDIT = r.bib;
       el('rs-bib').value = r.bib; el('rs-bib').disabled = true;
       el('rs-leader').value = r.leader; el('rs-partner').value = r.partner;
       el('rs-affiliation').value = r.affiliation || '';
       document.querySelectorAll('.rs-ev').forEach(function(cb){ cb.checked = (r.events||[]).indexOf(cb.value) !== -1; });
+      el('rs-del').classList.remove('hidden');   /* 呼び出した組だけ消せる */
       window.scrollTo({top:el('rs-form').offsetTop - 60, behavior:'smooth'});
     });
   });
-  el('rs-list').querySelectorAll('[data-del]').forEach(function(b){
-    b.addEventListener('click', function(){
-      if (!confirm('背番号 ' + b.dataset.del + ' を名簿から削除しますか？')) return;
-      post('api/uketsuke_save_roster.php', {id:COMP.id, mode:'delete', roster:JSON.stringify([{bib:Number(b.dataset.del)}])})
-        .then(function(){ return refresh().then(renderRoster); })
-        .catch(function(e){ alert(e.message); });
-    });
-  });
 }
+
+/* いま編集で呼び出している組の背番号（新しく足すときは null） */
+var RS_EDIT = null;
+function rsEditDone(){
+  RS_EDIT = null;
+  el('rs-del').classList.add('hidden');
+}
+/* 名簿から1組消す。受付が済んでいる組は、記録だけが残ってしまうので消させない。 */
+el('rs-del').addEventListener('click', function(){
+  if (RS_EDIT === null) return;
+  var bib = RS_EDIT;
+  var r   = rosterOf(bib) || {};
+  var done = doneMap();
+  var hit = (r.events || []).filter(function(c){ return done[bib + ':' + c]; });
+  if (hit.length) {
+    alert('背番号 ' + bib + ' はすでに受付しています（' + hit.join('・') + '）。\n'
+      + '「受付」タブの受付状況から受付を取り消してから、削除してください。');
+    return;
+  }
+  if (!confirm('背番号 ' + bib + '　' + (r.leader || '') + '・' + (r.partner || '')
+      + ' を名簿から削除します。よろしいですか？')) return;
+  post('api/uketsuke_save_roster.php', {id:COMP.id, mode:'delete', roster:JSON.stringify([{bib:Number(bib)}])})
+    .then(function(){
+      el('rs-form').reset(); el('rs-bib').disabled = false;
+      document.querySelectorAll('.rs-ev').forEach(function(cb){ cb.checked = false; });
+      rsEditDone();
+      return refresh().then(function(){ renderRoster(); renderEventChecks(); });
+    })
+    .catch(function(e){ alert(e.message); });
+});
 el('rs-search').addEventListener('input', renderRoster);
 
 function renderEventChecks(){
@@ -2355,6 +2400,7 @@ function renderEventChecks(){
 el('rs-clear').addEventListener('click', function(){
   el('rs-form').reset(); el('rs-bib').disabled = false;
   document.querySelectorAll('.rs-ev').forEach(function(cb){ cb.checked = false; });
+  rsEditDone();
 });
 el('rs-form').addEventListener('submit', function(e){
   e.preventDefault();
@@ -2367,6 +2413,7 @@ el('rs-form').addEventListener('submit', function(e){
   post('api/uketsuke_save_roster.php', {id:COMP.id, mode:'upsert', roster:JSON.stringify([row])})
     .then(function(){
       el('rs-form').reset(); el('rs-bib').disabled = false;
+      rsEditDone();
       return refresh().then(function(){ renderRoster(); renderEventChecks(); });
     })
     .catch(function(err){ alert(err.message); });
@@ -2717,13 +2764,103 @@ function renderEvents(){
     return '<tr><td>' + esc(e.code) + '</td>'
       + '<td><input type="text" class="ev-n" data-i="' + i + '" value="' + esc(e.name) + '"></td>'
       + '<td><input type="text" class="ev-t" data-i="' + i + '" value="' + esc(e.start_time || '') + '" style="width:90px"></td>'
-      + '<td><button class="small danger" data-i="' + i + '">削除</button></td></tr>';
+      + '<td><button class="small secondary" data-i="' + i + '">編集</button></td></tr>';
   }).join('');
+  /* 区分そのものを直す（コードの修正・削除）は編集の画面で行う。
+     一覧に削除ボタンを置いていたころは、受付の準備中に押してしまう事故があり得た。 */
   el('ev-list').querySelectorAll('button[data-i]').forEach(function(b){
-    b.addEventListener('click', function(){ EV.splice(Number(b.dataset.i), 1); DATA.events = EV; renderEvents(); });
+    b.addEventListener('click', function(){ openEventEditor(Number(b.dataset.i)); });
   });
   updateEventWarn();
 }
+
+/* ---------- 区分ひとつの編集 ---------- */
+var EVX = -1;                       /* いま編集している区分の位置（EV の添字） */
+/* その区分で受付（取消も含む）の記録があるか。あればコードは変えられない。 */
+function evHasCheckins(code){
+  return (DATA.checkins || []).some(function(c){ return c.code === code; });
+}
+function openEventEditor(i){
+  var e = EV[i];
+  if (!e) return;
+  EVX = i;
+  el('evx-code').value = e.code || '';
+  el('evx-name').value = e.name || '';
+  el('evx-time').value = e.start_time || '';
+  var n = entryCount(e.code), locked = evHasCheckins(e.code);
+  el('evx-code').readOnly = locked;
+  el('evx-del').disabled  = (n > 0);
+  el('evx-note').innerHTML = 'この区分にエントリーしているのは <b>' + n + '組</b>です。'
+    + (locked
+        ? 'すでに受付の記録があるため、コードは変えられません（記録とつながらなくなるため）。'
+        : (n > 0
+            ? 'コードを変えると、名簿のこの区分の割り当ても一緒に付け替えます。'
+            : 'エントリーが0組なので、この区分は削除できます。'))
+    + (n > 0 ? '<br>削除したいときは、先に名簿でこの区分の割り当てを外してください。' : '');
+  el('evx-box').classList.remove('hidden');
+  el('evx-box').scrollIntoView({block: 'center'});
+  el('evx-name').focus();
+}
+function closeEventEditor(){
+  EVX = -1;
+  el('evx-box').classList.add('hidden');
+}
+el('evx-cancel').addEventListener('click', closeEventEditor);
+
+el('evx-save').addEventListener('click', function(){
+  if (EVX < 0 || !EV[EVX]) return;
+  var e    = EV[EVX];
+  var old  = e.code;
+  var code = el('evx-code').value.trim().toUpperCase();
+  var name = el('evx-name').value.trim();
+  var time = el('evx-time').value.trim();
+  if (!/^[A-Za-z0-9_-]{1,20}$/.test(code)) {
+    alert('コードは英数字（と - _）で入れてください。'); return;
+  }
+  if (EV.some(function(x, i){ return i !== EVX && String(x.code).toUpperCase() === code; })) {
+    alert('同じコードの区分がすでにあります。'); return;
+  }
+  if (!name) { alert('区分名を入れてください。'); return; }
+
+  /* コードを変えるときは、名簿のその区分の割り当ても付け替える（先に名簿を直す） */
+  var pre = Promise.resolve();
+  if (code !== old) {
+    if (evHasCheckins(old)) { alert('すでに受付の記録があるため、コードは変えられません。'); return; }
+    var rows = (DATA.roster || []).filter(function(r){ return (r.events || []).indexOf(old) >= 0; })
+      .map(function(r){
+        var c = JSON.parse(JSON.stringify(r));
+        c.events = (c.events || []).map(function(x){ return x === old ? code : x; });
+        return c;
+      });
+    if (rows.length && !confirm('コードを「' + old + '」から「' + code + '」に変えます。\n'
+        + '名簿 ' + rows.length + '組のこの区分の割り当ても一緒に付け替えます。よろしいですか？')) return;
+    if (rows.length) {
+      pre = post('api/uketsuke_save_roster.php',
+        {id: COMP.id, mode: 'upsert', roster: JSON.stringify(rows)});
+    }
+  }
+  e.code = code; e.name = name; e.start_time = time;
+  pre.then(function(){
+    /* 画面の入力欄の値も一緒に送られるので、先に一覧を組み直してから保存する */
+    renderEvents();
+    return saveEvents();
+  }).then(function(){ closeEventEditor(); })
+    .catch(function(err){ alert(err.message); });
+});
+
+el('evx-del').addEventListener('click', function(){
+  if (EVX < 0 || !EV[EVX]) return;
+  var e = EV[EVX];
+  if (entryCount(e.code) > 0) {
+    alert('この区分にはエントリーがあるので削除できません。先に名簿で割り当てを外してください。');
+    return;
+  }
+  if (!confirm('区分「' + e.code + '　' + (e.name || '') + '」を削除します。よろしいですか？')) return;
+  EV.splice(EVX, 1);
+  DATA.events = EV;
+  renderEvents();
+  saveEvents().then(function(){ closeEventEditor(); });
+});
 
 /* その区分にエントリーしている組数 */
 function entryCount(code){
