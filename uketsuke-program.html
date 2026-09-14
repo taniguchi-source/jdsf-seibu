@@ -208,6 +208,9 @@
     </div>
     <div class="muted" id="fit-note" style="margin-top:8px"></div>
     <div class="muted" id="syl-note" style="margin-top:6px"></div>
+    <!-- 種目が出せないときだけ出す。JDSF（adm.jdsf.jp）へは押したときだけ取りに行く。 -->
+    <button type="button" id="b-syl" class="secondary hidden"
+            style="margin-top:8px;font-size:13px;padding:7px 12px">JDSFからシラバスを取り直す</button>
   </div>
   <div id="sheet"><div id="paper"></div></div>
 </main>
@@ -226,17 +229,8 @@ function qs(k){ var m = new RegExp('[?&]' + k + '=([^&]*)').exec(location.search
 function evName(e){ var n = (e && e.name) ? String(e.name).trim() : '';
   return (!n || n === e.code) ? '' : n; }
 
-/* 一覧の大会名には注意書きが続いていることがあるので、案内文以降を落とす */
-function cleanCompName(name){
-  return String(name || '').split('※')[0].split(' 詳細')[0].replace(/【[^】]*】/g, '').trim();
-}
-/* DCSは大会名に全角数字を使い（２０２６）、サイトの一覧は半角（2026）。そろえてから比べる。 */
-function normName(s){
-  return cleanCompName(s)
-    .replace(/[０-９Ａ-Ｚａ-ｚ]/g, function(ch){ return String.fromCharCode(ch.charCodeAt(0) - 0xFEE0); })
-    .replace(/\s+/g, '')
-    .toUpperCase();
-}
+/* 大会名の突き合わせ（全角と半角、注意書きの違いを吸収する）は、
+   シラバスの控えを作るサーバー側（api/_uketsuke_syllabus.php）へ移した。 */
 /* 区分の系統。色分けと並び順に使う。
    DCSの区分名には「シニアⅡ Ａ級戦 スタンダード」のように系統が入っているので、
    名前で見分ける（読み取れないときはコードも見る）。
@@ -307,31 +301,64 @@ function load(){
 /* 種目（ワルツ・タンゴなど）はDCSのファイルに入っていないので、シラバス（大会要項）から取る。
    サイトが毎朝取り込んでいる競技会一覧を使うので、JDSFのサイトへは見に行かない。
    公認番号は画面に返していないため、開催日と大会名で引き当てる。 */
-function loadSyllabus(){
-  if (SYL !== null) return Promise.resolve();
-  return fetch('data/competitions_seibu.json?_=' + Date.now())
+function loadSyllabus(force){
+  if (SYL !== null && !force) return Promise.resolve();
+  /* 大会ごとの控え（data/uketsuke/<大会ID>/syllabus.json）を使う。
+     控えが無ければサーバーが競技会一覧から作る。JDSFは大会が終わると
+     シラバスを消すので、控えがあると後から何度でも印刷できる。 */
+  return fetch('api/uketsuke_syllabus.php?id=' + encodeURIComponent(id) + '&_=' + Date.now())
     .then(function(r){ return r.json(); })
     .then(function(d){
-      var items = (d && d.competitions) || [];
-      var same  = items.filter(function(x){
-        return (x.events || []).length && x.date_iso === DATA.date;
-      });
-      var hit = same.filter(function(x){ return normName(x.name) === normName(DATA.name); })[0]
-             || (same.length === 1 ? same[0] : null);
       SYL = {};
-      if (hit) {
-        (hit.events || []).forEach(function(e){ SYL[e.code] = e.dances || ''; });
+      CAN_REFRESH = !!d.can_refresh;
+      var syl = d && d.syllabus;
+      if (syl && (syl.events || []).length) {
+        syl.events.forEach(function(e){ SYL[e.code] = e.dances || ''; });
         var n = Object.keys(SYL).filter(function(c){ return SYL[c]; }).length;
+        var from = (syl.source === 'jdsf') ? 'JDSFのシラバスから直接' : 'シラバス（大会要項）から';
         el('syl-note').innerHTML = n
-          ? '種目はシラバス（大会要項）から取りました：<a href="' + esc(hit.syllabus_url)
-            + '" target="_blank" rel="noopener">' + esc(cleanCompName(hit.name)) + '</a>'
+          ? '種目は' + from + '取りました'
+            + (syl.syllabus_url ? '：<a href="' + esc(syl.syllabus_url)
+               + '" target="_blank" rel="noopener">大会要項を見る</a>' : '')
           : 'シラバスは見つかりましたが、種目の記載を読み取れませんでした。';
       } else {
-        el('syl-note').textContent = 'この大会のシラバスが競技会一覧に見つからないため、種目は出せません。'
+        el('syl-note').textContent = 'この大会のシラバスが見つからないため、種目は出せません。'
           + '（区分と名簿はそのまま使えます）';
       }
+      syncSylButton();
     })
-    .catch(function(){ SYL = {}; el('syl-note').textContent = ''; });
+    .catch(function(){ SYL = {}; el('syl-note').textContent = ''; syncSylButton(); });
+}
+
+/* 種目が出せないときだけ、JDSFへ取りに行くボタンを出す。
+   相手（adm.jdsf.jp）は連続アクセスで遮断されるので、押したときだけ1回。 */
+var CAN_REFRESH = false;
+function syncSylButton(){
+  var b = el('b-syl');
+  if (!b) return;
+  var n = Object.keys(SYL || {}).filter(function(c){ return SYL[c]; }).length;
+  b.classList.toggle('hidden', n > 0 || !CAN_REFRESH);
+}
+function refreshSyllabus(){
+  var b = el('b-syl');
+  b.disabled = true;
+  b.textContent = 'JDSFに問い合わせています…';
+  var fd = new FormData();
+  fd.append('id', id);
+  fd.append('action', 'refresh');
+  fetch('api/uketsuke_syllabus.php', {method:'POST', body:fd, headers:{'X-CSRF-Token': (DATA && DATA.csrf) || ''}})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      b.disabled = false;
+      b.textContent = 'JDSFからシラバスを取り直す';
+      if (d && d.ok) { SYL = null; return loadSyllabus(true).then(render); }
+      el('syl-note').textContent = (d && (d.message || d.error)) || '取りに行けませんでした。';
+    })
+    .catch(function(){
+      b.disabled = false;
+      b.textContent = 'JDSFからシラバスを取り直す';
+      el('syl-note').textContent = '取りに行けませんでした（通信エラー）。';
+    });
 }
 
 function buildPicker(){
@@ -345,6 +372,7 @@ function buildPicker(){
   el('c-memo').addEventListener('change', render);
   el('c-empty').addEventListener('change', render);
   el('b-reload').addEventListener('click', load);
+  el('b-syl').addEventListener('click', refreshSyllabus);
   el('pages').addEventListener('input', updateFit);
   el('b-print').addEventListener('click', function(){
     updateFit();

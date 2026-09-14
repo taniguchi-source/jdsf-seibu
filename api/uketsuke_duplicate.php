@@ -5,6 +5,7 @@
    番号を知らない人が名簿を別の大会へ複製することはできない。
    新しい大会は一覧の先頭に入れる（練習用がいつも上に来るように）。 */
 require __DIR__ . '/_uketsuke.php';
+require __DIR__ . '/_uketsuke_syllabus.php';
 require_auth_any(['admin', 'build', 'uketsuke']);
 
 $src = $_POST['id'] ?? '';
@@ -37,12 +38,17 @@ while (isset($used[$id])) { $n++; $id = $base . '-' . $n; }
 $entry = ['id' => $id, 'name' => $name, 'date' => $date, 'created_at' => uk_now(),
           'copied_from' => $src,
           'code_hash' => password_hash($code, PASSWORD_DEFAULT)];
+/* 公認番号（大会番号）も引き継ぐ。練習用の複製でも種目が出るようにするため。 */
+if (!empty($from['comp_no'])) $entry['comp_no'] = (string)$from['comp_no'];
 
 /* 名簿と区分だけを引き継ぐ。受付記録（checkins.jsonl）は作らないので、練習は白紙から始まる。 */
 $events = uk_load_events($src);
 $roster = uk_load_roster($src);
 uk_write_json(uk_events_file($id), $events);
 uk_write_json(uk_roster_file($id), $roster);
+/* シラバスの控えも引き継ぐ（元の大会が持っていれば、複製でも種目が出る） */
+$syl = uk_syllabus_load($src);
+if ($syl && !empty($syl['events'])) uk_syllabus_save($id, $syl);
 
 array_unshift($list, $entry);   /* 一覧の先頭に置く */
 uk_save_list($list);

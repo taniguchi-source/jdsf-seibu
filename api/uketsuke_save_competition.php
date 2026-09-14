@@ -1,9 +1,10 @@
 <?php
 /* 大会の作成・名称変更・削除。
-   action=create : name,date,code(公認番号),events(区分) から新しい大会を作る（IDは自動採番）
-   action=rename : id の名称・日付・公認番号を変更
+   action=create : name,date,code(合言葉),comp_no(公認番号),events(区分) から新しい大会を作る
+   action=rename : id の名称・日付・合言葉を変更
    action=delete : id の大会をデータごと削除 */
 require __DIR__ . '/_uketsuke.php';
+require __DIR__ . '/_uketsuke_syllabus.php';
 require_auth_any(['admin', 'build', 'uketsuke']);
 
 /* 「コード」「コード,区分名」「コード,区分名,開始時刻」を1行ずつ受け取って区分マスタにする。
@@ -47,6 +48,9 @@ if ($action === 'create') {
     while (isset($used[$id])) { $n++; $id = $base . '-' . $n; }
 
     $entry = ['id' => $id, 'name' => $name, 'date' => $date, 'created_at' => uk_now()];
+    /* DCSの大会番号（＝公認番号）。鍵ではなく、シラバスの種目を引くための番号として持つ。 */
+    $comp_no = preg_replace('/[^0-9]/', '', (string)($_POST['comp_no'] ?? ''));
+    if (uk_valid_comp_no($comp_no)) $entry['comp_no'] = $comp_no;
     /* 公認番号はそのまま保存せず、パスワードと同じくハッシュにして持つ */
     if ($code !== '') $entry['code_hash'] = password_hash($code, PASSWORD_DEFAULT);
     $list[] = $entry;
@@ -59,7 +63,13 @@ if ($action === 'create') {
 
     /* 作った本人はそのまま開けるようにする */
     uk_unlock_comp($id);
-    json_out(['ok' => true, 'id' => $id, 'events' => count($events)]);
+
+    /* シラバスの種目を、いまのうちに控えておく（大会が終わるとJDSFから消えるため）。
+       外部へは取りに行かず、毎朝取り込んでいる競技会一覧から写すだけ。 */
+    $syl = uk_syllabus_ensure($id, $comp_no, $date, $name);
+
+    json_out(['ok' => true, 'id' => $id, 'events' => count($events),
+              'syllabus_events' => $syl ? count($syl['events']) : 0]);
 }
 
 if ($action === 'rename') {
