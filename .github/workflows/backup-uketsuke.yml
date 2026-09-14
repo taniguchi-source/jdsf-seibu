@@ -1,0 +1,57 @@
+name: Backup 受付システムのデータ（サーバー内に世代保存）
+
+# data/ はデプロイの対象外（--exclude）なので、消えると戻せない。
+# 受付記録・名簿は当日しか作れないため、1時間ごとにサーバー内へ世代コピーを取る。
+# 個人情報を含むので、GitHub側へは一切持ち出さない（サーバーの中だけで完結させる）。
+on:
+  schedule:
+    - cron: '5 * * * *'    # 毎時5分（UTC=JST問わず1時間ごと）
+  workflow_dispatch:
+
+concurrency:
+  group: backup-uketsuke
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    name: data/ を ~/backups へ退避
+    steps:
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY_B64 }}" | base64 -d > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # XServer側のSSH一時制限でkeyscanが落ちても止めない（後続は StrictHostKeyChecking=no）
+          for i in 1 2 3; do ssh-keyscan -p 10022 sv16504.xserver.jp >> ~/.ssh/known_hosts 2>/dev/null && break; sleep 5; done; true
+
+      - name: Backup on the server
+        run: |
+          ssh -i ~/.ssh/deploy_key -p 10022 -o StrictHostKeyChecking=no \
+            jdsfseibu@sv16504.xserver.jp 'bash -s' <<'REMOTE'
+          set -eu
+          SRC=/home/jdsfseibu/jdsf-seibu.com/public_html/data
+          DST=/home/jdsfseibu/backups/uketsuke-data
+          KEEP=240                      # 1時間ごと×240＝おおよそ10日ぶん
+
+          test -d "$SRC/uketsuke" || { echo "受付データが見つかりません: $SRC/uketsuke"; exit 1; }
+          mkdir -p "$DST"
+          chmod 700 "$DST"              # 公開領域の外。本人だけが読める権限にする
+
+          STAMP=$(date +%Y%m%d-%H%M%S)
+          FILE="$DST/data-$STAMP.tar.gz"
+          tar -czf "$FILE" -C "$(dirname "$SRC")" data
+          chmod 600 "$FILE"
+
+          # 中身が入っているか確かめる（空の書庫を増やし続けないため）
+          if ! tar -tzf "$FILE" | grep -q '^data/uketsuke/index.json$'; then
+            echo "中身が不正です。この回の書庫は捨てます"; rm -f "$FILE"; exit 1
+          fi
+
+          echo "作成: $FILE  ($(du -h "$FILE" | cut -f1))"
+          echo "大会数: $(tar -tzf "$FILE" | grep -c '^data/uketsuke/[0-9-]*/roster.json$' || true)"
+
+          # 古い世代を片づける
+          ls -1t "$DST"/data-*.tar.gz | tail -n +$((KEEP + 1)) | xargs -r rm -f
+          echo "保管: $(ls -1 "$DST"/data-*.tar.gz | wc -l) 世代 / $(du -sh "$DST" | cut -f1)"
+          REMOTE
