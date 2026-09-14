@@ -1,3 +1,16 @@
+# ── 常時HTTPS ──
+# http:// でも中身が返る状態だと、受付システムのパスワード・大会の合言葉・名簿（個人情報）が
+# 会場のWi-Fiを平文で流れる。jdsf-seibu.com 本体だけを https に固定する。
+# 府県サブドメインは証明書の状況が違うので、ここでは触らない。
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteCond %{HTTP_HOST} ^(www\.)?jdsf-seibu\.com$ [NC]
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</IfModule>
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
@@ -14,4 +27,23 @@
   <FilesMatch "\.html$">
     Header set Cache-Control "no-cache, must-revalidate"
   </FilesMatch>
+</IfModule>
+
+# ── 安全のための応答ヘッダー ──
+# ここも本体だけに付ける（Host で絞り、府県サブドメインを巻き込まない）。
+<IfModule mod_setenvif.c>
+  SetEnvIf Host "^(www\.)?jdsf-seibu\.com$" MAIN_SITE=1
+</IfModule>
+<IfModule mod_headers.c>
+  # 中身の取り違え（MIMEスニッフィング）を防ぐ
+  Header always set X-Content-Type-Options "nosniff" env=MAIN_SITE
+  # 外部サイトへ送るリファラを最小限にする（受付のURLには大会IDが入るため）
+  Header always set Referrer-Policy "strict-origin-when-cross-origin" env=MAIN_SITE
+  # 他サイトの枠に埋め込ませない（クリックジャッキング対策）。
+  # 自サイト内の iframe（PDFやスプレッドシートの表示）は 'self' なので従来どおり動く。
+  Header always set X-Frame-Options "SAMEORIGIN" env=MAIN_SITE
+  Header always set Content-Security-Policy "frame-ancestors 'self'" env=MAIN_SITE
+  # 一度 https で来たブラウザは、以後 http を使わない（半年）。
+  # includeSubDomains は付けない（府県サブドメインを巻き込まないため）。
+  Header always set Strict-Transport-Security "max-age=15768000" env=MAIN_SITE
 </IfModule>
