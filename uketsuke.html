@@ -588,10 +588,7 @@
 
     <!-- ======== 名簿 ======== -->
     <section id="v-roster" class="hidden">
-      <div class="row wrap" style="margin:4px 0 10px">
-        <a class="btn secondary" id="rs-program" href="uketsuke-program.html" target="_blank" rel="noopener"
-           style="display:inline-block;text-decoration:none">区分ごとの出場選手一覧を開く（印刷用）</a>
-      </div>
+      <!-- 出場選手一覧（印刷用）への入口は上のタブにあるので、ここには置かない -->
       <!-- CSV取込の画面部品。ふだんは出さない。
            名簿CSVは大会を作るときに取り込むので、ここに入口は置かない。
            自動で判定できなかったときだけ、下の割り当て画面を出して人に直してもらう。 -->
@@ -774,9 +771,8 @@ document.querySelectorAll('nav.tabs button').forEach(function(b){
    画面を切り替えるたびと、押した瞬間の両方で入れ直す。 */
 function syncEntriesLinks(){
   var q = '?id=' + encodeURIComponent(COMP ? COMP.id : '');
-  ['tab-program', 'rs-program'].forEach(function(k){
-    var a = el(k); if (a) a.href = 'uketsuke-program.html' + q;
-  });
+  var a = el('tab-program');
+  if (a) a.href = 'uketsuke-program.html' + q;
 }
 el('tab-program').addEventListener('click', function(e){
   if (!COMP) {
