@@ -755,9 +755,18 @@ function showApp(){ el('login-screen').classList.add('hidden'); el('app').classL
 /* ── ログアウトと、無操作での自動ログアウト ──
    会場の端末は画面を開いたまま置かれることがあり、巡回（3秒ごと）が動いている間は
    セッションが切れない。置き忘れた端末から名簿（個人情報）が見られないよう、
-   人が触っていない時間で計って自動で切る。切れる前に予告を出す。 */
-var IDLE_MIN = 30;        /* これだけ無操作ならログアウト（分） */
+   人が触っていない時間で計って自動で切る。切れる前に予告を出す。
+   受付は時間帯によって間が空く（9:30の締切のあと12:00まで、など）。
+   その待ち時間で切れると合言葉の入れ直しになるので、4時間まで待つ。 */
+var IDLE_MIN = 240;       /* これだけ無操作ならログアウト（分） */
 var IDLE_WARN_MIN = 5;    /* 何分前に予告するか */
+/* 分を「4時間」「3時間20分」「25分」の形にする */
+function minText(m){
+  m = Math.max(1, Math.round(m));
+  if (m < 60) return m + '分';
+  var h = Math.floor(m / 60), r = m % 60;
+  return h + '時間' + (r ? r + '分' : '');
+}
 var lastAct = Date.now();
 function markActive(){
   lastAct = Date.now();
@@ -783,7 +792,7 @@ function doLogout(auto){
   if (!auto && !confirm('この端末をログアウトします。\n'
       + '続けるには、受付のパスワードと大会の合言葉がもう一度必要です。\nよろしいですか？')) return;
   try { sessionStorage.setItem('uk_logout_msg', auto
-    ? '無操作が ' + IDLE_MIN + '分 続いたため、自動でログアウトしました。'
+    ? '無操作が ' + minText(IDLE_MIN) + ' 続いたため、自動でログアウトしました。'
     : 'ログアウトしました。'); } catch (e) {}
   EV_SAVED = '';                        /* 「未保存です」の確認を出さずに閉じる */
   if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
