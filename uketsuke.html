@@ -103,6 +103,9 @@
   #ev-warn .codes span{display:inline-block;background:#fff;border:1px solid var(--border);
     border-radius:6px;padding:1px 8px;margin-right:6px}
   input.ev-t.need{border-color:var(--warn);border-width:2px;background:#fffbeb}
+  /* 無操作の予告。画面の上に固定して出す（受付中は触るので出ない）。 */
+  #idle-note{position:sticky;top:0;z-index:20;background:#fff4e5;color:#92400e;
+    border-bottom:2px solid #f3c07a;padding:10px 14px;font-size:15px;font-weight:700;text-align:center}
   /* 受付締切が入っていないときの足止め。受付を始める前に必ず目に入る強さで出す。 */
   #ci-gate{border:2px solid var(--warn);background:var(--warn-bg)}
   #ci-gate .ttl{font-size:19px;font-weight:800;color:var(--warn);margin-bottom:6px}
@@ -340,7 +343,12 @@
     <span class="comp" id="hd-sync"></span>
     <a href="uketsuke-manual.html" target="_blank" rel="noopener" style="margin-left:auto">マニュアル</a>
     <a href="officers.html" style="margin-left:14px">役員ページへ戻る</a>
+    <!-- 端末を人に渡すとき・会場を離れるときに、その端末のログインを切る入口 -->
+    <a href="#" id="hd-logout" style="margin-left:14px">ログアウト</a>
   </header>
+
+  <!-- 無操作が続いたときの予告。画面をさわれば消える。 -->
+  <div id="idle-note" class="hidden"></div>
 
   <nav class="tabs">
     <button data-view="comp" class="active">大会</button>
@@ -744,6 +752,58 @@ if (IS_LOCAL) el('local-hint').classList.remove('hidden');
 
 function showApp(){ el('login-screen').classList.add('hidden'); el('app').classList.remove('hidden'); loadComps(); loadCompCandidates(); }
 
+/* ── ログアウトと、無操作での自動ログアウト ──
+   会場の端末は画面を開いたまま置かれることがあり、巡回（3秒ごと）が動いている間は
+   セッションが切れない。置き忘れた端末から名簿（個人情報）が見られないよう、
+   人が触っていない時間で計って自動で切る。切れる前に予告を出す。 */
+var IDLE_MIN = 30;        /* これだけ無操作ならログアウト（分） */
+var IDLE_WARN_MIN = 5;    /* 何分前に予告するか */
+var lastAct = Date.now();
+function markActive(){
+  lastAct = Date.now();
+  el('idle-note').classList.add('hidden');
+}
+['pointerdown', 'keydown', 'touchstart', 'wheel'].forEach(function(ev){
+  document.addEventListener(ev, markActive, {passive: true});
+});
+setInterval(function(){
+  if (el('app').classList.contains('hidden')) return;    /* ログイン前は数えない */
+  var idle = (Date.now() - lastAct) / 60000;
+  if (idle >= IDLE_MIN) { doLogout(true); return; }
+  if (idle >= IDLE_MIN - IDLE_WARN_MIN) {
+    var left = Math.max(1, Math.ceil(IDLE_MIN - idle));
+    var n = el('idle-note');
+    n.textContent = '無操作が続いています。あと ' + left + '分 でログアウトします（画面をさわると続けられます）';
+    n.classList.remove('hidden');
+  }
+}, 20000);
+
+/* ログアウト。サーバーのセッションを捨ててから、ログイン画面に戻す。 */
+function doLogout(auto){
+  if (!auto && !confirm('この端末をログアウトします。\n'
+      + '続けるには、受付のパスワードと大会の合言葉がもう一度必要です。\nよろしいですか？')) return;
+  try { sessionStorage.setItem('uk_logout_msg', auto
+    ? '無操作が ' + IDLE_MIN + '分 続いたため、自動でログアウトしました。'
+    : 'ログアウトしました。'); } catch (e) {}
+  EV_SAVED = '';                        /* 「未保存です」の確認を出さずに閉じる */
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  var fd = new FormData();
+  fetch('api/logout.php', {method: 'POST', body: fd})
+    .catch(function(){})
+    .then(function(){ location.reload(); });
+}
+el('hd-logout').addEventListener('click', function(e){ e.preventDefault(); doLogout(false); });
+/* ログアウト直後は、その理由をログイン画面に出す */
+(function(){
+  var m = '';
+  try { m = sessionStorage.getItem('uk_logout_msg') || ''; sessionStorage.removeItem('uk_logout_msg'); } catch (e) {}
+  if (!m) return;
+  var e = el('login-err');
+  e.textContent = m;
+  e.style.display = 'block';
+  e.style.color = 'var(--muted)';   /* 失敗ではないので、警告色にはしない */
+})();
+
 fetch('api/session-status.php').then(function(r){ return r.json(); }).then(function(d){
   CSRF = (d && d.csrf) || '';
   if (d && (d.admin || d.build || d.uketsuke)) showApp();
@@ -753,6 +813,7 @@ el('login-btn').addEventListener('click', doLogin);
 el('login-pw').addEventListener('keydown', function(e){ if (e.key === 'Enter') doLogin(); });
 function doLogin(){
   var err = el('login-err');
+  err.style.color = '';           /* ログアウトのお知らせで薄い色にしていた場合に戻す */
   var fd = new FormData();
   fd.append('password', el('login-pw').value);
   fetch('api/uketsuke_login.php', {method:'POST', body:fd})
