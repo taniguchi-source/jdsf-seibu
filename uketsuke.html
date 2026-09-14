@@ -806,6 +806,9 @@ el('tab-program').addEventListener('click', function(e){
 });
 
 function switchView(v){
+  /* 区分マスタに保存していない直しがあるまま「名簿」から離れようとしたら引き止める */
+  var cur = views.filter(function(x){ return !el('v-' + x).classList.contains('hidden'); })[0];
+  if (cur === 'roster' && v !== 'roster' && !leaveEventsOk()) return;
   document.querySelectorAll('nav.tabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.view === v); });
   views.forEach(function(x){ el('v-' + x).classList.toggle('hidden', x !== v); });
   /* 受付担当者名は端末ごとの設定なので、大会を選ぶ前でも開ける */
@@ -1386,9 +1389,53 @@ function restoreLastComp(list){
 function refresh(id){
   return get('api/uketsuke_get.php?id=' + encodeURIComponent(id || (COMP && COMP.id) || '')).then(function(d){
     DATA = d;
+    EV_SAVED = evStateOf(d.events);   /* 区分マスタの「保存済みの姿」を控えておく */
     return d;
   });
 }
+
+/* ── 区分マスタの未保存の直し ──
+   受付締切を区分の数だけ打ち込んだあとに別のタブへ移ると、保存前ならすべて消える。
+   消える前に引き止めるため、「保存済みの姿」と「いま画面に出ている姿」を見比べる。 */
+var EV_SAVED = '';
+function evStateOf(list){
+  return JSON.stringify((list || []).map(function(e){
+    return [String(e.code || ''), String(e.name || ''), String(e.start_time || '')];
+  }));
+}
+/* いま画面に出ている姿（入力中の値を含む）。区分マスタを組んでいなければ null。 */
+function evStateNow(){
+  if (!document.querySelectorAll('#ev-list tr').length) return null;
+  var out = EV.map(function(e){
+    return [String(e.code || ''), String(e.name || ''), String(e.start_time || '')];
+  });
+  document.querySelectorAll('.ev-n').forEach(function(inp){
+    var i = Number(inp.dataset.i); if (out[i]) out[i][1] = inp.value;
+  });
+  document.querySelectorAll('.ev-t').forEach(function(inp){
+    var i = Number(inp.dataset.i); if (out[i]) out[i][2] = inp.value;
+  });
+  return JSON.stringify(out);
+}
+function eventsDirty(){
+  if (!EV_SAVED) return false;
+  var now = evStateNow();
+  return now !== null && now !== EV_SAVED;
+}
+/* 保存せずに離れようとしたときに引き止める。OKなら捨てて進む。 */
+function leaveEventsOk(){
+  if (!eventsDirty()) return true;
+  return confirm('区分マスタに、まだ保存していない直しがあります。\n'
+    + '（区分名・受付締切・追加した区分）\n\n'
+    + 'このまま移動すると、その直しは消えます。よろしいですか？\n'
+    + '残すときは「キャンセル」を押して、「区分マスタを保存」を押してください。');
+}
+/* 画面を閉じる・再読み込みするときは、ブラウザの確認に任せる */
+window.addEventListener('beforeunload', function(e){
+  if (!eventsDirty()) return;
+  e.preventDefault();
+  e.returnValue = '';
+});
 /* 最後に取得できた時刻と、直前の失敗。
    取得できていないことに気づかないまま古い一覧を見続けるのが、受付でいちばん困る。 */
 var LAST_OK = 0, SYNC_ERR = '';
