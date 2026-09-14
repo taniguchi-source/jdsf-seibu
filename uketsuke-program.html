@@ -322,8 +322,12 @@ function loadSyllabus(force){
                + '" target="_blank" rel="noopener">大会要項を見る</a>' : '')
           : 'シラバスは見つかりましたが、種目の記載を読み取れませんでした。';
       } else {
-        el('syl-note').textContent = 'この大会のシラバスが見つからないため、種目は出せません。'
-          + '（区分と名簿はそのまま使えます）';
+        /* 種目は無くても、シラバスの在りかが分かっていればリンクを出す
+           （PDFのシラバスなど、自動で読めないものは目で確かめてもらう） */
+        el('syl-note').innerHTML = 'この大会の種目はまだ取れていません。'
+          + '（区分と名簿はそのまま使えます）'
+          + (d.syllabus_url ? '　<a href="' + esc(d.syllabus_url)
+             + '" target="_blank" rel="noopener">大会要項を見る</a>' : '');
       }
       syncSylButton();
     })
@@ -352,7 +356,9 @@ function refreshSyllabus(){
       b.disabled = false;
       b.textContent = 'JDSFからシラバスを取り直す';
       if (d && d.ok) { SYL = null; return loadSyllabus(true).then(render); }
-      el('syl-note').textContent = (d && (d.message || d.error)) || '取りに行けませんでした。';
+      el('syl-note').innerHTML = esc((d && (d.message || d.error)) || '取りに行けませんでした。')
+        + (d && d.syllabus_url ? '　<a href="' + esc(d.syllabus_url)
+           + '" target="_blank" rel="noopener">大会要項を見る</a>' : '');
     })
     .catch(function(){
       b.disabled = false;

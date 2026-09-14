@@ -35,31 +35,39 @@ function uk_syl_norm($s) {
     return mb_strtoupper(trim($s));
 }
 
-/* ---- 第1段：自サイトの競技会一覧から引く（外部への通信なし） ----
-   公認番号が分かっていれば確実に引ける。無ければ開催日＋大会名で引き当てる。 */
-function uk_syllabus_from_list($comp_no, $date, $name) {
+/* ---- 自サイトの競技会一覧から、その大会の行を探す ----
+   公認番号が分かっていれば確実。無ければ開催日＋大会名で引き当てる。
+   毎朝の取り込みは「1週間前〜これから」の大会しかシラバスを見に行かないため、
+   古い大会は行はあっても種目が空。それでも公認番号とシラバスのURLは分かるので、
+   行そのものを返して、呼ぶ側で使い分ける。 */
+function uk_syllabus_find_row($comp_no, $date, $name) {
     $f = dirname(__DIR__) . '/data/competitions_seibu.json';
     $d = uk_read_json($f, null);
     $items = (is_array($d) && isset($d['competitions'])) ? $d['competitions'] : [];
     if (!$items) return null;
 
-    $hit = null;
     if (uk_valid_comp_no($comp_no)) {
         foreach ($items as $c) {
-            if ((string)($c['comp_no'] ?? '') === (string)$comp_no) { $hit = $c; break; }
+            if ((string)($c['comp_no'] ?? '') === (string)$comp_no) return $c;
         }
     }
-    if (!$hit && $date !== '') {
+    if ($date !== '') {
         $same = [];
         foreach ($items as $c) {
             if ((string)($c['date_iso'] ?? '') === (string)$date) $same[] = $c;
         }
         foreach ($same as $c) {
-            if (uk_syl_norm($c['name'] ?? '') === uk_syl_norm($name)) { $hit = $c; break; }
+            if (uk_syl_norm($c['name'] ?? '') === uk_syl_norm($name)) return $c;
         }
         /* その日に1大会しか無ければ、名前が違ってもそれとみなす（練習用の複製など） */
-        if (!$hit && count($same) === 1) $hit = $same[0];
+        if (count($same) === 1) return $same[0];
     }
+    return null;
+}
+
+/* ---- 第1段：自サイトの競技会一覧から種目を引く（外部への通信なし） ---- */
+function uk_syllabus_from_list($comp_no, $date, $name) {
+    $hit = uk_syllabus_find_row($comp_no, $date, $name);
     if (!$hit) return null;
 
     $events = [];
@@ -138,13 +146,21 @@ function uk_syllabus_parse_html($html) {
 }
 
 /* 公認番号でシラバスを取りに行く。戻り値は syllabus.json と同じ形、または ['error'=>...] */
-function uk_syllabus_from_jdsf($comp_no) {
-    if (!uk_valid_comp_no($comp_no)) return ['error' => '公認番号（大会番号）が分かりません'];
+function uk_syllabus_from_jdsf($comp_no, $known_url = '') {
+    if (!uk_valid_comp_no($comp_no) && $known_url === '') {
+        return ['error' => '公認番号（大会番号）が分かりません'];
+    }
+    /* 一覧で分かっているURLがあればそれを使う（古い大会はPDFのことがある） */
+    $url = $known_url !== '' ? $known_url
+         : 'https://adm.jdsf.jp/competition/syllabus/' . $comp_no . '/';
+    /* PDFは読み取れないので、通信する前に伝える（相手に無駄な負荷をかけない） */
+    if (preg_match('/\.pdf($|\?)/i', $url)) {
+        return ['error' => 'この大会のシラバスはPDFで、種目を自動で読み取れません。'
+                         . 'リンクを開いて確かめてください', 'url' => $url];
+    }
     if (!function_exists('curl_init')) return ['error' => 'この環境では取りに行けません'];
     $left = uk_syllabus_cooldown_left();
     if ($left > 0) return ['error' => 'JDSFへの問い合わせが続いています。' . $left . '秒ほど待ってから押してください'];
-
-    $url = 'https://adm.jdsf.jp/competition/syllabus/' . $comp_no . '/';
     uk_syllabus_cooldown_touch();     /* 失敗しても間隔を空けさせる */
 
     $ch = curl_init($url);
