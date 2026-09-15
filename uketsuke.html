@@ -2284,7 +2284,10 @@ function renderRollcall(){
   }).join('');
   if (sel.innerHTML !== opts) { sel.innerHTML = opts; if (cur) sel.value = cur; }
   var code = sel.value;
-  el('rc-print').href = 'uketsuke-absent.html?id=' + encodeURIComponent(COMP ? COMP.id : '');
+  /* いま選んでいる区分をそのまま持っていく。付けないと欠場者一覧は先頭
+     （いちばん早い受付締切）を開いてしまい、別の区分の欠場者が出る。 */
+  el('rc-print').href = 'uketsuke-absent.html?id=' + encodeURIComponent(COMP ? COMP.id : '')
+    + (code ? '&pick=' + encodeURIComponent('e:' + code) : '');
 
   /* その区分を受付した組が出場。受付は区分ごとなので、他の区分の受付は関係しない。 */
   var done = doneMap();

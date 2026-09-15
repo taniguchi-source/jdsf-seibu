@@ -204,6 +204,15 @@ function buildPicker(){
       }).join('')
     + '</optgroup>';
   el('pick').innerHTML = html;
+  /* 受付システムの「欠場報告」タブから開いたときは、そこで選んでいた区分をそのまま出す。
+     指定が無いときや、その大会に無い区分を渡されたときは先頭（いちばん早い受付締切）。 */
+  var want = qs('pick');
+  if (want) {
+    var opts = el('pick').options;
+    for (var i = 0; i < opts.length; i++) {
+      if (opts[i].value === want) { el('pick').selectedIndex = i; break; }
+    }
+  }
   el('pick').addEventListener('change', render);
 }
 
