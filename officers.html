@@ -1149,6 +1149,17 @@
   }
 
   // 競技用ページに表示するかのON/OFF（役員セッションのみで切替。役員PW不要）
+  function refToast(msg) {
+    var t = document.getElementById('ref-toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'ref-toast';
+      t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#166534;color:#fff;padding:11px 22px;border-radius:8px;font-size:.9rem;font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,.3);z-index:9999;opacity:0;transition:opacity .2s;';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg; t.style.opacity = '1';
+    clearTimeout(t._hideTimer); t._hideTimer = setTimeout(function(){ t.style.opacity = '0'; }, 2200);
+  }
   function setRefKyougi(id, checked) {
     var fd = new FormData();
     fd.append('token', 'jdsfseibu2026');
@@ -1157,7 +1168,10 @@
     if (checked) fd.append('show_kyougi', '1');
     fetch('api/save_reference.php', { method: 'POST', body: fd })
       .then(function(r){ return r.json(); })
-      .then(function(res){ if (!res || !res.ok) { alert('競技用の表示切替に失敗しました'); loadReferences(); } })
+      .then(function(res){
+        if (res && res.ok) { refToast(checked ? '✅ 競技用に表示：保存しました' : '競技用の表示を外しました：保存しました'); }
+        else { alert('競技用の表示切替に失敗しました'); loadReferences(); }
+      })
       .catch(function(){ alert('通信エラーが発生しました'); loadReferences(); });
   }
 
