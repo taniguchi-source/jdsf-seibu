@@ -199,6 +199,7 @@
     <div style="height:12px"></div>
     <div class="row">
       <button id="b-print">印刷する</button>
+      <button id="b-xlsx" class="secondary">Excelで保存</button>
       <label class="checkbox-row"><span>ページ数</span>
         <input type="number" id="pages" min="1" max="40" step="1" placeholder="自動"
                style="width:72px;font-size:15px;padding:7px 8px;border:1px solid var(--border);border-radius:8px"></label>
@@ -388,6 +389,75 @@ function buildPicker(){
     updateFit();
     window.print();
   });
+  el('b-xlsx').addEventListener('click', downloadXlsx);
+}
+
+/* いま紙に出している区分を、出している順に返す。draw() と同じ選び方。 */
+function shownCodes(){
+  var only = el('pick').value, withEmpty = el('c-empty').checked;
+  return sortEvents(DATA.events)
+    .filter(function(e){ return !only || e.code === only; })
+    .filter(function(e){ return withEmpty || entriesFor(e.code).length; })
+    .map(function(e){ return e.code; });
+}
+
+/* 紙の体裁を測る。段数・列幅・行の高さ・文字の大きさを、
+   紙と同じ大きさ（.pm）で組んだ実物から読む。同じ計算をExcel側にも書くと、
+   片方だけ直したときに紙とExcelで体裁が食い違うため、測った値をそのまま渡す。 */
+function printMetrics(){
+  var paper = el('paper'), had = paper.classList.contains('pm');
+  /* 画面用に縮小表示しているときは、そのままでは測れないので一旦もどす */
+  var tf = paper.style.transform; paper.style.transform = '';
+  paper.classList.add('pm');
+
+  var PT   = 0.75;                       /* px → pt（CSSの決まりで 96dpi） */
+  var cols = isPoster() ? 1 : COLS;
+  var memo = el('c-memo').checked;
+  var cw   = colWidths(memo, cols);
+  function h(sel, def){
+    var e = paper.querySelector(sel);
+    return (e ? e.getBoundingClientRect().height : def) * PT;
+  }
+  function fs(sel, def){
+    var e = paper.querySelector(sel);
+    return e ? parseFloat(getComputedStyle(e).fontSize) * PT : def;
+  }
+  var blk = paper.querySelector('.blk');
+  var m = {
+    cols: cols,
+    memo: memo ? 1 : 0,
+    w:    cw.px,
+    gap:  cw.gap / 100 * (190 * MM),
+    rows: {
+      data:   h('.blk tbody tr', 22),
+      head:   h('.blk thead tr', 18),
+      title:  h('.blk .ttl', 28),
+      spacer: (blk ? (parseFloat(getComputedStyle(blk).marginBottom) || 0) : 11) * PT
+    },
+    fonts: {
+      bib: fs('.blk td.bib', 13),      nm:  fs('.blk td.nmc', 11),
+      aff: fs('.blk td.aff', 8.5),     th:  fs('.blk thead th', 7.5),
+      ttl: fs('.blk .ttl .nm', 12),    dan: fs('.blk .ttl .dance', 10)
+    },
+    kinds: {}
+  };
+  (DATA.events || []).forEach(function(e){ m.kinds[e.code] = evKind(e); });
+
+  if (!had) paper.classList.remove('pm');
+  paper.style.transform = tf;
+  return m;
+}
+
+/* Excel（.xlsx）で保存する。1枚目は紙と同じ体裁（区分の帯・段組・同じ行の高さ）、
+   2枚目は並べ替えや貼り付けに使える平らな表。
+   並び順は画面と同じにしたいので、区分コードの並びもこちらから渡す。 */
+function downloadXlsx(){
+  if (!DATA) return;
+  var codes = shownCodes();
+  if (!codes.length) { alert('出す区分がありません。'); return; }
+  location.href = 'api/uketsuke_program_xlsx.php?id=' + encodeURIComponent(id)
+    + '&codes=' + encodeURIComponent(codes.join(','))
+    + '&fmt=' + encodeURIComponent(JSON.stringify(printMetrics()));
 }
 
 /* その区分にエントリーしている組を背番号順に返す */
