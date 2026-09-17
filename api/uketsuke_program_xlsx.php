@@ -1,6 +1,7 @@
 <?php
 /* 出場選手一覧を Excel（.xlsx）で返す。
-   1枚目は紙と同じ体裁（区分の帯 → 見出し → 段組の名簿）、2枚目は並べ替え用の平らな表。
+   紙と同じ体裁（区分の帯 → 見出し → 段組の名簿）の1シート。
+   どのセルも「縮小して全体を表示する」にして、折り返さない（紙と同じ見え方にする）。
 
    段数・列幅・行の高さ・文字の大きさは、画面が紙の大きさで組んだ実測値を fmt で受け取る。
    同じ計算をサーバーにも書くと、片方だけ直したときに紙とExcelで体裁が食い違うため。
@@ -351,20 +352,20 @@ foreach ($KIND_LIST as $k) {
 
 $xfs = [
     '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>',                                                                                                                      /* 0 既定 */
-    '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>',                                                                                                        /* 1 大会名 */
-    '<xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>',  /* 2 名簿の見出し */
-    '<xf numFmtId="0" fontId="3" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>',                /* 3 背番号 */
-    '<xf numFmtId="0" fontId="4" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>',                                    /* 4 氏名 */
-    '<xf numFmtId="0" fontId="5" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>',                                    /* 5 所属 */
-    '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1"/>',                                                                                                      /* 6 記入欄 */
+    '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment vertical="center" shrinkToFit="1"/></xf>',                                                                                                        /* 1 大会名 */
+    '<xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" shrinkToFit="1"/></xf>',  /* 2 名簿の見出し */
+    '<xf numFmtId="0" fontId="3" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" shrinkToFit="1"/></xf>',                /* 3 背番号 */
+    '<xf numFmtId="0" fontId="4" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" shrinkToFit="1"/></xf>',                                    /* 4 氏名 */
+    '<xf numFmtId="0" fontId="5" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" shrinkToFit="1"/></xf>',                                    /* 5 所属 */
+    '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center" shrinkToFit="1"/></xf>',                                                                                                      /* 6 記入欄 */
 ];
 foreach ($KIND_LIST as $k) {
     $xfs[] = '<xf numFmtId="0" fontId="' . $fontOf[$k][0] . '" fillId="' . $fillOf[$k] . '" borderId="' . $borderOf[$k]
            . '" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1">'
-           . '<alignment horizontal="left" vertical="center" indent="1"/></xf>';
+           . '<alignment horizontal="left" vertical="center" indent="1" shrinkToFit="1"/></xf>';
     $xfs[] = '<xf numFmtId="0" fontId="' . $fontOf[$k][1] . '" fillId="' . $fillOf[$k] . '" borderId="0"'
            . ' xfId="0" applyFont="1" applyFill="1" applyAlignment="1">'
-           . '<alignment horizontal="right" vertical="center" indent="1"/></xf>';
+           . '<alignment horizontal="right" vertical="center" indent="1" shrinkToFit="1"/></xf>';
 }
 
 $stylesXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'

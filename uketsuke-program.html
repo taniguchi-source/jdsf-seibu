@@ -76,12 +76,13 @@
   /* 見出しは列に入る言い方をJSが選ぶので、万一あふれても「…」は出さない */
   table.pg th{background:#f2f2f2;font-weight:600;text-align:center;font-size:11px;text-overflow:clip}
   /* 呼び出しにも照合にも使うので、背番号と氏名は大きく太く。
-     氏名は切らずに折り返す（長い名前でも最後まで読めるようにする）。 */
+     どのセルも折り返さず、入りきらないものは shrinkCells() が字を縮めて全部見せる
+     （Excelの「縮小して全体を表示する」と同じ。折り返すと行の高さがばらつき、
+     紙とExcelで見え方も変わるため）。 */
   table.pg td.bib{text-align:center;font-weight:800;font-size:15px}
-  table.pg td.nmc{font-weight:700;font-size:13.5px;white-space:normal;
-    word-break:break-all}
-  /* 所属も切らずに折り返す（クラブ名が途中で切れると誰の所属か分からない） */
-  table.pg td.aff{white-space:normal;word-break:break-all}
+  table.pg td.nmc{font-weight:700;font-size:13.5px}
+  /* 縮めて収める前提なので「…」は出さない（切れて見えると誰か分からなくなる） */
+  table.pg td{text-overflow:clip}
   /* 記入欄は当日ペンで書き込む列。中身は空のままにする。 */
   table.pg td.memo{background:#fff}
   /* 左右の段のあいだ。罫線を引かない。 */
@@ -525,8 +526,9 @@ function nth(arr, q){
   arr.sort(function(a, b){ return a - b; });
   return arr[Math.min(arr.length - 1, Math.floor(arr.length * q))];
 }
-/* 氏名は上位5%、所属は上位10%だけ2行になってよい、という割り切りで幅を決める。
-   いちばん長い1件に合わせると、そのために全体が小さくなってしまうため。 */
+/* 氏名は上位5%、所属は上位10%だけ縮めて入れてよい、という割り切りで幅を決める。
+   いちばん長い1件に合わせると、そのために全体が小さくなってしまうため。
+   入りきらない分は shrinkCells() が字を縮めて全部見せる。 */
 function measureNeeds(){
   var fam = getComputedStyle(document.body).fontFamily;
   var ctx = document.createElement('canvas').getContext('2d');
@@ -702,6 +704,48 @@ function fillBottom(){
   paper.style.transform = tf;
 }
 
+/* ── 縮小して全体を表示する ──
+   セルは折り返さない。列に入りきらないものだけ、入る大きさまで字を縮めて全部見せる
+   （Excelの「縮小して全体を表示する」と同じ）。折り返すと行の高さがばらつき、
+   そのぶん枚数が増えるうえ、Excelに出したときと見え方が変わってしまう。
+
+   幅は文字の実測（canvas）で見る。1セットずつ clientWidth を読むと組み直しが
+   何十回も起きて重いので、列の幅は種類ごとに1回だけ測る（同じ列の幅は全段で同じ）。 */
+function shrinkCells(){
+  var paper = el('paper'), had = paper.classList.contains('pm');
+  /* 紙の列幅で決める。画面用に縮小表示しているときは、そのままでは測れないので一旦もどす */
+  var tf = paper.style.transform; paper.style.transform = '';
+  paper.classList.add('pm');
+
+  var fam = getComputedStyle(document.body).fontFamily;
+  if (!HCTX) HCTX = document.createElement('canvas').getContext('2d');
+
+  ['bib', 'nmc', 'aff'].forEach(function(cls){
+    var list = paper.querySelectorAll('table.pg td.' + cls);
+    if (!list.length) return;
+    list.forEach(function(td){ td.style.fontSize = ''; });      /* 前回の縮小を戻す */
+
+    var st    = getComputedStyle(list[0]);
+    var base  = parseFloat(st.fontSize);
+    var avail = list[0].clientWidth
+              - (parseFloat(st.paddingLeft) || 0) - (parseFloat(st.paddingRight) || 0);
+    if (!(base > 0) || !(avail > 0)) return;
+    HCTX.font = st.fontWeight + ' ' + base + 'px ' + fam;
+
+    list.forEach(function(td){
+      var t = td.textContent;
+      if (!t) return;
+      var w = HCTX.measureText(t).width;
+      /* 1%ぶん余裕を持たせる。ぴったりに縮めると、実際の字送りとの
+         わずかな差で最後の1文字が欠けることがある。 */
+      if (w > avail) td.style.fontSize = (base * avail / w * 0.99).toFixed(2) + 'px';
+    });
+  });
+
+  if (!had) paper.classList.remove('pm');
+  paper.style.transform = tf;
+}
+
 /* --pf-* は :root で組み立てているので、--ps も :root に入れないと効かない
    （変数の計算は、使う場所ではなく書いてある場所で行われるため）。
    列幅の計算にも使うので、同じ値を PS に控えておく。 */
@@ -753,6 +797,7 @@ function updateFit(){
     COLS = 1; setPs(1);
     el('pages').disabled = true;
     el('fit-note').textContent = '掲示用は1区分＝1ページです（全部で ' + measurePages() + 'ページ）。';
+    shrinkCells();
     showAsPaper(false);
     return;
   }
@@ -762,6 +807,8 @@ function updateFit(){
   var r = fitLayout(t);
   /* 枚数が決まってから、ページごとの余りを行の高さに配る（枚数は変えない） */
   fillBottom();
+  /* 列に入りきらないセルの字を、入る大きさまで縮める（行の高さは変わらない） */
+  shrinkCells();
   var pct = Math.round(r.scale * 100);
   /* 段組や文字を変えたとき、また画面が紙より狭いときは、刷り上がりそのものを出す。
      （狭い画面で紙と違う組み方をすると、背番号が「1…」と切れて見えてしまう） */
