@@ -44,7 +44,9 @@
   .sheet-head .date{font-weight:400;color:var(--muted);margin-left:10px}
 
   /* 区分ごとのかたまり。プログラムの選手名簿と同じ、左右2段組。 */
-  .blk{margin-bottom:14px}
+  /* --xp は「下の余白をつめる」で足す行の高さ（上下それぞれのパディング）。
+     ページごとに余り具合が違うので、JSが区分ごとに入れる。既定は足さない。 */
+  .blk{margin-bottom:14px;--xp:0px}
   /* 区分名と種目の見出し。掲示やプログラムで選手・お客様が最初に見るところなので、
      区分名は濃紺の帯で大きく、種目は別の色の枠に入れて、ひと目で切り分かるようにする。 */
   /* 区分の系統ごとの色。帯の地色（--band）と左の罫・文字（--bar）を切り替える。
@@ -131,7 +133,7 @@
   }
   .pm table.pg{font-size:var(--pf-tbl)}
   .pm table.pg th{font-size:var(--pf-th)}
-  .pm table.pg th,.pm table.pg td{padding:var(--pf-pad) 2px}
+  .pm table.pg th,.pm table.pg td{padding:calc(var(--pf-pad) + var(--xp)) 2px}
   .pm table.pg td.bib{font-size:var(--pf-bib)}
   .pm table.pg td.nmc{font-size:var(--pf-nm)}
   .pm table.pg td.aff{font-size:var(--pf-aff)}
@@ -153,7 +155,7 @@
     table.pg{font-size:var(--pf-tbl)}
     /* 見出しは「記入欄」「背番号」が切れない大きさまで小さくする */
     table.pg th{font-size:var(--pf-th)}
-    table.pg th,table.pg td{padding:var(--pf-pad) 2px}
+    table.pg th,table.pg td{padding:calc(var(--pf-pad) + var(--xp)) 2px}
     table.pg td.bib{font-size:var(--pf-bib)}
     table.pg td.nmc{font-size:var(--pf-nm)}
     /* 所属は略称でも長いことがあるので、小さめにしたうえで折り返して全部出す */
@@ -204,6 +206,7 @@
       <label class="checkbox-row"><input type="checkbox" id="c-poster"><span>掲示用（1段組・大きい字）</span></label>
       <label class="checkbox-row"><input type="checkbox" id="c-memo" checked><span>記入欄を付ける</span></label>
       <label class="checkbox-row"><input type="checkbox" id="c-empty"><span>エントリー0組の区分も出す</span></label>
+      <label class="checkbox-row"><input type="checkbox" id="c-fill" checked><span>下の余白をつめる</span></label>
       <span class="muted" id="updated" style="margin-left:auto"></span>
     </div>
     <div class="muted" id="fit-note" style="margin-top:8px"></div>
@@ -377,6 +380,7 @@ function buildPicker(){
   el('c-poster').addEventListener('change', render);
   el('c-memo').addEventListener('change', render);
   el('c-empty').addEventListener('change', render);
+  el('c-fill').addEventListener('change', updateFit);
   el('b-reload').addEventListener('click', load);
   el('b-syl').addEventListener('click', refreshSyllabus);
   el('pages').addEventListener('input', updateFit);
@@ -557,6 +561,77 @@ function countPages(paper, had){
   return pages;
 }
 
+/* ── 下の余白をつめる ──
+   区分は紙の途中で切らないので、ページの終わりが大きく余ることがある（最後の1枚は特に）。
+   余ったぶんを、そのページに載っている行へ均等に配って行を高くする。
+   足すのは行の高さの3割5分までで、余りが大きいページでも間延びさせない。 */
+var FILL_MIN  = 12 * MM;   /* これ未満の余りは触らない */
+var FILL_KEEP =  3 * MM;   /* 足しすぎてページが増えないよう、これだけは残す */
+var FILL_MAX  = 0.35;      /* 1行に足せるのは、その行の高さのこの割合まで。
+                              1区分だけ刷るときのように余りが大きいページで、
+                              行だけが間延びした紙にならないようにする。 */
+
+/* 紙1枚ぶんずつ、載っている区分と使った高さを返す。数え方は countPages と同じ。
+   1枚に入りきらない区分がまたいでいるページは over を立てて、つめる対象から外す。 */
+function pageGroups(paper){
+  var pages = [], cur = {blks: [], used: 0, over: false};
+  var head = paper.querySelector('.sheet-head');
+  if (head) cur.used = head.getBoundingClientRect().height
+                     + (parseFloat(getComputedStyle(head).marginBottom) || 0);
+  var blks = paper.querySelectorAll('.blk');
+  for (var i = 0; i < blks.length; i++) {
+    var b = blks[i];
+    var h = b.getBoundingClientRect().height
+          + (parseFloat(getComputedStyle(b).marginBottom) || 0);
+    if (h > PAGE_H) {
+      if (cur.used > 0) { pages.push(cur); }
+      var n = Math.ceil(h / PAGE_H);
+      for (var k = 0; k < n - 1; k++) pages.push({blks: [b], used: PAGE_H, over: true});
+      cur = {blks: [b], used: h - (n - 1) * PAGE_H, over: true};
+      continue;
+    }
+    if (cur.used + h > PAGE_H) { pages.push(cur); cur = {blks: [], used: 0, over: false}; }
+    cur.blks.push(b);
+    cur.used += h;
+  }
+  pages.push(cur);
+  return pages;
+}
+
+function clearFill(paper){
+  paper.querySelectorAll('.blk').forEach(function(b){ b.style.removeProperty('--xp'); });
+}
+
+function fillBottom(){
+  var paper = el('paper'), had = paper.classList.contains('pm');
+  /* 画面用に縮小表示しているときは、そのままでは測れないので一旦もどす */
+  var tf = paper.style.transform; paper.style.transform = '';
+  paper.classList.add('pm');
+  clearFill(paper);
+  if (el('c-fill').checked && !isPoster()) {
+    var before = pageGroups(paper);
+    before.forEach(function(p){
+      if (p.over || !p.blks.length) return;
+      var room = PAGE_H - p.used - FILL_KEEP;
+      if (room < FILL_MIN) return;
+      var trs = [];
+      p.blks.forEach(function(b){
+        b.querySelectorAll('tr').forEach(function(tr){ trs.push(tr); });
+      });
+      if (!trs.length) return;
+      var nat = trs.reduce(function(a, tr){ return a + tr.getBoundingClientRect().height; }, 0) / trs.length;
+      var add = Math.min(room / trs.length, nat * FILL_MAX);
+      if (add < 0.5) return;
+      /* padding は上下に付くので、1行ぶんの半分ずつ入れる */
+      p.blks.forEach(function(b){ b.style.setProperty('--xp', (add / 2).toFixed(2) + 'px'); });
+    });
+    /* 足したせいで枚数が増えていないか確かめる。増えていたら何もしなかったことにする。 */
+    if (pageGroups(paper).length !== before.length) clearFill(paper);
+  }
+  if (!had) paper.classList.remove('pm');
+  paper.style.transform = tf;
+}
+
 /* --pf-* は :root で組み立てているので、--ps も :root に入れないと効かない
    （変数の計算は、使う場所ではなく書いてある場所で行われるため）。
    列幅の計算にも使うので、同じ値を PS に控えておく。 */
@@ -615,6 +690,8 @@ function updateFit(){
   var t = parseInt(el('pages').value, 10);
   if (!(t > 0)) t = 0;
   var r = fitLayout(t);
+  /* 枚数が決まってから、ページごとの余りを行の高さに配る（枚数は変えない） */
+  fillBottom();
   var pct = Math.round(r.scale * 100);
   /* 段組や文字を変えたとき、また画面が紙より狭いときは、刷り上がりそのものを出す。
      （狭い画面で紙と違う組み方をすると、背番号が「1…」と切れて見えてしまう） */
