@@ -121,6 +121,7 @@
   </div>
 </div>
 
+<script src="js/uketsuke_scope.js"></script>
 <script>
 'use strict';
 var DATA = null;
@@ -161,48 +162,19 @@ function load(){
     });
 }
 
-/* 受付締切の時刻を「その日の何分」になおす。
-   文字の並びで比べると「9:30」が「10:30」「12:00」より後になってしまうため。 */
-function timeKey(t){
-  var s = String(t || '').replace(/[０-９]/g, function(ch){
-    return String.fromCharCode(ch.charCodeAt(0) - 0xFEE0);
-  });
-  var m = /(\d{1,2})\s*[:：時]\s*(\d{1,2})?/.exec(s) || /^\s*(\d{1,2})\s*$/.exec(s);
-  if (!m) return Infinity;
-  return Number(m[1]) * 60 + Number(m[2] || 0);
-}
-
-/* 受付締切が同じ区分はまとめて呼び出すので、締切ごとに選べるようにする。
-   値は t:<時刻> で締切ごと、e:<コード> で区分ごと。 */
-function deadlines(){
-  var seen = {}, out = [];
-  (DATA.events || []).forEach(function(e){
-    var t = (e.start_time || '').trim();
-    if (!t) return;
-    if (!seen[t]) { seen[t] = []; out.push(t); }
-    seen[t].push(e);
-  });
-  out.sort(function(a, b){ var x = timeKey(a), y = timeKey(b); return x === y ? 0 : (x < y ? -1 : 1); });
-  return out.map(function(t){ return {time: t, events: seen[t]}; });
-}
+/* 受付締切ごとのまとめ方と選択肢の並びは js/uketsuke_scope.js に置いてある。
+   受付システムの欠場報告タブ（このページを開くボタン）と同じものを使わないと、
+   ボタンから開いた範囲とここでの選び直しが食い違うため。 */
+function deadlines(){ return UkScope.deadlines(DATA.events); }
 
 function buildPicker(){
-  var dl = deadlines();
-  var html = '';
-  if (dl.length) {
-    html += '<optgroup label="受付締切ごと（その時刻の区分をそれぞれ表示）">'
-      + dl.map(function(g){
-          return '<option value="t:' + esc(g.time) + '">' + esc(g.time) + '　'
-            + esc(g.events.map(function(e){ return e.code; }).join(', ')) + '</option>';
+  var html = UkScope.options(DATA.events).map(function(g){
+    return '<optgroup label="' + esc(g.group) + '">'
+      + g.items.map(function(o){
+          return '<option value="' + esc(o.value) + '">' + esc(o.label) + '</option>';
         }).join('')
       + '</optgroup>';
-  }
-  html += '<optgroup label="区分ごと">'
-    + (DATA.events || []).map(function(e){
-        return '<option value="e:' + esc(e.code) + '">' + evLabel(e)
-          + (e.start_time ? '（' + esc(e.start_time) + '）' : '') + '</option>';
-      }).join('')
-    + '</optgroup>';
+  }).join('');
   el('pick').innerHTML = html;
   /* 受付システムの「欠場報告」タブから開いたときは、そこで選んでいた区分をそのまま出す。
      指定が無いときや、その大会に無い区分を渡されたときは先頭（いちばん早い受付締切）。 */

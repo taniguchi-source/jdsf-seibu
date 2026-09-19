@@ -246,6 +246,15 @@
   .modal-box input[type=checkbox]{width:20px;height:20px}
   /* チェックが入るまで OK は押せない。押せないことが見て分かるようにする */
   button:disabled{opacity:.4;cursor:not-allowed}
+  /* 欠場者一覧をどの範囲で出すかを選ぶ一覧。押し間違えても開くだけなので確認は付けない。 */
+  #rcp-list{max-height:52vh;overflow:auto;margin-top:4px}
+  .pick-group{margin-top:14px;font-size:13px;font-weight:700;color:var(--muted)}
+  .pick-item{display:block;width:100%;text-align:left;margin-top:6px;padding:10px 12px;
+    font-size:15px;font-weight:600;background:var(--card);color:var(--text);
+    border:1px solid var(--border);border-radius:8px}
+  .pick-item:hover{border-color:var(--primary)}
+  /* 欠場報告タブでいま見ている区分。押すつもりのものを探さなくて済むようにする。 */
+  .pick-item.cur{border-color:var(--primary);box-shadow:inset 4px 0 0 var(--primary)}
   .modal-box .alert{background:var(--warn-bg);color:var(--warn);border-left:5px solid var(--warn);
     padding:10px 12px;border-radius:0 8px 8px 0;margin-top:12px;font-weight:700;font-size:14px}
   .ev-btn.done{background:var(--ok-bg);border-color:var(--ok)}
@@ -506,7 +515,7 @@
         <select id="rc-event"></select>
         <div style="height:10px"></div>
         <div class="row wrap">
-          <a class="btn secondary" id="rc-print" href="uketsuke-absent.html" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">欠場者のみのページを開く</a>
+          <button type="button" class="secondary" id="rc-print">欠場者のみのページを開く</button>
         </div>
         <div style="height:8px"></div>
         <span class="muted" id="rc-assign-note"></span>
@@ -561,6 +570,17 @@
         <div class="row" style="margin-top:18px">
           <button id="asg-ok" disabled>OK</button>
           <button class="secondary" id="asg-cancel">キャンセル</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 欠場者のみのページを、どの範囲で開くかを選ぶ -->
+    <div id="rcp-dlg" class="modal hidden">
+      <div class="modal-box">
+        <h2>どの範囲の欠場者を出しますか</h2>
+        <div id="rcp-list"></div>
+        <div class="row" style="margin-top:16px">
+          <button class="secondary" id="rcp-cancel">キャンセル</button>
         </div>
       </div>
     </div>
@@ -706,6 +726,7 @@
  </main>
 </div>
 
+<script src="js/uketsuke_scope.js"></script>
 <script>
 'use strict';
 
@@ -2284,10 +2305,6 @@ function renderRollcall(){
   }).join('');
   if (sel.innerHTML !== opts) { sel.innerHTML = opts; if (cur) sel.value = cur; }
   var code = sel.value;
-  /* いま選んでいる区分をそのまま持っていく。付けないと欠場者一覧は先頭
-     （いちばん早い受付締切）を開いてしまい、別の区分の欠場者が出る。 */
-  el('rc-print').href = 'uketsuke-absent.html?id=' + encodeURIComponent(COMP ? COMP.id : '')
-    + (code ? '&pick=' + encodeURIComponent('e:' + code) : '');
 
   /* その区分を受付した組が出場。受付は区分ごとなので、他の区分の受付は関係しない。 */
   var done = doneMap();
@@ -2334,6 +2351,40 @@ function renderRollcall(){
   });
 }
 el('rc-event').addEventListener('change', renderRollcall);
+
+/* ── 欠場者のみのページを、どの範囲で開くか ──
+   欠場者一覧は「受付締切ごと（その時刻の区分をまとめて）」でも「区分ごと」でも出せる。
+   このタブの区分の選び方ではその2つを言い分けられないので、押したときに選んでもらう。
+   選択肢の並べ方は js/uketsuke_scope.js（欠場者一覧ページと同じもの）。 */
+function openAbsentPicker(){
+  if (!COMP || !DATA) return;
+  var cur = 'e:' + el('rc-event').value;
+  el('rcp-list').innerHTML = UkScope.options(DATA.events).map(function(g){
+    return '<div class="pick-group">' + esc(g.group) + '</div>'
+      + g.items.map(function(o){
+          return '<button type="button" class="pick-item' + (o.value === cur ? ' cur' : '')
+            + '" data-pick="' + esc(o.value) + '">' + esc(o.label) + '</button>';
+        }).join('');
+  }).join('');
+  el('rcp-list').querySelectorAll('[data-pick]').forEach(function(b){
+    b.addEventListener('click', function(){
+      closeAbsentPicker();
+      window.open('uketsuke-absent.html?id=' + encodeURIComponent(COMP.id)
+        + '&pick=' + encodeURIComponent(b.dataset.pick), '_blank', 'noopener');
+    });
+  });
+  el('rcp-dlg').classList.remove('hidden');
+  /* いま見ている区分が下のほうにあると探すことになるので、見える位置まで送る */
+  var cr = el('rcp-list').querySelector('.pick-item.cur');
+  if (cr) cr.scrollIntoView({block: 'nearest'});
+}
+function closeAbsentPicker(){ el('rcp-dlg').classList.add('hidden'); }
+el('rc-print').addEventListener('click', openAbsentPicker);
+el('rcp-cancel').addEventListener('click', closeAbsentPicker);
+el('rcp-dlg').addEventListener('click', function(e){ if (e.target === el('rcp-dlg')) closeAbsentPicker(); });
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape' && !el('rcp-dlg').classList.contains('hidden')) closeAbsentPicker();
+});
 
 /* ---------- 手動対応 ----------
    ST初期振分が済んだあとに受付・取消をしようとして止まった件は、サーバーが1行ずつ残している。
