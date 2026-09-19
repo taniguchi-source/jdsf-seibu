@@ -63,6 +63,13 @@
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   .blk .ttl .nm{font-size:16px;font-weight:800;color:var(--bar,var(--primary));
     letter-spacing:.02em;line-height:1.3}
+  /* 区分の並べ替え。押すとその場で並びが変わり、サーバーにも保存する。
+     紙には出さない（no-print）。 */
+  .blk .ttl .mv{display:inline-flex;gap:2px;margin-left:8px}
+  .blk .ttl .mv button{font-size:12px;font-weight:700;line-height:1;padding:3px 7px;
+    border:1px solid var(--bar,var(--primary));border-radius:5px;
+    background:#fff;color:var(--bar,var(--primary));cursor:pointer}
+  .blk .ttl .mv button:disabled{opacity:.3;cursor:not-allowed}
   .blk .ttl .dance{margin-left:auto;font-size:13px;font-weight:800;color:var(--accent);
     background:#fff;border:1.5px solid var(--accent);border-radius:4px;padding:1px 9px;white-space:nowrap;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -205,12 +212,14 @@
         <input type="number" id="pages" min="1" max="40" step="1" placeholder="自動"
                style="width:72px;font-size:15px;padding:7px 8px;border:1px solid var(--border);border-radius:8px"></label>
       <button id="b-reload" class="secondary">最新にする</button>
+      <button id="b-sort" class="secondary">系統順にそろえる</button>
       <label class="checkbox-row"><input type="checkbox" id="c-poster"><span>掲示用（1段組・大きい字）</span></label>
       <label class="checkbox-row"><input type="checkbox" id="c-memo" checked><span>記入欄を付ける</span></label>
       <label class="checkbox-row"><input type="checkbox" id="c-empty"><span>エントリー0組の区分も出す</span></label>
       <label class="checkbox-row"><input type="checkbox" id="c-fill" checked><span>下の余白をつめる</span></label>
       <span class="muted" id="updated" style="margin-left:auto"></span>
     </div>
+    <div class="muted" id="order-note" style="margin-top:8px"></div>
     <div class="muted" id="fit-note" style="margin-top:8px"></div>
     <div class="muted" id="syl-note" style="margin-top:6px"></div>
     <!-- 種目が出せないときだけ出す。JDSF（adm.jdsf.jp）へは押したときだけ取りに行く。 -->
@@ -372,9 +381,14 @@ function refreshSyllabus(){
     });
 }
 
+/* 紙に出す順。区分マスタ（events.json）の並びをそのまま使う。
+   系統順（10ダンス→ラテン→スタンダード→シニア→ジュニア）に戻したいときは
+   「系統順にそろえる」で並び自体を書き換える。 */
+function orderedEvents(){ return (DATA.events || []).slice(); }
+
 function buildPicker(){
   el('pick').innerHTML = '<option value="">すべての区分</option>'
-    + sortEvents(DATA.events).map(function(e){
+    + orderedEvents().map(function(e){
         var n = evName(e);
         return '<option value="' + esc(e.code) + '">' + esc(e.code) + (n ? '　' + esc(n) : '') + '</option>';
       }).join('');
@@ -384,6 +398,13 @@ function buildPicker(){
   el('c-empty').addEventListener('change', render);
   el('c-fill').addEventListener('change', updateFit);
   el('b-reload').addEventListener('click', load);
+  el('b-sort').addEventListener('click', function(){
+    if (!DATA) return;
+    if (!confirm('区分の並びを系統順（10ダンス→ラテン→スタンダード→シニア→ジュニア）に'
+               + 'そろえます。\n受付タブや欠場者一覧の並びも変わります。よろしいですか？')) return;
+    DATA.events = sortEvents(DATA.events);
+    saveEventOrder();
+  });
   el('b-syl').addEventListener('click', refreshSyllabus);
   el('pages').addEventListener('input', updateFit);
   el('b-print').addEventListener('click', function(){
@@ -396,7 +417,7 @@ function buildPicker(){
 /* いま紙に出している区分を、出している順に返す。draw() と同じ選び方。 */
 function shownCodes(){
   var only = el('pick').value, withEmpty = el('c-empty').checked;
-  return sortEvents(DATA.events)
+  return orderedEvents()
     .filter(function(e){ return !only || e.code === only; })
     .filter(function(e){ return withEmpty || entriesFor(e.code).length; })
     .map(function(e){ return e.code; });
@@ -849,7 +870,72 @@ window.addEventListener('resize', function(){
 });
 
 /* 組み直してから、収まり具合を測り直す */
-function render(){ draw(); updateFit(); }
+function render(){ draw(); updateFit(); bindMove(); }
+
+/* ── 区分の並べ替え ──
+   紙に出す順は区分マスタ（events.json）の並びそのもの。▲▼ でその並びを入れ替えて
+   サーバーに保存するので、受付タブの区分ボタン・欠場者一覧・受付締切処理も同じ並びになる。
+   エントリー0組の区分を隠しているときは、隠れている区分をまたいで動かす必要があるので、
+   「画面で隣に見えている区分」の位置まで動かす。 */
+function indexOfCode(list, code){
+  for (var i = 0; i < list.length; i++) if (list[i].code === code) return i;
+  return -1;
+}
+function moveEvent(code, dir){
+  var all   = DATA.events || [];
+  var shown = shownCodes();
+  var si    = shown.indexOf(code);
+  var nb    = shown[si + dir];
+  var from  = indexOfCode(all, code);
+  if (si < 0 || nb === undefined || from < 0) return;
+  var item = all.splice(from, 1)[0];
+  var to   = indexOfCode(all, nb);
+  all.splice(dir < 0 ? to : to + 1, 0, item);
+  saveEventOrder();
+}
+/* 区分マスタをまるごと保存し直す（並び順がそのまま記録される） */
+function saveEventOrder(){
+  render();                       /* 先に画面へ反映して、押した手応えを出す */
+  setMoveBusy(true);               /* render が結び付け直すので、そのあとで止める */
+  var fd = new FormData();
+  fd.append('id', id);
+  fd.append('events', JSON.stringify(DATA.events || []));
+  fetch('api/uketsuke_save_events.php', {method:'POST', body:fd,
+        headers:{'X-CSRF-Token': (DATA && DATA.csrf) || ''}})
+    .then(function(r){ return r.json().catch(function(){ return {error:'通信エラー'}; }); })
+    .then(function(j){
+      if (j && j.error) throw new Error(j.message || j.error);
+      el('order-note').textContent = '区分の並びを保存しました（' + new Date().toLocaleTimeString('ja-JP') + '）';
+      setMoveBusy(false);
+    })
+    .catch(function(e){
+      el('order-note').textContent = '';
+      alert('区分の並びを保存できませんでした（' + e.message + '）。\n'
+          + '「最新にする」で読み直してください。');
+      setMoveBusy(false);
+    });
+}
+function setMoveBusy(on){
+  document.querySelectorAll('[data-mv]').forEach(function(b){ b.disabled = on; });
+  el('b-sort').disabled = on;
+  if (!on) syncMoveEnds();
+}
+/* いちばん上の▲といちばん下の▼は押せないようにする */
+function syncMoveEnds(){
+  var shown = shownCodes();
+  document.querySelectorAll('[data-mv]').forEach(function(b){
+    var i = shown.indexOf(b.dataset.code);
+    b.disabled = (b.dataset.mv === 'up') ? (i <= 0) : (i < 0 || i >= shown.length - 1);
+  });
+}
+function bindMove(){
+  document.querySelectorAll('[data-mv]').forEach(function(b){
+    b.addEventListener('click', function(){
+      moveEvent(b.dataset.code, b.dataset.mv === 'up' ? -1 : 1);
+    });
+  });
+  syncMoveEnds();
+}
 
 /* 紙の中身を組む（枚数の計算はしない） */
 function draw(){
@@ -857,7 +943,7 @@ function draw(){
   var memo  = el('c-memo').checked;
   el('paper').classList.toggle('poster', isPoster());
   var withEmpty = el('c-empty').checked;
-  var evs   = sortEvents(DATA.events).filter(function(e){ return !only || e.code === only; });
+  var evs   = orderedEvents().filter(function(e){ return !only || e.code === only; });
 
   var html = '<div class="sheet-head">' + esc(DATA.name)
     + (DATA.date ? '<span class="date">' + esc(DATA.date) + '</span>' : '') + '</div>';
@@ -867,7 +953,13 @@ function draw(){
     if (!list.length && !withEmpty) return '';
     var n = evName(e) || e.code;
     var dance = danceText((SYL && SYL[e.code]) || '');
+    /* 1区分だけ出しているときは、上も下も無いので並べ替えは出さない */
+    var mv = only ? '' : '<span class="mv no-print">'
+      + '<button type="button" data-mv="up"   data-code="' + esc(e.code) + '" title="ひとつ上へ">▲</button>'
+      + '<button type="button" data-mv="down" data-code="' + esc(e.code) + '" title="ひとつ下へ">▼</button>'
+      + '</span>';
     var h = '<section class="blk"><div class="ttl k-' + evKind(e) + '"><span class="nm">' + esc(n) + '</span>'
+      + mv
       + (dance ? '<span class="dance"><span class="k">種目</span>' + esc(dance) + '</span>' : '')
       + '</div>';
     if (!list.length) {
