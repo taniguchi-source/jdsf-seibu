@@ -22,7 +22,7 @@ function uk_parse_event_lines($text) {
         $out[] = [
             'code'       => $code,
             'name'       => $name !== '' ? $name : uk_guess_event_name($code),
-            'start_time' => uk_str($p[2] ?? '', 10),
+            'start_time' => uk_deadline_or_default($p[2] ?? ''),
         ];
         if (count($out) >= 60) break;
     }

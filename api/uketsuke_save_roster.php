@@ -80,7 +80,8 @@ foreach ($wanted as $c) {
     if (!isset($known[$c])) {
         $known[$c] = true;
         $added[]   = $c;
-        $events[]  = ['code' => $c, 'name' => uk_guess_event_name($c), 'start_time' => ''];
+        $events[]  = ['code' => $c, 'name' => uk_guess_event_name($c),
+                      'start_time' => UK_DEFAULT_DEADLINE];
     }
 }
 if ($added) uk_write_json(uk_events_file($id), $events);

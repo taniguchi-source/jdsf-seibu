@@ -66,7 +66,8 @@ function uk_dcs_parse_info($raw) {
                              . 'DCSの区分設定をご確認ください。'];
         }
         $seen[$code] = $k + 1;
-        $events[] = ['code' => $code, 'name' => $names[$k]['name'], 'start_time' => ''];
+        $events[] = ['code' => $code, 'name' => $names[$k]['name'],
+                     'start_time' => UK_DEFAULT_DEADLINE];
     }
 
     /* 開催日。末尾の Cael System の行に ISO 形式で入っているのでそれを使う。

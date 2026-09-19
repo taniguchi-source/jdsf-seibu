@@ -2929,12 +2929,16 @@ function runImport(auto, onCancel){
    start_time は画面上の「受付締切」。既に保存済みのデータと印刷ページが
    このキーを使っているため、表示名だけ変えてキー名は据え置いている。 */
 var EV = [];
+/* 受付締切の初期値。区分ができた時点でサーバー側も同じ値を入れる（api/_uketsuke.php）。
+   ここは、それより前に取り込んだ大会で空のまま残っているぶんの穴埋め。 */
+var EV_DEFAULT_TIME = '10:00';
 function renderEvents(){
   EV = (DATA.events || []).slice();
   el('ev-list').innerHTML = EV.map(function(e, i){
     return '<tr><td>' + esc(e.code) + '</td>'
       + '<td><input type="text" class="ev-n" data-i="' + i + '" value="' + esc(e.name) + '"></td>'
-      + '<td><input type="text" class="ev-t" data-i="' + i + '" value="' + esc(e.start_time || '') + '" style="width:90px"></td>'
+      + '<td><input type="text" class="ev-t" data-i="' + i + '" value="'
+        + esc(e.start_time || EV_DEFAULT_TIME) + '" style="width:90px"></td>'
       + '<td><button class="small secondary" data-i="' + i + '">編集</button></td></tr>';
   }).join('');
   /* 区分そのものを直す（コードの修正・削除）は編集の画面で行う。
@@ -3053,8 +3057,18 @@ function updateEventWarn(){
     if (need) miss.push(e);
     if (inp.value.trim() !== String(e.start_time || '').trim()) unsaved = true;
   });
-  box.classList.toggle('hidden', miss.length === 0);
-  if (!miss.length) return;
+  if (!miss.length) {
+    /* 空欄に初期値を入れて見せているだけで、まだ保存していない状態。
+       このまま受付タブへ行くと足止めに掛かるので、ここで気づけるようにする。 */
+    box.classList.toggle('hidden', !unsaved);
+    if (unsaved) {
+      box.innerHTML = '<b>受付締切がまだ保存されていません</b>'
+        + '<div>空いていた欄に初期値（' + esc(EV_DEFAULT_TIME) + '）を入れました。'
+        + '違う時刻の区分は直してから、<b>「区分マスタを保存」</b>を押してください。</div>';
+    }
+    return;
+  }
+  box.classList.remove('hidden');
   box.innerHTML = '<b>受付締切が入っていない区分があります</b>'
     + '<div class="codes">'
     + miss.map(function(e){
@@ -3102,7 +3116,8 @@ el('ev-guess').addEventListener('click', function(){
 el('ev-add').addEventListener('click', function(){
   var c = el('ev-code').value.trim();
   if (!c) { alert('区分コードを入力してください'); return; }
-  EV.push({code:c, name:el('ev-name').value.trim() || c, start_time:el('ev-time').value.trim()});
+  EV.push({code:c, name:el('ev-name').value.trim() || c,
+           start_time:el('ev-time').value.trim() || EV_DEFAULT_TIME});
   DATA.events = EV;
   el('ev-code').value=''; el('ev-name').value=''; el('ev-time').value='';
   renderEvents();
