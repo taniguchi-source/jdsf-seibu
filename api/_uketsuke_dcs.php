@@ -44,15 +44,28 @@ function uk_dcs_parse_info($raw) {
         $names[] = ['name' => uk_dcs_s(substr($line, 0, 40)), 'kind' => trim(substr($line, 40, 1))];
     }
 
-    /* 区分コード（ランキング情報の各行 2〜4文字目）。競技名称と同じ並び。 */
+    /* 区分コード（ランキング情報の各行 2〜5文字目の4桁ぶん）。競技名称と同じ並び。
+       ソロの区分のように4桁のコードがある（FJSC・FVLS・FMLS）。3桁で切ると
+       FJSC が FJS になってプレジュニアと、FVLS が FVL になって小学生ラテンと重なり、
+       別の区分の選手が同じ区分に混ざってしまう。
+       この欄はランキング種別（JSA など）が6文字目から始まるので、4桁で取ってよい。 */
     $j = null;
     foreach ($rows as $k => $r) { if (strpos($r, '//- ') === 0 && strpos(uk_dcs_s($r), 'ランキング情報') !== false) { $j = $k; break; } }
     if ($j === null) return ['error' => 'ランキング情報の行が見つかりません'];
     $events = [];
+    $seen   = [];
     for ($k = 0; $k < $n; $k++) {
         $line = $rows[$j + 1 + $k] ?? '';
-        $code = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', substr($line, 1, 3)));
+        $code = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', substr($line, 1, 4)));
         if ($code === '') return ['error' => ($k + 1) . '番目の区分コードを読み取れませんでした'];
+        /* 同じコードが2つあると、受付も欠場も「背番号:区分」で記録しているので
+           別の区分の選手が混ざる。気づかないまま当日を迎えないよう、取り込む前に止める。 */
+        if (isset($seen[$code])) {
+            return ['error' => '区分コード ' . $code . ' が重なっています（'
+                             . $seen[$code] . '番目と' . ($k + 1) . '番目）。'
+                             . 'DCSの区分設定をご確認ください。'];
+        }
+        $seen[$code] = $k + 1;
         $events[] = ['code' => $code, 'name' => $names[$k]['name'], 'start_time' => ''];
     }
 
