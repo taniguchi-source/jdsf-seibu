@@ -609,6 +609,7 @@ function colGroup(memo, cols, cw){
 var MM = 96 / 25.4;                 /* 1mm ぶんのピクセル数（CSSの決まりで 96dpi） */
 var PAGE_H = 277 * MM;              /* A4縦 297mm から上下の余白 10mm ずつを引いた高さ */
 var MIN_PS = 0.5;                   /* これ以上は小さくしない */
+var MAX_PS = 2.0;                   /* これ以上は大きくしない */
 
 /* いまの大きさで何ページになるかを数える。
    区分は途中で切らない指定なので、入りきらなければ次のページへ送る。 */
@@ -787,12 +788,42 @@ function fitScale(target){
   return {scale: best, pages: pagesAt(best)};
 }
 
+/* そのままの大きさで指定より少ない枚数に収まるときは、指定の枚数まで「広げる」。
+   広げ方は縮めるときの逆で、まず段組を減らす。
+
+   2段組のまま字だけ大きくしてはいけない。列の幅は紙の幅で決まっていて変わらないので、
+   入りきらなくなった氏名や所属が「縮小して全体を表示」で小さく戻され、枚数だけ増えて
+   字はほとんど大きくならない（実測：2段組で文字150%にしても、氏名の実際の大きさは
+   100%のときとほぼ同じだった）。1段組なら1組が紙の幅いっぱいを使えるので本当に大きくなる。 */
+function expandLayout(target){
+  function pagesAt(cols, v){ COLS = cols; setPs(v); draw(); return measurePages(); }
+  if (pagesAt(1, 1) > target) return {cols: 2, scale: 1, kept: true};   /* 1段組では超える */
+  if (pagesAt(1, MAX_PS) <= target) return {cols: 1, scale: MAX_PS, maxed: true};
+  var lo = 1, hi = MAX_PS, best = 1;
+  for (var i = 0; i < 10; i++) {
+    var mid = (lo + hi) / 2;
+    if (pagesAt(1, mid) <= target) { best = mid; lo = mid; } else { hi = mid; }
+  }
+  return {cols: 1, scale: best};
+}
+
 var COLS    = 2;            /* いま組んでいる段数 */
 var COL_TRY = [2, 3, 4];    /* 試す段数 */
 
 /* 段数と縮尺の組み合わせのうち、いちばん字が大きくなるものを選ぶ */
 function fitLayout(target){
   if (!target) { COLS = 2; setPs(1); draw(); return {cols: COLS, scale: 1, pages: measurePages()}; }
+
+  /* まず、そのままの大きさ（2段組）で何ページになるかを見る。
+     指定がそれ以上なら、縮める話ではなく広げる話になる。 */
+  COLS = 2; setPs(1); draw();
+  if (measurePages() <= target) {
+    var g = expandLayout(target);
+    COLS = g.cols; setPs(g.scale); draw();
+    return {cols: g.cols, scale: g.scale, pages: measurePages(),
+            grew: !g.kept, maxed: !!g.maxed, kept: !!g.kept};
+  }
+
   var best = null;
   COL_TRY.forEach(function(c){
     COLS = c;
@@ -833,15 +864,26 @@ function updateFit(){
   var pct = Math.round(r.scale * 100);
   /* 段組や文字を変えたとき、また画面が紙より狭いときは、刷り上がりそのものを出す。
      （狭い画面で紙と違う組み方をすると、背番号が「1…」と切れて見えてしまう） */
-  showAsPaper(r.cols > 2 || r.scale < 1 || el('sheet').clientWidth < 190 * MM);
+  showAsPaper(r.cols !== 2 || r.scale !== 1 || el('sheet').clientWidth < 190 * MM);
   if (!t) {
     el('pages').placeholder = String(r.pages);
     el('fit-note').textContent = 'このままの大きさ（2段組）で ' + r.pages + 'ページです。'
-      + '減らしたいときは「ページ数」に入れてください'
-      + '（まず段組を増やし、それでも入らないときだけ文字を縮めます）。';
+      + '枚数を変えたいときは「ページ数」に入れてください'
+      + '（減らすときはまず段組を増やし、それでも入らないときだけ文字を縮めます。'
+      + '増やすときは段組を減らし、それでも足りなければ文字を大きくします）。';
   } else if (r.over) {
     el('fit-note').textContent = t + 'ページには収まりませんでした。'
       + r.cols + '段組・いちばん小さい大きさ（文字 ' + pct + '%）で ' + r.pages + 'ページです。';
+  } else if (r.kept) {
+    /* 1段組にすると指定を超えてしまうので、そのままの大きさで出す */
+    el('fit-note').textContent = t + 'ページ以内でいちばん大きくできるのは、'
+      + 'このままの大きさ（2段組）で ' + r.pages + 'ページです'
+      + '（1段組にすると ' + t + 'ページを超えます）。';
+  } else if (r.grew) {
+    /* 指定が今の枚数より多いので、段組を減らして（必要なら字も大きくして）広げた */
+    el('fit-note').textContent = r.pages + 'ページに広げます（' + r.cols + '段組'
+      + (pct > 100 ? '・文字と行間は ' + pct + '%' : '・文字はそのままの大きさ') + '）。'
+      + (r.pages < t ? 'これ以上は大きくできないので ' + t + 'ページには届きません。' : '');
   } else {
     el('fit-note').textContent = t + 'ページに収めます（' + r.cols + '段組'
       + (pct < 100 ? '・文字と行間は ' + pct + '%' : '・文字はそのままの大きさ') + '）。';
