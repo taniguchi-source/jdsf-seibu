@@ -142,6 +142,9 @@
      受付の邪魔になるため。同じ内容は「受付締切処理」タブで見られる。
      指で操作する端末（pointer:coarse）か、横幅の狭い端末が対象。 */
   @media (pointer:coarse),(max-width:1024px){ #ci-prog{display:none} }
+  /* 受付タブのいちばん上の行。狭い画面では中身を縮めずに折り返す
+     （放っておくと「受付音を鳴ら／す」のように文字が縦に潰れる）。 */
+  #ci-topbar > *{flex:none;white-space:nowrap}
   /* 受付は締切の時刻ごとに区切って進めるので、時刻でまとめて見出しを立てる。
      当日いちばん知りたいのは「この時刻はあと何組か」なので、それを右端に大きく出す。 */
   #ci-prog .gp{margin-bottom:10px}
@@ -460,11 +463,14 @@
       <!-- 誰の名前で受付しているかは、タブとこの行の両方に出す。
            記録に付ける値は #by が持つ（この端末の localStorage に記憶する）。 -->
       <input type="hidden" id="by">
-      <div class="row" style="margin-bottom:10px">
+      <div class="row wrap" id="ci-topbar" style="margin-bottom:10px">
         <!-- 手元の背番号を見ていて画面を見ていないことが多いので、
              入ったかどうかを音でも分かるようにする。会場によっては切りたいので選べる。 -->
-        <label class="checkbox-row" style="margin-right:auto">
+        <label class="checkbox-row">
           <input type="checkbox" id="ci-sound" checked><span>受付音を鳴らす</span></label>
+        <!-- 端末の音量を受付前に合わせられるように。会場では大きめが要る。 -->
+        <button type="button" class="small secondary" id="ci-sound-test"
+                style="margin-right:auto">音を試す</button>
         <span class="muted">受付担当者</span>
         <b id="ci-by-name">未設定</b>
         <button type="button" class="small secondary" id="ci-by-edit">受付担当者名を変更</button>
@@ -1853,6 +1859,23 @@ function primeSound(){
 }
 document.addEventListener('pointerdown', primeSound, true);
 document.addEventListener('keydown', primeSound, true);
+/* 音ひとつぶん。会場はざわついていて、スマホ・タブレットの小さなスピーカーで鳴らす。
+   聞こえやすさは音量だけでなく、波形と高さで決まる。
+     ・矩形波（square）は倍音が多く、同じ音量でも正弦波よりはっきり聞こえる
+     ・小さなスピーカーは低い音がほとんど出ないので、高めの音にする
+   立ち上がりと終わりは急に切るとプツッと鳴るので、ごく短くなだらかにする。 */
+function tone(freq, start, len, vol){
+  var o = AC.createOscillator(), g = AC.createGain();
+  o.type = 'square';
+  o.frequency.value = freq;
+  var t = AC.currentTime + start;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + 0.006);
+  g.gain.setValueAtTime(vol, t + len * 0.7);        /* すぐ減衰させず、鳴っている時間を保つ */
+  g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+  o.connect(g); g.connect(AC.destination);
+  o.start(t); o.stop(t + len + 0.02);
+}
 function beep(kind){
   if (!soundOn()) return;
   try {
@@ -1861,21 +1884,15 @@ function beep(kind){
     if (!AC) AC = new Ctx();
     /* 画面に触る前は音を止められている端末があるので、鳴らす直前に起こす */
     if (AC.state === 'suspended') AC.resume();
-    var ok    = (kind === 'ok');
-    var notes = ok ? [[880, 0], [1318.5, 0.09]] : [[330, 0]];
-    var len   = ok ? 0.16 : 0.34;
-    notes.forEach(function(n){
-      var o = AC.createOscillator(), g = AC.createGain();
-      o.type = 'sine';
-      o.frequency.value = n[0];
-      var t = AC.currentTime + n[1];
-      /* 0から上げるとプツッと鳴るので、ごく小さい値から立ち上げて同じように落とす */
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.28, t + 0.012);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + len);
-      o.connect(g); g.connect(AC.destination);
-      o.start(t); o.stop(t + len + 0.05);
-    });
+    if (kind === 'ok') {
+      /* 受付できた：短く上がる2音（レジやバーコードの音に近い、通りやすい高さ） */
+      tone(1175, 0,    0.10, 0.7);
+      tone(1568, 0.10, 0.17, 0.7);
+    } else {
+      /* 受付できなかった：下がる2音。高さも並びも成功と変えて、聞き分けられるようにする */
+      tone(740, 0,    0.15, 0.7);
+      tone(494, 0.17, 0.30, 0.7);
+    }
   } catch (e) { /* 音が出せない端末でも受付は続けられるようにする */ }
 }
 if (el('ci-sound')) {
@@ -1883,6 +1900,15 @@ if (el('ci-sound')) {
   el('ci-sound').addEventListener('change', function(){
     try { localStorage.setItem(SND_KEY, el('ci-sound').checked ? '1' : '0'); } catch (e) {}
     if (el('ci-sound').checked) beep('ok');   /* どんな音か、その場で分かるように鳴らす */
+  });
+}
+/* 受付できたときの音と、できなかったときの音を続けて鳴らす。
+   どちらも聞こえる音量になっているかを、受付を始める前に確かめられるようにする。 */
+if (el('ci-sound-test')) {
+  el('ci-sound-test').addEventListener('click', function(){
+    if (!el('ci-sound').checked) { el('ci-sound').checked = true; el('ci-sound').dispatchEvent(new Event('change')); return; }
+    beep('ok');
+    setTimeout(function(){ beep('ng'); }, 700);
   });
 }
 
