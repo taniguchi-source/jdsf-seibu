@@ -138,6 +138,10 @@
   #ci-prog .head{font-size:12px;color:var(--muted);margin-bottom:6px}
   #ci-prog .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px}
   @media (max-width:560px){ #ci-prog .grid{grid-template-columns:repeat(2,1fr)} }
+  /* スマホ・タブレットでは出さない。画面が狭く、背番号の入力欄が下へ押し出されて
+     受付の邪魔になるため。同じ内容は「受付締切処理」タブで見られる。
+     指で操作する端末（pointer:coarse）か、横幅の狭い端末が対象。 */
+  @media (pointer:coarse),(max-width:1024px){ #ci-prog{display:none} }
   /* 受付は締切の時刻ごとに区切って進めるので、時刻でまとめて見出しを立てる。
      当日いちばん知りたいのは「この時刻はあと何組か」なので、それを右端に大きく出す。 */
   #ci-prog .gp{margin-bottom:10px}
@@ -457,7 +461,11 @@
            記録に付ける値は #by が持つ（この端末の localStorage に記憶する）。 -->
       <input type="hidden" id="by">
       <div class="row" style="margin-bottom:10px">
-        <span class="muted" style="margin-left:auto">受付担当者</span>
+        <!-- 手元の背番号を見ていて画面を見ていないことが多いので、
+             入ったかどうかを音でも分かるようにする。会場によっては切りたいので選べる。 -->
+        <label class="checkbox-row" style="margin-right:auto">
+          <input type="checkbox" id="ci-sound" checked><span>受付音を鳴らす</span></label>
+        <span class="muted">受付担当者</span>
         <b id="ci-by-name">未設定</b>
         <button type="button" class="small secondary" id="ci-by-edit">受付担当者名を変更</button>
       </div>
@@ -1824,7 +1832,60 @@ function showPanel(bib, msg){
   });
 }
 
-/* ここで初めて受付が記録される。code を渡すとその区分だけ、null なら全区分。 */
+/* ---------- 受付音 ----------
+   受付の人は手元の背番号や参加証を見ていて、画面を見ていないことが多い。
+   入ったかどうかを音で分かるようにする。受付できた＝高く2音、できなかった＝低く1音。
+   音源ファイルは置かず、その場で波形を作る（会場のネットが不安定でも鳴るように）。
+   鳴らすかどうかは端末ごとに覚える（静かにしたい会場もあるため）。 */
+var SND_KEY = 'uk_sound';
+var AC = null;
+function soundOn(){ try { return localStorage.getItem(SND_KEY) !== '0'; } catch (e) { return true; } }
+/* iPhone・iPad は画面に触った流れでしか音を出せない。受付音が鳴るのはサーバーの
+   返事が返ってきたあと＝触った流れから外れたところなので、触った時点で先に
+   音の入れものを用意しておく。これが無いとスマホ・タブレットで無音になる。 */
+function primeSound(){
+  try {
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    if (!AC) AC = new Ctx();
+    if (AC.state === 'suspended') AC.resume();
+  } catch (e) {}
+}
+document.addEventListener('pointerdown', primeSound, true);
+document.addEventListener('keydown', primeSound, true);
+function beep(kind){
+  if (!soundOn()) return;
+  try {
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    if (!AC) AC = new Ctx();
+    /* 画面に触る前は音を止められている端末があるので、鳴らす直前に起こす */
+    if (AC.state === 'suspended') AC.resume();
+    var ok    = (kind === 'ok');
+    var notes = ok ? [[880, 0], [1318.5, 0.09]] : [[330, 0]];
+    var len   = ok ? 0.16 : 0.34;
+    notes.forEach(function(n){
+      var o = AC.createOscillator(), g = AC.createGain();
+      o.type = 'sine';
+      o.frequency.value = n[0];
+      var t = AC.currentTime + n[1];
+      /* 0から上げるとプツッと鳴るので、ごく小さい値から立ち上げて同じように落とす */
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.28, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+      o.connect(g); g.connect(AC.destination);
+      o.start(t); o.stop(t + len + 0.05);
+    });
+  } catch (e) { /* 音が出せない端末でも受付は続けられるようにする */ }
+}
+if (el('ci-sound')) {
+  el('ci-sound').checked = soundOn();
+  el('ci-sound').addEventListener('change', function(){
+    try { localStorage.setItem(SND_KEY, el('ci-sound').checked ? '1' : '0'); } catch (e) {}
+    if (el('ci-sound').checked) beep('ok');   /* どんな音か、その場で分かるように鳴らす */
+  });
+}
+
 /* ここで初めて受付が記録される。code を渡すとその区分だけ、null なら全区分。
    区分を選ぶ画面が出ているときはそのまま開いておき、続けて押せるようにする。 */
 function doCheckin(bib, code){
@@ -1842,8 +1903,9 @@ function doCheckin(bib, code){
       if (!did.length && (r.already || []).length) lines.push('既に受付済みです：' + esc(r.already.join('・')));
       /* 初期振分が済んでいて受付しなかった区分。人の判断に回してもらう。 */
       if (r.blocked_message) lines.push('<b>' + esc(r.blocked_message) + '</b>');
-      banner(r.blocked_message ? 'danger' : (did.length ? 'ok' : 'warn'),
-        whoHtml(r.bib, r) + evHtml(r.events, r.bib, r.done) + '<br>' + lines.join('<br>'));
+      var kind = r.blocked_message ? 'danger' : (did.length ? 'ok' : 'warn');
+      beep(kind === 'ok' ? 'ok' : 'ng');
+      banner(kind, whoHtml(r.bib, r) + evHtml(r.events, r.bib, r.done) + '<br>' + lines.join('<br>'));
       return refresh().then(function(){
         renderRecent();
         afterPanelAction(bib);
@@ -1852,7 +1914,7 @@ function doCheckin(bib, code){
         el('bib').focus();
       });
     })
-    .catch(function(err){ banner('danger', esc(err.message)); el('bib').focus(); });
+    .catch(function(err){ beep('ng'); banner('danger', esc(err.message)); el('bib').focus(); });
 }
 /* 受付の取消。code を渡すとその区分だけ、null ならその組の全区分。 */
 function doUncheckin(bib, code){
