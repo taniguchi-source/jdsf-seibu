@@ -794,17 +794,34 @@ function fitScale(target){
    2段組のまま字だけ大きくしてはいけない。列の幅は紙の幅で決まっていて変わらないので、
    入りきらなくなった氏名や所属が「縮小して全体を表示」で小さく戻され、枚数だけ増えて
    字はほとんど大きくならない（実測：2段組で文字150%にしても、氏名の実際の大きさは
-   100%のときとほぼ同じだった）。1段組なら1組が紙の幅いっぱいを使えるので本当に大きくなる。 */
-function expandLayout(target){
+   100%のときとほぼ同じだった）。1段組なら1組が紙の幅いっぱいを使えるので本当に大きくなる。
+
+   1段組でちょうどよい枚数にするために、文字を少し小さくすることはある。
+   区分が多い大会では 1段組・そのままの大きさ にすると指定を大きく超えてしまい、
+   それを断ると「指定しても何も変わらない」ことになるため（19区分の大会で
+   1段組100%＝6ページ。5ページの指定に対して、90%なら ちょうど5ページに収まる）。
+   ただし小さくしすぎては本末転倒なので 80% までとする。 */
+var EXPAND_MIN_PS = 0.8;
+
+function expandLayout(target, basePages){
   function pagesAt(cols, v){ COLS = cols; setPs(v); draw(); return measurePages(); }
-  if (pagesAt(1, 1) > target) return {cols: 2, scale: 1, kept: true};   /* 1段組では超える */
-  if (pagesAt(1, MAX_PS) <= target) return {cols: 1, scale: MAX_PS, maxed: true};
-  var lo = 1, hi = MAX_PS, best = 1;
-  for (var i = 0; i < 10; i++) {
-    var mid = (lo + hi) / 2;
-    if (pagesAt(1, mid) <= target) { best = mid; lo = mid; } else { hi = mid; }
+  /* いちばん小さくしても超えるなら、1段組にはできない */
+  if (pagesAt(1, EXPAND_MIN_PS) > target) return {cols: 2, scale: 1, kept: true};
+  var best;
+  if (pagesAt(1, MAX_PS) <= target) {
+    best = MAX_PS;
+  } else {
+    var lo = EXPAND_MIN_PS, hi = MAX_PS;
+    best = EXPAND_MIN_PS;
+    for (var i = 0; i < 10; i++) {
+      var mid = (lo + hi) / 2;
+      if (pagesAt(1, mid) <= target) { best = mid; lo = mid; } else { hi = mid; }
+    }
   }
-  return {cols: 1, scale: best};
+  /* 1段組にしても枚数が増えないなら、いまの2段組のほうが字は大きい */
+  var p = pagesAt(1, best);
+  if (p <= basePages) return {cols: 2, scale: 1, kept: true};
+  return {cols: 1, scale: best, pages: p, maxed: best >= MAX_PS};
 }
 
 var COLS    = 2;            /* いま組んでいる段数 */
@@ -817,8 +834,9 @@ function fitLayout(target){
   /* まず、そのままの大きさ（2段組）で何ページになるかを見る。
      指定がそれ以上なら、縮める話ではなく広げる話になる。 */
   COLS = 2; setPs(1); draw();
-  if (measurePages() <= target) {
-    var g = expandLayout(target);
+  var basePages = measurePages();
+  if (basePages <= target) {
+    var g = expandLayout(target, basePages);
     COLS = g.cols; setPs(g.scale); draw();
     return {cols: g.cols, scale: g.scale, pages: measurePages(),
             grew: !g.kept, maxed: !!g.maxed, kept: !!g.kept};
@@ -875,14 +893,17 @@ function updateFit(){
     el('fit-note').textContent = t + 'ページには収まりませんでした。'
       + r.cols + '段組・いちばん小さい大きさ（文字 ' + pct + '%）で ' + r.pages + 'ページです。';
   } else if (r.kept) {
-    /* 1段組にすると指定を超えてしまうので、そのままの大きさで出す */
-    el('fit-note').textContent = t + 'ページ以内でいちばん大きくできるのは、'
-      + 'このままの大きさ（2段組）で ' + r.pages + 'ページです'
-      + '（1段組にすると ' + t + 'ページを超えます）。';
+    /* 1段組にすると指定を超える（または文字を小さくしすぎる）ので、そのままで出す。
+       指定がちょうど今の枚数のときは、広げる必要がないだけなので言い方を分ける。 */
+    el('fit-note').textContent = (r.pages === t)
+      ? t + 'ページです（2段組・文字はそのままの大きさ）。'
+      : t + 'ページには広げられませんでした'
+        + '（1段組にすると ' + t + 'ページを超えるか、文字が小さくなりすぎます）。'
+        + 'このままの大きさ（2段組）で ' + r.pages + 'ページです。';
   } else if (r.grew) {
-    /* 指定が今の枚数より多いので、段組を減らして（必要なら字も大きくして）広げた */
+    /* 指定が今の枚数より多いので、段組を減らして広げた（縮尺で枚数を合わせる） */
     el('fit-note').textContent = r.pages + 'ページに広げます（' + r.cols + '段組'
-      + (pct > 100 ? '・文字と行間は ' + pct + '%' : '・文字はそのままの大きさ') + '）。'
+      + (pct !== 100 ? '・文字と行間は ' + pct + '%' : '・文字はそのままの大きさ') + '）。'
       + (r.pages < t ? 'これ以上は大きくできないので ' + t + 'ページには届きません。' : '');
   } else {
     el('fit-note').textContent = t + 'ページに収めます（' + r.cols + '段組'
