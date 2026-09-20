@@ -2163,7 +2163,12 @@ function renderRecent(){
     .sort(function(a, b){ return (b.at || '').localeCompare(a.at || ''); });
   el('ci-count').textContent = '（' + rows.length + ' / ' + (DATA.roster||[]).length + ' 組　'
     + (DATA.checkins||[]).length + ' 区分）';
-  el('ci-recent').innerHTML = rows.slice(0, 40).map(function(g){
+  /* 受付した組はすべて出す。直近40組だけにしていたが、40組を超えると
+     先に受付した組が一覧から消えてしまい、取消や区分の直しができなくなっていた
+     （見出しの件数だけ増えて、表に無い状態になる）。
+     3秒ごとに組み直すので、行が増えても重くならないよう、ボタンの結び付けは
+     一覧に1つだけにしてある（下の ci-recent のクリック）。 */
+  el('ci-recent').innerHTML = rows.map(function(g){
     var r = map[g.bib] || {};
     var codes = (r.events || []).map(function(c){
       var on = !!done[g.bib + ':' + c];
@@ -2177,20 +2182,23 @@ function renderRecent(){
       + ' <button type="button" class="small secondary" data-uncheck="' + esc(g.bib) + '">取消</button></td></tr>';
   }).join('');
 
-  /* 区分を押し間違えたときに、その組のボタンをすぐ開き直せるようにする */
-  el('ci-recent').querySelectorAll('[data-open]').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      LOOKED_UP = null;
-      LAST_BIB  = String(btn.dataset.open);
-      showPanel(btn.dataset.open, '');
-      el('ci-panel').scrollIntoView({block:'center'});
-    });
-  });
-  /* 打ち間違えた背番号を1組ぶん取り消す */
-  el('ci-recent').querySelectorAll('[data-uncheck]').forEach(function(btn){
-    btn.addEventListener('click', function(){ doUncheckin(btn.dataset.uncheck, null); });
-  });
 }
+/* 「区分」「取消」の押したときの動きは、一覧の外側で1回だけ受け取る。
+   行ごとに結び付けると、3秒ごとの組み直しのたびに組数ぶん付け直すことになる。
+     区分 … 押し間違えたときに、その組のボタンをすぐ開き直す
+     取消 … 打ち間違えた背番号を1組ぶん取り消す */
+el('ci-recent').addEventListener('click', function(e){
+  var b = e.target.closest ? e.target.closest('button[data-open],button[data-uncheck]') : null;
+  if (!b) return;
+  if (b.dataset.open !== undefined) {
+    LOOKED_UP = null;
+    LAST_BIB  = String(b.dataset.open);
+    showPanel(b.dataset.open, '');
+    el('ci-panel').scrollIntoView({block:'center'});
+  } else {
+    doUncheckin(b.dataset.uncheck, null);
+  }
+});
 /* ---------- 欠場報告 ----------
    背番号在庫のチェックは受付とは別の人が担当するので、名前も受付担当者とは別に持つ。 */
 function absentBy(){
