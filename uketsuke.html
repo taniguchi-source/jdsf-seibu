@@ -47,6 +47,9 @@
   #mn-list .mn-line{display:flex;align-items:center;gap:8px}
   #mn-list .mn-lab{flex:none;width:3.2em;font-size:12px;color:var(--muted);font-weight:700}
   #mn-list .mn-note,#mn-list .mn-reason{flex:1 1 auto;width:100%}
+  /* 「初期振分の終了後に受付希望」のときだけ出す、決まった言い方の選択肢。
+     狭い画面ではメモ欄と2行に分かれる。 */
+  #mn-list .mn-pick{flex:none;max-width:17em;font-size:14px;padding:6px 8px}
   #mn-list .mn-ev{font-weight:700}
   #mn-list .mn-sub{display:block;font-size:12px;color:var(--muted)}
   #v-manual th{white-space:nowrap}
@@ -2523,6 +2526,28 @@ document.addEventListener('keydown', function(e){
    その場の画面に出すだけでは伝え漏れるので、ここに集めて片づける。
    メモを書いた件は対応済みとして扱い、タブの件数から外す（チェック欄は持たない）。 */
 var MN_KIND = {checkin:'受付', uncheckin:'取消', add:'手で追加'};
+
+/* ST初期振分のあとに受付しようとして止まった件は、対応の仕方が決まっている。
+   毎回同じことを打つのは手間なので選べるようにする（理由がこの文言のときだけ出す）。
+   「その他」を選んだときはメモ欄に自由に書いてもらう。 */
+var MN_REASON_PICK = '初期振分の終了後に受付希望';
+var MN_PICK_OTHER  = 'その他';
+var MN_PICKS = ['欠場する旨を了承している', 'STに報告して追加エントリーした', MN_PICK_OTHER];
+
+function mnPickHtml(reason, note){
+  var show = String(reason || '').trim() === MN_REASON_PICK;
+  var n    = String(note || '').trim();
+  /* すでに書いてあるメモが決まった言い方ならそれを選んだ状態に、
+     そうでなければ「その他」にしておく（何を選んだかが見て分かるように） */
+  var cur  = (MN_PICKS.indexOf(n) >= 0) ? n : (n !== '' ? MN_PICK_OTHER : '');
+  return '<select class="mn-pick' + (show ? '' : ' hidden') + '">'
+    + '<option value="">選ぶ…</option>'
+    + MN_PICKS.map(function(p){
+        return '<option value="' + esc(p) + '"' + (p === cur ? ' selected' : '') + '>' + esc(p) + '</option>';
+      }).join('')
+    + '</select>';
+}
+
 function manualTodo(){
   return (DATA && DATA.manual || []).filter(function(m){ return !String(m.note || '').trim(); }).length;
 }
@@ -2570,6 +2595,7 @@ function renderManual(){
       + '<input type="text" class="mn-reason"' + key + ' value="' + esc(reason) + '"'
       + ' placeholder="なぜ手動対応が要るのか"></div>'
       + '<div class="mn-line no-print"><span class="mn-lab">メモ</span>'
+      + mnPickHtml(reason, note)
       + '<input type="text" class="mn-note"' + key + ' value="' + esc(note) + '"'
       + ' placeholder="どう対応したか">'
       + '<button type="button" class="small secondary mn-save"' + key + '>保存</button></div>'
@@ -2579,6 +2605,27 @@ function renderManual(){
 
   el('mn-list').querySelectorAll('.mn-save').forEach(function(btn){
     btn.addEventListener('click', function(){ saveManualNote(btn); });
+  });
+  /* 決まった言い方を選んだら、メモ欄に入れる。「その他」はその場で書いてもらう。
+     メモ欄はいつでも直せるようにしておく（選択肢は書く手間を省くためのもの）。 */
+  el('mn-list').querySelectorAll('.mn-pick').forEach(function(sel){
+    sel.addEventListener('change', function(){
+      var inp = sel.closest('.mn-line').querySelector('.mn-note');
+      if (sel.value === '') return;
+      if (sel.value === MN_PICK_OTHER) {
+        if (MN_PICKS.indexOf(inp.value.trim()) >= 0) inp.value = '';
+        inp.focus();
+      } else {
+        inp.value = sel.value;
+      }
+    });
+  });
+  /* 理由を書き換えたら、選択肢を出したり引っ込めたりする */
+  el('mn-list').querySelectorAll('.mn-reason').forEach(function(inp){
+    inp.addEventListener('input', function(){
+      var sel = inp.closest('.mn-fields').querySelector('.mn-pick');
+      if (sel) sel.classList.toggle('hidden', inp.value.trim() !== MN_REASON_PICK);
+    });
   });
   el('mn-list').querySelectorAll('.mn-note,.mn-reason').forEach(function(inp){
     inp.addEventListener('keydown', function(e){
