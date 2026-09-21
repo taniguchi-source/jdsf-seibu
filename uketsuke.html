@@ -1876,6 +1876,32 @@ function tone(freq, start, len, vol){
   o.connect(g); g.connect(AC.destination);
   o.start(t); o.stop(t + len + 0.02);
 }
+/* ピアノのような音ひとつぶん。基音に倍音を重ね、立ち上がりは速く、あとは減衰させるだけ
+   （鍵盤を弾いたあとの減り方）。高い倍音ほど早く消えるので、そのぶん短くする。
+   パソコンはスピーカーが大きく、矩形波だと驚くような鳴り方になるのでこちらを使う。 */
+function pianoTone(freq, start, vol, len){
+  var parts = [[1, 1], [2, 0.34], [3, 0.12], [4, 0.05]];
+  parts.forEach(function(p, i){
+    var o = AC.createOscillator(), g = AC.createGain();
+    o.type = 'sine';
+    o.frequency.value = freq * p[0];
+    var t = AC.currentTime + start;
+    var d = len / (1 + i * 0.6);          /* 上の倍音ほど先に消える */
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol * p[1], t + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g); g.connect(AC.destination);
+    o.start(t); o.stop(t + d + 0.02);
+  });
+}
+
+/* 指で操作する端末（スマホ・タブレット）かどうか。「区分ごとの受付」を隠す判定と同じ。
+   小さなスピーカーでざわついた会場に鳴らすので、そちらは はっきりした矩形波のまま。 */
+function isTouchDevice(){
+  try { return !!(window.matchMedia && window.matchMedia('(pointer:coarse)').matches); }
+  catch (e) { return false; }
+}
+
 function beep(kind){
   if (!soundOn()) return;
   try {
@@ -1884,14 +1910,24 @@ function beep(kind){
     if (!AC) AC = new Ctx();
     /* 画面に触る前は音を止められている端末があるので、鳴らす直前に起こす */
     if (AC.state === 'suspended') AC.resume();
-    if (kind === 'ok') {
-      /* 受付できた：短く上がる2音（レジやバーコードの音に近い、通りやすい高さ） */
-      tone(1175, 0,    0.10, 0.7);
-      tone(1568, 0.10, 0.17, 0.7);
+    if (isTouchDevice()) {
+      if (kind === 'ok') {
+        /* 受付できた：短く上がる2音（レジやバーコードの音に近い、通りやすい高さ） */
+        tone(1175, 0,    0.10, 0.7);
+        tone(1568, 0.10, 0.17, 0.7);
+      } else {
+        /* 受付できなかった：下がる2音。高さも並びも成功と変えて、聞き分けられるようにする */
+        tone(740, 0,    0.15, 0.7);
+        tone(494, 0.17, 0.30, 0.7);
+      }
+    } else if (kind === 'ok') {
+      /* パソコン・受付できた：上がる2音（ド→ソ）。柔らかく、すぐ減衰する */
+      pianoTone(523.25, 0,    0.30, 0.85);
+      pianoTone(783.99, 0.11, 0.30, 1.10);
     } else {
-      /* 受付できなかった：下がる2音。高さも並びも成功と変えて、聞き分けられるようにする */
-      tone(740, 0,    0.15, 0.7);
-      tone(494, 0.17, 0.30, 0.7);
+      /* パソコン・受付できなかった：下がる2音（ラ→レ）。低めにして成功と聞き分ける */
+      pianoTone(440.00, 0,    0.30, 0.75);
+      pianoTone(293.66, 0.15, 0.30, 1.20);
     }
   } catch (e) { /* 音が出せない端末でも受付は続けられるようにする */ }
 }
