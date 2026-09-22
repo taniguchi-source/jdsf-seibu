@@ -23,6 +23,10 @@
     border-bottom:3px solid transparent;text-decoration:none;white-space:nowrap}
   nav.tabs a:hover{color:var(--text)}
   nav.tabs .active{color:var(--primary);border-bottom-color:var(--primary)}
+  /* 画面が広いと、上の帯とタブだけ左右の端まで広がって真ん中が空いてしまう。
+     帯の色は端まで出したいので、中身のほうを余白で中ほどへ寄せる。 */
+  header,nav.tabs{padding-left:max(16px,calc((100% - 1080px) / 2));
+    padding-right:max(16px,calc((100% - 1080px) / 2))}
   main{max-width:900px;margin:0 auto;padding:16px}
   .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
   button{font-size:15px;font-weight:700;padding:10px 16px;border:none;border-radius:8px;

@@ -34,6 +34,10 @@
   nav.tabs a:hover{color:var(--text)}
   /* 手動対応が残っているときは、タブの色を変えて気づけるようにする */
   nav.tabs button.has-todo{color:#c2410c}
+  /* 画面が広いと、上の帯とタブだけ左右の端まで広がって真ん中が空いてしまう。
+     帯の色は端まで出したいので、中身のほうを余白で中ほどへ寄せる。 */
+  header,nav.tabs{padding-left:max(16px,calc((100% - 1080px) / 2));
+    padding-right:max(16px,calc((100% - 1080px) / 2))}
   /* 手動対応の一覧。未対応を目立たせ、済んだものは薄く */
   tr.mn-todo td{background:#fff7ed}
   /* メモを書き込める幅を取り、他の列は詰める */
