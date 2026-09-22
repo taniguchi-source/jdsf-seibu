@@ -111,6 +111,7 @@
   /* 区分マスタの受付締切。打ち込む欄ではなく、まとめ入れの結果を見せる欄。 */
   #ev-list td.ev-t{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
   #ev-list td.ev-t-none{color:var(--warn);font-weight:800}
+  #ev-list td.ev-e{font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
   #ev-list td:first-child{width:1%;text-align:center}
   #ev-list input[type=checkbox],#ev-all{width:20px;height:20px}   /* 指でも押せる大きさ */
   #ev-bulk{background:var(--warn-bg);border:1px solid #f3c07a;border-radius:10px;padding:10px 12px}
@@ -717,9 +718,13 @@
         <div style="height:12px"></div>
         <table class="dense">
           <thead><tr><th style="width:1%"><input type="checkbox" id="ev-all"></th>
-            <th>コード</th><th>区分名</th><th>受付締切</th><th></th></tr></thead>
+            <th>コード</th><th>区分名</th><th>エントリー</th><th>受付締切</th><th></th></tr></thead>
           <tbody id="ev-list"></tbody>
         </table>
+        <!-- エントリーが0組の区分は当日どこにも出てこないので、ふだんは隠しておく。
+             コードの直しや削除をしたいときだけ出す。 -->
+        <label class="checkbox-row" id="ev-empty-row" style="margin-top:8px">
+          <input type="checkbox" id="ev-show-empty"><span id="ev-empty-lab">エントリー0組の区分も出す</span></label>
         <div style="height:10px"></div>
         <div class="row wrap">
           <div style="width:110px"><input type="text" id="ev-code" placeholder="コード"></div>
@@ -3275,14 +3280,24 @@ function evSaved(msg, ms){
 }
 function renderEvents(){
   EV = (DATA.events || []).slice();
-  el('ev-list').innerHTML = EV.map(function(e, i){
-    var t = String(e.start_time || '').trim();
+  /* エントリーが0組の区分は、受付にも紙にも出てこない（DCSの区分表には
+     載っていても、その大会で誰も出ない区分がある）。ふだんは隠しておく。 */
+  var showEmpty = el('ev-show-empty') && el('ev-show-empty').checked;
+  var rows = EV.map(function(e, i){ return {e: e, i: i, n: entryCount(e.code)}; });
+  var hidden = rows.filter(function(r){ return r.n === 0; }).length;
+  var show = rows.filter(function(r){ return showEmpty || r.n > 0; });
+  el('ev-list').innerHTML = show.map(function(r){
+    var e = r.e, i = r.i, t = String(e.start_time || '').trim();
     return '<tr><td><input type="checkbox" class="ev-c" data-i="' + i + '"></td>'
       + '<td>' + esc(e.code) + '</td>'
       + '<td><input type="text" class="ev-n" data-i="' + i + '" value="' + esc(e.name) + '"></td>'
+      + '<td class="ev-e' + (r.n ? '' : ' muted') + '">' + r.n + '組</td>'
       + '<td class="ev-t' + (t ? '' : ' ev-t-none') + '">' + (t ? esc(t) : '未設定') + '</td>'
       + '<td><button class="small secondary" data-i="' + i + '">編集</button></td></tr>';
-  }).join('');
+  }).join('') || '<tr><td colspan="6" class="muted">エントリーのある区分がありません。'
+      + '（名簿を取り込む前か、全区分が0組です）</td></tr>';
+  el('ev-empty-row').classList.toggle('hidden', hidden === 0);
+  el('ev-empty-lab').textContent = 'エントリー0組の区分も出す（' + hidden + '区分）';
   /* 区分そのものを直す（コードの修正・削除）は編集の画面で行う。
      一覧に削除ボタンを置いていたころは、受付の準備中に押してしまう事故があり得た。 */
   el('ev-list').querySelectorAll('button[data-i]').forEach(function(b){
@@ -3329,6 +3344,7 @@ el('ev-list').addEventListener('change', function(ev){
 el('ev-all').addEventListener('change', function(){
   pickEvents(el('ev-all').checked ? 'all' : 'none');
 });
+el('ev-show-empty').addEventListener('change', function(){ renderEvents(); });
 el('ev-pick-all').addEventListener('click',   function(){ pickEvents('all'); });
 el('ev-pick-empty').addEventListener('click', function(){ pickEvents('empty'); });
 el('ev-pick-none').addEventListener('click',  function(){ pickEvents('none'); });
@@ -3510,7 +3526,12 @@ el('ev-add').addEventListener('click', function(){
            start_time:normTime(el('ev-time').value) || EV_DEFAULT_TIME});
   DATA.events = EV;
   el('ev-code').value=''; el('ev-name').value=''; el('ev-time').value='';
+  /* 足したばかりの区分はまだ0組なので、そのままだと隠れて見えない */
+  el('ev-show-empty').checked = true;
   renderEvents();
+  /* その場で保存する。保存しないでおくと、巡回でサーバーから読み直したときに
+     足したことが黙って消える（受付締切のまとめ入れと同じ考え方）。 */
+  saveEvents();
 });
 /* 画面の入力を EV に取り込んで保存する。
    focusIndex を渡すと、保存後の再描画のあとにその行の区分名へフォーカスを戻す
