@@ -44,9 +44,11 @@
   #mn-list tr.mn-r1 td{border-bottom:none;padding-bottom:2px}
   #mn-list tr.mn-r2 td{padding-top:2px}
   #mn-list .mn-fields{display:flex;flex-direction:column;gap:6px}
-  #mn-list .mn-line{display:flex;align-items:center;gap:8px}
+  #mn-list .mn-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   #mn-list .mn-lab{flex:none;width:3.2em;font-size:12px;color:var(--muted);font-weight:700}
-  #mn-list .mn-note,#mn-list .mn-reason{flex:1 1 auto;width:100%}
+  /* スマホでは選択肢とメモ欄が同じ行に並ぶと、メモが数文字ぶんの幅しか残らない。
+     12em を切るなら次の行へ落とす（メモは当日いちばん書き足すところなので）。 */
+  #mn-list .mn-note,#mn-list .mn-reason{flex:1 1 12em;width:100%;min-width:12em}
   /* 「初期振分の終了後に受付希望」のときだけ出す、決まった言い方の選択肢。
      狭い画面ではメモ欄と2行に分かれる。 */
   #mn-list .mn-pick{flex:none;max-width:17em;font-size:14px;padding:6px 8px}
@@ -937,7 +939,7 @@ function switchView(v){
   if (v === 'checkin') { renderRecent(); if (checkinReady()) el('bib').focus(); }
   if (v === 'rollcall') renderRollcall();
   if (v === 'deadline') renderDeadline();
-  if (v === 'manual') renderManual();
+  if (v === 'manual') renderManual(true);
   if (v === 'roster') { renderEvents(); renderRoster(); renderEventChecks(); }
   syncEntriesLinks();
   /* 受付以外の画面にいても更新を続ける。ヘッダーの更新時刻が動いていることが、
@@ -2584,6 +2586,14 @@ var MN_REASON_PICK = '初期振分の終了後に受付希望';
 var MN_PICK_OTHER  = 'その他';
 var MN_PICKS = ['欠場する旨を了承している', 'STに報告して追加エントリーした', MN_PICK_OTHER];
 
+/* 一覧をいつ組み直してよいかの判断に使う。
+   MN_SIG    … いま画面に出している中身。変わっていなければ組み直さない。
+   MN_TOUCH_AT … この一覧を最後にさわった時刻。iPhone・iPad は選択肢を開いている
+                 あいだ焦点が付かないことがあり、その最中に組み直すと選ぶ画面ごと
+                 消えて、選んだことが無かったことになる。 */
+var MN_SIG = null;
+var MN_TOUCH_AT = 0;
+
 function mnPickHtml(reason, note){
   var show = String(reason || '').trim() === MN_REASON_PICK;
   var n    = String(note || '').trim();
@@ -2608,11 +2618,17 @@ function renderManualTab(){
   b.textContent = n ? '手動対応 ' + n : '手動対応';
   b.classList.toggle('has-todo', n > 0);
 }
-function renderManual(){
+/* force を付けて呼ぶと、待たずにその場で組み直す（手で足したとき・画面を開いたとき）。
+   巡回からの呼び出しでは付けない。呼び出し側が渡した値が紛れ込まないよう、
+   .then(renderManual) のような渡し方はしないこと。 */
+function renderManual(force){
   renderManualTab();
   /* 3秒ごとに一覧を組み直しているので、そのまま作り直すと入力中の文字が消える。
      この一覧の中に焦点があるあいだは触らない（次の巡回で最新になる）。 */
-  if (el('mn-list').contains(document.activeElement)) return;
+  if (!force && el('mn-list').contains(document.activeElement)) return;
+  /* 焦点だけでは足りない。iPhone・iPad の選択肢は、開いていても焦点が付かないことが
+     あり、そこで組み直すと選ぶ画面ごと消える。さわった直後もしばらく触らない。 */
+  if (!force && Date.now() - MN_TOUCH_AT < 10000) return;
   /* 印刷したとき、何の大会のいつの一覧か分かるようにする（画面では出さない） */
   el('mn-print-head').textContent = (COMP ? COMP.name + (COMP.date ? '（' + COMP.date + '）' : '') : '')
     + '　' + new Date().toLocaleString('ja-JP');
@@ -2623,6 +2639,22 @@ function renderManual(){
     if (an !== bn) return an - bn;
     return String(b.last_at || b.at) < String(a.last_at || a.at) ? -1 : 1;
   });
+  /* 手で足すときの区分。名簿の区分と同じ並びで出す（一覧を組み直さないときも直す） */
+  var codeSel = el('mn-code');
+  var codeOpts = (DATA.events || []).map(function(e){
+    return '<option value="' + esc(e.code) + '">' + evLabel(e) + '</option>';
+  }).join('');
+  if (codeSel.innerHTML !== codeOpts) {
+    var cur = codeSel.value; codeSel.innerHTML = codeOpts; if (cur) codeSel.value = cur;
+  }
+  /* 中身が前と同じなら組み直さない。3秒ごとに作り直すと、入力中でなくても
+     選ぶ画面が閉じたり、押そうとした先が入れ替わったりするため。 */
+  var sig = JSON.stringify(rows.map(function(m){
+    return [m.bib, m.code, m.kind, m.by || '', m.count || 1,
+            m.last_at || m.at, String(m.reason || ''), String(m.note || '')];
+  }));
+  if (sig === MN_SIG) return;
+  MN_SIG = sig;
   el('mn-list').innerHTML = rows.map(function(m){
     var r  = rosterOf(m.bib) || {};
     var ev = (DATA.events || []).filter(function(e){ return e.code === m.code; })[0] || {code:m.code};
@@ -2678,21 +2710,27 @@ function renderManual(){
       if (sel) sel.classList.toggle('hidden', inp.value.trim() !== MN_REASON_PICK);
     });
   });
-  /* 保存ボタンは置かない。書き終わり（他へ移ったとき）とEnterで自動保存する。 */
+  /* 保存ボタンは置かない。書き終わり（他へ移ったとき）とEnterで自動保存する。
+     iPhone・iPad は「書き終わった」合図が出ないまま画面を閉じたり持ち替えたり
+     するので、手が止まったところでも送る。同じ中身は二度送らない。 */
   el('mn-list').querySelectorAll('.mn-note,.mn-reason').forEach(function(inp){
-    inp.addEventListener('change', function(){ saveManualNote(inp); });
+    inp.addEventListener('input', function(){
+      clearTimeout(inp._t);
+      inp._t = setTimeout(function(){ saveManualNote(inp); }, 1200);
+    });
+    inp.addEventListener('change', function(){ clearTimeout(inp._t); saveManualNote(inp); });
+    inp.addEventListener('blur',   function(){ clearTimeout(inp._t); saveManualNote(inp); });
     inp.addEventListener('keydown', function(e){
       if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); inp.blur(); }
     });
   });
 
-  /* 手で足すときの区分。名簿の区分と同じ並びで出す */
-  var sel = el('mn-code');
-  var opts = (DATA.events || []).map(function(e){
-    return '<option value="' + esc(e.code) + '">' + evLabel(e) + '</option>';
-  }).join('');
-  if (sel.innerHTML !== opts) { var cur = sel.value; sel.innerHTML = opts; if (cur) sel.value = cur; }
 }
+/* この一覧をさわっている最中は組み直さないための見張り。組み直しても消えないよう、
+   tbody そのものに付ける（中身は入れ替わるが、この要素は残る）。 */
+['focusin', 'pointerdown', 'touchstart', 'input', 'change'].forEach(function(ev){
+  el('mn-list').addEventListener(ev, function(){ MN_TOUCH_AT = Date.now(); }, true);
+});
 /* 理由・メモの自動保存。保存ボタンは置かず、選んだとき・書き終わったときに送る。
    引数は行の中のどれか（メモ欄でも理由欄でも選択肢でもよい）。
    同じ行を続けて直したときに前の通信を追い越さないよう、行ごとに1つずつ送る。 */
@@ -2703,8 +2741,13 @@ function saveManualNote(fieldEl){
   var reason = cell.querySelector('.mn-reason');
   var ok     = cell.querySelector('.mn-ok');
   if (!note || !reason) return;
+  /* 送るきっかけを増やしてある（手が止まった・他へ移った・Enter）ので、
+     同じ中身が続けて来る。前と同じなら送らない。 */
+  var body = JSON.stringify([reason.value, note.value]);
+  if (cell.dataset.sent === body) return;
   if (cell.dataset.saving === '1') { cell.dataset.again = '1'; return; }
   cell.dataset.saving = '1';
+  cell.dataset.sent = body;
   post('api/uketsuke_manual.php', {id:COMP.id, op:'note', bib:note.dataset.bib, code:note.dataset.code,
                                    reason:reason.value, note:note.value, by:el('by').value})
     .then(function(){
@@ -2714,9 +2757,9 @@ function saveManualNote(fieldEl){
         clearTimeout(ok._t);
         ok._t = setTimeout(function(){ ok.classList.add('hidden'); }, 2000);
       }
-      return refresh().then(renderManual);
+      return refresh().then(function(){ renderManual(); });
     })
-    .catch(function(e){ alert(e.message); })
+    .catch(function(e){ cell.dataset.sent = ''; alert(e.message); })   /* 送れていないので次に送り直す */
     .then(function(){
       cell.dataset.saving = '';
       if (cell.dataset.again === '1') { cell.dataset.again = ''; saveManualNote(note); }
@@ -2739,7 +2782,7 @@ el('mn-add').addEventListener('click', function(){
     .then(function(){
       el('mn-bib').value = '';
       el('mn-who').textContent = '';
-      return refresh().then(renderManual);
+      return refresh().then(function(){ renderManual(true); });
     })
     .catch(function(e){ alert(e.message); })
     .then(function(){ el('mn-add').disabled = false; });
