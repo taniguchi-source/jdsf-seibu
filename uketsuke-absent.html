@@ -125,7 +125,7 @@
   </div>
 </div>
 
-<script src="js/uketsuke_scope.js"></script>
+<script src="js/uketsuke_scope.js?v=20260922"></script>
 <script>
 'use strict';
 var DATA = null;
@@ -177,7 +177,12 @@ function load(){
    受付システムの欠場報告タブ（このページを開くボタン）と同じものを使わないと、
    ボタンから開いた範囲とここでの選び直しが食い違うため。 */
 /* エントリーが0組の区分は、選んでも空の一覧が出るだけなので外す */
-function evWithEntries(){ return UkScope.withEntries(DATA.events, DATA.roster); }
+function evWithEntries(){
+  /* 古い js/uketsuke_scope.js が端末に残っていると withEntries が無い。
+     そのときは区分を全部返す（0組の区分も出るだけで、画面は止まらない）。 */
+  if (!window.UkScope || !UkScope.withEntries) return (DATA.events || []).slice();
+  return UkScope.withEntries(DATA.events, DATA.roster);
+}
 function deadlines(){ return UkScope.deadlines(evWithEntries()); }
 
 function buildPicker(){
