@@ -1850,19 +1850,46 @@ function showPanel(bib, msg){
 var SND_KEY = 'uk_sound';
 var AC = null;
 function soundOn(){ try { return localStorage.getItem(SND_KEY) !== '0'; } catch (e) { return true; } }
-/* iPhone・iPad は画面に触った流れでしか音を出せない。受付音が鳴るのはサーバーの
-   返事が返ってきたあと＝触った流れから外れたところなので、触った時点で先に
-   音の入れものを用意しておく。これが無いとスマホ・タブレットで無音になる。 */
+/* iPhone・iPad で音を出すには、次の3つがそろっている必要がある。
+   ひとつでも欠けると、エラーも出ないまま無音になる。
+     1. 画面に触った流れの中で音の入れものを作って起こすこと。受付音が鳴るのは
+        サーバーの返事が返ってきたあと＝触った流れから外れたところなので、
+        触った時点で先に用意しておく。
+     2. その触った流れの中で、実際に一度音を出しておくこと。入れものを作って
+        起こしただけでは足りず、あとから鳴らそうとしても無音のままになる。
+        聞こえない長さの音をひとつ出して、ここを通しておく。
+     3. 本体横のマナーモード（消音スイッチ）に鳴り方を左右されないようにすること。
+        既定では着信音と同じ扱いで、マナーモードだと消される。動画や音楽と
+        同じ扱い（playback）に変えておくと、マナーモードでも鳴る。
+        iOS 16.4 より前には無い設定なので、無ければマナーモードを解除してもらう。 */
 function primeSound(){
+  try {
+    if (navigator.audioSession && navigator.audioSession.type !== 'playback') {
+      navigator.audioSession.type = 'playback';
+    }
+  } catch (e) {}
   try {
     var Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;
     if (!AC) AC = new Ctx();
     if (AC.state === 'suspended') AC.resume();
+    if (!AC.__unlocked) {
+      var src = AC.createBufferSource();
+      src.buffer = AC.createBuffer(1, 1, 22050);   /* 無音ひとつぶん */
+      src.connect(AC.destination);
+      src.start(0);
+      AC.__unlocked = true;
+    }
   } catch (e) {}
 }
 document.addEventListener('pointerdown', primeSound, true);
+document.addEventListener('touchstart', primeSound, true);
 document.addEventListener('keydown', primeSound, true);
+/* 画面を消したり他のアプリに移ったりすると音は止められる。戻ったら起こし直す
+   （受付の途中で持ち替えたり、しばらく置いたりするため）。 */
+document.addEventListener('visibilitychange', function(){
+  if (!document.hidden && AC && AC.state === 'suspended') { try { AC.resume(); } catch (e) {} }
+});
 /* 音ひとつぶん。会場はざわついていて、スマホ・タブレットの小さなスピーカーで鳴らす。
    聞こえやすさは音量だけでなく、波形と高さで決まる。
      ・矩形波（square）は倍音が多く、同じ音量でも正弦波よりはっきり聞こえる
@@ -1904,6 +1931,16 @@ function pianoTone(freq, start, vol, len){
 function isTouchDevice(){
   try { return !!(window.matchMedia && window.matchMedia('(pointer:coarse)').matches); }
   catch (e) { return false; }
+}
+/* iPhone・iPad かどうか。音が鳴らないときの直し方がこの2つだけ他と違う
+   （マナーモードでWebの音まで消える）ので、案内の文面を分けるために使う。
+   iPadOS はパソコンのふりをするので、指で触れるMacとして見分ける。 */
+function isIOS(){
+  try {
+    var ua = navigator.userAgent || '';
+    return /iPad|iPhone|iPod/.test(ua)
+        || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  } catch (e) { return false; }
 }
 
 function beep(kind){
@@ -1949,6 +1986,18 @@ if (el('ci-sound-test')) {
     if (!el('ci-sound').checked) { el('ci-sound').checked = true; el('ci-sound').dispatchEvent(new Event('change')); return; }
     beep('ok');
     setTimeout(function(){ beep('ng'); }, 700);
+    /* 鳴らせなかったとき、受付の人が自分で直せるように理由を出す。
+       この端末の設定の問題なので、画面のどこにも出ないと打つ手が分からない。 */
+    setTimeout(function(){
+      if (!AC || AC.state !== 'running') {
+        banner('warn', 'この端末では音を出せませんでした。'
+          + '画面をどこか一度タップしてから、もう一度「音を試す」を押してください。');
+      } else if (isIOS()) {
+        banner('warn', '音が聞こえないときは、本体横のマナーモード（消音スイッチ）を解除して、'
+          + '音量ボタンで音量を上げてください。iPhone・iPad はマナーモードだと'
+          + 'この音も消えることがあります。');
+      }
+    }, 1200);
   });
 }
 
