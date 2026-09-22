@@ -108,7 +108,13 @@
   #ev-warn .codes{margin-top:6px;font-weight:700;line-height:1.9}
   #ev-warn .codes span{display:inline-block;background:#fff;border:1px solid var(--border);
     border-radius:6px;padding:1px 8px;margin-right:6px}
-  input.ev-t.need{border-color:var(--warn);border-width:2px;background:#fffbeb}
+  /* 区分マスタの受付締切。打ち込む欄ではなく、まとめ入れの結果を見せる欄。 */
+  #ev-list td.ev-t{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+  #ev-list td.ev-t-none{color:var(--warn);font-weight:800}
+  #ev-list td:first-child{width:1%;text-align:center}
+  #ev-list input[type=checkbox],#ev-all{width:20px;height:20px}   /* 指でも押せる大きさ */
+  #ev-bulk{background:var(--warn-bg);border:1px solid #f3c07a;border-radius:10px;padding:10px 12px}
+  #ev-bulk input[type=text]{font-size:18px;font-weight:700;text-align:center}
   /* 無操作の予告。画面の上に固定して出す（受付中は触るので出ない）。 */
   #idle-note{position:sticky;top:0;z-index:20;background:#fff4e5;color:#92400e;
     border-bottom:2px solid #f3c07a;padding:10px 14px;font-size:15px;font-weight:700;text-align:center}
@@ -667,7 +673,8 @@
       <div id="imp-result" class="banner hidden"></div>
 
       <h2 id="ev-master">区分マスタ</h2>
-      <p class="muted">名簿CSVの取込で未登録の区分コードが見つかると、ここに仮登録（区分名＝コード）されます。名称と受付締切を整えてください。</p>
+      <p class="muted">名簿CSVの取込で未登録の区分コードが見つかると、ここに仮登録（区分名＝コード）されます。名称と受付締切を整えてください。<br>
+        受付締切は、<b>時刻を先に入れて、その時刻で締め切る区分に印を付ける</b>やり方です。同じ時刻の区分は一度にまとめて入ります。</p>
       <!-- 受付締切が空の区分をその場で知らせる（受付タブへ行くまで気づけないのを防ぐ） -->
       <div id="ev-warn" class="hidden"></div>
 
@@ -679,7 +686,7 @@
           <div class="grow" style="min-width:220px"><label class="muted">区分名</label>
             <input type="text" id="evx-name"></div>
           <div style="width:130px"><label class="muted">受付締切</label>
-            <input type="text" id="evx-time" placeholder="10:30"></div>
+            <input type="text" id="evx-time" placeholder="18:00"></div>
         </div>
         <p class="muted" id="evx-note" style="margin:8px 0 0"></p>
         <div style="height:10px"></div>
@@ -691,15 +698,33 @@
       </div>
 
       <div class="card">
+        <!-- 受付締切は区分ごとに打つと同じ時刻を何度も入れることになる。
+             先に時刻を入れて、その時刻で締め切る区分を選んでまとめて入れる。 -->
+        <div id="ev-bulk">
+          <div class="row wrap">
+            <div style="width:120px"><label class="muted">受付締切時刻</label>
+              <input type="text" id="ev-bulk-time" placeholder="18:00" inputmode="numeric"></div>
+            <div style="align-self:flex-end"><button type="button" id="ev-bulk-apply">
+              選んだ区分をこの時刻にする</button></div>
+            <div class="row wrap" style="margin-left:auto;align-self:flex-end">
+              <button type="button" class="small secondary" id="ev-pick-all">すべて選ぶ</button>
+              <button type="button" class="small secondary" id="ev-pick-empty">未設定だけ選ぶ</button>
+              <button type="button" class="small secondary" id="ev-pick-none">選択を外す</button>
+            </div>
+          </div>
+          <p class="muted" id="ev-bulk-n" style="margin:8px 0 0"></p>
+        </div>
+        <div style="height:12px"></div>
         <table class="dense">
-          <thead><tr><th>コード</th><th>区分名</th><th>受付締切</th><th></th></tr></thead>
+          <thead><tr><th style="width:1%"><input type="checkbox" id="ev-all"></th>
+            <th>コード</th><th>区分名</th><th>受付締切</th><th></th></tr></thead>
           <tbody id="ev-list"></tbody>
         </table>
         <div style="height:10px"></div>
         <div class="row wrap">
           <div style="width:110px"><input type="text" id="ev-code" placeholder="コード"></div>
           <div class="grow"><input type="text" id="ev-name" placeholder="区分名"></div>
-          <div style="width:110px"><input type="text" id="ev-time" placeholder="受付締切 10:00"></div>
+          <div style="width:110px"><input type="text" id="ev-time" placeholder="受付締切 18:00"></div>
           <button id="ev-add" class="small">追加</button>
         </div>
         <div style="height:12px"></div>
@@ -1523,9 +1548,8 @@ function evStateNow(){
   document.querySelectorAll('.ev-n').forEach(function(inp){
     var i = Number(inp.dataset.i); if (out[i]) out[i][1] = inp.value;
   });
-  document.querySelectorAll('.ev-t').forEach(function(inp){
-    var i = Number(inp.dataset.i); if (out[i]) out[i][2] = inp.value;
-  });
+  /* 受付締切は打ちっぱなしにならない（まとめ入れも編集も、その場で保存する）
+     ので、ここで見るのは区分名だけでよい。 */
   return JSON.stringify(out);
 }
 function eventsDirty(){
@@ -2164,8 +2188,8 @@ function renderCheckinGate(){
     + '</div>'
     + '<button type="button" id="ci-gate-go">「名簿」タブの区分マスタへ移動する</button>'
     + '<p class="muted" style="margin:8px 0 0">'
-    + '区分マスタの「受付締切」に時刻（例 10:30）を入れて「区分マスタを保存」を押すと、'
-    + 'この画面から受付を始められます。</p>';
+    + '区分マスタで時刻（例 18:00）を入れ、その時刻で締め切る区分に印を付けて'
+    + '「選んだ区分をこの時刻にする」を押すと、この画面から受付を始められます。</p>';
   el('ci-gate-go').addEventListener('click', function(){
     switchView('roster');
     var h = el('ev-master');
@@ -3221,14 +3245,42 @@ function runImport(auto, onCancel){
 var EV = [];
 /* 受付締切の初期値。区分ができた時点でサーバー側も同じ値を入れる（api/_uketsuke.php）。
    ここは、それより前に取り込んだ大会で空のまま残っているぶんの穴埋め。 */
-var EV_DEFAULT_TIME = '10:00';
+var EV_DEFAULT_TIME = '18:00';
+/* 打った時刻を「18:00」の形にそろえる。1800・18：00・18時・18 のどれで来てもよい
+   （当日は急いで打つので、コロンの打ち忘れや全角で弾かれると手が止まる）。
+   時刻として読めないときは null を返す。 */
+function normTime(s){
+  var t = String(s == null ? '' : s).trim()
+    .replace(/[０-９]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+    .replace(/[：.時]/g, ':').replace(/分$/, '').replace(/\s/g, '');
+  var m = /^(\d{1,2}):(\d{1,2})$/.exec(t);
+  if (!m) m = /^(\d{1,2}):$/.exec(t);
+  if (!m) {
+    var d = /^(\d{3,4})$/.exec(t);
+    if (d) m = [null, d[1].slice(0, d[1].length - 2), d[1].slice(-2)];
+    else { var h = /^(\d{1,2})$/.exec(t); if (h) m = [null, h[1], '0']; }
+  }
+  if (!m) return null;
+  var hh = Number(m[1]), mm = Number(m[2] || 0);
+  if (!(hh >= 0 && hh <= 23) || !(mm >= 0 && mm <= 59)) return null;
+  return (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm;
+}
+/* 区分マスタの「保存しました」等の知らせ。あとから出した知らせが、先に出した
+   知らせの消し時計で消えないよう、時計は1つだけ持つ。 */
+var EV_SAVED_T = null;
+function evSaved(msg, ms){
+  el('ev-saved').textContent = msg;
+  clearTimeout(EV_SAVED_T);
+  EV_SAVED_T = setTimeout(function(){ el('ev-saved').textContent = ''; }, ms || 2000);
+}
 function renderEvents(){
   EV = (DATA.events || []).slice();
   el('ev-list').innerHTML = EV.map(function(e, i){
-    return '<tr><td>' + esc(e.code) + '</td>'
+    var t = String(e.start_time || '').trim();
+    return '<tr><td><input type="checkbox" class="ev-c" data-i="' + i + '"></td>'
+      + '<td>' + esc(e.code) + '</td>'
       + '<td><input type="text" class="ev-n" data-i="' + i + '" value="' + esc(e.name) + '"></td>'
-      + '<td><input type="text" class="ev-t" data-i="' + i + '" value="'
-        + esc(e.start_time || EV_DEFAULT_TIME) + '" style="width:90px"></td>'
+      + '<td class="ev-t' + (t ? '' : ' ev-t-none') + '">' + (t ? esc(t) : '未設定') + '</td>'
       + '<td><button class="small secondary" data-i="' + i + '">編集</button></td></tr>';
   }).join('');
   /* 区分そのものを直す（コードの修正・削除）は編集の画面で行う。
@@ -3236,8 +3288,64 @@ function renderEvents(){
   el('ev-list').querySelectorAll('button[data-i]').forEach(function(b){
     b.addEventListener('click', function(){ openEventEditor(Number(b.dataset.i)); });
   });
+  if (el('ev-bulk-time') && !el('ev-bulk-time').value) el('ev-bulk-time').value = EV_DEFAULT_TIME;
+  updateEventPick();
   updateEventWarn();
 }
+
+/* ── 受付締切のまとめ入れ ──
+   同じ時刻で締め切る区分がいくつもあるので、時刻は1回だけ入れて、
+   その時刻にする区分を選んでもらう。選んだぶんはその場で保存する
+   （打ちっぱなしで別のタブへ移って消える、という事故をなくすため）。 */
+function evChecked(){
+  return Array.prototype.slice.call(document.querySelectorAll('.ev-c'))
+    .filter(function(c){ return c.checked; });
+}
+function updateEventPick(){
+  var all = document.querySelectorAll('.ev-c').length, n = evChecked().length;
+  var box = el('ev-bulk-n');
+  if (box) {
+    box.textContent = n
+      ? n + '区分を選んでいます。時刻を入れて「選んだ区分をこの時刻にする」を押してください。'
+      : '時刻を入れて、その時刻で締め切る区分に印を付けてください。'
+        + '（同じ時刻の区分はまとめて入れられます）';
+  }
+  var head = el('ev-all');
+  if (head) { head.checked = (all > 0 && n === all); head.indeterminate = (n > 0 && n < all); }
+  if (el('ev-bulk-apply')) el('ev-bulk-apply').disabled = (n === 0);
+}
+function pickEvents(which){
+  document.querySelectorAll('.ev-c').forEach(function(c){
+    var e = EV[Number(c.dataset.i)] || {};
+    c.checked = which === 'all' ? true
+              : which === 'none' ? false
+              : String(e.start_time || '').trim() === '';   /* 未設定だけ */
+  });
+  updateEventPick();
+}
+el('ev-list').addEventListener('change', function(ev){
+  if (ev.target && ev.target.classList.contains('ev-c')) updateEventPick();
+});
+el('ev-all').addEventListener('change', function(){
+  pickEvents(el('ev-all').checked ? 'all' : 'none');
+});
+el('ev-pick-all').addEventListener('click',   function(){ pickEvents('all'); });
+el('ev-pick-empty').addEventListener('click', function(){ pickEvents('empty'); });
+el('ev-pick-none').addEventListener('click',  function(){ pickEvents('none'); });
+el('ev-bulk-apply').addEventListener('click', function(){
+  var t = normTime(el('ev-bulk-time').value);
+  if (!t) { alert('受付締切時刻を 18:00 のように入れてください。'); el('ev-bulk-time').focus(); return; }
+  el('ev-bulk-time').value = t;
+  var picked = evChecked();
+  if (!picked.length) { alert('この時刻で締め切る区分に印を付けてください。'); return; }
+  picked.forEach(function(c){ EV[Number(c.dataset.i)].start_time = t; });
+  DATA.events = EV;
+  var n = picked.length;
+  renderEvents();
+  saveEvents().then(function(){
+    evSaved(n + '区分を ' + t + ' にしました', 4000);
+  });
+});
 
 /* ---------- 区分ひとつの編集 ---------- */
 var EVX = -1;                       /* いま編集している区分の位置（EV の添字） */
@@ -3279,6 +3387,10 @@ el('evx-save').addEventListener('click', function(){
   var code = el('evx-code').value.trim().toUpperCase();
   var name = el('evx-name').value.trim();
   var time = el('evx-time').value.trim();
+  if (time !== '') {
+    time = normTime(time);
+    if (!time) { alert('受付締切は 18:00 のように入れてください。'); el('evx-time').focus(); return; }
+  }
   if (!/^[A-Za-z0-9_-]{1,20}$/.test(code)) {
     alert('コードは英数字（と - _）で入れてください。'); return;
   }
@@ -3305,6 +3417,10 @@ el('evx-save').addEventListener('click', function(){
     }
   }
   e.code = code; e.name = name; e.start_time = time;
+  /* 一覧を組み直すと EV を DATA.events から作り直すので、先にこちらへ反映しておく。
+     巡回でサーバーから読み直したあとは EV と DATA.events が別物になっていて、
+     入れ忘れるとここでの直しがそのまま消える（受付締切を空にできなかった原因）。 */
+  DATA.events = EV;
   pre.then(function(){
     /* 画面の入力欄の値も一緒に送られるので、先に一覧を組み直してから保存する */
     renderEvents();
@@ -3334,31 +3450,15 @@ function entryCount(code){
   return n;
 }
 /* 受付締切が空の区分を、区分マスタの画面でその場で知らせる。
-   入力中の値を見るので、打ち込んだ時点・消した時点で表示が変わる（保存前でも分かる）。 */
+   まとめ入れはその場で保存するので、ここで見るのは保存済みの中身でよい。 */
 function updateEventWarn(){
   var box = el('ev-warn');
   if (!box) return;
-  var miss = [], unsaved = false;
-  document.querySelectorAll('input.ev-t').forEach(function(inp){
-    var e = EV[Number(inp.dataset.i)] || {};
-    var empty = inp.value.trim() === '';
-    var need  = empty && entryCount(e.code) > 0;
-    inp.classList.toggle('need', need);
-    if (need) miss.push(e);
-    if (inp.value.trim() !== String(e.start_time || '').trim()) unsaved = true;
+  var miss = EV.filter(function(e){
+    return String(e.start_time || '').trim() === '' && entryCount(e.code) > 0;
   });
-  if (!miss.length) {
-    /* 空欄に初期値を入れて見せているだけで、まだ保存していない状態。
-       このまま受付タブへ行くと足止めに掛かるので、ここで気づけるようにする。 */
-    box.classList.toggle('hidden', !unsaved);
-    if (unsaved) {
-      box.innerHTML = '<b>受付締切がまだ保存されていません</b>'
-        + '<div>空いていた欄に初期値（' + esc(EV_DEFAULT_TIME) + '）を入れました。'
-        + '違う時刻の区分は直してから、<b>「区分マスタを保存」</b>を押してください。</div>';
-    }
-    return;
-  }
-  box.classList.remove('hidden');
+  box.classList.toggle('hidden', !miss.length);
+  if (!miss.length) return;
   box.innerHTML = '<b>受付締切が入っていない区分があります</b>'
     + '<div class="codes">'
     + miss.map(function(e){
@@ -3366,9 +3466,9 @@ function updateEventWarn(){
           + '　' + entryCount(e.code) + '組</span>';
       }).join('')
     + '</div>'
-    + '時刻（例 10:30）を入れて<b>「区分マスタを保存」</b>を押してください。'
-    + 'この区分の受付締切が空のあいだは、「受付」タブで受付を始められません。'
-    + (unsaved ? '<br>※いまの入力はまだ保存されていません。' : '');
+    + '<b>「未設定だけ選ぶ」</b>を押し、時刻（例 18:00）を入れて'
+    + '<b>「選んだ区分をこの時刻にする」</b>を押してください。'
+    + 'この区分の受付締切が空のあいだは、「受付」タブで受付を始められません。';
 }
 
 /* 区分コードから区分名を推定する（api/_uketsuke.php の uk_guess_event_name と同じ規則）
@@ -3400,33 +3500,31 @@ el('ev-guess').addEventListener('click', function(){
   });
   if (!filled) { alert('補える区分名がありませんでした（既に名称が入っているか、規則に当てはまらないコードです）。'); return; }
   el('ev-save').click();
-  el('ev-saved').textContent = filled + '件の区分名を補いました';
+  evSaved(filled + '件の区分名を補いました', 4000);
 });
 
 el('ev-add').addEventListener('click', function(){
   var c = el('ev-code').value.trim();
   if (!c) { alert('区分コードを入力してください'); return; }
   EV.push({code:c, name:el('ev-name').value.trim() || c,
-           start_time:el('ev-time').value.trim() || EV_DEFAULT_TIME});
+           start_time:normTime(el('ev-time').value) || EV_DEFAULT_TIME});
   DATA.events = EV;
   el('ev-code').value=''; el('ev-name').value=''; el('ev-time').value='';
   renderEvents();
 });
 /* 画面の入力を EV に取り込んで保存する。
-   focusIndex を渡すと、保存後の再描画のあとにその行の受付締切へフォーカスを戻す
+   focusIndex を渡すと、保存後の再描画のあとにその行の区分名へフォーカスを戻す
    （保存すると一覧を作り直すので、そのままでは入力位置を見失うため）。 */
 function saveEvents(focusIndex){
   document.querySelectorAll('.ev-n').forEach(function(inp){ EV[Number(inp.dataset.i)].name = inp.value; });
-  document.querySelectorAll('.ev-t').forEach(function(inp){ EV[Number(inp.dataset.i)].start_time = inp.value; });
   return post('api/uketsuke_save_events.php', {id:COMP.id, events:JSON.stringify(EV)})
     .then(function(){
-      el('ev-saved').textContent = '保存しました';
-      setTimeout(function(){ el('ev-saved').textContent = ''; }, 2000);
+      evSaved('保存しました', 2000);
       return refresh().then(function(){
         renderEvents();
         renderCheckinTab();   /* 締切を入れ終わったら、受付タブの印もその場で消す */
         if (focusIndex === undefined) return;
-        var next = document.querySelector('.ev-t[data-i="' + focusIndex + '"]');
+        var next = document.querySelector('.ev-n[data-i="' + focusIndex + '"]');
         if (next) { next.focus(); next.select(); }
       });
     })
@@ -3434,20 +3532,17 @@ function saveEvents(focusIndex){
 }
 el('ev-save').addEventListener('click', function(){ saveEvents(); });
 
-/* 打ち込んだ・消した時点で注意書きを出し直す（保存を待たずに分かるように） */
-el('ev-list').addEventListener('input', function(e){
-  if (e.target && e.target.classList.contains('ev-t')) updateEventWarn();
-});
-
-/* 受付締切は上から続けて入れることが多いので、Enterで確定して次の区分の欄へ移る。
-   区分名の欄でEnterを押したときは、同じ行の受付締切へ移る。 */
+/* 区分名は上から続けて直すことが多いので、Enterで確定して次の区分の欄へ移る。 */
 el('ev-list').addEventListener('keydown', function(e){
   if (e.key !== 'Enter' && e.keyCode !== 13) return;
   var t = e.target;
-  if (!t.classList || !(t.classList.contains('ev-t') || t.classList.contains('ev-n'))) return;
+  if (!t.classList || !t.classList.contains('ev-n')) return;
   e.preventDefault();
-  var i = Number(t.dataset.i);
-  saveEvents(t.classList.contains('ev-n') ? i : i + 1);
+  saveEvents(Number(t.dataset.i) + 1);
+});
+/* 時刻の欄でEnterを押したら、そのまま選んだ区分に入れる（押し直さなくてよい） */
+el('ev-bulk-time').addEventListener('keydown', function(e){
+  if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); el('ev-bulk-apply').click(); }
 });
 
 </script>

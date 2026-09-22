@@ -354,7 +354,7 @@ function uk_append_checkin($id, $rec) {
 /* 壊れた文字コードが混ざっていても保存できるよう、不正なバイト列は落としてから切り詰める */
 /* 受付締切の初期値。空のままだと受付を始められない足止めに掛かるので、
    区分ができた時点でまず入れておく。大会ごとに違う時刻は区分マスタで直す。 */
-define('UK_DEFAULT_DEADLINE', '10:00');
+define('UK_DEFAULT_DEADLINE', '18:00');
 function uk_deadline_or_default($v) {
     $v = trim((string)$v);
     return $v !== '' ? mb_substr($v, 0, 10) : UK_DEFAULT_DEADLINE;
