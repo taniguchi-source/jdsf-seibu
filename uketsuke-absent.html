@@ -128,6 +128,20 @@
 <script src="js/uketsuke_scope.js?v=20260922"></script>
 <script>
 'use strict';
+/* ── 古いJSが端末に残っていたときの自動復帰 ──
+   HTMLだけ新しく、js/uketsuke_scope.js が古いままだと、あとの処理が欠ける。
+   URLにしるしを付けて一度だけ読み直し、キャッシュを外す
+   （繰り返さないよう、この端末のこのタブで1回だけ）。 */
+(function(){
+  if (window.UkScope && UkScope.withEntries) return;
+  try {
+    if (sessionStorage.getItem('uk_stale_js')) return;   /* 1回やって駄目ならあきらめる */
+    sessionStorage.setItem('uk_stale_js', '1');
+  } catch (e) { return; }
+  location.replace(location.pathname
+    + (location.search ? location.search + '&r=' : '?r=') + Date.now() + location.hash);
+})();
+
 var DATA = null;
 var CSRF = '';
 function el(id){ return document.getElementById(id); }
