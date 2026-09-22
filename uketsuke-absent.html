@@ -165,10 +165,12 @@ function load(){
 /* 受付締切ごとのまとめ方と選択肢の並びは js/uketsuke_scope.js に置いてある。
    受付システムの欠場報告タブ（このページを開くボタン）と同じものを使わないと、
    ボタンから開いた範囲とここでの選び直しが食い違うため。 */
-function deadlines(){ return UkScope.deadlines(DATA.events); }
+/* エントリーが0組の区分は、選んでも空の一覧が出るだけなので外す */
+function evWithEntries(){ return UkScope.withEntries(DATA.events, DATA.roster); }
+function deadlines(){ return UkScope.deadlines(evWithEntries()); }
 
 function buildPicker(){
-  var html = UkScope.options(DATA.events).map(function(g){
+  var html = UkScope.options(evWithEntries()).map(function(g){
     return '<optgroup label="' + esc(g.group) + '">'
       + g.items.map(function(o){
           return '<option value="' + esc(o.value) + '">' + esc(o.label) + '</option>';

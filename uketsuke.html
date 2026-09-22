@@ -2408,6 +2408,9 @@ function dlGroups(){
       n++;
       if (done[r.bib + ':' + e.code]) d++;
     });
+    /* エントリーが0組の区分は止めるものが無い。受付締切も持たないので、
+       「未設定」の束になって並ぶと、止め忘れがあるように見えてしまう。 */
+    if (n === 0) return;
     var t = String(e.start_time || '').trim();
     if (!byTime[t]) { byTime[t] = {t: t, list: []}; groups.push(byTime[t]); }
     byTime[t].list.push({e: e, n: n, d: d, a: asg[e.code] || null});
@@ -2515,7 +2518,8 @@ function otherEvents(r, code, done){
 function renderRollcall(){
   var sel = el('rc-event');
   var cur = sel.value;
-  var opts = (DATA.events || []).map(function(e){
+  /* エントリーが0組の区分は、選んでも誰も並ばないので出さない */
+  var opts = evWithEntries().map(function(e){
     return '<option value="' + esc(e.code) + '">' + evLabel(e)
       + (e.start_time ? '（' + esc(e.start_time) + '）' : '') + '</option>';
   }).join('');
@@ -2572,10 +2576,12 @@ el('rc-event').addEventListener('change', renderRollcall);
    欠場者一覧は「受付締切ごと（その時刻の区分をまとめて）」でも「区分ごと」でも出せる。
    このタブの区分の選び方ではその2つを言い分けられないので、押したときに選んでもらう。
    選択肢の並べ方は js/uketsuke_scope.js（欠場者一覧ページと同じもの）。 */
+function evWithEntries(){ return UkScope.withEntries(DATA.events, DATA.roster); }
 function openAbsentPicker(){
   if (!COMP || !DATA) return;
   var cur = 'e:' + el('rc-event').value;
-  el('rcp-list').innerHTML = UkScope.options(DATA.events).map(function(g){
+  /* エントリーが0組の区分は選んでも空の一覧が出るだけなので、選択肢に出さない */
+  el('rcp-list').innerHTML = UkScope.options(evWithEntries()).map(function(g){
     return '<div class="pick-group">' + esc(g.group) + '</div>'
       + g.items.map(function(o){
           return '<button type="button" class="pick-item' + (o.value === cur ? ' cur' : '')
@@ -3288,11 +3294,16 @@ function renderEvents(){
   var show = rows.filter(function(r){ return showEmpty || r.n > 0; });
   el('ev-list').innerHTML = show.map(function(r){
     var e = r.e, i = r.i, t = String(e.start_time || '').trim();
-    return '<tr><td><input type="checkbox" class="ev-c" data-i="' + i + '"></td>'
+    /* 0組の区分は受付締切が要らない。空欄のまま「―」で出し、選べないようにする
+       （まとめ入れで巻き込むと、要らない時刻が入ってしまうため）。 */
+    return '<tr><td><input type="checkbox" class="ev-c" data-i="' + i + '"'
+        + (r.n ? '' : ' disabled') + '></td>'
       + '<td>' + esc(e.code) + '</td>'
       + '<td><input type="text" class="ev-n" data-i="' + i + '" value="' + esc(e.name) + '"></td>'
       + '<td class="ev-e' + (r.n ? '' : ' muted') + '">' + r.n + '組</td>'
-      + '<td class="ev-t' + (t ? '' : ' ev-t-none') + '">' + (t ? esc(t) : '未設定') + '</td>'
+      + (r.n
+          ? '<td class="ev-t' + (t ? '' : ' ev-t-none') + '">' + (t ? esc(t) : '未設定') + '</td>'
+          : '<td class="ev-t muted">―</td>')
       + '<td><button class="small secondary" data-i="' + i + '">編集</button></td></tr>';
   }).join('') || '<tr><td colspan="6" class="muted">エントリーのある区分がありません。'
       + '（名簿を取り込む前か、全区分が0組です）</td></tr>';
@@ -3317,7 +3328,8 @@ function evChecked(){
     .filter(function(c){ return c.checked; });
 }
 function updateEventPick(){
-  var all = document.querySelectorAll('.ev-c').length, n = evChecked().length;
+  /* 0組の区分は選べないようにしてあるので、数えるのは選べるものだけ */
+  var all = document.querySelectorAll('.ev-c:not([disabled])').length, n = evChecked().length;
   var box = el('ev-bulk-n');
   if (box) {
     box.textContent = n
@@ -3332,6 +3344,7 @@ function updateEventPick(){
 function pickEvents(which){
   document.querySelectorAll('.ev-c').forEach(function(c){
     var e = EV[Number(c.dataset.i)] || {};
+    if (c.disabled) { c.checked = false; return; }   /* 0組の区分は選ばない */
     c.checked = which === 'all' ? true
               : which === 'none' ? false
               : String(e.start_time || '').trim() === '';   /* 未設定だけ */
@@ -3379,6 +3392,9 @@ function openEventEditor(i){
   var n = entryCount(e.code), locked = evHasCheckins(e.code);
   el('evx-code').readOnly = locked;
   el('evx-del').disabled  = (n > 0);
+  /* 0組の区分は当日どこにも出てこないので、受付締切は持たせない */
+  el('evx-time').disabled    = (n === 0);
+  el('evx-time').placeholder = (n === 0) ? 'エントリーが0組なので不要' : '18:00';
   el('evx-note').innerHTML = 'この区分にエントリーしているのは <b>' + n + '組</b>です。'
     + (locked
         ? 'すでに受付の記録があるため、コードは変えられません（記録とつながらなくなるため）。'
@@ -3402,7 +3418,7 @@ el('evx-save').addEventListener('click', function(){
   var old  = e.code;
   var code = el('evx-code').value.trim().toUpperCase();
   var name = el('evx-name').value.trim();
-  var time = el('evx-time').value.trim();
+  var time = entryCount(e.code) === 0 ? '' : el('evx-time').value.trim();
   if (time !== '') {
     time = normTime(time);
     if (!time) { alert('受付締切は 18:00 のように入れてください。'); el('evx-time').focus(); return; }
@@ -3538,6 +3554,9 @@ el('ev-add').addEventListener('click', function(){
    （保存すると一覧を作り直すので、そのままでは入力位置を見失うため）。 */
 function saveEvents(focusIndex){
   document.querySelectorAll('.ev-n').forEach(function(inp){ EV[Number(inp.dataset.i)].name = inp.value; });
+  /* エントリーが0組の区分は受付締切を持たない。取り込んだ時点で入っていたぶんも、
+     ここで空にそろえる（当日さわる区分だけに時刻が付いている状態にする）。 */
+  EV.forEach(function(e){ if (entryCount(e.code) === 0) e.start_time = ''; });
   return post('api/uketsuke_save_events.php', {id:COMP.id, events:JSON.stringify(EV)})
     .then(function(){
       evSaved('保存しました', 2000);

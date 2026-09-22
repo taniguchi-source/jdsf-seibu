@@ -152,5 +152,15 @@ function uk_dcs_read_pair($raw_info, $raw_mem) {
     if (isset($mem['error'])) return $mem;
     $info['roster']     = $mem['roster'];
     $info['long_names'] = $mem['long_names'];
+    /* エントリーが0組の区分は、当日どこにも出てこない（DCSの区分表には載っていても
+       誰も出ない区分がある）。受付締切の初期値も入れず、空のままにしておく。
+       空でも受付は始められる（足止めはエントリーのある区分だけを見る）。 */
+    $has = [];
+    foreach ($info['roster'] as $r) {
+        foreach (($r['events'] ?? []) as $c) $has[$c] = true;
+    }
+    foreach ($info['events'] as $i => $e) {
+        if (empty($has[$e['code']])) $info['events'][$i]['start_time'] = '';
+    }
     return $info;
 }
