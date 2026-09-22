@@ -38,6 +38,10 @@
 
   /* ── 紙の見た目。画面でも刷り上がりに近い形で見せる ── */
   #paper{background:#fff;padding:14mm 12mm;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+  /* 紙の文字と罫線の色。印刷したときの濃さや、区分の帯の色との相性で選べるようにする。
+     区分名の帯・種目の枠はそれぞれ自分の色を持っているので、ここでは変わらない。 */
+  #paper{--ink:#1a1a1a;color:var(--ink)}
+  #paper table.pg th,#paper table.pg td{border-color:var(--ink)}
   /* 紙を縮小して見せるときの入れもの（縮小したぶんの余白を切り詰める） */
   #sheet{overflow:hidden}
   .sheet-head{font-size:13px;font-weight:700;margin:0 0 10px}
@@ -217,6 +221,8 @@
       <label class="checkbox-row"><input type="checkbox" id="c-memo" checked><span>記入欄を付ける</span></label>
       <label class="checkbox-row"><input type="checkbox" id="c-empty"><span>エントリー0組の区分も出す</span></label>
       <label class="checkbox-row"><input type="checkbox" id="c-fill" checked><span>下の余白をつめる</span></label>
+      <label class="checkbox-row"><span>文字と罫線</span>
+        <select id="c-ink" style="width:auto;font-size:14px;padding:6px 8px"></select></label>
       <span class="muted" id="updated" style="margin-left:auto"></span>
     </div>
     <div class="muted" id="order-note" style="margin-top:8px"></div>
@@ -381,6 +387,40 @@ function refreshSyllabus(){
     });
 }
 
+/* ── 紙の文字と罫線の色 ──
+   既定の黒だと罫線が強く、区分の帯の色とも合わないことがあるので選べるようにする。
+   印刷に耐える濃さのものだけを並べる（薄い色は紙に出ると読めなくなる）。
+   選んだ色はこの端末に覚える（大会ごとではなく、刷る人の好みのため）。 */
+var INK_KEY = 'uk_prog_ink';
+var INKS = [
+  ['#1a1a1a', '黒'],
+  ['#123262', '濃紺'],
+  ['#1e3a8a', '青'],
+  ['#14532d', '深緑'],
+  ['#7f1d1d', 'えんじ'],
+  ['#5b4636', 'こげ茶'],
+  ['#4b5563', 'グレー']
+];
+function inkNow(){
+  var v = '';
+  try { v = localStorage.getItem(INK_KEY) || ''; } catch (e) {}
+  for (var i = 0; i < INKS.length; i++) if (INKS[i][0] === v) return v;
+  return INKS[0][0];
+}
+function applyInk(v){ el('paper').style.setProperty('--ink', v); }
+function buildInkPicker(){
+  var cur = inkNow();
+  el('c-ink').innerHTML = INKS.map(function(k){
+    return '<option value="' + esc(k[0]) + '"' + (k[0] === cur ? ' selected' : '') + '>'
+      + esc(k[1]) + '</option>';
+  }).join('');
+  applyInk(cur);
+  el('c-ink').addEventListener('change', function(){
+    try { localStorage.setItem(INK_KEY, el('c-ink').value); } catch (e) {}
+    applyInk(el('c-ink').value);
+  });
+}
+
 /* 紙に出す順。区分マスタ（events.json）の並びをそのまま使う。
    系統順（10ダンス→ラテン→スタンダード→シニア→ジュニア）に戻したいときは
    「系統順にそろえる」で並び自体を書き換える。 */
@@ -412,6 +452,7 @@ function buildPicker(){
     window.print();
   });
   el('b-xlsx').addEventListener('click', downloadXlsx);
+  buildInkPicker();
 }
 
 /* いま紙に出している区分を、出している順に返す。draw() と同じ選び方。 */
@@ -461,6 +502,8 @@ function printMetrics(){
       aff: fs('.blk td.aff', 8.5),     th:  fs('.blk thead th', 7.5),
       ttl: fs('.blk .ttl .nm', 12),    dan: fs('.blk .ttl .dance', 10)
     },
+    /* 紙で選んだ文字と罫線の色。Excelも同じ見た目にする */
+    ink: inkNow(),
     kinds: {}
   };
   (DATA.events || []).forEach(function(e){ m.kinds[e.code] = evKind(e); });

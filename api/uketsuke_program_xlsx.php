@@ -108,6 +108,12 @@ $F_TH  = uk_num($F['th']  ?? 7.5,  4, 40, 7.5);
 $F_TTL = uk_num($F['ttl'] ?? 12,   4, 40, 12);
 $F_DAN = uk_num($F['dan'] ?? 10,   4, 40, 10);
 
+/* 文字と罫線の色。画面の「文字と罫線」で選んだものをそのまま使い、紙と同じ見た目にする。
+   おかしな値が来たら黒に戻す（色の指定が壊れているとExcelがファイルごと開けなくなる）。 */
+$ink = '#1a1a1a';
+if (preg_match('/^#[0-9A-Fa-f]{6}$/', (string)($fmt['ink'] ?? ''))) $ink = (string)$fmt['ink'];
+$INK = 'FF' . strtoupper(substr($ink, 1));
+
 /* 区分ごとの系統（色分けに使う）。画面の evKind() が決めたものをそのまま受け取る。 */
 $KINDS = is_array($fmt['kinds'] ?? null) ? $fmt['kinds'] : [];
 /* 帯の地色と文字色。uketsuke-program.html の .k-* と同じ値。 */
@@ -310,12 +316,12 @@ $sheets = [['出場選手一覧', $sheet1]];
 
 /* ── styles.xml ── */
 $fonts = [
-    '<font><sz val="11"/><color theme="1"/><name val="Yu Gothic"/><family val="3"/></font>',                 /* 0 */
-    '<font><b/><sz val="11"/><color theme="1"/><name val="Yu Gothic"/><family val="3"/></font>',             /* 1 */
-    '<font><b/><sz val="' . $F_TH  . '"/><color theme="1"/><name val="Yu Gothic"/><family val="3"/></font>', /* 2 見出し */
-    '<font><b/><sz val="' . $F_BIB . '"/><color theme="1"/><name val="Yu Gothic"/><family val="3"/></font>', /* 3 背番号 */
-    '<font><b/><sz val="' . $F_NM  . '"/><color theme="1"/><name val="Yu Gothic"/><family val="3"/></font>', /* 4 氏名 */
-    '<font><sz val="'    . $F_AFF . '"/><color theme="1"/><name val="Yu Gothic"/><family val="3"/></font>',  /* 5 所属 */
+    '<font><sz val="11"/><color rgb="' . $INK . '"/><name val="Yu Gothic"/><family val="3"/></font>',                 /* 0 */
+    '<font><b/><sz val="11"/><color rgb="' . $INK . '"/><name val="Yu Gothic"/><family val="3"/></font>',             /* 1 大会名 */
+    '<font><b/><sz val="' . $F_TH  . '"/><color rgb="' . $INK . '"/><name val="Yu Gothic"/><family val="3"/></font>', /* 2 見出し */
+    '<font><b/><sz val="' . $F_BIB . '"/><color rgb="' . $INK . '"/><name val="Yu Gothic"/><family val="3"/></font>', /* 3 背番号 */
+    '<font><b/><sz val="' . $F_NM  . '"/><color rgb="' . $INK . '"/><name val="Yu Gothic"/><family val="3"/></font>', /* 4 氏名 */
+    '<font><sz val="'    . $F_AFF . '"/><color rgb="' . $INK . '"/><name val="Yu Gothic"/><family val="3"/></font>',  /* 5 所属 */
 ];
 $fontOf = [];   /* kind => [区分名のfontId, 種目のfontId] */
 foreach ($KIND_LIST as $k) {
@@ -337,7 +343,7 @@ foreach ($KIND_LIST as $k) {
     $fillOf[$k] = count($fills) - 1;
 }
 
-$thin = '<color rgb="FFB9C2CF"/>';
+$thin = '<color rgb="' . $INK . '"/>';   /* 罫線も文字と同じ色にする（紙と同じ） */
 $borders = [
     '<border><left/><right/><top/><bottom/><diagonal/></border>',
     '<border><left style="thin">' . $thin . '</left><right style="thin">' . $thin . '</right>'
