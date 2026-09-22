@@ -65,18 +65,5 @@ var UkScope = (function () {
     return out;
   }
 
-  /* エントリーが0組の区分を落とす。その大会で誰も出ない区分（DCSの区分表には
-     載っていても組が入っていないもの）は、選んでも空の一覧が出るだけなので出さない。
-     名簿がまだ読めていないときは、何も消さずそのまま返す。 */
-  function withEntries(events, roster) {
-    if (!roster || !roster.length) return (events || []).slice();
-    var has = {};
-    roster.forEach(function (r) {
-      (r.events || []).forEach(function (c) { has[c] = true; });
-    });
-    return (events || []).filter(function (e) { return has[e.code]; });
-  }
-
-  return { timeKey: timeKey, deadlines: deadlines, label: label,
-           options: options, withEntries: withEntries };
+  return { timeKey: timeKey, deadlines: deadlines, label: label, options: options };
 })();

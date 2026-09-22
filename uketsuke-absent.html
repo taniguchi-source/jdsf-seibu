@@ -128,19 +128,6 @@
 <script src="js/uketsuke_scope.js?v=20260922"></script>
 <script>
 'use strict';
-/* ── 古いJSが端末に残っていたときの自動復帰 ──
-   HTMLだけ新しく、js/uketsuke_scope.js が古いままだと、あとの処理が欠ける。
-   URLにしるしを付けて一度だけ読み直し、キャッシュを外す
-   （繰り返さないよう、この端末のこのタブで1回だけ）。 */
-(function(){
-  if (window.UkScope && UkScope.withEntries) return;
-  try {
-    if (sessionStorage.getItem('uk_stale_js')) return;   /* 1回やって駄目ならあきらめる */
-    sessionStorage.setItem('uk_stale_js', '1');
-  } catch (e) { return; }
-  location.replace(location.pathname
-    + (location.search ? location.search + '&r=' : '?r=') + Date.now() + location.hash);
-})();
 
 var DATA = null;
 var CSRF = '';
@@ -192,10 +179,14 @@ function load(){
    ボタンから開いた範囲とここでの選び直しが食い違うため。 */
 /* エントリーが0組の区分は、選んでも空の一覧が出るだけなので外す */
 function evWithEntries(){
-  /* 古い js/uketsuke_scope.js が端末に残っていると withEntries が無い。
-     そのときは区分を全部返す（0組の区分も出るだけで、画面は止まらない）。 */
-  if (!window.UkScope || !UkScope.withEntries) return (DATA.events || []).slice();
-  return UkScope.withEntries(DATA.events, DATA.roster);
+  /* エントリーが0組の区分を外す。共有JS（js/uketsuke_scope.js）に置くと、
+     古い共有JSが端末に残っている間だけ画面が止まる（実際にiPhoneで起きた）。
+     共有JSは前からある関数だけを使い、新しい処理はページ側に持つ。 */
+  var roster = DATA.roster || [], events = DATA.events || [];
+  if (!roster.length) return events.slice();
+  var has = {};
+  roster.forEach(function(r){ (r.events || []).forEach(function(c){ has[c] = true; }); });
+  return events.filter(function(e){ return has[e.code]; });
 }
 function deadlines(){ return UkScope.deadlines(evWithEntries()); }
 
