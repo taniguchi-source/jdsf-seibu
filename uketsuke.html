@@ -381,7 +381,7 @@
 
   <nav class="tabs">
     <button data-view="comp" class="active">大会</button>
-    <button data-view="roster">名簿</button>
+    <button data-view="roster">締切時刻設定</button>
     <button data-view="checkin" id="tab-checkin">受付</button>
     <button data-view="rollcall">欠場報告</button>
     <button data-view="deadline" id="tab-deadline">受付締切処理</button>
@@ -451,7 +451,7 @@
         <p class="nc-foot">
           読み込んだあと、<b>この大会を開くときの合言葉</b>を決めます（候補が出るので、そのままでも構いません）。
           公認番号は公開されている番号なので合言葉には使いません。
-          受付締切の時刻は「名簿」タブの区分マスタで入れてください。
+          受付締切の時刻は「締切時刻設定」タブで入れてください。
         </p>
       </div>
 
@@ -740,7 +740,8 @@
         <span class="muted" id="ev-saved"></span>
       </div>
 
-      <h2>一覧 <span class="muted" id="rs-count"></span></h2>
+      <!-- タブ名を「締切時刻設定」にしたので、名簿はここだと見出しで分かるようにする -->
+      <h2>名簿の一覧 <span class="muted" id="rs-count"></span></h2>
       <input type="text" id="rs-search" placeholder="背番号・氏名・所属で検索">
       <div style="height:8px"></div>
       <table class="dense">
@@ -2191,7 +2192,7 @@ function renderCheckinGate(){
         return '<span>' + esc(e.code) + (evName2(e) ? '　' + esc(evName2(e)) : '') + '</span>';
       }).join('')
     + '</div>'
-    + '<button type="button" id="ci-gate-go">「名簿」タブの区分マスタへ移動する</button>'
+    + '<button type="button" id="ci-gate-go">「締切時刻設定」タブへ移動する</button>'
     + '<p class="muted" style="margin:8px 0 0">'
     + '区分マスタで時刻（例 18:00）を入れ、その時刻で締め切る区分に印を付けて'
     + '「選んだ区分をこの時刻にする」を押すと、この画面から受付を始められます。</p>';
@@ -3238,7 +3239,7 @@ function runImport(auto, onCancel){
   })
     .then(function(d){
       var msg = d.count + '組を取り込みました。';
-      if (d.new_events_created.length) msg += '<br>区分を仮登録しました: ' + esc(d.new_events_created.join(', ')) + '（名簿タブで名称・時刻を確認してください）';
+      if (d.new_events_created.length) msg += '<br>区分を仮登録しました: ' + esc(d.new_events_created.join(', ')) + '（「締切時刻設定」タブで名称・時刻を確認してください）';
       if (d.duplicate_bibs.length) msg += '<br>CSV内で背番号が重複していました（後の行を採用）: ' + esc(d.duplicate_bibs.join(', '));
       var b = el('imp-result'); b.className = 'banner b-ok'; b.innerHTML = msg; b.classList.remove('hidden');
       PREV = null;
