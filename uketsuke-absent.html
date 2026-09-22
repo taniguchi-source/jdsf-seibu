@@ -161,8 +161,15 @@ function load(){
       render();
     })
     .catch(function(e){
-      document.body.innerHTML = '<p style="padding:20px">読み込めませんでした（' + esc(e.message)
-        + '）。<a href="uketsuke.html">受付システム</a>でログインしてから開いてください。</p>';
+      /* Forbidden は「別のタブ・別のアプリで開いてログインが引き継がれなかった」ことが多い。
+         直し方が分かるように、理由と戻り先を出す。 */
+      var m = /Forbidden/i.test(e.message)
+        ? '<b>ログインが引き継がれませんでした。</b><br>'
+          + 'スマートフォンでは、別のタブや別のアプリで開くとログインが切れることがあります。<br>'
+          + '<a href="uketsuke.html">受付システムを開く</a>（ログインしてから、もう一度このページを開いてください）'
+        : '読み込めませんでした（' + esc(e.message) + '）。'
+          + '<a href="uketsuke.html">受付システム</a>でログインしてから開いてください。';
+      document.body.innerHTML = '<p style="padding:20px;line-height:2">' + m + '</p>';
     });
 }
 

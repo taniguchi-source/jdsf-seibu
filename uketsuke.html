@@ -941,6 +941,17 @@ function syncEntriesLinks(){
   var q = '?id=' + encodeURIComponent(COMP ? COMP.id : '');
   var a = el('tab-program');
   if (a) a.href = 'uketsuke-program.html' + q;
+  /* スマホ・タブレットでは同じタブで開く。別のタブで開くと、ホーム画面に追加した
+     ときや、LINE・メールの中のブラウザから開いたときにログインが引き継がれず、
+     「読み込めませんでした（Forbidden）」になるため。戻るときは上のタブを押す。 */
+  if (a && isTouchDevice()) a.removeAttribute('target');
+}
+
+/* 別ページ（出場選手一覧・欠場者一覧）の開き方。上と同じ理由で、
+   指で操作する端末は同じタブ、パソコンは別のタブで開く。 */
+function openPage(url){
+  if (isTouchDevice()) { location.href = url; return; }
+  window.open(url, '_blank', 'noopener');
 }
 el('tab-program').addEventListener('click', function(e){
   if (!COMP) {
@@ -2596,8 +2607,8 @@ function openAbsentPicker(){
   el('rcp-list').querySelectorAll('[data-pick]').forEach(function(b){
     b.addEventListener('click', function(){
       closeAbsentPicker();
-      window.open('uketsuke-absent.html?id=' + encodeURIComponent(COMP.id)
-        + '&pick=' + encodeURIComponent(b.dataset.pick), '_blank', 'noopener');
+      openPage('uketsuke-absent.html?id=' + encodeURIComponent(COMP.id)
+        + '&pick=' + encodeURIComponent(b.dataset.pick));
     });
   });
   el('rcp-dlg').classList.remove('hidden');
