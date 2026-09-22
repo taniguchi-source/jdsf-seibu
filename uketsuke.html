@@ -50,6 +50,8 @@
   /* 「初期振分の終了後に受付希望」のときだけ出す、決まった言い方の選択肢。
      狭い画面ではメモ欄と2行に分かれる。 */
   #mn-list .mn-pick{flex:none;max-width:17em;font-size:14px;padding:6px 8px}
+  /* 保存ボタンを置いていないので、入ったことを短く出す */
+  #mn-list .mn-ok{flex:none;font-size:12px;font-weight:700;color:var(--ok);white-space:nowrap}
   #mn-list .mn-ev{font-weight:700}
   #mn-list .mn-sub{display:block;font-size:12px;color:var(--muted)}
   #v-manual th{white-space:nowrap}
@@ -62,7 +64,6 @@
   #mn-list .mn-sub{font-size:13px}
   #mn-list .mn-lab{width:3.4em;font-size:14px}
   #mn-list input[type=text]{font-size:16px;padding:7px 10px}
-  #mn-list .mn-save{font-size:14px;padding:6px 14px}
   tr.mn-done td{color:var(--muted)}
   .print-only{display:none}
   #mn-print-head{margin:4px 0 10px;font-size:12px;color:var(--muted)}
@@ -2560,6 +2561,9 @@ function renderManualTab(){
 }
 function renderManual(){
   renderManualTab();
+  /* 3秒ごとに一覧を組み直しているので、そのまま作り直すと入力中の文字が消える。
+     この一覧の中に焦点があるあいだは触らない（次の巡回で最新になる）。 */
+  if (el('mn-list').contains(document.activeElement)) return;
   /* 印刷したとき、何の大会のいつの一覧か分かるようにする（画面では出さない） */
   el('mn-print-head').textContent = (COMP ? COMP.name + (COMP.date ? '（' + COMP.date + '）' : '') : '')
     + '　' + new Date().toLocaleString('ja-JP');
@@ -2598,16 +2602,13 @@ function renderManual(){
       + mnPickHtml(reason, note)
       + '<input type="text" class="mn-note"' + key + ' value="' + esc(note) + '"'
       + ' placeholder="どう対応したか">'
-      + '<button type="button" class="small secondary mn-save"' + key + '>保存</button></div>'
+      + '<span class="mn-ok hidden">保存しました</span></div>'
       + '<div class="print-only">理由：' + esc(reason) + '　メモ：' + esc(note) + '</div>'
       + '</div></td></tr>';
   }).join('') || '<tr><td colspan="6" class="muted">ありません</td></tr>';
 
-  el('mn-list').querySelectorAll('.mn-save').forEach(function(btn){
-    btn.addEventListener('click', function(){ saveManualNote(btn); });
-  });
-  /* 決まった言い方を選んだら、メモ欄に入れる。「その他」はその場で書いてもらう。
-     メモ欄はいつでも直せるようにしておく（選択肢は書く手間を省くためのもの）。 */
+  /* 決まった言い方を選んだら、メモ欄に入れてそのまま保存する。
+     「その他」はまだ書く中身が無いので保存せず、その場で書いてもらう。 */
   el('mn-list').querySelectorAll('.mn-pick').forEach(function(sel){
     sel.addEventListener('change', function(){
       var inp = sel.closest('.mn-line').querySelector('.mn-note');
@@ -2615,9 +2616,10 @@ function renderManual(){
       if (sel.value === MN_PICK_OTHER) {
         if (MN_PICKS.indexOf(inp.value.trim()) >= 0) inp.value = '';
         inp.focus();
-      } else {
-        inp.value = sel.value;
+        return;
       }
+      inp.value = sel.value;
+      saveManualNote(inp);
     });
   });
   /* 理由を書き換えたら、選択肢を出したり引っ込めたりする */
@@ -2627,12 +2629,11 @@ function renderManual(){
       if (sel) sel.classList.toggle('hidden', inp.value.trim() !== MN_REASON_PICK);
     });
   });
+  /* 保存ボタンは置かない。書き終わり（他へ移ったとき）とEnterで自動保存する。 */
   el('mn-list').querySelectorAll('.mn-note,.mn-reason').forEach(function(inp){
+    inp.addEventListener('change', function(){ saveManualNote(inp); });
     inp.addEventListener('keydown', function(e){
-      if (e.key === 'Enter' || e.keyCode === 13) {
-        e.preventDefault();
-        saveManualNote(inp.closest('td').querySelector('.mn-save'));
-      }
+      if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); inp.blur(); }
     });
   });
 
@@ -2643,16 +2644,34 @@ function renderManual(){
   }).join('');
   if (sel.innerHTML !== opts) { var cur = sel.value; sel.innerHTML = opts; if (cur) sel.value = cur; }
 }
-function saveManualNote(btn){
-  if (!btn) return;
-  var cell = btn.closest('td');
-  var note = cell.querySelector('.mn-note');
+/* 理由・メモの自動保存。保存ボタンは置かず、選んだとき・書き終わったときに送る。
+   引数は行の中のどれか（メモ欄でも理由欄でも選択肢でもよい）。
+   同じ行を続けて直したときに前の通信を追い越さないよう、行ごとに1つずつ送る。 */
+function saveManualNote(fieldEl){
+  if (!fieldEl || !COMP) return;
+  var cell   = fieldEl.closest('td');
+  var note   = cell.querySelector('.mn-note');
   var reason = cell.querySelector('.mn-reason');
-  btn.disabled = true;
-  post('api/uketsuke_manual.php', {id:COMP.id, op:'note', bib:btn.dataset.bib, code:btn.dataset.code,
+  var ok     = cell.querySelector('.mn-ok');
+  if (!note || !reason) return;
+  if (cell.dataset.saving === '1') { cell.dataset.again = '1'; return; }
+  cell.dataset.saving = '1';
+  post('api/uketsuke_manual.php', {id:COMP.id, op:'note', bib:note.dataset.bib, code:note.dataset.code,
                                    reason:reason.value, note:note.value, by:el('by').value})
-    .then(function(){ return refresh().then(renderManual); })
-    .catch(function(e){ btn.disabled = false; alert(e.message); });
+    .then(function(){
+      /* 押すものが無いので、入ったことは短く出して知らせる */
+      if (ok) {
+        ok.classList.remove('hidden');
+        clearTimeout(ok._t);
+        ok._t = setTimeout(function(){ ok.classList.add('hidden'); }, 2000);
+      }
+      return refresh().then(renderManual);
+    })
+    .catch(function(e){ alert(e.message); })
+    .then(function(){
+      cell.dataset.saving = '';
+      if (cell.dataset.again === '1') { cell.dataset.again = ''; saveManualNote(note); }
+    });
 }
 /* 背番号を打っている途中でも、誰のことか分かるようにする */
 el('mn-bib').addEventListener('input', function(){
