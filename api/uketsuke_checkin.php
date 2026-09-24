@@ -34,12 +34,17 @@ if ($code === '') {
     $codes = [$code];
 }
 
-/* 初期振分が済んだ区分は受付しない。まだの区分だけ受け付けて、済みの区分は人の判断に回す。 */
+/* 受付を終了した区分・初期振分が済んだ区分は受付しない。
+   まだの区分だけ受け付けて、止まった区分は人の判断（手動対応）に回す。 */
 $assign  = uk_load_assign($id);
-$blocked = [];
+$closed  = uk_load_close($id);
+$blocked = [];   /* 初期振分まで済んでいる区分 */
+$shut    = [];   /* 受付終了（ST確認待ち）の区分 */
 $pass    = [];
 foreach ($codes as $c) {
-    if (isset($assign[$c])) $blocked[] = $c; else $pass[] = $c;
+    if (isset($assign[$c]))     $blocked[] = $c;
+    elseif (isset($closed[$c])) $shut[] = $c;
+    else                        $pass[] = $c;
 }
 /* 止まった件は「手動対応」の一覧に残す。その場の画面だけでは伝え漏れるため。 */
 foreach ($blocked as $c) {
@@ -48,7 +53,15 @@ foreach ($blocked as $c) {
                             'at' => uk_now(),
                             'by' => uk_str($_POST['by'] ?? '', 20)]);
 }
-if (!$pass) json_out(['error' => uk_assigned_message($blocked)], 409);
+foreach ($shut as $c) {
+    uk_append_checkin($id, ['action' => 'manual', 'bib' => $bib, 'code' => $c,
+                            'kind' => 'checkin', 'reason' => uk_manual_reason('checkin_closed'),
+                            'at' => uk_now(),
+                            'by' => uk_str($_POST['by'] ?? '', 20)]);
+}
+if (!$pass) {
+    json_out(['error' => $blocked ? uk_assigned_message($blocked) : uk_closed_message($shut)], 409);
+}
 $codes = $pass;
 
 $checkins = uk_load_checkins($id);
@@ -78,7 +91,9 @@ json_out([
     'done'        => $done,       /* うち受付済みの区分 */
     'new'         => $new,        /* この操作で受付した区分 */
     'already'     => $already,    /* 既に受付済みだった区分 */
-    'blocked'     => $blocked,    /* 初期振分が済んでいて受付しなかった区分 */
-    'blocked_message' => $blocked ? uk_assigned_message($blocked) : '',
+    'blocked'     => array_merge($blocked, $shut),   /* 止まって受付しなかった区分 */
+    'closed'      => $shut,       /* うち、受付終了（ST確認待ち）で止まった区分 */
+    'blocked_message' => $blocked ? uk_assigned_message($blocked)
+                                  : ($shut ? uk_closed_message($shut) : ''),
     'at'          => $now,
 ]);

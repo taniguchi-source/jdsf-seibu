@@ -13,6 +13,7 @@ $roster   = uk_load_roster($id);
 $checkins = uk_load_checkins($id);
 $stock    = uk_load_stock($id);
 $assign   = uk_load_assign($id);
+$closed   = uk_load_close($id);
 $manual   = uk_load_manual($id);
 
 /* 一覧から大会名を引く */
@@ -34,6 +35,8 @@ json_out([
     'stock'      => array_values($stock),
     /* 区分ごとの「ST初期振分が済んだ」記録 */
     'assign'     => array_values($assign),
+    /* 区分ごとの「受付を終了した（STの確認待ち）」記録 */
+    'closed'     => array_values($closed),
     /* 手動対応が要る件（初期振分のあとに受付・取消をしようとして止まった件） */
     'manual'     => array_values($manual),
     /* 欠場者一覧ページ（読むだけのページ）から初期振分を記録できるようにトークンを渡す。

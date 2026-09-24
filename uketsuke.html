@@ -204,6 +204,20 @@
   table.dl tr.done td{background:#f6fbf7}
   .dl-state{font-weight:700;color:#c2410c}
   .dl-state.ok{color:var(--ok)}
+  /* 受付終了（STの確認待ち）。受付中でも完了でもない、途中の状態として別の色にする。 */
+  .dl-state.wait{color:#6d28d9}
+  table.dl tr.wait td{background:#f7f3ff}
+  .dl-gh .dl-wait{font-size:12px;font-weight:800;color:#6d28d9;background:#efe7fd;
+    border-radius:99px;padding:2px 10px}
+  /* 受付タブ側。時刻の見出しから、その時刻の受付を終了できるようにする。 */
+  #ci-prog .gh .ci-close{margin-left:8px;font-size:13px;font-weight:700;padding:4px 12px;
+    border:2px solid #6d28d9;border-radius:8px;background:#6d28d9;color:#fff;cursor:pointer}
+  #ci-prog .gh .ci-close.undo{background:#fff;color:#6d28d9}
+  #ci-prog .gh .ci-close:disabled{opacity:.4;cursor:not-allowed}
+  #ci-prog .gh .st-wait{font-size:12px;font-weight:800;color:#6d28d9;margin-left:8px;white-space:nowrap}
+  #ci-prog .gh .st-done{font-size:12px;font-weight:800;color:var(--ok);margin-left:8px;white-space:nowrap}
+  /* 受付を止めた区分は、一覧の中でも薄くして「もう触らない」ことを見せる */
+  .ci-pr.shut{opacity:.55}
   .row{display:flex;gap:8px;align-items:center}
   .row.wrap{flex-wrap:wrap}
   .grow{flex:1;min-width:120px}
@@ -583,8 +597,9 @@
     <section id="v-deadline" class="hidden">
       <h2>受付締切処理</h2>
       <p class="muted">
-        受付締切の時刻ごとに区分を並べています。ST（スクルティニア）が初期振分を済ませたら
-        <b>受付の停止</b>を押してください。<b>止めた区分は、以後この受付システムで受付も取消もできません。</b><br>
+        受付締切の時刻ごとに区分を並べています。<b>受付終了（ST確認待ち）</b>は、受付担当者が
+        その時刻の受付を締めた区分です。DCSで初期振分を済ませたら
+        <b>初期振分の完了</b>を押してください。<b>完了にした区分は、以後この受付システムで受付も取消もできません。</b><br>
         押す前に、欠場の組の<b>背番号在庫</b>を確かめてください（確かめていない組があるときは知らせます）。
       </p>
       <div id="dl-list"></div>
@@ -1642,6 +1657,7 @@ function pollTick(){
     if (!el('v-manual').classList.contains('hidden')) renderManual();
     renderManualTab();   /* 他の画面にいても件数は最新にする */
     renderCheckinTab();  /* 受付できない状態（締切未設定）も他の画面から分かるようにする */
+    renderDeadlineTab(); /* STの確認待ちが何区分あるかも、他の画面から分かるようにする */
   }).catch(function(e){ syncFailed(e && e.message); });
 }
 function startPolling(on){
@@ -1712,7 +1728,7 @@ var LAST_BIB  = null;   /* 直前に扱った組。入力欄が空でも「一�
 /* 区分を並べて出す。bib を渡すと受付済みの区分に印が付く。
    受付した直後は DATA がまだ古いので、doneCodes（サーバーが返した受付済みの区分）を渡す。 */
 function evHtml(codes, bib, doneCodes){
-  var asg  = assignMap();
+  var asg  = assignMap(), cls = closeMap();
   var done = {};
   if (doneCodes) {
     doneCodes.forEach(function(c){ done[c] = true; });
@@ -1724,8 +1740,8 @@ function evHtml(codes, bib, doneCodes){
     var m = (DATA.events || []).filter(function(e){ return e.code === c; })[0];
     var nm = (m && m.name && m.name !== c) ? ' ' + m.name : '';
     var d = done[c];
-    /* 受付済みなら緑。まだで、初期振分が済んでいるなら取り消し線 */
-    return '<span class="ev-pill' + (d ? ' ev-done' : (asg[c] ? ' ev-locked' : '')) + '">'
+    /* 受付済みなら緑。まだで、受付終了・初期振分で止まっているなら取り消し線 */
+    return '<span class="ev-pill' + (d ? ' ev-done' : (evShut(c, asg, cls) ? ' ev-locked' : '')) + '">'
       + esc(c + nm) + (d ? ' ✓' : '') + '</span>';
   }).join('');
   return evs ? '<br>' + evs : '<br><span class="muted">出場区分の登録がありません</span>';
@@ -1839,14 +1855,16 @@ function lookupBib(){
   var isDone = (r.events || []).length && !rest.length;
   /* 受付済みの区分と、初期振分が済んで受付できない区分は、押す前に分けて見せる。
      そうしないと「これから全部受付する」ように見えてしまう。 */
-  var asg    = assignMap();
+  var asg    = assignMap(), cls = closeMap();
   var already = (r.events || []).filter(function(c){ return done[r.bib + ':' + c]; });
   var locked = rest.filter(function(c){ return asg[c]; });
-  var canDo  = rest.filter(function(c){ return !asg[c]; });
-  banner(isDone ? 'warn' : (locked.length ? 'warn' : 'info'),
+  var shut   = rest.filter(function(c){ return !asg[c] && cls[c]; });
+  var canDo  = rest.filter(function(c){ return !evShut(c, asg, cls); });
+  banner(isDone ? 'warn' : ((locked.length || shut.length) ? 'warn' : 'info'),
     whoHtml(r.bib, r) + evHtml(r.events, r.bib) + '<br>'
     + (already.length && !isDone ? esc(already.join('・')) + ' は受付済みです<br>' : '')
     + (locked.length ? '<b>' + esc(locked.join('・')) + ' は初期振分が済んでいるため、自動では受付できません（手動対応してください）</b><br>' : '')
+    + (shut.length ? '<b>' + esc(shut.join('・')) + ' は受付を終了しています（ST確認待ち）。受付するときは手動対応してください</b><br>' : '')
     + (isDone ? '全区分 受付済みです'
        : canDo.length ? '内容が正しければ、もう一度Enterを押すか「受付」を押してください'
                         + (canDo.length < (r.events || []).length ? '（' + esc(canDo.join('・')) + ' を受付します）' : '')
@@ -1862,16 +1880,18 @@ function showPanel(bib, msg){
   var codes = r.events || [];
   el('ci-who').innerHTML = whoHtml(r.bib, r);
   el('ci-hint').textContent = msg || '出場する区分だけを押してください。押さなかった区分は欠場になります。';
-  var asg = assignMap();
+  var asg = assignMap(), cls = closeMap();
   el('ci-evs').innerHTML = codes.length
     ? codes.map(function(c){
         var m = (DATA.events || []).filter(function(e){ return e.code === c; })[0] || {code:c};
         var d = done[r.bib + ':' + c];
-        if (asg[c]) {
+        if (evShut(c, asg, cls)) {
           return '<button type="button" class="ev-btn" data-code="' + esc(c) + '">'
             + '<span class="c">' + esc(c) + '</span>'
             + esc((m.name && m.name !== c) ? m.name : '')
-            + '<span class="s">ST初期振分が済んでいます（受付・取消はできません）</span></button>';
+            + '<span class="s">' + (asg[c] ? 'ST初期振分が済んでいます（受付・取消はできません）'
+                                           : '受付を終了しています（ST確認待ち・受付・取消はできません）')
+            + '</span></button>';
         }
         return '<button type="button" class="ev-btn' + (d ? ' done' : '') + '" data-code="' + esc(c) + '">'
           + '<span class="c">' + esc(c) + '</span>'
@@ -2115,7 +2135,7 @@ function banner(kind, html){
 function renderProgress(){
   var box = el('ci-prog');
   if (!box) return;
-  var done = doneMap();
+  var done = doneMap(), asg = assignMap(), cls = closeMap();
   var cnt = {};
   (DATA.events || []).forEach(function(e){ cnt[e.code] = {n: 0, d: 0}; });
   (DATA.roster || []).forEach(function(r){
@@ -2148,15 +2168,33 @@ function renderProgress(){
         var gd = 0, gn = 0;
         g.list.forEach(function(e){ gd += cnt[e.code].d; gn += cnt[e.code].n; });
         var grest = gn - gd;
+        /* その時刻の区分の状態。ひとつでも受付中が残っていれば「終了する」を出す。 */
+        var op = g.list.filter(function(e){ return evState(e.code, asg, cls) === 'open'; }).length;
+        var cl = g.list.filter(function(e){ return evState(e.code, asg, cls) === 'closed'; }).length;
+        var as = g.list.filter(function(e){ return evState(e.code, asg, cls) === 'assigned'; }).length;
+        var btn = '';
+        if (op > 0) {
+          btn = '<button type="button" class="ci-close" data-close="' + esc(g.t)
+              + '" data-on="1">この時刻の受付を終了</button>';
+        } else if (cl > 0) {
+          btn = '<span class="st-wait">受付終了（ST確認待ち）</span>'
+              + '<button type="button" class="ci-close undo" data-close="' + esc(g.t)
+              + '" data-on="0">取り消す</button>';
+        } else if (as > 0) {
+          btn = '<span class="st-done">初期振分 完了</span>';
+        }
         return '<div class="gp"><div class="gh' + (grest === 0 ? ' fin' : '') + '">'
           + '<span class="sm">受付締切</span>'
           + '<span class="tm">' + esc(g.t || '未設定') + '</span>'
           + '<span class="sm">済 ' + gd + '／計 ' + gn + '</span>'
           + '<span class="rest">' + (grest === 0 ? '完了' : '残り ' + grest + '組') + '</span>'
+          + btn
           + '</div><div class="grid">'
           + g.list.map(function(e){
               var k = cnt[e.code], rest = k.n - k.d;
-              return '<div class="ci-pr' + (rest === 0 ? ' fin' : '') + '">'
+              var st = evState(e.code, asg, cls);
+              return '<div class="ci-pr' + (rest === 0 ? ' fin' : '')
+                + (st === 'open' ? '' : ' shut') + '">'
                 + '<span class="tm">' + esc(g.t || '—') + '</span>'
                 + '<span class="c">' + esc(e.code) + '</span>'
                 + '<span class="d">済 ' + k.d + '</span>'
@@ -2165,6 +2203,51 @@ function renderProgress(){
             }).join('')
           + '</div></div>';
       }).join('');
+
+  /* 受付の側で締める。押した時刻の区分をまとめて「受付終了（ST確認待ち）」にする。
+     初期振分まで済んでいる区分は触らない。 */
+  box.querySelectorAll('[data-close]').forEach(function(b){
+    b.addEventListener('click', function(){ closeTime(b.dataset.close, b.dataset.on === '1', b); });
+  });
+}
+
+/* ── 受付終了（ST確認待ち）の記録 ──
+   受付が終わった瞬間に締めれば、STが初期振分を済ませて押すまでの間に
+   受付されることがなくなる。STの確認前なら受付の側で取り消せる。 */
+function closeTime(t, on, btn){
+  if (!DATA || !COMP) return;
+  var asg = assignMap(), cls = closeMap();
+  var codes = (DATA.events || []).filter(function(e){
+    if (String(e.start_time || '').trim() !== String(t)) return false;
+    if (!entryCount(e.code)) return false;              /* 0組の区分は関係ない */
+    return on ? evState(e.code, asg, cls) === 'open'
+              : evState(e.code, asg, cls) === 'closed';
+  }).map(function(e){ return e.code; });
+  if (!codes.length) return;
+  var name = (t || '未設定');
+  if (on) {
+    if (!confirm(name + ' の受付を終了します（' + codes.join('、') + '）。\n'
+      + 'これ以降この時刻の区分は受付・取消ができなくなり、'
+      + 'スクルティニアの確認待ちになります。よろしいですか？')) return;
+  } else {
+    if (!confirm(name + ' の受付終了を取り消します（' + codes.join('、') + '）。\n'
+      + 'もう一度受付できるようになります。よろしいですか？')) return;
+  }
+  if (el('by').value.trim() === '' && !askBy()) return;
+  btn.disabled = true;
+  var i = 0;
+  function next(){
+    if (i >= codes.length) return Promise.resolve();
+    var c = codes[i++];
+    return post('api/uketsuke_assign.php',
+                {id: COMP.id, code: c, kind: 'close', on: on ? '1' : '0', by: el('by').value})
+      .then(next);
+  }
+  next()
+    .then(function(){ return refresh(); })
+    .then(function(){ renderRecent(); renderDeadline(); renderDeadlineTab(); })
+    .catch(function(e){ alert(e.message); })
+    .then(function(){ btn.disabled = false; });
 }
 
 /* ── 受付締切が入っていない区分の足止め ──
@@ -2186,6 +2269,18 @@ function checkinReady(){
   return !!DATA && eventsWithoutDeadline().length === 0;
 }
 /* 受付タブにも印を出す。別のタブを見ていても、受付できない状態だと分かるようにする。 */
+/* 受付締切処理タブに、STの確認待ちの区分数を出す。
+   受付から口頭で伝えなくても、STがこの数で気づけるようにする。 */
+function renderDeadlineTab(){
+  var b = el('tab-deadline');
+  if (!b || !DATA) return;
+  var asg = assignMap(), cls = closeMap();
+  var n = (DATA.events || []).filter(function(e){
+    return entryCount(e.code) > 0 && !asg[e.code] && cls[e.code];
+  }).length;
+  b.textContent = n ? '受付締切処理 ' + n : '受付締切処理';
+  b.classList.toggle('has-todo', n > 0);
+}
 function renderCheckinTab(){
   var b = el('tab-checkin');
   if (!b || !DATA) return;
@@ -2228,7 +2323,7 @@ function renderCheckinGate(){
    出すのは「まだ停止していない締切のうち、いちばん早いもの」。
    停止（＝受付締切処理タブでST初期振分を記録）まで出し続け、過ぎたら赤で経過を出す。 */
 function nextDeadline(){
-  var asg = assignMap();
+  var asg = assignMap(), cls = closeMap();
   var groups = [], byTime = {};
   (DATA.events || []).forEach(function(e){
     var t = String(e.start_time || '').trim();
@@ -2237,7 +2332,7 @@ function nextDeadline(){
     (DATA.roster || []).forEach(function(r){ if ((r.events || []).indexOf(e.code) >= 0) n++; });
     if (!n) return;                       /* エントリー0組の区分は数えない */
     if (!byTime[t]) { byTime[t] = {t: t, open: 0}; groups.push(byTime[t]); }
-    if (!asg[e.code]) byTime[t].open++;   /* まだ受付を止めていない区分 */
+    if (!asg[e.code] && !cls[e.code]) byTime[t].open++;   /* まだ受付中の区分 */
   });
   groups.sort(byDeadline);
   return {any: groups.length > 0,
@@ -2356,6 +2451,22 @@ el('rc-by-edit').addEventListener('click', function(){
 /* ---------- ST初期振分（区分ごと） ----------
    DCSで初期振分をすると、あとから受付した組は自動では組み込めない。
    済みにした区分は、受付も取消もサーバー側で止める。 */
+/* 区分ごとの「受付を終了した（STの確認待ち）」。受付の側が押した仮の締め。
+   受付が終わってからSTが初期振分を済ませて押すまでの間も締まったままにする。 */
+function closeMap(){
+  var m = {};
+  (DATA.closed || []).forEach(function(a){ m[a.code] = a; });
+  return m;
+}
+/* 区分の状態。'open'＝受付中／'closed'＝受付終了（ST確認待ち）／'assigned'＝初期振分 完了 */
+function evState(code, asg, cls){
+  asg = asg || assignMap();
+  cls = cls || closeMap();
+  return asg[code] ? 'assigned' : (cls[code] ? 'closed' : 'open');
+}
+/* 受付も取消もできない区分（受付終了も初期振分も止める） */
+function evShut(code, asg, cls){ return evState(code, asg, cls) !== 'open'; }
+
 function assignMap(){
   var m = {};
   (DATA.assign || []).forEach(function(a){ m[a.code] = a; });
@@ -2389,8 +2500,8 @@ function openAssignDlg(code, on, run, warn, title){
   el('asg-warn').textContent = warn || '';
   el('asg-warn').classList.toggle('hidden', !warn);
   el('asg-title').textContent = title || (on
-    ? code + ' の受付を止めます'
-    : code + ' の受付を再開します');
+    ? code + ' の初期振分の完了を記録します'
+    : code + ' の初期振分の完了を取り消します（受付できる状態に戻します）');
   el('asg-q2').textContent = on ? '初期振分は済みましたか' : 'この区分の受付を再開しますか';
   el('asg-c2-label').textContent = on
     ? 'はい、済みました（以後この区分の受付・取消はできません）'
@@ -2419,7 +2530,7 @@ el('asg-ok').addEventListener('click', function(){
    受付締切の時刻ごとに区分を並べ、区分ごと・時刻ごとに受付を止める。
    止める＝ST初期振分の記録（api/uketsuke_assign.php）そのもの。 */
 function dlGroups(){
-  var done = doneMap(), asg = assignMap();
+  var done = doneMap(), asg = assignMap(), cls = closeMap();
   var groups = [], byTime = {};
   (DATA.events || []).forEach(function(e){
     var n = 0, d = 0;
@@ -2433,7 +2544,7 @@ function dlGroups(){
     if (n === 0) return;
     var t = String(e.start_time || '').trim();
     if (!byTime[t]) { byTime[t] = {t: t, list: []}; groups.push(byTime[t]); }
-    byTime[t].list.push({e: e, n: n, d: d, a: asg[e.code] || null});
+    byTime[t].list.push({e: e, n: n, d: d, a: asg[e.code] || null, c: cls[e.code] || null});
   });
   groups.sort(byDeadline);
   return groups;
@@ -2446,28 +2557,34 @@ function renderDeadline(){
   if (!groups.length) { box.innerHTML = '<div class="card muted">区分がありません。</div>'; return; }
   box.innerHTML = groups.map(function(g){
     var open = g.list.filter(function(x){ return !x.a; });
+    var wait = g.list.filter(function(x){ return !x.a && x.c; });
     return '<div class="dl-gp"><div class="dl-gh' + (open.length ? '' : ' fin') + '">'
       + '<span class="sm">受付締切</span><span class="tm">' + esc(g.t || '未設定') + '</span>'
-      + '<span class="sm">' + g.list.length + '区分／停止済み ' + (g.list.length - open.length) + '</span>'
+      + '<span class="sm">' + g.list.length + '区分／完了 ' + (g.list.length - open.length) + '</span>'
+      + (wait.length ? '<span class="dl-wait">受付終了 ' + wait.length + '区分（確認待ち）</span>' : '')
       + (open.length
           ? '<button type="button" class="small assign-todo" data-stopall="' + esc(g.t) + '">'
-            + 'この時刻をすべて停止（' + open.length + '区分）</button>'
-          : '<span class="sm" style="margin-left:auto">この時刻はすべて停止済み</span>')
+            + 'この時刻の初期振分を完了（' + open.length + '区分）</button>'
+          : '<span class="sm" style="margin-left:auto">この時刻はすべて完了</span>')
       + '</div>'
       + '<table class="dl"><thead><tr><th>区分</th><th>区分名</th><th>受付</th><th>状態</th><th></th></tr></thead><tbody>'
       + g.list.map(function(x){
-          var a = x.a;
-          return '<tr' + (a ? ' class="done"' : '') + '>'
+          var a = x.a, c = x.c;
+          /* 受付中 → 受付終了（ST確認待ち） → 初期振分 完了 の3段階で出す */
+          var state = a ? '初期振分 完了' : (c ? '受付終了（ST確認待ち）' : '受付中');
+          var cls2  = a ? ' ok' : (c ? ' wait' : '');
+          var when  = a || c;
+          return '<tr' + (a ? ' class="done"' : (c ? ' class="wait"' : '')) + '>'
             + '<td class="cd"><span class="code-pill">' + esc(x.e.code) + '</span></td>'
             + '<td>' + esc(evName2(x.e)) + '</td>'
             + '<td class="st">済 ' + x.d + '／計 ' + x.n + '</td>'
-            + '<td class="st"><span class="dl-state' + (a ? ' ok' : '') + '">'
-            + (a ? '停止済み' : '受付中') + '</span>'
-            + (a ? '<span class="muted">　' + esc(fmtTime(a.at)) + (a.by ? '（' + esc(a.by) + '）' : '') + '</span>' : '')
+            + '<td class="st"><span class="dl-state' + cls2 + '">' + state + '</span>'
+            + (when ? '<span class="muted">　' + esc(fmtTime(when.at))
+                      + (when.by ? '（' + esc(when.by) + '）' : '') + '</span>' : '')
             + '</td>'
             + '<td class="op"><button type="button" class="small '
             + (a ? 'secondary' : 'assign-todo') + '" data-stop="' + esc(x.e.code) + '" data-on="'
-            + (a ? '0' : '1') + '">' + (a ? '停止を解除' : '受付の停止') + '</button></td></tr>';
+            + (a ? '0' : '1') + '">' + (a ? '完了を解除' : '初期振分の完了') + '</button></td></tr>';
         }).join('')
       + '</tbody></table></div>';
   }).join('');
@@ -2482,7 +2599,7 @@ function renderDeadline(){
       if (!g) return;
       var codes = g.list.filter(function(x){ return !x.a; }).map(function(x){ return x.e.code; });
       if (!codes.length) return;
-      askStop(codes, true, b, (t || '未設定') + ' の区分をすべて止めます（' + codes.join('、') + '）');
+      askStop(codes, true, b, (t || '未設定') + ' の区分をすべて初期振分の完了にします（' + codes.join('、') + '）');
     });
   });
 }
@@ -2518,7 +2635,7 @@ function askStop(codes, on, btn, title){
     }
     next()
       .then(function(){ return refresh(); })
-      .then(function(){ renderDeadline(); renderRollcall(); })
+      .then(function(){ renderDeadline(); renderRollcall(); renderDeadlineTab(); renderRecent(); })
       .catch(function(e){ alert(e.message); })
       .then(function(){ btn.disabled = false; });
   }, warn, title);
@@ -2646,7 +2763,8 @@ var MN_KIND = {checkin:'受付', uncheckin:'取消', add:'手で追加'};
 /* ST初期振分のあとに受付しようとして止まった件は、対応の仕方が決まっている。
    毎回同じことを打つのは手間なので選べるようにする（理由がこの文言のときだけ出す）。
    「その他」を選んだときはメモ欄に自由に書いてもらう。 */
-var MN_REASON_PICK = '初期振分の終了後に受付希望';
+var MN_REASON_PICK  = '初期振分の終了後に受付希望';
+var MN_REASON_PICK2 = '受付終了後に受付希望';
 var MN_PICK_OTHER  = 'その他';
 var MN_PICKS = ['欠場する旨を了承している', 'STに報告して追加エントリーした', MN_PICK_OTHER];
 
@@ -2659,7 +2777,8 @@ var MN_SIG = null;
 var MN_TOUCH_AT = 0;
 
 function mnPickHtml(reason, note){
-  var show = String(reason || '').trim() === MN_REASON_PICK;
+  var r = String(reason || '').trim();
+  var show = (r === MN_REASON_PICK || r === MN_REASON_PICK2);
   var n    = String(note || '').trim();
   /* すでに書いてあるメモが決まった言い方ならそれを選んだ状態に、
      そうでなければ「その他」にしておく（何を選んだかが見て分かるように） */
@@ -2771,7 +2890,8 @@ function renderManual(force){
   el('mn-list').querySelectorAll('.mn-reason').forEach(function(inp){
     inp.addEventListener('input', function(){
       var sel = inp.closest('.mn-fields').querySelector('.mn-pick');
-      if (sel) sel.classList.toggle('hidden', inp.value.trim() !== MN_REASON_PICK);
+      var rv  = inp.value.trim();
+      if (sel) sel.classList.toggle('hidden', rv !== MN_REASON_PICK && rv !== MN_REASON_PICK2);
     });
   });
   /* 保存ボタンは置かない。書き終わり（他へ移ったとき）とEnterで自動保存する。

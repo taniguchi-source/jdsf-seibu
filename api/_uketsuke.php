@@ -251,7 +251,15 @@ function uk_load_stock($id) {
    済んだ区分は受付システム側でも受付を止める。
    在庫チェックと同じく checkins.jsonl に action=assign として追記する
    （全員解除で一緒に消えるように、また複数端末から同時に押しても壊れないように）。 */
-function uk_load_assign($id) {
+function uk_load_assign($id) { return uk_load_state($id, 'assign'); }
+
+/* 区分ごとの「受付を終了した（STの確認待ち）」。
+   受付が終わってからSTが初期振分を済ませて押すまでの間に受付できてしまうと、
+   受付が報告した内容とシステムの中身がずれる。受付の側でその場で締められるようにする。
+   記録の仕方は初期振分と同じ（checkins.jsonl に1行追記）。 */
+function uk_load_close($id) { return uk_load_state($id, 'close'); }
+
+function uk_load_state($id, $action_name) {
     $file = uk_checkins_file($id);
     if (!is_file($file)) return [];
     $fh = @fopen($file, 'r');
@@ -264,7 +272,7 @@ function uk_load_assign($id) {
         if (!is_array($rec)) continue;
         $action = (string)($rec['action'] ?? '');
         if ($action === 'clear') { $map = []; continue; }
-        if ($action !== 'assign') continue;
+        if ($action !== $action_name) continue;
         $code = uk_str($rec['code'] ?? '', 20);
         if ($code === '') continue;
         if (empty($rec['on'])) { unset($map[$code]); continue; }   /* 未に戻した */
@@ -281,8 +289,10 @@ function uk_load_assign($id) {
    メモ（note）が入った件は対応済みとして扱う。 */
 /* 止まった理由は、どの操作で止まったかで決まっている。最初から入れておいて、直せるようにする。 */
 function uk_manual_reason($kind) {
-    if ($kind === 'checkin')   return '初期振分の終了後に受付希望';
-    if ($kind === 'uncheckin') return '初期振分の終了後に取消希望';
+    if ($kind === 'checkin')         return '初期振分の終了後に受付希望';
+    if ($kind === 'uncheckin')       return '初期振分の終了後に取消希望';
+    if ($kind === 'checkin_closed')  return '受付終了後に受付希望';
+    if ($kind === 'uncheckin_closed')return '受付終了後に取消希望';
     return '';
 }
 
@@ -338,6 +348,13 @@ function uk_load_manual($id) {
 /* 初期振分が済んだ区分を受付しようとしたときの文言。画面にそのまま出す。 */
 function uk_assigned_message($codes) {
     return implode('・', (array)$codes) . '：すでに初期振分済です。どのようにするか手動対応してください';
+}
+
+/* 受付を終了した（STの確認待ちの）区分を受付しようとしたときの文言。
+   初期振分まで済んだのか、受付を締めただけなのかで、そのあとの相談の仕方が変わる。 */
+function uk_closed_message($codes) {
+    return implode('・', (array)$codes)
+         . '：受付は終了しています（ST確認待ち）。どのようにするか手動対応してください';
 }
 
 /* 1行追記（同時書き込みでも取りこぼさない） */

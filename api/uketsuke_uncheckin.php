@@ -26,27 +26,40 @@ if ($code !== '') {
     if (!$has) json_out(['error' => "背番号 {$bib} は受付されていません"], 404);
 }
 
-/* 初期振分が済んだ区分は、取り消しても DCS 側は自動では直らないので止める。 */
+/* 初期振分が済んだ区分は、取り消しても DCS 側は自動では直らないので止める。
+   受付を終了した（ST確認待ちの）区分も、受付の報告と食い違うので同じく止める。 */
 $assign  = uk_load_assign($id);
-$blocked = [];
+$closed  = uk_load_close($id);
+$blocked = [];   /* 初期振分まで済んでいる区分 */
+$shut    = [];   /* 受付終了（ST確認待ち）の区分 */
+$mark = function ($cc) use (&$blocked, &$shut, $assign, $closed) {
+    if ($cc === '') return;
+    if (isset($assign[$cc])) { if (!in_array($cc, $blocked, true)) $blocked[] = $cc; }
+    elseif (isset($closed[$cc])) { if (!in_array($cc, $shut, true)) $shut[] = $cc; }
+};
 if ($code !== '') {
-    if (isset($assign[$code])) $blocked[] = $code;
+    $mark($code);
 } else {
     foreach ($checkins as $c) {
         if ((int)($c['bib'] ?? 0) !== $bib) continue;
-        $cc = (string)($c['code'] ?? '');
-        if ($cc !== '' && isset($assign[$cc]) && !in_array($cc, $blocked, true)) $blocked[] = $cc;
+        $mark((string)($c['code'] ?? ''));
     }
 }
-if ($blocked) {
+if ($blocked || $shut) {
     /* 止まった件は「手動対応」の一覧に残す。その場の画面だけでは伝え漏れるため。 */
     foreach ($blocked as $c) {
         uk_append_checkin($id, ['action' => 'manual', 'bib' => $bib, 'code' => $c,
                                 'kind' => 'uncheckin', 'reason' => uk_manual_reason('uncheckin'),
-                            'at' => uk_now(),
+                                'at' => uk_now(),
                                 'by' => uk_str($_POST['by'] ?? '', 20)]);
     }
-    json_out(['error' => uk_assigned_message($blocked)], 409);
+    foreach ($shut as $c) {
+        uk_append_checkin($id, ['action' => 'manual', 'bib' => $bib, 'code' => $c,
+                                'kind' => 'uncheckin', 'reason' => uk_manual_reason('uncheckin_closed'),
+                                'at' => uk_now(),
+                                'by' => uk_str($_POST['by'] ?? '', 20)]);
+    }
+    json_out(['error' => $blocked ? uk_assigned_message($blocked) : uk_closed_message($shut)], 409);
 }
 
 $rec = ['action' => 'remove', 'bib' => $bib];
