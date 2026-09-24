@@ -83,6 +83,50 @@
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   .blk .ttl .dance .k{font-size:11px;margin-right:7px;font-weight:700}
   .blk .none{font-size:12px;color:var(--muted);padding:2px 0 6px}
+  /* ── 区分の並べ替えの小窓 ──
+     区分名だけを並べるので、19区分あっても1画面に収まる。
+     ⇈⇊ でいちばん上・下へ、▲▼ でひとつずつ、パソコンでは ⋮⋮ をつかんで動かす。 */
+  #so-back{position:fixed;inset:0;z-index:50;background:rgba(10,16,26,.5);
+    display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow:auto}
+  #so-back.hidden{display:none}
+  .so-box{width:100%;max-width:620px;background:#fff;border-radius:12px;overflow:hidden;
+    box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .so-hd{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--primary);color:#fff}
+  .so-hd b{font-size:16px;white-space:nowrap}
+  .so-hd .sub{font-size:12px;opacity:.85;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .so-hd button{margin-left:auto;font:inherit;font-size:13px;font-weight:700;border:0;border-radius:8px;
+    padding:6px 14px;background:#fff;color:var(--primary);cursor:pointer;flex:none}
+  .so-list{list-style:none;margin:0;padding:6px 0;max-height:60vh;overflow:auto}
+  .so-row{display:flex;align-items:center;gap:8px;padding:5px 14px;border-bottom:1px solid #eef0f4;
+    font-size:14px;background:#fff}
+  .so-row:last-child{border-bottom:0}
+  .so-row.drag{opacity:.4}
+  .so-row.over{box-shadow:inset 0 3px 0 var(--primary)}
+  .so-row.over-b{box-shadow:inset 0 -3px 0 var(--primary)}
+  .so-h{color:#b9bec7;cursor:grab;font-size:13px;letter-spacing:-2px;flex:none}
+  .so-no{width:2em;text-align:right;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums;flex:none}
+  .so-cd{font-weight:800;color:var(--primary);width:4.2em;flex:none}
+  .so-nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .so-n{color:var(--muted);font-size:12px;width:3.4em;text-align:right;
+    font-variant-numeric:tabular-nums;flex:none}
+  .so-bt{display:inline-flex;gap:3px;flex:none}
+  .so-bt button{font:inherit;font-size:13px;font-weight:700;line-height:1;padding:6px 8px;
+    border:1px solid var(--primary);border-radius:6px;background:#fff;color:var(--primary);cursor:pointer}
+  .so-bt button:disabled{opacity:.25;cursor:not-allowed}
+  .so-ft{display:flex;align-items:center;gap:12px;padding:10px 16px;border-top:1px solid var(--border);
+    background:#fafbfd;flex-wrap:wrap}
+  .so-ft .muted{font-size:12px}
+  /* 狭い画面では、区分名とボタンを2行に分ける。1行に押し込むと区分名が
+     「Ｊ…」まで削られ、どれを動かしているのか分からなくなるため。 */
+  @media (max-width:560px){
+    .so-hd .sub{display:none}
+    .so-h{display:none}          /* 指で動かす端末ではドラッグは使わない */
+    .so-row{flex-wrap:wrap;row-gap:6px;padding:8px 12px}
+    .so-nm{flex:1 1 auto;font-size:14px}
+    .so-n{width:auto}
+    .so-bt{flex:1 1 100%;justify-content:flex-end;gap:6px}
+    .so-bt button{padding:9px 15px;font-size:15px}   /* 指で押せる大きさにする */
+  }
   table.pg{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
   /* 行の高さは line-height で決まる。日本語フォントの既定（normal）は 1.7 前後あり、
      それだけで1行 8mm 近くになってしまうので、紙でも画面でも詰めた値を明示する。 */
@@ -220,7 +264,7 @@
         <input type="number" id="pages" min="1" max="40" step="1" placeholder="自動"
                style="width:72px;font-size:15px;padding:7px 8px;border:1px solid var(--border);border-radius:8px"></label>
       <button id="b-reload" class="secondary">最新にする</button>
-      <button id="b-sort" class="secondary">系統順にそろえる</button>
+      <button id="b-order" class="secondary">区分の並べ替え</button>
       <label class="checkbox-row"><input type="checkbox" id="c-poster"><span>掲示用（1段組・大きい字）</span></label>
       <label class="checkbox-row"><input type="checkbox" id="c-memo" checked><span>記入欄を付ける</span></label>
       <label class="checkbox-row"><input type="checkbox" id="c-empty"><span>エントリー0組の区分も出す</span></label>
@@ -236,6 +280,23 @@
     <button type="button" id="b-syl" class="secondary hidden"
             style="margin-top:8px;font-size:13px;padding:7px 12px">JDSFからシラバスを取り直す</button>
   </div>
+  <!-- 区分の並べ替え。紙の上では区分の帯どうしが名簿の表を挟んで離れているので、
+       区分名だけを並べた小窓で動かせるようにする（1画面で順番が見える）。 -->
+  <div id="so-back" class="no-print hidden">
+    <div class="so-box" role="dialog" aria-modal="true" aria-label="区分の並べ替え">
+      <div class="so-hd">
+        <b>区分の並べ替え</b>
+        <span class="sub">紙・受付・欠場者一覧すべての並びが変わります</span>
+        <button type="button" id="so-close">閉じる</button>
+      </div>
+      <ul class="so-list" id="so-list"></ul>
+      <div class="so-ft">
+        <button id="b-sort" class="secondary">系統順にそろえる</button>
+        <span class="muted" id="so-hint"></span>
+      </div>
+    </div>
+  </div>
+
   <div id="sheet"><div id="paper"></div></div>
 </main>
 
@@ -465,7 +526,7 @@ function buildPicker(){
   el('pick').addEventListener('change', render);
   el('c-poster').addEventListener('change', render);
   el('c-memo').addEventListener('change', render);
-  el('c-empty').addEventListener('change', render);
+  el('c-empty').addEventListener('change', function(){ render(); renderSortList(); });
   el('c-fill').addEventListener('change', updateFit);
   el('b-reload').addEventListener('click', load);
   el('b-sort').addEventListener('click', function(){
@@ -476,6 +537,13 @@ function buildPicker(){
     saveEventOrder();
   });
   el('b-syl').addEventListener('click', refreshSyllabus);
+  /* 区分の並べ替えの小窓。開く・閉じる（外側を押す、Escでも閉じる） */
+  el('b-order').addEventListener('click', openSort);
+  el('so-close').addEventListener('click', closeSort);
+  el('so-back').addEventListener('click', function(e){ if (e.target === el('so-back')) closeSort(); });
+  document.addEventListener('keydown', function(e){
+    if ((e.key === 'Escape' || e.keyCode === 27) && !el('so-back').classList.contains('hidden')) closeSort();
+  });
   el('pages').addEventListener('input', updateFit);
   el('b-print').addEventListener('click', function(){
     updateFit();
@@ -1032,6 +1100,7 @@ function moveEvent(code, dir){
 /* 区分マスタをまるごと保存し直す（並び順がそのまま記録される） */
 function saveEventOrder(){
   render();                       /* 先に画面へ反映して、押した手応えを出す */
+  renderSortList();               /* 小窓を開いているときは、その一覧も合わせる */
   setMoveBusy(true);               /* render が結び付け直すので、そのあとで止める */
   var fd = new FormData();
   fd.append('id', id);
@@ -1052,9 +1121,9 @@ function saveEventOrder(){
     });
 }
 function setMoveBusy(on){
-  document.querySelectorAll('[data-mv]').forEach(function(b){ b.disabled = on; });
+  document.querySelectorAll('[data-mv],[data-so]').forEach(function(b){ b.disabled = on; });
   el('b-sort').disabled = on;
-  if (!on) syncMoveEnds();
+  if (!on) { syncMoveEnds(); renderSortList(); }
 }
 /* いちばん上の▲といちばん下の▼は押せないようにする */
 function syncMoveEnds(){
@@ -1072,6 +1141,129 @@ function bindMove(){
   });
   syncMoveEnds();
 }
+
+/* ── 区分の並べ替えの小窓 ──
+   紙の上では区分の帯が名簿の表を挟んで離れているので、▲を押すたびに
+   どこへ行ったか分からなくなる。区分名だけの一覧を出して、順番が見えたまま
+   動かせるようにする。動かすたびに紙へ反映して保存するのは▲▼と同じ。 */
+function sortList(){
+  /* 「表示する区分」で1区分だけ選んでいても、並べ替えは全体に対して行う。
+     エントリー0組の区分は、紙に出しているときだけ並べる。 */
+  var withEmpty = el('c-empty').checked;
+  return orderedEvents().filter(function(e){ return withEmpty || entriesFor(e.code).length; });
+}
+function renderSortList(){
+  var box = el('so-list');
+  if (!box || el('so-back').classList.contains('hidden')) return;
+  var list = sortList();
+  box.innerHTML = list.map(function(e, i){
+    var first = (i === 0), last = (i === list.length - 1);
+    var n = entriesFor(e.code).length;
+    return '<li class="so-row" draggable="true" data-code="' + esc(e.code) + '">'
+      + '<span class="so-h" title="つかんで動かす">⋮⋮</span>'
+      + '<span class="so-no">' + (i + 1) + '</span>'
+      + '<span class="so-cd">' + esc(e.code) + '</span>'
+      + '<span class="so-nm">' + esc(evName(e) || e.code) + '</span>'
+      + '<span class="so-n">' + n + '組</span>'
+      + '<span class="so-bt">'
+      + '<button type="button" data-so="top"    data-code="' + esc(e.code) + '" title="いちばん上へ"'
+        + (first ? ' disabled' : '') + '>⇈</button>'
+      + '<button type="button" data-so="up"     data-code="' + esc(e.code) + '" title="ひとつ上へ"'
+        + (first ? ' disabled' : '') + '>▲</button>'
+      + '<button type="button" data-so="down"   data-code="' + esc(e.code) + '" title="ひとつ下へ"'
+        + (last ? ' disabled' : '') + '>▼</button>'
+      + '<button type="button" data-so="bottom" data-code="' + esc(e.code) + '" title="いちばん下へ"'
+        + (last ? ' disabled' : '') + '>⇊</button>'
+      + '</span></li>';
+  }).join('');
+  box.querySelectorAll('[data-so]').forEach(function(b){
+    b.addEventListener('click', function(){ moveEventTo(b.dataset.code, b.dataset.so); });
+  });
+  bindSortDrag();
+  el('so-hint').textContent = list.length + '区分　⇈⇊＝いちばん上／下へ'
+    + (isTouch() ? '' : '　⋮⋮ をつかんで動かすこともできます');
+}
+function isTouch(){
+  try { return !!(window.matchMedia && window.matchMedia('(pointer:coarse)').matches); }
+  catch (e) { return false; }
+}
+/* 区分マスタ（DATA.events）の中で動かす。隠している区分をまたぐことがあるので、
+   位置は「一覧で隣に見えている区分」を目印に決める（▲▼と同じ考え方）。 */
+function moveEventTo(code, where){
+  var all = DATA.events || [], list = sortList();
+  var li = -1, i;
+  for (i = 0; i < list.length; i++) if (list[i].code === code) li = i;
+  var from = indexOfCode(all, code);
+  if (li < 0 || from < 0 || list.length < 2) return;
+  var item, to;
+  if (where === 'top') {
+    if (li === 0) return;
+    item = all.splice(from, 1)[0];
+    all.splice(indexOfCode(all, list[0].code), 0, item);
+  } else if (where === 'bottom') {
+    if (li === list.length - 1) return;
+    item = all.splice(from, 1)[0];
+    all.splice(indexOfCode(all, list[list.length - 1].code) + 1, 0, item);
+  } else {
+    var dir = (where === 'up') ? -1 : 1;
+    var nb = list[li + dir];
+    if (!nb) return;
+    item = all.splice(from, 1)[0];
+    to = indexOfCode(all, nb.code);
+    all.splice(dir < 0 ? to : to + 1, 0, item);
+  }
+  saveEventOrder();
+}
+/* つかんだ区分を、落とした先の区分の前／後ろへ入れる */
+function moveEventNear(code, targetCode, after){
+  var all = DATA.events || [];
+  if (code === targetCode) return;
+  var from = indexOfCode(all, code);
+  if (from < 0 || indexOfCode(all, targetCode) < 0) return;
+  var item = all.splice(from, 1)[0];
+  var to = indexOfCode(all, targetCode);
+  all.splice(after ? to + 1 : to, 0, item);
+  saveEventOrder();
+}
+var SO_DRAG = null;
+function bindSortDrag(){
+  if (isTouch()) return;          /* 指で操作する端末は、スクロールと衝突するので使わない */
+  el('so-list').querySelectorAll('.so-row').forEach(function(row){
+    row.addEventListener('dragstart', function(e){
+      SO_DRAG = row.dataset.code;
+      row.classList.add('drag');
+      try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', SO_DRAG); } catch (x) {}
+    });
+    row.addEventListener('dragend', function(){
+      SO_DRAG = null;
+      el('so-list').querySelectorAll('.so-row').forEach(function(r){
+        r.classList.remove('drag', 'over', 'over-b');
+      });
+    });
+    row.addEventListener('dragover', function(e){
+      if (!SO_DRAG || row.dataset.code === SO_DRAG) return;
+      e.preventDefault();
+      var r = row.getBoundingClientRect();
+      var after = (e.clientY - r.top) > r.height / 2;
+      row.classList.toggle('over', !after);
+      row.classList.toggle('over-b', after);
+    });
+    row.addEventListener('dragleave', function(){ row.classList.remove('over', 'over-b'); });
+    row.addEventListener('drop', function(e){
+      if (!SO_DRAG || row.dataset.code === SO_DRAG) return;
+      e.preventDefault();
+      var r = row.getBoundingClientRect();
+      moveEventNear(SO_DRAG, row.dataset.code, (e.clientY - r.top) > r.height / 2);
+      SO_DRAG = null;
+    });
+  });
+}
+function openSort(){
+  if (!DATA) return;
+  el('so-back').classList.remove('hidden');
+  renderSortList();
+}
+function closeSort(){ el('so-back').classList.add('hidden'); }
 
 /* 紙の中身を組む（枚数の計算はしない） */
 function draw(){
