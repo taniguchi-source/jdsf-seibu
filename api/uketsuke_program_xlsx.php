@@ -70,10 +70,15 @@ function uk_dance_text($s) {
     }
     $parts[] = $buf;
 
-    $out = [];
+    $items = [];
     foreach ($parts as $t) {
         $t = trim($t);
-        if ($t === '') continue;
+        if ($t !== '') $items[] = $t;
+    }
+    $last = count($items) - 1;
+
+    $out = [];
+    foreach ($items as $i => $t) {
         if (preg_match('/^[(（]\s*最終\s*[:：]\s*(.+?)\s*[)）]$/u', $t, $m)) {
             $ds = [];
             foreach (preg_split('/[,、]/u', $m[1]) as $d) {
@@ -81,7 +86,10 @@ function uk_dance_text($s) {
                 if ($d !== '') $ds[] = $d;
             }
             if (!$ds) continue;
-            $t = implode('・', $ds) . '（最終予選より）';
+            /* いちばんうしろに来るときは、かっこを付けると種目全部にかかって
+               見えるので、前に置いて「最終予選よりＰ」と書く。 */
+            $t = ($i === $last) ? '最終予選より' . implode('・', $ds)
+                                : implode('・', $ds) . '（最終予選より）';
         }
         $out[] = $t;
     }

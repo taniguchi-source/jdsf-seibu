@@ -300,13 +300,17 @@ function danceText(s){
     buf += ch;
   }
   parts.push(buf);
-  return parts.map(function(t){
-    t = t.trim();
+  var items = parts.map(function(t){ return t.trim(); }).filter(function(t){ return t; });
+  return items.map(function(t, i){
     var m = /^[(（]\s*最終\s*[:：]\s*(.+?)\s*[)）]$/.exec(t);
     if (!m) return t;
     var d = m[1].split(/[,、]/).map(function(x){ return x.trim(); })
              .filter(function(x){ return x; }).join('・');
-    return d ? d + '（最終予選より）' : '';
+    if (!d) return '';
+    /* いちばんうしろに来るときは、かっこを付けると種目全部にかかって見えるので、
+       前に置いて「最終予選よりＰ」と書く。途中のときは、どの種目に掛かるかが
+       決まるように、その種目のうしろにかっこで付ける。 */
+    return (i === items.length - 1) ? '最終予選より' + d : d + '（最終予選より）';
   }).filter(function(t){ return t; }).join('・');
 }
 
