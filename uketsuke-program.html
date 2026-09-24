@@ -283,13 +283,30 @@ function sortEvents(list){
     .map(function(x){ return x.e; });
 }
 
-/* シラバスの「W,T,(最終:V),F,Q」を、プログラムの書き方「W・T・最終予選よりV・F・Q」に直す */
+/* シラバスの「W,T,(最終:V),F,Q」を、プログラムの書き方
+   「W・T・V（最終予選より）・F・Q」に直す。
+   「最終予選よりV」と前に置くと、どこまでがその断りなのか（V だけなのか
+   V・F・Q までなのか）が読み取れない、という指摘があったため、
+   種目を先に書いて、かっこをその直後に付ける。 */
 function danceText(s){
   if (!s) return '';
-  return String(s).split(',').map(function(t){
+  /* かっこの中のカンマでは切らない（(最終:V,F) のような書き方があるため） */
+  var str = String(s), parts = [], buf = '', depth = 0, i, ch;
+  for (i = 0; i < str.length; i++) {
+    ch = str.charAt(i);
+    if (ch === '(' || ch === '（') depth++;
+    else if (ch === ')' || ch === '）') depth--;
+    if (ch === ',' && depth <= 0) { parts.push(buf); buf = ''; continue; }
+    buf += ch;
+  }
+  parts.push(buf);
+  return parts.map(function(t){
     t = t.trim();
     var m = /^[(（]\s*最終\s*[:：]\s*(.+?)\s*[)）]$/.exec(t);
-    return m ? '最終予選より' + m[1] : t;
+    if (!m) return t;
+    var d = m[1].split(/[,、]/).map(function(x){ return x.trim(); })
+             .filter(function(x){ return x; }).join('・');
+    return d ? d + '（最終予選より）' : '';
   }).filter(function(t){ return t; }).join('・');
 }
 

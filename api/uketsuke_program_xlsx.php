@@ -52,14 +52,37 @@ foreach ((array)(($syl['syllabus']['events'] ?? []) ?: ($syl['events'] ?? [])) a
     $c = (string)($e['code'] ?? '');
     if ($c !== '') $dances[$c] = (string)($e['dances'] ?? '');
 }
-/* 画面と同じ書き方に直す（"W,T,(最終:V),F,Q" → "W・T・最終予選よりV・F・Q"） */
+/* 画面と同じ書き方に直す（"W,T,(最終:V),F,Q" → "W・T・V（最終予選より）・F・Q"）。
+   書き方を変えるときは uketsuke-program.html の danceText と両方直すこと。 */
 function uk_dance_text($s) {
     if ($s === '') return '';
+    /* かっこの中のカンマでは切らない（(最終:V,F) のような書き方があるため） */
+    $parts = [];
+    $buf = '';
+    $depth = 0;
+    $len = mb_strlen($s);
+    for ($i = 0; $i < $len; $i++) {
+        $ch = mb_substr($s, $i, 1);
+        if ($ch === '(' || $ch === '（') $depth++;
+        elseif ($ch === ')' || $ch === '）') $depth--;
+        if ($ch === ',' && $depth <= 0) { $parts[] = $buf; $buf = ''; continue; }
+        $buf .= $ch;
+    }
+    $parts[] = $buf;
+
     $out = [];
-    foreach (explode(',', $s) as $t) {
+    foreach ($parts as $t) {
         $t = trim($t);
         if ($t === '') continue;
-        if (preg_match('/^[(（]\s*最終\s*[:：]\s*(.+?)\s*[)）]$/u', $t, $m)) $t = '最終予選より' . $m[1];
+        if (preg_match('/^[(（]\s*最終\s*[:：]\s*(.+?)\s*[)）]$/u', $t, $m)) {
+            $ds = [];
+            foreach (preg_split('/[,、]/u', $m[1]) as $d) {
+                $d = trim($d);
+                if ($d !== '') $ds[] = $d;
+            }
+            if (!$ds) continue;
+            $t = implode('・', $ds) . '（最終予選より）';
+        }
         $out[] = $t;
     }
     return implode('・', $out);
