@@ -56,8 +56,22 @@ function uk_syllabus_find_row($comp_no, $date, $name) {
         foreach ($items as $c) {
             if ((string)($c['date_iso'] ?? '') === (string)$date) $same[] = $c;
         }
+        $q = uk_syl_norm($name);
         foreach ($same as $c) {
-            if (uk_syl_norm($c['name'] ?? '') === uk_syl_norm($name)) return $c;
+            if (uk_syl_norm($c['name'] ?? '') === $q) return $c;
+        }
+        /* サイトの競技会一覧の大会名は「GD西部ブロックランキング対象競技会/…
+           2026年西部ブロックGD・PDダンススポーツ選手権 第20回…」のように長く、
+           DCSの大会名はその一部になっていることが多い。含んでいれば同じ大会とみなす。
+           練習用の複製は頭に「練習用」などが付くので、それを外した名前でも見る。 */
+        $q2 = preg_replace('/^(練習用|練習|テスト|コピー|複製)+/u', '', $q);
+        foreach ($same as $c) {
+            $l = uk_syl_norm($c['name'] ?? '');
+            if ($l === '') continue;
+            foreach (array_unique([$q, $q2]) as $cand) {
+                if ($cand === '' || mb_strlen($cand) < 8) continue;   /* 短い名前は当てにしない */
+                if (mb_strpos($l, $cand) !== false || mb_strpos($cand, $l) !== false) return $c;
+            }
         }
         /* その日に1大会しか無ければ、名前が違ってもそれとみなす（練習用の複製など） */
         if (count($same) === 1) return $same[0];

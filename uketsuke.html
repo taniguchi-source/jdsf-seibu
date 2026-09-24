@@ -1408,6 +1408,9 @@ function createCompetition(){
     action: 'create', name: info.name, date: info.date,
     /* 合言葉。公開されている公認番号は使わず、その場で決めてもらう。 */
     code: NC_PASS,
+    /* 公認番号（大会番号）。これが入っていないと、シラバスから種目を引けない
+       （同じ日に大会が2つあると、大会名だけでは決められないため）。 */
+    comp_no: info.comp_no || '',
     events: evLines
   })
     .then(function(d){
