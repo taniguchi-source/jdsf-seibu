@@ -398,7 +398,9 @@
       '@media (min-width:769px){ .img-scale-wrap{ max-width: var(--img-pc-width, 100%); margin-left:auto; margin-right:auto; } }'
       + '.img-row{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center; align-items:flex-start; }'
       + '.img-row .img-cell{ width:100%; box-sizing:border-box; }'
-      + '@media (min-width:769px){ .img-row .img-cell{ width: var(--img-cell-width, 100%); } }';
+      + '@media (min-width:769px){ .img-row .img-cell{ width: var(--img-cell-width, 100%); } }'
+      + '.img-row .file-actions{ justify-content:center; margin:6px 0 0; }'
+      + '.img-row .file-actions a{ padding:4px 10px; font-size:.72rem; border-width:1px; }';
     document.head.appendChild(ist);
   }
 
@@ -439,6 +441,8 @@
             cimg.loading = 'lazy';
             cimg.style.cssText = 'width:100%;height:auto;border-radius:8px;display:block;';
             cell.appendChild(cimg);
+            /* 各画像に小さめのダウンロード／開くボタン */
+            cell.appendChild(fileActions(im.url, item.title, '🔍 開く', 'ダウンロード'));
             row.appendChild(cell);
           });
           bodyEl.appendChild(row);
