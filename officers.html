@@ -2148,11 +2148,7 @@ function spcFields(n,i,it){
     return '<textarea rows="4" placeholder="本文（URLは自動でリンクになります）" oninput="'+ref+'.body=this.value" '+inp+'>'+spEsc(it.body||'')+'</textarea>';
   }
   if(it.type==='image'){
-    return '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'
-      + '<div id="spc-thumb-'+n+'-'+i+'">'+spcThumb(n,i,it.file_url||'','image')+'</div>'
-      + '<input type="file" accept="image/*" onchange="if(this.files[0])spcUpload('+n+','+i+',this.files[0])" style="font-size:.72rem;">'
-      + '<label class="ck">PC表示幅 <input type="number" value="'+(parseInt(it.img_pc_width,10)||100)+'" min="20" max="100" step="5" oninput="'+ref+'.img_pc_width=parseInt(this.value,10)||100" style="width:64px;padding:5px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:.78rem;font-family:inherit;"> %</label>'
-      + '</div>';
+    return spcImageFields(n,i,it);
   }
   if(it.type==='pdf'){
     return '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">'
@@ -2201,6 +2197,73 @@ function spCheckEmbed(inputId, outId){
     .catch(function(){ box.innerHTML=spChkMsg('⚠ 通信エラー', false); });
 }
 
+/* ===== 画像（最大3枚・横並び・順番変更・各PC表示幅%）===== */
+/* 旧データ（file_url/img_pc_width の単一画像）を images 配列に読み替える */
+function spcImgs(n,i){
+  var it=spcOf(n)[i];
+  if(!Array.isArray(it.images)){
+    it.images = it.file_url ? [{url:it.file_url, width:(parseInt(it.img_pc_width,10)||100)}] : [];
+  }
+  return it.images;
+}
+/* 旧項目 file_url / img_pc_width を先頭画像に合わせて保つ（後方互換） */
+function spcSyncImg(n,i){
+  var it=spcOf(n)[i], imgs=spcImgs(n,i), first=null;
+  for(var x=0;x<imgs.length;x++){ if(imgs[x] && imgs[x].url){ first=imgs[x]; break; } }
+  it.file_url     = first ? first.url : '';
+  it.img_pc_width = first ? (parseInt(first.width,10)||100) : (parseInt(it.img_pc_width,10)||100);
+}
+function spcImageFields(n,i,it){
+  var imgs=spcImgs(n,i);
+  if(imgs.length===0){ imgs.push({url:'',width:100}); }   // 最初の1枠は常に表示
+  var slots=imgs.map(function(im,k){
+    var thumb = im.url
+      ? '<img src="'+spEsc(im.url)+'" alt="" style="max-height:48px;max-width:120px;border:1px solid #ddd;border-radius:4px;background:#fff;display:block;">'
+      : '<span style="font-size:.72rem;color:#888;">未設定</span>';
+    return '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#fafafa;border:1px solid var(--border);border-radius:8px;padding:8px;">'
+      + '<span style="font-size:.72rem;color:#888;min-width:2.2em;">'+(k+1)+'枚目</span>'
+      + '<div id="spc-imgthumb-'+n+'-'+i+'-'+k+'">'+thumb+'</div>'
+      + '<input type="file" accept="image/*" onchange="if(this.files[0])spcImgUpload('+n+','+i+','+k+',this.files[0])" style="font-size:.72rem;">'
+      + '<label class="ck">PC表示幅 <input type="number" value="'+(parseInt(im.width,10)||100)+'" min="20" max="100" step="5" oninput="spcImgWidth('+n+','+i+','+k+',this.value)" style="width:64px;padding:5px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:.78rem;font-family:inherit;"> %</label>'
+      + (imgs.length>1 ? '<button class="btn btn-sm btn-sec" onclick="spcImgMove('+n+','+i+','+k+',-1)" title="左へ">←</button>'
+                       + '<button class="btn btn-sm btn-sec" onclick="spcImgMove('+n+','+i+','+k+',1)" title="右へ">→</button>' : '')
+      + '<button class="btn btn-sm btn-del" onclick="spcImgRemove('+n+','+i+','+k+')" title="この画像を削除">✕</button>'
+      + '</div>';
+  }).join('');
+  var addBtn = (imgs.length<3)
+    ? '<button class="btn btn-sm btn-sec" onclick="spcImgAdd('+n+','+i+')" style="align-self:flex-start;">＋ 画像を追加（最大3枚）</button>'
+    : '<p class="hint" style="margin:0;">画像は最大3枚までです。</p>';
+  return '<div style="display:flex;flex-direction:column;gap:8px;">'+slots+addBtn+'</div>';
+}
+function spcImgWidth(n,i,k,v){
+  var w=parseInt(v,10)||100; if(w<20)w=20; if(w>100)w=100;
+  var imgs=spcImgs(n,i); if(imgs[k]){ imgs[k].width=w; spcSyncImg(n,i); }
+}
+function spcImgUpload(n,i,k,file){
+  var box=document.getElementById('spc-imgthumb-'+n+'-'+i+'-'+k);
+  if(box) box.innerHTML='<span style="font-size:.72rem;color:var(--primary);">⏳ アップロード中...</span>';
+  var fd=new FormData(); fd.append('file',file); fd.append('max_px','1600');
+  fetch('api/upload_file.php',{method:'POST',body:fd})
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(res && res.ok && res.url){ var imgs=spcImgs(n,i); if(imgs[k]){imgs[k].url=res.url;} spcSyncImg(n,i); spcRender(n); spSetMsg('sp-msg','✅ アップロードしました（最後に「💾 内容を保存」を押してください）',true); }
+      else { spcRender(n); spSetMsg('sp-msg','⚠ '+((res&&res.error)||'アップロードに失敗しました'),false); }
+    })
+    .catch(function(){ spcRender(n); spSetMsg('sp-msg','⚠ 通信エラー',false); });
+}
+function spcImgAdd(n,i){
+  var imgs=spcImgs(n,i);
+  if(imgs.length>=3){ alert('画像は最大3枚までです'); return; }
+  imgs.push({url:'',width:100}); spcRender(n);
+}
+function spcImgRemove(n,i,k){
+  var imgs=spcImgs(n,i); imgs.splice(k,1); spcSyncImg(n,i); spcRender(n);
+}
+function spcImgMove(n,i,k,d){
+  var imgs=spcImgs(n,i), j=k+d; if(j<0||j>=imgs.length) return;
+  var t=imgs[k]; imgs[k]=imgs[j]; imgs[j]=t; spcSyncImg(n,i); spcRender(n);
+}
+
 function spcThumb(n,i,url,kind){
   if(!url) return '<span style="font-size:.72rem;color:#888;">未設定</span>';
   var view = (kind==='image')
@@ -2213,7 +2276,7 @@ function spcAdd(n){
   var list=spcOf(n);
   if(list.length>=30){ alert('1ページの上限は30ブロックです'); return; }
   list.push({id:'b'+Date.now().toString(36), title:'', enabled:true, view:'full', show_title:true, type:'text',
-             body:'', file_url:'', pdf_pc_width:100, img_pc_width:100, link_url:'', link_label:'', embed_url:'', embed_height:1200});
+             body:'', file_url:'', images:[], pdf_pc_width:100, img_pc_width:100, link_url:'', link_label:'', embed_url:'', embed_height:1200});
   spcRender(n);
 }
 function spcDel(n,i){ spcOf(n).splice(i,1); spcRender(n); }

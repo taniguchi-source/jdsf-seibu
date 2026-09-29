@@ -70,6 +70,34 @@ foreach ($items as $item) {
     if ($embed_height < 300)  $embed_height = 300;
     if ($embed_height > 5000) $embed_height = 5000;
 
+    /* 画像（最大3枚・横並び）。images:[{url,width}]。
+       旧データ（file_url/img_pc_width の単一画像）は1枚の配列に読み替えて後方互換を保つ。 */
+    $images = [];
+    $src_images = (isset($item['images']) && is_array($item['images'])) ? $item['images'] : null;
+    if ($src_images === null && !empty($item['file_url'])) {
+        $src_images = [['url' => $item['file_url'], 'width' => ($item['img_pc_width'] ?? 100)]];
+    }
+    if (is_array($src_images)) {
+        foreach ($src_images as $im) {
+            if (count($images) >= 3) break;              // 画像は最大3枚
+            if (!is_array($im)) continue;
+            $u = sc_safe_file_url($im['url'] ?? '');
+            if ($u === '') continue;                      // URL未設定の枠は保存しない
+            $w = (int)($im['width'] ?? 100);
+            if ($w < 20)  $w = 20;
+            if ($w > 100) $w = 100;
+            $images[] = ['url' => $u, 'width' => $w];
+        }
+    }
+
+    /* image 型は images を正とし、先頭を file_url / img_pc_width にも反映（後方互換）。
+       他の型（pdf 等）は従来どおり file_url をそのまま使う。 */
+    $file_url = sc_safe_file_url($item['file_url'] ?? '');
+    if ($type === 'image') {
+        $file_url = $images ? $images[0]['url'] : '';
+        if ($images) $img_pc_width = $images[0]['width'];
+    }
+
     $clean[] = [
         'id'           => preg_replace('/[^a-z0-9_]/i', '', (string)($item['id'] ?? '')),
         'title'        => mb_substr(trim((string)($item['title'] ?? '')), 0, 60),
@@ -79,7 +107,8 @@ foreach ($items as $item) {
         'show_title'   => ($view !== 'body'),
         'type'         => $type,
         'body'         => mb_substr(trim((string)($item['body'] ?? '')), 0, 5000),
-        'file_url'     => sc_safe_file_url($item['file_url'] ?? ''),
+        'file_url'     => $file_url,
+        'images'       => $images,
         'pdf_pc_width' => $pdf_pc_width,
         'img_pc_width' => $img_pc_width,
         'link_url'     => sc_safe_url($item['link_url'] ?? ''),

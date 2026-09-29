@@ -376,33 +376,73 @@
     return el;
   }
 
+  /* ===== 画像ヘルパー（最大3枚・横並び。旧 file_url/img_pc_width と後方互換） ===== */
+  function clampImgW(v) { var w = parseInt(v, 10); return (w >= 20 && w <= 100) ? w : 100; }
+  function normImages(item) {
+    var arr = [];
+    if (Array.isArray(item.images)) {
+      item.images.forEach(function (im) {
+        if (im && im.url) arr.push({ url: im.url, width: clampImgW(im.width) });
+      });
+    }
+    if (!arr.length && item.file_url) {
+      arr.push({ url: item.file_url, width: clampImgW(item.img_pc_width) });
+    }
+    return arr.slice(0, 3);
+  }
+  function ensureImgScaleStyle() {
+    if (document.getElementById('img-scale-style')) return;
+    var ist = document.createElement('style');
+    ist.id = 'img-scale-style';
+    ist.textContent =
+      '@media (min-width:769px){ .img-scale-wrap{ max-width: var(--img-pc-width, 100%); margin-left:auto; margin-right:auto; } }'
+      + '.img-row{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center; align-items:flex-start; }'
+      + '.img-row .img-cell{ width:100%; box-sizing:border-box; }'
+      + '@media (min-width:769px){ .img-row .img-cell{ width: var(--img-cell-width, 100%); } }';
+    document.head.appendChild(ist);
+  }
+
   /* ===== ブロック1つ分の本文を作る（text / image / pdf / link / embed） ===== */
   function buildBodyEl(item) {
     var bodyEl = document.createElement('div');
     var type   = item.type || 'text';
 
     if (type === 'image') {
-      var iUrl = item.file_url || '';
-      if (iUrl) {
-        var ipcw = parseInt(item.img_pc_width, 10);
-        if (!(ipcw >= 20 && ipcw <= 100)) ipcw = 100;
-        if (!document.getElementById('img-scale-style')) {
-          var ist = document.createElement('style');
-          ist.id = 'img-scale-style';
-          ist.textContent = '@media (min-width:769px){ .img-scale-wrap{ max-width: var(--img-pc-width, 100%); margin-left:auto; margin-right:auto; } }';
-          document.head.appendChild(ist);
+      var imgs = normImages(item);
+      if (imgs.length) {
+        ensureImgScaleStyle();
+        if (imgs.length === 1) {
+          /* 1枚：従来どおり中央寄せ・PC表示幅% */
+          var one = imgs[0];
+          var iwrap = document.createElement('div');
+          iwrap.className = 'img-scale-wrap';
+          iwrap.style.setProperty('--img-pc-width', one.width + '%');
+          var img = document.createElement('img');
+          img.src = one.url;
+          img.alt = item.title || '';
+          img.loading = 'lazy';
+          img.style.cssText = 'max-width:100%;height:auto;border-radius:8px;display:block;';
+          iwrap.appendChild(img);
+          bodyEl.appendChild(iwrap);
+          bodyEl.appendChild(fileActions(one.url, item.title, '🔍 画像を開く', '画像をダウンロード'));
+        } else {
+          /* 複数枚：横並び（PCは各画像のPC表示幅%、スマホは縦積み） */
+          var row = document.createElement('div');
+          row.className = 'img-row';
+          imgs.forEach(function (im) {
+            var cell = document.createElement('div');
+            cell.className = 'img-cell';
+            cell.style.setProperty('--img-cell-width', im.width + '%');
+            var cimg = document.createElement('img');
+            cimg.src = im.url;
+            cimg.alt = item.title || '';
+            cimg.loading = 'lazy';
+            cimg.style.cssText = 'width:100%;height:auto;border-radius:8px;display:block;';
+            cell.appendChild(cimg);
+            row.appendChild(cell);
+          });
+          bodyEl.appendChild(row);
         }
-        var iwrap = document.createElement('div');
-        iwrap.className = 'img-scale-wrap';
-        iwrap.style.setProperty('--img-pc-width', ipcw + '%');
-        var img = document.createElement('img');
-        img.src = iUrl;
-        img.alt = item.title || '';
-        img.loading = 'lazy';
-        img.style.cssText = 'max-width:100%;height:auto;border-radius:8px;display:block;';
-        iwrap.appendChild(img);
-        bodyEl.appendChild(iwrap);
-        bodyEl.appendChild(fileActions(iUrl, item.title, '🔍 画像を開く', '画像をダウンロード'));
       } else {
         bodyEl.className = 'content-block-body';
         bodyEl.textContent = '（画像は未設定です）';
