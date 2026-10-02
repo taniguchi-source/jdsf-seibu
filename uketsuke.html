@@ -156,7 +156,8 @@
   #ci-prog .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px}
   @media (max-width:560px){ #ci-prog .grid{grid-template-columns:repeat(2,1fr)} }
   /* スマホ・タブレットでは出さない。画面が狭く、背番号の入力欄が下へ押し出されて
-     受付の邪魔になるため。同じ内容は「受付締切処理」タブで見られる。
+     受付の邪魔になるため。同じ内容は「受付締切処理」タブで見られる
+     （「この時刻の受付を終了」もそちらに置いてある）。
      指で操作する端末（pointer:coarse）か、横幅の狭い端末が対象。 */
   @media (pointer:coarse),(max-width:1024px){ #ci-prog{display:none} }
   /* 受付タブのいちばん上の行。狭い画面では中身を縮めずに折り返す
@@ -209,6 +210,15 @@
   table.dl tr.wait td{background:#f7f3ff}
   .dl-gh .dl-wait{font-size:12px;font-weight:800;color:#6d28d9;background:#efe7fd;
     border-radius:99px;padding:2px 10px}
+  /* 受付の側で締めるボタン。受付タブの「区分ごとの受付」はスマホ・タブレットでは
+     出さないので、このタブからも締められるようにしてある。
+     ST用の「初期振分の完了」（オレンジ）と並ぶので、色を分けて押し間違いを防ぐ。 */
+  .dl-gh .dl-close{background:#6d28d9;color:#fff;border:2px solid #6d28d9}
+  .dl-gh .dl-close.undo{background:#fff;color:#6d28d9}
+  /* 操作のかたまり。右端にまとめ、狭い画面では2つ並んだまま折り返す。 */
+  .dl-gh .dl-ops{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    justify-content:flex-end}
+  .dl-gh .dl-ops button{margin-left:0}
   /* 受付タブ側。時刻の見出しから、その時刻の受付を終了できるようにする。 */
   #ci-prog .gh .ci-close{margin-left:8px;font-size:13px;font-weight:700;padding:4px 12px;
     border:2px solid #6d28d9;border-radius:8px;background:#6d28d9;color:#fff;cursor:pointer}
@@ -598,7 +608,8 @@
       <h2>受付締切処理</h2>
       <p class="muted">
         受付締切の時刻ごとに区分を並べています。<b>受付終了（ST確認待ち）</b>は、受付担当者が
-        その時刻の受付を締めた区分です。DCSで初期振分を済ませたら
+        その時刻の受付を締めた区分です（締めるのは紫の<b>この時刻の受付を終了</b>。
+        受付タブの「区分ごとの受付」からでも、この画面からでもできます）。DCSで初期振分を済ませたら
         <b>初期振分の完了</b>を押してください。<b>完了にした区分は、以後この受付システムで受付も取消もできません。</b><br>
         押す前に、欠場の組の<b>背番号在庫</b>を確かめてください（確かめていない組があるときは知らせます）。
       </p>
@@ -2558,14 +2569,28 @@ function renderDeadline(){
   box.innerHTML = groups.map(function(g){
     var open = g.list.filter(function(x){ return !x.a; });
     var wait = g.list.filter(function(x){ return !x.a && x.c; });
+    /* まだ受付中（締めても振分でもない）区分。ここが残っている間だけ受付を終了できる。 */
+    var yet  = g.list.filter(function(x){ return !x.a && !x.c; });
     return '<div class="dl-gp"><div class="dl-gh' + (open.length ? '' : ' fin') + '">'
       + '<span class="sm">受付締切</span><span class="tm">' + esc(g.t || '未設定') + '</span>'
       + '<span class="sm">' + g.list.length + '区分／完了 ' + (g.list.length - open.length) + '</span>'
       + (wait.length ? '<span class="dl-wait">受付終了 ' + wait.length + '区分（確認待ち）</span>' : '')
+      /* 操作はまとめて右端に置く。ばらばらに置くと、狭い画面で折り返したときに
+         片方だけ左端へ落ちて、どちらを押すのか分からなくなる。
+         前半＝受付の側で締める／取り消す、後半＝STの初期振分。 */
+      + '<span class="dl-ops">'
+      + (yet.length
+          ? '<button type="button" class="small dl-close" data-close="' + esc(g.t) + '" data-on="1">'
+            + 'この時刻の受付を終了（' + yet.length + '区分）</button>'
+          : (wait.length
+              ? '<button type="button" class="small dl-close undo" data-close="' + esc(g.t)
+                + '" data-on="0">受付終了を取り消す</button>'
+              : ''))
       + (open.length
           ? '<button type="button" class="small assign-todo" data-stopall="' + esc(g.t) + '">'
             + 'この時刻の初期振分を完了（' + open.length + '区分）</button>'
-          : '<span class="sm" style="margin-left:auto">この時刻はすべて完了</span>')
+          : '<span class="sm">この時刻はすべて完了</span>')
+      + '</span>'
       + '</div>'
       + '<table class="dl"><thead><tr><th>区分</th><th>区分名</th><th>受付</th><th>状態</th><th></th></tr></thead><tbody>'
       + g.list.map(function(x){
@@ -2589,6 +2614,9 @@ function renderDeadline(){
       + '</tbody></table></div>';
   }).join('');
 
+  box.querySelectorAll('[data-close]').forEach(function(b){
+    b.addEventListener('click', function(){ closeTime(b.dataset.close, b.dataset.on === '1', b); });
+  });
   box.querySelectorAll('[data-stop]').forEach(function(b){
     b.addEventListener('click', function(){ askStop([b.dataset.stop], b.dataset.on === '1', b); });
   });
