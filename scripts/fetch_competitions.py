@@ -173,6 +173,18 @@ def check_result_url(result_url):
             return False
 
 
+def participants_url_for(comp_no):
+    """
+    公開結果サイト kyougi.jdsf.or.jp の参加者一覧ページ（A<comp_no>.html）のURLを組み立てる。
+    結果ページが R<comp_no>.html なのに対し、参加者一覧は A<comp_no>.html。
+    年は競技会番号の上2桁（例 261006 → 2026）。
+    """
+    if not re.match(r'^\d{6}$', comp_no or ''):
+        return ''
+    year = 2000 + int(comp_no[:2])
+    return f"https://kyougi.jdsf.or.jp/{year}/{comp_no}/A{comp_no}.html"
+
+
 def fetch_year(year):
     """Fetch all block-S competitions for the given fiscal year."""
     params = {'year': year, 'block_id': BLOCK_ID}
@@ -426,6 +438,27 @@ def main():
                 c['has_result'] = True
                 print(f"  [{i+1}] ◎補完: {c['date']} {c['name'][:30]}... → has_result=True")
             time.sleep(0.3)
+
+    # 参加者一覧（参）の補完
+    # adm.jdsf.jp の「参」リンク追加はJDSF事務局の手動作業で、競技会直前になっても遅れることがある。
+    # その間も公開結果サイト kyougi.jdsf.or.jp には参加者一覧（A<comp_no>.html）が先に出るため、
+    # 直近の競技会で result_url が空のものは A ページの有無を直接確認して補完する。
+    # （adm が後から「参」リンクを付けても通常ルートで同じ A URL が入るので二重表示にはならない）
+    print(f"\n参加者一覧URL確認中（adm未更新分の補完）...")
+    part_from = (datetime.now() - timedelta(days=21)).strftime('%Y-%m-%d')
+    part_to   = (datetime.now() + timedelta(days=60)).strftime('%Y-%m-%d')
+    for i, c in enumerate(unique):
+        if c.get('has_result') or c.get('result_url'):
+            continue                                   # すでに結果/リンクがあるものは触らない
+        di = c.get('date_iso') or ''
+        if not (part_from <= di <= part_to):
+            continue                                   # 直近の競技会だけ確認（過剰アクセス防止）
+        a_url = participants_url_for(c['comp_no'])
+        if a_url and check_result_url(a_url):
+            c['result_url']       = a_url
+            c['has_participants'] = True
+            print(f"  [{i+1}] 参補完: {c['date']} {c['name'][:30]}... → {a_url}")
+        time.sleep(0.3)
 
     output = {
         'updated':      datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
