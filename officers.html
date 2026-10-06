@@ -1890,6 +1890,7 @@ function spSetMsg(id, text, ok){
 /* ===== ⑥ 特設サイト（最大5つ・ページ本文は special.html?id=N で表示） ===== */
 var _sp  = [];   /* スロット5件 */
 var _spc = {};   /* { "1":[ブロック...], ... } */
+var _spOpen = {};/* { 1:true,... } 折りたたみの開閉状態（既定は閉じる） */
 
 var SP_TYPES = [
   {v:'text',  t:'📝 文章'},
@@ -1910,6 +1911,7 @@ function spNormalize(sites){
     out.push({
       id:n,
       enabled: s.enabled===true,
+      done: s.done===true,
       label: s.label||'',
       mode: (s.mode==='embed'||s.mode==='external') ? s.mode : 'page',
       url: s.url||'',
@@ -1927,16 +1929,27 @@ function spNormalize(sites){
 function spRender(){
   var box=document.getElementById('sp-list');
   if(!box) return;
-  box.innerHTML = _sp.map(function(s,i){
+  /* 「済」は一番下へ（未済→済、同じ区分内は番号順）。配列 _sp は常に id順のまま＝保存時のid割当を崩さない */
+  var ordered = _sp.slice().sort(function(a,b){ return (a.done?1:0)-(b.done?1:0) || a.id-b.id; });
+  box.innerHTML = ordered.map(function(s){
+    var i=_sp.indexOf(s);
     var n=s.id;
     var mode=s.mode;
-    return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:14px;background:#f8fafc;">'
-      + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">'
+    var open=!!_spOpen[n];
+    var summary = s.label ? spEsc(s.label) : '（未設定）';
+    return '<div style="border:1.5px solid var(--border);border-radius:10px;padding:14px;background:'+(s.done?'#eef2f6':'#f8fafc')+';'+(s.done?'opacity:.78;':'')+'">'
+      + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;'+(open?'margin-bottom:10px;':'')+'">'
+        + '<button type="button" class="btn btn-sm btn-sec" onclick="spToggle('+n+')" title="開く／閉じる" style="padding:3px 10px;font-size:.8rem;">'+(open?'▼':'▶')+'</button>'
         + '<label class="ck" style="font-size:.85rem;font-weight:700;color:var(--primary-dark);">'
           + '<input type="checkbox" '+(s.enabled?'checked':'')+' onchange="_sp['+i+'].enabled=this.checked"> 表示</label>'
-        + '<strong style="font-size:.9rem;color:var(--primary);">特設サイト'+n+'</strong>'
-        + '<a href="special.html?id='+n+'" target="_blank" style="font-size:.72rem;color:var(--text-light);margin-left:auto;">ページを開く ↗</a>'
+        + '<strong style="font-size:.9rem;color:var(--primary);cursor:pointer;" onclick="spToggle('+n+')">特設サイト'+n+'</strong>'
+        + (s.done ? '<span style="font-size:.7rem;font-weight:700;padding:2px 9px;border-radius:100px;background:#64748B;color:#fff;">済</span>' : '')
+        + (open ? '' : '<span style="font-size:.78rem;color:var(--text-light);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:38%;">'+summary+'</span>')
+        + '<label class="ck" style="font-size:.78rem;font-weight:700;color:#475569;margin-left:auto;" title="終わった特設サイトは一番下へ移動します">'
+          + '<input type="checkbox" '+(s.done?'checked':'')+' onchange="spSetDone('+i+','+n+',this.checked)"> 済</label>'
+        + '<a href="special.html?id='+n+'" target="_blank" style="font-size:.72rem;color:var(--text-light);">ページを開く ↗</a>'
       + '</div>'
+      + '<div id="sp-body-'+n+'" style="'+(open?'':'display:none;')+'">'
       /* 担当者用パスワード。設定するとページのヒーローに「編集」ボタンが出る */
       + '<div style="background:#fdf2f6;border:1px solid #f3d3e0;border-radius:8px;padding:9px 11px;margin-bottom:10px;">'
         + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
@@ -2007,9 +2020,20 @@ function spRender(){
           + '<button class="btn btn-sm btn-sec" onclick="spcAdd('+n+')">＋ ブロックを追加</button>'
         + '</div>'
       + '</div>'
+      + '</div>'
     + '</div>';
   }).join('');
   for(var n=1;n<=5;n++) spcRender(n);
+}
+
+/* 折りたたみ開閉。閉じているものを開く／開いているものを閉じる（既定は閉じる） */
+function spToggle(n){ _spOpen[n] = !_spOpen[n]; spRender(); }
+
+/* 「済」チェック。終わった特設サイトは一番下へ回す（チェック時は自動で閉じる） */
+function spSetDone(i,n,checked){
+  _sp[i].done = checked;
+  if(checked) _spOpen[n] = false;   // 済にしたら畳んで下へ
+  spRender();
 }
 
 function spModeRadio(i,n,value,label,current){

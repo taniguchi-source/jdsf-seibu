@@ -51,6 +51,7 @@ foreach ($items as $item) {
     $clean[] = [
         'id'           => $i,
         'enabled'      => !empty($item['enabled']),
+        'done'         => !empty($item['done']),
         'label'        => mb_substr(trim((string)($item['label'] ?? '')), 0, 40),
         'mode'         => $mode,
         'url'          => ss_safe_url($item['url'] ?? ''),
@@ -66,7 +67,7 @@ foreach ($items as $item) {
 /* 5スロットに満たない分は空スロットで埋める（管理画面は常に5枠を描画する） */
 for ($n = count($clean) + 1; $n <= 5; $n++) {
     $clean[] = [
-        'id' => $n, 'enabled' => false, 'label' => '', 'mode' => 'page',
+        'id' => $n, 'enabled' => false, 'done' => false, 'label' => '', 'mode' => 'page',
         'url' => '', 'embed_url' => '', 'embed_height' => 1200,
         'hero_label' => '', 'hero_title' => '', 'hero_desc' => '',
         'has_password' => !empty($had_pw[(string)$n]),

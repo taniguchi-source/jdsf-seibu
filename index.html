@@ -246,6 +246,9 @@
     transition:background .2s, transform .12s, box-shadow .2s;
   }
   .special-sites > a:hover { background:#831843; transform:translateY(-1px); box-shadow:0 4px 12px rgba(159,18,57,.38); }
+  /* 「済」の特設サイト：終了済みとして控えめ（グレー）に */
+  .special-sites > a.sp-done { background:#94A3B8; box-shadow:none; }
+  .special-sites > a.sp-done:hover { background:#64748B; box-shadow:0 2px 8px rgba(100,116,139,.35); }
   @media (max-width:520px){
     .special-sites-row { gap:8px; }
     .special-sites > a { font-size:.78rem; padding:6px 13px; }
@@ -722,18 +725,21 @@
       if (!d || !Array.isArray(d.sites)) return;
       var items = d.sites.filter(function(s){ return s && s.enabled !== false && s.label; });
       if (!items.length) return;
+      /* 「済」は末尾へ（同区分内は番号順）。済は控えめ（グレー）に表示する */
+      items.sort(function(a,b){ return ((a.done===true?1:0)-(b.done===true?1:0)) || ((a.id||0)-(b.id||0)); });
       var box = document.getElementById('special-sites');
       var sec = document.getElementById('special-sites-section');
       if (!box || !sec) return;
       var html = items.map(function(s){
         var label = esc(s.label);
+        var cls = (s.done === true) ? ' class="sp-done"' : '';
         /* 「別のサイトへ移動」だけは特設ページを経由せず直接そのURLへ */
         if (s.mode === 'external') {
           var u = String(s.url || '');
           if (!/^https?:\/\//i.test(u)) return '';
-          return '<a href="' + esc(u) + '" target="_blank" rel="noopener">' + label + '</a>';
+          return '<a' + cls + ' href="' + esc(u) + '" target="_blank" rel="noopener">' + label + '</a>';
         }
-        return '<a href="special.html?id=' + encodeURIComponent(s.id) + '">' + label + '</a>';
+        return '<a' + cls + ' href="special.html?id=' + encodeURIComponent(s.id) + '">' + label + '</a>';
       }).join('');
       if (!html) return;
       box.innerHTML = html;
