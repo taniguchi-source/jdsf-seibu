@@ -1,0 +1,67 @@
+# Google Search Console 所有権確認ファイルを各府県サブドメインへ配置
+#
+# seo/google-verification/<サブドメイン>/google*.html を、その府県の docroot
+#   /home/jdsfseibu/jdsf-seibu.com/public_html/<サブドメイン>.jdsf-seibu.com/
+# へ scp する。府県デプロイ(deploy-prefectures.yml)は google*.html を rsync 対象外に
+# しているため、ここで置いた確認ファイルは --delete で消えない（一度置けば残る）。
+#
+# 実行は手動のみ。only にサブドメインをカンマ区切りで指定すると対象を絞れる。
+
+name: Deploy Google verification files
+
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: '対象サブドメインをカンマ区切りで指定（空＝seo/google-verification 配下すべて）例: okayama'
+        required: false
+        default: ''
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY_B64 }}" | base64 -d > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          for i in 1 2 3; do ssh-keyscan -p 10022 sv16504.xserver.jp >> ~/.ssh/known_hosts 2>/dev/null && break; sleep 5; done; true
+
+      - name: Upload verification files
+        run: |
+          ONLY=$(echo "${{ github.event.inputs.only }}" | tr -d ' ')
+          BASE=seo/google-verification
+          if [ ! -d "$BASE" ]; then echo "配置対象フォルダ $BASE がありません"; exit 0; fi
+          found=0
+          for dir in "$BASE"/*/; do
+            [ -d "$dir" ] || continue
+            sub=$(basename "$dir")
+            if [ -n "$ONLY" ] && ! echo ",$ONLY," | grep -q ",$sub,"; then
+              echo "⏭  $sub は only='$ONLY' に含まれないためスキップ"
+              continue
+            fi
+            shopt -s nullglob
+            files=("$dir"google*.html)
+            shopt -u nullglob
+            if [ ${#files[@]} -eq 0 ]; then
+              echo "ℹ️  $sub: google*.html が無いためスキップ"
+              continue
+            fi
+            for f in "${files[@]}"; do
+              bn=$(basename "$f")
+              echo "→ $sub: $bn をアップロード"
+              scp -i ~/.ssh/deploy_key -P 10022 -o StrictHostKeyChecking=no \
+                "$f" \
+                "jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/${sub}.jdsf-seibu.com/${bn}"
+              found=$((found+1))
+            done
+          done
+          echo "✅ 配置完了: ${found} ファイル"
+
+      - name: Cleanup
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

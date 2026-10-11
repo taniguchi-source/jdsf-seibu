@@ -28,6 +28,7 @@ jobs:
             --exclude='.git/' \
             --exclude='.github/' \
             --exclude='scripts/' \
+            --exclude='seo/' \
             --exclude='preftest/' \
             --exclude='preftest.jdsf-seibu.com/' \
             --exclude='kyoto/' \
