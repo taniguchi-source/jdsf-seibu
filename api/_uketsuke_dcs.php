@@ -52,20 +52,30 @@ function uk_dcs_parse_info($raw) {
     $j = null;
     foreach ($rows as $k => $r) { if (strpos($r, '//- ') === 0 && strpos(uk_dcs_s($r), 'ランキング情報') !== false) { $j = $k; break; } }
     if ($j === null) return ['error' => 'ランキング情報の行が見つかりません'];
-    $events = [];
-    $seen   = [];
+    $events  = [];
+    $seen    = [];   /* 区分コード => $events の添字 */
+    $columns = [];   /* 桁の位置 => 区分コード。名簿のフラグはこの並びで入っている */
+    $merged  = [];   /* 同じコードにまとめた行の控え（確認画面に出す） */
     for ($k = 0; $k < $n; $k++) {
         $line = $rows[$j + 1 + $k] ?? '';
         $code = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', substr($line, 1, 4)));
         if ($code === '') return ['error' => ($k + 1) . '番目の区分コードを読み取れませんでした'];
-        /* 同じコードが2つあると、受付も欠場も「背番号:区分」で記録しているので
-           別の区分の選手が混ざる。気づかないまま当日を迎えないよう、取り込む前に止める。 */
+        $columns[$k] = $code;
+        /* 10ダンスは、スタンダード5種目ぶんとラテン5種目ぶんが末尾に足される仕様なので、
+           同じコードが2度3度出てくる（例 XGT が1番目・20番目・21番目）。
+           受付では10ダンスは1つの区分で、その組は1回受付すれば済むので、ここでまとめる。
+           名簿のフラグは桁の位置で区分に対応するため、桁は $columns にすべて残す。
+           ただし、本当にDCSの設定が重なっている場合も同じ見た目になるので、
+           何番目を何にまとめたかを控えて、作成前の確認画面に出す。 */
         if (isset($seen[$code])) {
-            return ['error' => '区分コード ' . $code . ' が重なっています（'
-                             . $seen[$code] . '番目と' . ($k + 1) . '番目）。'
-                             . 'DCSの区分設定をご確認ください。'];
+            $merged[] = ['code'  => $code,
+                         'at'    => $k + 1,
+                         'first' => $seen[$code] + 1,
+                         'name'  => $names[$k]['name'],
+                         'first_name' => $events[$seen[$code]]['name']];
+            continue;
         }
-        $seen[$code] = $k + 1;
+        $seen[$code] = count($events);
         $events[] = ['code' => $code, 'name' => $names[$k]['name'],
                      'start_time' => UK_DEFAULT_DEADLINE];
     }
@@ -89,7 +99,8 @@ function uk_dcs_parse_info($raw) {
 
     return ['name' => $name, 'date' => $date, 'comp_no' => $comp_no,
             'venue' => $cut($rows[5] ?? ''),
-            'host' => $cut($rows[4] ?? ''), 'events' => $events];
+            'host' => $cut($rows[4] ?? ''), 'events' => $events,
+            'columns' => $columns, 'merged' => $merged];
 }
 
 /* ---- SSS__MEM.dat ----
@@ -122,7 +133,10 @@ function uk_dcs_parse_members($raw, $codes) {
         $flags  = substr($r, 56, $n);
         $events = [];
         for ($k = 0; $k < $n; $k++) {
-            if (substr($flags, $k, 1) === '1') $events[] = $codes[$k];
+            if (substr($flags, $k, 1) !== '1') continue;
+            /* 10ダンスは同じ区分コードが複数の桁に立つ（スタンダード5種目・ラテン5種目のぶん）。
+               受付では1区分なので、同じコードは1つにする。 */
+            if (!in_array($codes[$k], $events, true)) $events[] = $codes[$k];
         }
         $out[] = ['bib' => $i + 1, 'leader' => $leader, 'partner' => $partner,
                   'affiliation' => uk_dcs_s(substr($r, 32, 24)), 'events' => $events];
@@ -148,7 +162,9 @@ function uk_dcs_upload($key, $label) {
 function uk_dcs_read_pair($raw_info, $raw_mem) {
     $info = uk_dcs_parse_info($raw_info);
     if (isset($info['error'])) return $info;
-    $mem = uk_dcs_parse_members($raw_mem, array_column($info['events'], 'code'));
+    /* 名簿のフラグは桁の位置で区分に対応する。まとめた区分があっても桁はずれないよう、
+       $info['columns']（桁の並びそのまま）を渡す。 */
+    $mem = uk_dcs_parse_members($raw_mem, $info['columns']);
     if (isset($mem['error'])) return $mem;
     $info['roster']     = $mem['roster'];
     $info['long_names'] = $mem['long_names'];

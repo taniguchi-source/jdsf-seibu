@@ -1361,6 +1361,14 @@ function renderNcCheck(){
      + codes.length + '区分／のべ</td><td class="num">' + sum + '</td></tr>'
      + '</tbody></table></div>';
 
+  /* 同じ区分コードが2度3度出てきたぶん。10ダンスはスタンダード5種目・ラテン5種目が
+     末尾に足されるので必ずこうなる。名前が同じ系統かどうかで、ふつうか異常かを分ける。 */
+  var mg = (info && info.merged) || [];
+  var oddMerge = mg.some(function(m){
+    var a = String(m.first_name || ''), b = String(m.name || '');
+    return !(a === b || (a && b.indexOf(a) === 0) || (b && a.indexOf(b) === 0));
+  });
+
   /* --- 自動チェック --- */
   h += '<div><p class="ck-sec">名簿の自動チェック</p><ul class="ck-list">'
      + ncLine(!missing.length && !dup.length,
@@ -1374,10 +1382,24 @@ function renderNcCheck(){
             : (info.long_names ? info.long_names + '件をすべて復元' : '該当なし')))
      + ncLine(!noAff.length, '所属が空の組　' + (noAff.length ? '<b>' + noAff.length + '組</b>　背番号 ' + ncBibs(noAff) : 'なし'))
      + ncLine(!noEvent.length, '出場区分が0の組　' + (noEvent.length ? '<b>' + noEvent.length + '組</b>　背番号 ' + ncBibs(noEvent) : 'なし'))
+     + ncLine(!oddMerge, '同じ区分コードの重なり　'
+         + (!mg.length ? 'なし'
+            : (oddMerge ? '<b>名前の違う区分が同じコードです</b>　下の説明をご確認ください'
+                        : mg.length + '件（10ダンスの分割）　1つの区分にまとめました')))
      + '</ul>';
   if (empty.length) {
     h += '<p class="muted ck-p">エントリーが0組の区分：' + esc(empty.join(', '))
        + '　（要項にあって申込が無かった区分です。異常ではありません）</p>';
+  }
+  if (mg.length) {
+    h += '<p class="muted ck-p">同じ区分コードをまとめました：'
+       + mg.map(function(m){
+           return '<b>' + esc(m.code) + '</b>（' + m.first + '番目「' + esc(m.first_name || '')
+                + '」に ' + m.at + '番目「' + esc(m.name || '') + '」）';
+         }).join('、')
+       + '　10ダンスはスタンダード5種目とラテン5種目が別々に並ぶので、こうなるのがふつうです。'
+       + '受付では1つの区分として扱い、その組は1回受付すれば済みます。'
+       + '<b>名前がまったく別の区分なら、DCSの区分設定をご確認ください。</b></p>';
   }
   h += '<p class="ck-sec" style="margin-top:14px">つき合わせ</p>'
      + '<p class="muted ck-p">DCSの区分別エントリー数や発番表と、左の「組」の列がそろっていれば'
@@ -1431,7 +1453,8 @@ function loadDcsFiles(){
       NC_ROSTER = d.roster;
       NC_EVENTS = d.events;
       NC_INFO   = {name: d.name || '', date: d.date || '', comp_no: d.comp_no || '',
-                   venue: d.venue || '', host: d.host || '', long_names: d.long_names || 0};
+                   venue: d.venue || '', host: d.host || '', long_names: d.long_names || 0,
+                   merged: d.merged || []};
       renderNcCheck();
       el('nc-dcs-note').className = 'nc-note ok';
       el('nc-dcs-note').textContent = '読み込みました。下の内容を確かめてから「作成する」を押してください。';
