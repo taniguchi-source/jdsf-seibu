@@ -1,9 +1,23 @@
 <?php
-/* 大会の一覧を返す（役員ページにログイン済みのみ）。 */
+/* 大会の一覧を返す（役員ページにログイン済みのみ）。
+   終わった大会は archived_at を持ち、ふだんの一覧には出さない。
+   ?archived=1 を付けると、その「終了した大会」だけを返す。
+   名簿や受付記録の数をすべての大会ぶん数えると重いので、
+   出すほうだけを数える（画面は3秒ごとにこれを取りに来る）。 */
 require __DIR__ . '/_uketsuke.php';
 uk_require_read();
 
-$list = uk_load_list();
+$want_archived = (($_GET['archived'] ?? '') === '1');
+
+$list         = [];
+$archived_cnt = 0;
+foreach (uk_load_list() as $c) {
+    $is_archived = !empty($c['archived_at']);
+    if ($is_archived) $archived_cnt++;
+    if ($is_archived !== $want_archived) continue;
+    $list[] = $c;
+}
+
 /* 各大会の件数も添えて、選択画面でそのまま表示できるようにする */
 foreach ($list as &$c) {
     $has_code = !empty($c['code_hash']);
@@ -22,4 +36,5 @@ foreach ($list as &$c) {
 }
 unset($c);
 
-json_out(['ok' => true, 'competitions' => $list]);
+json_out(['ok' => true, 'competitions' => array_values($list),
+          'archived_count' => $archived_cnt]);

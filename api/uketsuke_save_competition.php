@@ -98,6 +98,27 @@ if ($action === 'rename') {
     json_out(['ok' => true]);
 }
 
+if ($action === 'archive') {
+    /* 終わった大会を、ふだんの一覧から隠す（on=1）／一覧に戻す（on=0）。
+       名簿も受付記録も何ひとつ消さず、「終了した大会」からいつでも開ける。
+       いつでも元に戻せる操作なので、削除と違って合言葉も役員パスワードも求めない。 */
+    $id = $_POST['id'] ?? '';
+    $on = (($_POST['on'] ?? '1') === '1');
+    if (!uk_valid_id($id)) json_out(['error' => '大会IDが不正です'], 400);
+    $found = false;
+    foreach ($list as &$c) {
+        if (($c['id'] ?? '') !== $id) continue;
+        if ($on) $c['archived_at'] = uk_now();
+        else     unset($c['archived_at']);
+        $found = true;
+        break;
+    }
+    unset($c);
+    if (!$found) json_out(['error' => '大会が見つかりません'], 404);
+    uk_save_list($list);
+    json_out(['ok' => true, 'archived' => $on]);
+}
+
 if ($action === 'delete') {
     $id = $_POST['id'] ?? '';
     if (!uk_valid_id($id)) json_out(['error' => '大会IDが不正です'], 400);

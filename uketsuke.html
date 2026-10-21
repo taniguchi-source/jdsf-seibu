@@ -324,6 +324,10 @@
   .comp-item{display:flex;gap:8px;align-items:center;padding:10px;border:1px solid var(--border);
     border-radius:10px;background:var(--card);margin-bottom:8px}
   .comp-item .nm{font-weight:700}
+  /* 終了した大会。ふだんの一覧と間違えて受付を始めないよう、地色を落として出す。 */
+  .comp-item.arch{background:#f7f8fa}
+  .comp-item.arch .nm{color:var(--muted)}
+  #comp-arch h2{margin-top:18px}
   #login-screen{position:fixed;inset:0;background:var(--primary);display:flex;align-items:center;
     justify-content:center;z-index:100;padding:20px}
   .login-box{background:#fff;border-radius:14px;padding:32px 26px;max-width:360px;width:100%;text-align:center}
@@ -433,6 +437,10 @@
     <section id="v-comp">
       <h2>大会を選ぶ</h2>
       <div id="comp-list"></div>
+
+      <!-- 終了した大会（アーカイブ）。しまった大会が1件でもあるときだけ出す。 -->
+      <div id="comp-arch-bar" class="hidden" style="margin:2px 0 16px"></div>
+      <div id="comp-arch" class="hidden"></div>
 
       <!-- 一覧の「編集」を押したときだけ出す -->
       <div class="card hidden" id="ed-box">
@@ -1037,21 +1045,90 @@ function switchView(v){
 /* ---------- 大会 ---------- */
 function loadComps(quiet){
   return get('api/uketsuke_list.php').then(function(d){
-    var box = el('comp-list');
-    if (!d.competitions.length) {
-      box.innerHTML = '<p class="muted">まだ大会がありません。下の欄から作成してください。</p>';
-      return;
-    }
-    box.innerHTML = d.competitions.map(function(c){
-      return '<div class="comp-item">'
+    renderComps(el('comp-list'), d.competitions, false);
+    renderArchBar(d.archived_count || 0);
+    /* 終了した大会を開いて見ている間は、そちらも組み直す。
+       ただし3秒ごとの巡回では触らない（中身は変わらないし、押している途中で消えるため）。 */
+    if (ARCH_OPEN && !quiet) loadArchived();
+    restoreLastComp(d.competitions);
+  }).catch(function(e){ if (!quiet) alert(e.message); });
+}
+
+/* ── 終了した大会（アーカイブ） ──
+   受付が終わった大会をふだんの一覧から隠す。データは何も消さず、
+   ここから「開く」でいつでも見返せる。「戻す」で元の一覧に戻る。 */
+var ARCH_OPEN = false;      /* 終了した大会を開いて見ているか */
+function renderArchBar(n){
+  var bar = el('comp-arch-bar');
+  if (!bar) return;
+  if (!n) {                                  /* しまった大会が1つも無ければ何も出さない */
+    ARCH_OPEN = false;
+    bar.classList.add('hidden');
+    el('comp-arch').classList.add('hidden');
+    return;
+  }
+  bar.classList.remove('hidden');
+  bar.innerHTML = '<button type="button" class="small secondary" id="arch-toggle">'
+    + (ARCH_OPEN ? '終了した大会を隠す' : '終了した大会を見る（' + n + '件）') + '</button>';
+  el('arch-toggle').addEventListener('click', function(){
+    ARCH_OPEN = !ARCH_OPEN;
+    if (ARCH_OPEN) { loadArchived(); return; }
+    el('comp-arch').classList.add('hidden');
+    renderArchBar(n);
+  });
+}
+function loadArchived(){
+  return get('api/uketsuke_list.php?archived=1').then(function(d){
+    var box = el('comp-arch');
+    box.classList.remove('hidden');
+    box.innerHTML = '<h2>終了した大会</h2>'
+      + '<p class="muted">名簿も受付記録もそのまま残っています。'
+      + '<b>開く</b>でいつでも見返せます。<b>戻す</b>で上の一覧に戻ります。</p>'
+      + '<div id="comp-arch-list"></div>';
+    renderComps(el('comp-arch-list'), d.competitions, true);
+    renderArchBar(d.competitions.length);
+  }).catch(function(e){ alert(e.message); });
+}
+
+/* 大会の一覧を1つ組み立てる。ふだんの一覧と「終了した大会」で中身が同じなので、
+   違うのは「しまう／戻す」のボタンだけにしてある。 */
+function renderComps(box, comps, archived){
+  if (!box) return;
+  if (!comps.length) {
+    box.innerHTML = '<p class="muted">'
+      + (archived ? '終了した大会はありません。' : 'まだ大会がありません。下の欄から作成してください。')
+      + '</p>';
+    return;
+  }
+    box.innerHTML = comps.map(function(c){
+      return '<div class="comp-item' + (archived ? ' arch' : '') + '">'
         + '<div class="grow"><div class="nm">' + esc(c.name) + '</div>'
         + '<div class="muted">' + esc(c.date || '') + '　選手 ' + (c.roster_count||0) + '組／受付済 ' + (c.checkin_count||0) + '組'
-        + (c.need_code ? (c.unlocked ? '　🔓 合言葉は確認済み' : '　🔒 合言葉が必要') : '') + '</div></div>'
+        + (c.need_code ? (c.unlocked ? '　🔓 合言葉は確認済み' : '　🔒 合言葉が必要') : '')
+        + (archived && c.archived_at ? '　' + esc(String(c.archived_at).slice(0, 10)) + ' にしまいました' : '')
+        + '</div></div>'
         + '<button class="small" data-open="' + esc(c.id) + '" data-need="' + (c.need_code && !c.unlocked ? '1' : '') + '">開く</button>'
         + '<button class="small secondary" data-edit="' + esc(c.id) + '" data-need="' + (c.need_code && !c.unlocked ? '1' : '') + '">編集</button>'
         + '<button class="small secondary" data-copy="' + esc(c.id) + '">複製</button>'
+        + (archived
+            ? '<button class="small secondary" data-unarch="' + esc(c.id) + '">戻す</button>'
+            : '<button class="small secondary" data-arch="' + esc(c.id) + '">しまう</button>')
         + '<button class="small danger" data-del="' + esc(c.id) + '">削除</button></div>';
     }).join('');
+    /* しまう／戻す。消す操作ではないので、戻すときは確認もしない。 */
+    box.querySelectorAll('[data-arch],[data-unarch]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var on = !!b.dataset.arch, id = b.dataset.arch || b.dataset.unarch;
+        var c  = comps.filter(function(x){ return x.id === id; })[0] || {};
+        if (on && !confirm('「' + (c.name || id) + '」を終了した大会にしまいます。\n'
+          + '一覧から消えますが、名簿も受付記録もそのまま残り、'
+          + '「終了した大会を見る」からいつでも開けます。')) return;
+        b.disabled = true;
+        post('api/uketsuke_save_competition.php', {action:'archive', id:id, on: on ? '1' : '0'})
+          .then(function(){ if (!on) ARCH_OPEN = true; return loadComps(); })
+          .catch(function(e){ b.disabled = false; alert(e.message); });
+      });
+    });
     box.querySelectorAll('[data-open]').forEach(function(b){
       b.addEventListener('click', function(){ openComp(b.dataset.open, b.dataset.need === '1'); });
     });
@@ -1059,7 +1136,7 @@ function loadComps(quiet){
        （サーバー側でも、開いていない大会の変更は拒否する） */
     box.querySelectorAll('[data-edit]').forEach(function(b){
       b.addEventListener('click', function(){
-        var c = d.competitions.filter(function(x){ return x.id === b.dataset.edit; })[0] || {};
+        var c = comps.filter(function(x){ return x.id === b.dataset.edit; })[0] || {};
         var step = (b.dataset.need === '1') ? openComp(c.id, true, true) : Promise.resolve();
         step.then(function(){ if (COMP || b.dataset.need !== '1') openEditor(c); });
       });
@@ -1068,7 +1145,7 @@ function loadComps(quiet){
        元の大会を開いていることが条件なので、合言葉を知らない人は名簿を複製できない。 */
     box.querySelectorAll('[data-copy]').forEach(function(b){
       b.addEventListener('click', function(){
-        var c = d.competitions.filter(function(x){ return x.id === b.dataset.copy; })[0] || {};
+        var c = comps.filter(function(x){ return x.id === b.dataset.copy; })[0] || {};
         var need = c.need_code && !c.unlocked && !(COMP && COMP.id === c.id);
         var step = need ? openComp(c.id, true, true) : Promise.resolve();
         step.then(function(){
@@ -1096,7 +1173,7 @@ function loadComps(quiet){
        役員ページのパスワードを求める（サーバー側でも照合する） */
     box.querySelectorAll('[data-del]').forEach(function(b){
       b.addEventListener('click', function(){
-        var c = d.competitions.filter(function(x){ return x.id === b.dataset.del; })[0] || {};
+        var c = comps.filter(function(x){ return x.id === b.dataset.del; })[0] || {};
         if (!confirm('「' + (c.name || b.dataset.del) + '」の名簿・区分・受付記録をすべて削除します。\n元に戻せません。よろしいですか？')) return;
         /* サーバーは「開いていない大会」の削除を拒むので、鍵のかかった大会はまず開いてもらう */
         var need = c.need_code && !c.unlocked && !(COMP && COMP.id === c.id);
@@ -1119,8 +1196,6 @@ function loadComps(quiet){
         });
       });
     });
-    restoreLastComp(d.competitions);
-  }).catch(function(e){ if (!quiet) alert(e.message); });
 }
 
 /* サイトに登録済みの競技会（data/competitions_seibu.json）から選んで入力を省く。
