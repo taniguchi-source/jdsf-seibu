@@ -57,6 +57,9 @@ foreach ((array)(($syl['syllabus']['events'] ?? []) ?: ($syl['events'] ?? [])) a
 function uk_dance_text($s) {
     if ($s === '') return '';
     /* かっこの中のカンマでは切らない（(最終:V,F) のような書き方があるため） */
+    /* 区切りは半角カンマだが、シラバスの原文に打ち間違いが混じることがある
+       （例「W,T,V,F.Q,S,C,R,P,J」の F と Q の間）。読点・全角カンマ・
+       ピリオドも区切りとして扱う（uketsuke-program.html の danceText と同じ）。 */
     $parts = [];
     $buf = '';
     $depth = 0;
@@ -65,7 +68,9 @@ function uk_dance_text($s) {
         $ch = mb_substr($s, $i, 1);
         if ($ch === '(' || $ch === '（') $depth++;
         elseif ($ch === ')' || $ch === '）') $depth--;
-        if ($ch === ',' && $depth <= 0) { $parts[] = $buf; $buf = ''; continue; }
+        if (($ch === ',' || $ch === '、' || $ch === '，' || $ch === '.') && $depth <= 0) {
+            $parts[] = $buf; $buf = ''; continue;
+        }
         $buf .= $ch;
     }
     $parts[] = $buf;
