@@ -1785,6 +1785,9 @@
     if (iwVal) iwVal.textContent = iwNum + '%';
     // ギャラリーフィールド
     _galleryImages = Array.isArray(item.gallery) ? item.gallery.slice() : [];
+    _galleryNoDl   = Array.isArray(item.gallery_nodl) ? item.gallery_nodl.slice() : [];
+    while (_galleryNoDl.length < _galleryImages.length) _galleryNoDl.push(false);
+    _galleryNoDl.length = _galleryImages.length;   // 枚数に合わせる（余分は切る）
     renderGalleryThumbs();
     var gInput = document.getElementById('cd-gallery-input'); if (gInput) gInput.value = '';
     var gMsg   = document.getElementById('cd-gallery-msg');   if (gMsg)   gMsg.style.display = 'none';
@@ -1876,7 +1879,8 @@
       var eHv  = eHEl ? parseInt(eHEl.value, 10) : 1200;
       if (!(eHv >= 300 && eHv <= 5000)) eHv = 1200;
       item.embed_height = eHv;
-      item.gallery    = (_galleryImages || []).slice();
+      item.gallery      = (_galleryImages || []).slice();
+      item.gallery_nodl = (_galleryNoDl || []).slice();
       var pcwEl2 = document.getElementById('cd-pdf-pcwidth');
       var pcwv = pcwEl2 ? parseInt(pcwEl2.value, 10) : 100;
       if (!(pcwv >= 20 && pcwv <= 100)) pcwv = 100;
@@ -2062,6 +2066,7 @@
 
   /* ===== ギャラリー（画像最大10枚・Lightroom風） ===== */
   var _galleryImages = [];
+  var _galleryNoDl   = [];   /* 各画像の「ダウンロード不可」フラグ（_galleryImages と同じ並び） */
   var GALLERY_MAX = 10;
 
   function renderGalleryThumbs() {
@@ -2074,17 +2079,30 @@
       return;
     }
     wrap.innerHTML = _galleryImages.map(function(url, i){
-      return '<div style="position:relative;aspect-ratio:1/1;border-radius:6px;overflow:hidden;border:1px solid var(--border);background:#0e1726;">'
-        + '<img src="' + escHtml(url) + '" style="width:100%;height:100%;object-fit:cover;display:block;" alt="">'
-        + '<button onclick="removeGalleryImage(' + i + ')" title="削除" style="position:absolute;top:3px;right:3px;width:20px;height:20px;border:none;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:.75rem;line-height:1;cursor:pointer;">&times;</button>'
-        + '<span style="position:absolute;bottom:2px;left:4px;color:#fff;font-size:.65rem;text-shadow:0 1px 2px #000;">' + (i+1) + '</span>'
+      var nodl = _galleryNoDl[i] === true;
+      return '<div style="position:relative;border-radius:6px;overflow:hidden;border:1px solid ' + (nodl ? '#dc2626' : 'var(--border)') + ';background:#0e1726;">'
+        + '<div style="position:relative;aspect-ratio:1/1;">'
+          + '<img src="' + escHtml(url) + '" style="width:100%;height:100%;object-fit:cover;display:block;" alt="">'
+          + '<button onclick="removeGalleryImage(' + i + ')" title="削除" style="position:absolute;top:3px;right:3px;width:20px;height:20px;border:none;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:.75rem;line-height:1;cursor:pointer;">&times;</button>'
+          + '<span style="position:absolute;bottom:2px;left:4px;color:#fff;font-size:.65rem;text-shadow:0 1px 2px #000;">' + (i+1) + '</span>'
+          + (nodl ? '<span title="ダウンロードボタンを出しません" style="position:absolute;bottom:2px;right:4px;color:#fff;font-size:.6rem;font-weight:700;background:#dc2626;padding:1px 5px;border-radius:8px;">⬇不可</span>' : '')
+        + '</div>'
+        + '<label style="display:flex;align-items:center;gap:4px;padding:4px 5px;background:#fff;font-size:.66rem;color:var(--text-dark,#333);cursor:pointer;line-height:1.2;">'
+          + '<input type="checkbox" ' + (nodl ? 'checked' : '') + ' onchange="toggleGalleryNoDl(' + i + ',this.checked)" style="cursor:pointer;accent-color:#dc2626;"> ダウンロード不可</label>'
         + '</div>';
     }).join('');
   }
   window.renderGalleryThumbs = renderGalleryThumbs;
 
+  function toggleGalleryNoDl(idx, checked) {
+    _galleryNoDl[idx] = !!checked;
+    renderGalleryThumbs();
+  }
+  window.toggleGalleryNoDl = toggleGalleryNoDl;
+
   function removeGalleryImage(idx) {
     _galleryImages.splice(idx, 1);
+    _galleryNoDl.splice(idx, 1);
     renderGalleryThumbs();
   }
   window.removeGalleryImage = removeGalleryImage;
@@ -2118,7 +2136,7 @@
       fd.append('file', toUpload[i]);
       fetch('api/upload_file.php', {method:'POST', body:fd})
         .then(function(r){ return r.json(); })
-        .then(function(res){ if (res.ok && res.url) { _galleryImages.push(res.url); done++; } else { failed++; } })
+        .then(function(res){ if (res.ok && res.url) { _galleryImages.push(res.url); _galleryNoDl.push(false); done++; } else { failed++; } })
         .catch(function(){ failed++; })
         .finally(function(){ showMsg('⏳ アップロード中… (' + (done+failed) + '/' + toUpload.length + ')', true); renderGalleryThumbs(); next(i+1); });
     }

@@ -24,12 +24,17 @@ $clean = [];
 foreach ($items as $item) {
     $type_raw = (string)($item['type'] ?? 'text');
     // ギャラリー画像（最大10枚・各URLは500文字まで）
+    // gallery_nodl ＝ 各画像の「ダウンロード不可」フラグ。gallery と同じ並びで保持する。
     $gallery_raw = $item['gallery'] ?? [];
+    $nodl_raw    = $item['gallery_nodl'] ?? [];
     $gallery = [];
+    $gallery_nodl = [];
     if (is_array($gallery_raw)) {
-        foreach ($gallery_raw as $g) {
+        foreach ($gallery_raw as $gi => $g) {
             $g = mb_substr(trim((string)$g), 0, 500);
-            if ($g !== '') $gallery[] = $g;
+            if ($g === '') continue;
+            $gallery[] = $g;
+            $gallery_nodl[] = (is_array($nodl_raw) && !empty($nodl_raw[$gi]));
             if (count($gallery) >= 10) break;
         }
     }
@@ -84,7 +89,8 @@ foreach ($items as $item) {
         'link_label' => mb_substr(trim((string)($item['link_label'] ?? '')), 0, 100),
         'embed_url'    => $embed_url,
         'embed_height' => $embed_height,
-        'gallery'    => $gallery,
+        'gallery'      => $gallery,
+        'gallery_nodl' => $gallery_nodl,
     ];
 }
 

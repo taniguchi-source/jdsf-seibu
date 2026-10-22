@@ -473,7 +473,12 @@
         bodyEl.textContent = '（画像は未設定です）';
       }
     } else if (item.type === 'gallery') {
-      var gimgs = Array.isArray(item.gallery) ? item.gallery.filter(Boolean) : [];
+      /* gallery_nodl（各画像のダウンロード不可フラグ）を gallery と同じ並びで対応づける */
+      var grawNodl = Array.isArray(item.gallery_nodl) ? item.gallery_nodl : [];
+      var gimgs = [], gnodl = [];
+      (Array.isArray(item.gallery) ? item.gallery : []).forEach(function(u, idx){
+        if (u) { gimgs.push(u); gnodl.push(grawNodl[idx] === true); }
+      });
       if (gimgs.length) {
         bodyEl.className = 'gallery-grid';
         gimgs.forEach(function(gurl, gi){
@@ -481,8 +486,10 @@
           cell.className = 'gallery-item';
           var gim = document.createElement('img');
           gim.src = gurl; gim.alt = (item.title || '') + ' ' + (gi + 1); gim.loading = 'lazy';
+          /* ダウンロード不可の画像は、右クリック保存・ドラッグ保存をしにくくする（簡易な抑止） */
+          if (gnodl[gi]) { gim.draggable = false; gim.oncontextmenu = function(){ return false; }; }
           cell.appendChild(gim);
-          cell.addEventListener('click', function(){ openGalleryLightbox(gimgs, gi); });
+          cell.addEventListener('click', function(){ openGalleryLightbox(gimgs, gi, gnodl); });
           bodyEl.appendChild(cell);
         });
       } else {
@@ -726,7 +733,7 @@
   }
 
   /* ===== ギャラリー Lightbox（クリックで拡大・前後送り・ダウンロード） ===== */
-  var _glbImgs = [], _glbIdx = 0, _glbEl = null;
+  var _glbImgs = [], _glbIdx = 0, _glbEl = null, _glbNoDl = [];
   function buildGlb() {
     if (_glbEl) return;
     var o = document.createElement('div');
@@ -748,15 +755,22 @@
   function glbShow() {
     if (!_glbEl) return;
     var url = _glbImgs[_glbIdx];
-    _glbEl.querySelector('.glb-img').src = url;
-    _glbEl.querySelector('.glb-download').href = url;
+    var img = _glbEl.querySelector('.glb-img');
+    img.src = url;
+    /* ダウンロード不可の画像は、拡大表示でもダウンロードボタンを出さず、右クリック/ドラッグ保存も抑止 */
+    var nodl = _glbNoDl[_glbIdx] === true;
+    var dl = _glbEl.querySelector('.glb-download');
+    if (nodl) { dl.style.display = 'none'; dl.removeAttribute('href'); }
+    else      { dl.style.display = ''; dl.href = url; }
+    img.draggable = !nodl;
+    img.oncontextmenu = nodl ? function(){ return false; } : null;
     _glbEl.querySelector('.glb-counter').textContent = (_glbIdx + 1) + ' / ' + _glbImgs.length;
     var multi = _glbImgs.length > 1;
     _glbEl.querySelector('.glb-prev').style.display = multi ? '' : 'none';
     _glbEl.querySelector('.glb-next').style.display = multi ? '' : 'none';
   }
   function glbGo(d) { _glbIdx = (_glbIdx + d + _glbImgs.length) % _glbImgs.length; glbShow(); }
-  function openGalleryLightbox(imgs, idx) { _glbImgs = imgs; _glbIdx = idx || 0; buildGlb(); _glbEl.classList.add('open'); document.body.style.overflow = 'hidden'; glbShow(); }
+  function openGalleryLightbox(imgs, idx, nodl) { _glbImgs = imgs; _glbNoDl = Array.isArray(nodl) ? nodl : []; _glbIdx = idx || 0; buildGlb(); _glbEl.classList.add('open'); document.body.style.overflow = 'hidden'; glbShow(); }
   function closeGlb() { if (_glbEl) { _glbEl.classList.remove('open'); document.body.style.overflow = ''; } }
   document.addEventListener('keydown', function(e){
     if (!_glbEl || !_glbEl.classList.contains('open')) return;
