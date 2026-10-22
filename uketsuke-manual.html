@@ -192,7 +192,7 @@
   </p>
 
   <table>
-    <tr><th style="width:22%">受付</th><td>背番号を入れて<span class="btn-name">受付</span>を押すと、その組のすべての区分を受付します。一部の区分だけの組は<span class="btn-sub">一部受付</span>から選びます。</td></tr>
+    <tr><th style="width:22%">受付</th><td>背番号を入れて<span class="btn-name">確認</span>を押すと、氏名とエントリー区分が出ます。読み上げて確かめ、出ない区分のチェックを外して<span class="btn-name">受付</span>を押すと、その組の受付がまとまって確定します。</td></tr>
     <tr><th>欠場報告</th><td>区分ごとに「出場」と「欠場」の一覧が自動で出ます。欠場者の背番号が受付に残っているかの確認も記録できます。</td></tr>
     <tr><th>欠場者一覧</th><td>受付締切の時刻ごとに、欠場した背番号だけを大きく並べたページを印刷できます。進行席へ渡す用です。</td></tr>
     <tr><th>出場選手一覧</th><td>区分ごとのエントリー名簿です。プログラム（パンフレット）の選手名簿や、会場に貼り出す紙に使えます。</td></tr>
@@ -514,26 +514,33 @@
 
 <figure>
   <img src="images/uketsuke-manual/06_checkin.jpg" alt="受付画面">
-  <figcaption>受付画面。背番号を入れて<span class="btn-name">受付</span>を押すと、その組のすべての区分を受付します。</figcaption>
+  <figcaption>受付画面。背番号を入れて<span class="btn-name">確認</span>を押します。この時点ではまだ受付していません。</figcaption>
 </figure>
 
-<h4>受付のしかた（2通り・どちらでも同じ）</h4>
-<table>
-  <tr>
-    <th style="width:30%">ボタンで受付</th>
-    <td>背番号を入れて<span class="btn-name">受付</span>を押す。1回の操作で受付できます。</td>
-  </tr>
-  <tr>
-    <th><kbd>Enter</kbd> 2回で受付</th>
-    <td>背番号を入れて<kbd>Enter</kbd>。1回目は<b>確認だけ</b>で、氏名と出場する区分が出ます。合っていればもう一度<kbd>Enter</kbd>で受付します。
-      打ち間違えた背番号がそのまま受付されないよう、確認を挟んでいます。</td>
-  </tr>
-</table>
+<h4>受付のしかた（確認してから受付）</h4>
+<ol class="steps">
+  <li><b>背番号を入れて<span class="btn-name">確認</span></b>（<kbd>Enter</kbd>でも同じ）。
+      <b>この時点では受付していません。</b></li>
+  <li><b>背番号・リーダー姓・エントリー区分を読み上げて確かめます。</b>
+      背番号を打ち間違えて別の組が出たときは<span class="btn-sub">受付せずに戻る</span>で入れ直します。</li>
+  <li><b>出ない区分のチェックを外します。</b>出場する区分には最初からチェックが入っているので、
+      <b>全区分に出るならそのまま</b>で構いません。</li>
+  <li><b><span class="btn-name">受付</span>を押す</b>（<kbd>Enter</kbd>でも同じ）。チェックの付いた区分が
+      <b>まとめて</b>受付されます。</li>
+</ol>
 
 <figure>
-  <img src="images/uketsuke-manual/07_lookup.jpg" alt="1回目のEnterで確認">
-  <figcaption><kbd>Enter</kbd> 1回目。まだ受付されていません。氏名と出場する区分を読み上げて確認できます。</figcaption>
+  <img src="images/uketsuke-manual/07_lookup.jpg" alt="確認の画面">
+  <figcaption><span class="btn-name">確認</span>を押したところ。まだ受付されていません。チェックを外した区分は薄い赤になり、受付しません。</figcaption>
 </figure>
+
+<div class="ok">
+  <b>なぜ確認を挟むのか</b>
+  打ち間違えた背番号がそのまま受付されるのを防ぐためです。また、
+  <b>受付が確定するのは最後の<span class="btn-name">受付</span>を押した1回だけ</b>なので、
+  「1区分だけ受付して、残りを忘れたままゼッケンを渡す」ということが起きません。
+  （奈良県ダンススポーツ連盟 佐野信哉氏の改善提案によります）
+</div>
 
 <figure>
   <img src="images/uketsuke-manual/08_done.jpg" alt="受付しました">
@@ -581,28 +588,34 @@
 </section>
 
 <section id="part">
-<h3>2-2　一部の区分だけ受付する</h3>
+<h3>2-2　一部の区分だけ欠場する組</h3>
 
 <p>
-  「スタンダードだけ出て、ラテンは欠場」のように、<b>一部の区分だけ出る組</b>のときに使います。
-  背番号を入れて<span class="btn-sub">一部受付</span>を押すと、その組のエントリー区分がボタンで出ます。
+  「スタンダードだけ出て、ラテンは欠場」のように、<b>一部の区分だけ出る組</b>も、
+  <b>同じ画面でそのまま扱えます</b>（以前の<span class="btn-sub">一部受付</span>ボタンは無くなりました）。
+  <span class="btn-name">確認</span>を押すと出る区分の一覧で、<b>欠場する区分のチェックを外して</b>
+  <span class="btn-name">受付</span>を押してください。
 </p>
 
 <figure>
-  <img src="images/uketsuke-manual/09_part.jpg" alt="一部受付の区分選択">
-  <figcaption>出場する区分のボタンだけを押します。押さなかった区分は欠場になります。</figcaption>
+  <img src="images/uketsuke-manual/09_part.jpg" alt="欠場する区分のチェックを外す">
+  <figcaption>チェックを外した区分は薄い赤になり、「欠場」と出ます。押すのは最後の<span class="btn-name">受付</span>1回だけです。</figcaption>
 </figure>
 
 <figure>
-  <img src="images/uketsuke-manual/10_part_done.jpg" alt="一部受付の結果">
-  <figcaption>押した区分だけが受付されます。受付状況には、73番のように「FVL（緑＝受付済み）／JBS（灰色＝未受付）」と残ります。</figcaption>
+  <img src="images/uketsuke-manual/10_part_done.jpg" alt="一部欠場の結果">
+  <figcaption>チェックの付いていた区分だけが受付されます。受付状況には「緑＝受付済み／灰色＝未受付」と残ります。</figcaption>
 </figure>
 
 <ul>
-  <li><b>複数の区分に出る組は、続けて押せます。</b>3区分・4区分にエントリーしている組で、そのうち2つ・3つに出る場合は、出る区分を順に押してください。1つ押しても画面は閉じません。</li>
-  <li>全部の区分に出るなら、この画面の<span class="btn-name">全区分を受付</span>でまとめて受付できます。</li>
-  <li>すでに受付した区分（緑）をもう一度押すと、その区分の受付を<b>取り消し</b>ます。</li>
-  <li>押し終わったら、そのまま<b>次の組の背番号を打ち始めれば画面は閉じます</b>（<span class="btn-sub">閉じる</span>でも閉じられます）。</li>
+  <li><b>何区分あっても、押すのは最後の<span class="btn-name">受付</span>1回だけです。</b>
+      3区分・4区分にエントリーしている組でも、チェックを外す・付けるだけで決められます。</li>
+  <li><b>すでに受付した区分</b>は緑で<b>受付済み</b>と出ます。取り消したいときは、その行の
+      <span class="btn-sub">取消</span>を押してください。</li>
+  <li><b>受付が終了している区分・初期振分が済んだ区分</b>はチェックが出ません。
+      その場で出場させたいときは<b>手動対応に回す</b>に印を付けて<span class="btn-name">受付</span>を押すと、
+      「手動対応」タブに残ります（受付はされません）。</li>
+  <li>やめるときは<span class="btn-sub">受付せずに戻る</span>、または次の組の背番号を打ち始めてください。</li>
 </ul>
 </section>
 
@@ -616,11 +629,15 @@
   </tr>
   <tr>
     <th>区分を間違えた／1つ増やしたい</th>
-    <td>受付状況のその行の<span class="btn-sub">区分</span>を押すと、区分の選択画面が開きます。押し直して直してください。</td>
+    <td><b>その背番号をもう一度入れて<span class="btn-name">確認</span></b>を押してください。同じ画面が開きます。
+      受付済みの区分は<span class="btn-sub">取消</span>で取り消せますし、受付していない区分はチェックを付けて
+      <span class="btn-name">受付</span>を押せば足せます。</td>
   </tr>
   <tr>
     <th>名簿に無いと言われる</th>
-    <td>背番号の打ち間違いか、名簿に入っていない組です。「締切時刻設定」タブの名簿の一覧で確認し、当日エントリーなら追加してください。</td>
+    <td>背番号の打ち間違いか、名簿に入っていない組です。「締切時刻設定」タブの名簿の一覧で確認してください。
+      <b>当日エントリーや区分の変更は、DCSの担当者に直してもらうのが本筋です</b>
+      （この画面で直してもDCSには伝わりません）。</td>
   </tr>
 </table>
 
@@ -676,6 +693,17 @@
   <img src="images/uketsuke-manual/14_absent.jpg" alt="欠場者一覧">
   <figcaption>欠場者一覧。受付締切の時刻ごとにまとめて出せます。背番号在庫を確認済みの組は緑になります。区分の見出しの右にある<b>ST初期振分</b>は、押すとその区分の受付を止めます（印刷には「完了」「未」の文字だけ出ます）。</figcaption>
 </figure>
+
+<div class="note">
+  <b>背番号ごとの欠場区分番号も出ます</b>
+  受付締切の時刻で選んだときは、一覧の先頭に<b>背番号ごとの欠場区分</b>の表が出ます。
+  DCSの欠場処理の画面は<b>背番号ごとに区分番号を入れる</b>向きなので、
+  この表を上から順に見ながら入れられます。番号は<b>DCSの区分番号</b>で、
+  画面の並べ替えをしても変わりません。
+  （奈良県ダンススポーツ連盟 佐野信哉氏の改善提案によります）
+</div>
+
+
 
 <ol class="steps">
   <li><b>表示する範囲を選ぶ</b>　2通りあります。<b>受付締切ごと</b>（「11:00　JAS, MAS, GAS」のように、その時刻の区分をまとめて1枚に）と、<b>区分ごと</b>（1区分だけ）です。ふつうは締切ごとで出します。</li>

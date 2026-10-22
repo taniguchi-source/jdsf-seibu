@@ -76,8 +76,10 @@ function uk_dcs_parse_info($raw) {
             continue;
         }
         $seen[$code] = count($events);
+        /* no は DCS の区分番号（ランキング情報の何行目か）。採点管理の欠場処理は
+           この番号で入れていくので、画面の並べ替えで動かないよう、取り込み時に控える。 */
         $events[] = ['code' => $code, 'name' => $names[$k]['name'],
-                     'start_time' => UK_DEFAULT_DEADLINE];
+                     'no' => $k + 1, 'start_time' => UK_DEFAULT_DEADLINE];
     }
 
     /* 開催日。末尾の Cael System の行に ISO 形式で入っているのでそれを使う。

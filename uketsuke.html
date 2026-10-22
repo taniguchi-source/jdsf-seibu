@@ -104,7 +104,6 @@
   .checkin-row{display:flex;gap:12px;align-items:stretch}
   .checkin-row .bib-input{flex:1;min-width:0;font-size:64px;padding:14px 12px}
   .checkin-row .ci-btn{flex:none;font-size:24px;padding:0 34px;white-space:nowrap}
-  .checkin-row .ci-part{flex:none;font-size:13px;padding:0 12px;white-space:nowrap}
   /* 区分マスタ側の注意書き。受付締切が空の欄は枠を赤くして、その場で分かるようにする。 */
   #ev-warn{border:2px solid var(--warn);background:var(--warn-bg);border-radius:10px;
     padding:12px 14px;margin-bottom:12px;font-size:14px;color:#7c3a06}
@@ -145,7 +144,6 @@
     .checkin-row .ci-btn{font-size:17px;padding:0 16px}
     /* 狭い画面では「一部受付」を受付ボタンの下に回す（背番号の幅を削らない） */
     .checkin-row{flex-wrap:wrap}
-    .checkin-row .ci-part{width:100%;padding:8px 12px}
     .dl-clock{font-size:13px;padding:4px 8px}
     .dl-clock .rest{font-size:16px}
   }
@@ -290,6 +288,30 @@
     border:2px solid var(--border);padding:10px 14px;font-size:15px;font-weight:700}
   .ev-btn .c{font-size:20px;font-weight:800;color:var(--primary);margin-right:6px}
   .ev-btn .s{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-top:3px}
+  /* 受付する区分をチェックで選ぶ行。受付は最後に「受付」を1回押して確定する。
+     1区分ずつ確定すると、音が鳴った時点で終わったつもりになって残りを押し忘れるため。 */
+  .ev-pick{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+    background:var(--card);border:2px solid var(--border);border-radius:10px;padding:10px 14px}
+  .ev-pick .bx{width:22px;height:22px;flex:none;accent-color:var(--primary)}
+  .ev-pick .t{flex:1;min-width:0}
+  .ev-pick .c{font-size:20px;font-weight:800;color:var(--primary);margin-right:6px}
+  .ev-pick .nm{font-size:15px;font-weight:700}
+  .ev-pick .s{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-top:3px}
+  /* チェックを外した区分＝欠場。薄い赤にして、受付を押す前に目で確かめられるようにする。 */
+  .ev-pick.off{background:#fdeae0;border-color:#f0b49a}
+  .ev-pick.off .c,.ev-pick.off .nm{color:#9a3412}
+  .ev-pick.done{background:var(--ok-bg);border-color:var(--ok)}
+  .ev-pick.done .c{color:var(--ok)}
+  /* 受付が止まっている区分。チェックは出さず、何が要るかだけを書く。 */
+  .ev-pick.shut{background:#f1f2f5;border-color:#d7dae0}
+  .ev-pick.shut .nm{text-decoration:line-through;color:var(--muted)}
+  .ev-pick.shut .s{color:#b91c1c}
+  .ev-pick .mn{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;
+    color:#b91c1c;white-space:nowrap}
+  /* 確認中は背番号欄を押せなくする（打ち直しは「受付せずに戻る」から）。
+     タブレットでは焦点も外すので、ソフトキーボードが下がって区分が隠れない。 */
+  #ci-form.picking .bib-input{background:#f1f2f5;color:var(--muted)}
+  #ci-form.picking .ci-btn{background:#b45309;border-color:#92400e}
   /* ST初期振分。押すとその区分の受付が止まる大事な操作なので、目立つ色にする */
   button.assign-todo{background:#c2410c;color:#fff;border:2px solid #9a3412}
   button.assign-done{background:var(--ok);color:#fff;border:2px solid #0f5f2e}
@@ -554,24 +576,25 @@
         </div>
         <div class="checkin-row">
           <input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="bib" class="bib-input" placeholder="0">
-          <button type="submit" class="ci-btn">受付</button>
-          <!-- 一部の区分だけ出る組はまれなので、選択画面はこのボタンを押したときだけ出す -->
-          <button type="button" class="secondary ci-part" id="ci-part">一部受付</button>
+          <!-- 背番号を入れて「確認」。氏名と区分が出てから「受付」で確定する。
+               いきなり確定すると、打ち間違いや一部欠場にその場で気づけないため。 -->
+          <button type="submit" class="ci-btn" id="ci-go">確認</button>
         </div>
       </form>
 
       <div id="ci-banner" class="banner hidden"></div>
 
-      <!-- 「一部受付」を押したときだけ出す区分の選択画面。
-           押した区分だけが出場になり、押さなかった区分は欠場になる。
-           次の組の背番号をすぐ打てるよう、ボタンは入力欄ではなく表示中の組を覚えて動く。 -->
+      <!-- 「確認」を押すと出る画面。読み上げて確かめ、出ない区分のチェックを外して
+           「受付」を1回押すと、その組の受付がまとめて確定する。 -->
       <div id="ci-panel" class="card hidden">
-        <div id="ci-who"></div>
+        <div class="row" style="align-items:flex-start">
+          <div id="ci-who" class="grow"></div>
+          <button type="button" id="ci-back" class="small secondary">受付せずに戻る</button>
+        </div>
         <p class="muted" id="ci-hint" style="margin:6px 0 10px"></p>
         <div id="ci-evs" class="ev-grid"></div>
         <div class="row" style="margin-top:12px">
-          <button type="button" id="ci-all" class="grow">全区分を受付</button>
-          <button type="button" id="ci-close" class="secondary">閉じる</button>
+          <button type="button" id="ci-do" class="grow ci-btn">受付</button>
         </div>
       </div>
 
@@ -802,7 +825,18 @@
         <tbody id="rs-list"></tbody>
       </table>
 
-      <h2>手動で追加・編集</h2>
+      <!-- ここで直してもDCS（支援システム）には伝わらない。食い違ったまま当日を迎えると
+           組み合わせや採点がずれるので、ふだんは畳んでおき、開くときに必ず警告を見せる。
+           （奈良県連 佐野氏の改善提案 6②） -->
+      <details id="rs-manual">
+        <summary><b>手動で追加・編集</b>（ふだんは使いません）</summary>
+        <div class="warn" style="margin:10px 0">
+          <b>DCSには伝わりません</b>
+          ここで背番号や氏名、出場区分を直しても、<b>DCS（支援システム）の名簿は変わりません</b>。
+          両方が食い違ったまま当日を迎えると、組み合わせや採点がずれます。<br>
+          当日の飛び込みや区分の変更は、<b>DCSの担当者に直してもらい、取り込み直す</b>のが本筋です。
+          どうしてもここで直すときは、<b>必ずDCS側にも同じ直しを入れてください。</b>
+        </div>
       <form class="card" id="rs-form">
         <div class="row wrap">
           <div class="grow"><label class="muted">背番号</label><input type="number" id="rs-bib" required></div>
@@ -823,6 +857,7 @@
           <button type="button" id="rs-del" class="danger hidden">この組を名簿から削除</button>
         </div>
       </form>
+      </details>
     </section>
 
 
@@ -1589,9 +1624,10 @@ function createCompetition(){
 function clearWorkState(){
   el('bib').value = '';
   el('ci-banner').classList.add('hidden');
-  el('ci-panel').classList.add('hidden');      /* 前の大会の組の区分ボタンを残さない */
+  el('ci-panel').classList.add('hidden');      /* 前の大会の組の確認画面を残さない */
   LOOKED_UP = null;
-  PANEL_BIB = null;
+  PICK = null;
+  setPicking(false);
   PREV = null;                                  /* 読み込み途中のCSV */
   hideMapping();
   el('imp-result').classList.add('hidden');
@@ -1840,12 +1876,11 @@ function whoHtml(bib, r){
 /* ---------- 受付 ----------
    記録は区分単位だが、ほとんどの組は出場区分すべてに出るので、
    ふだんは「受付」だけで全区分をまとめて受付する。
-   一部の区分だけ出る組のときだけ「一部受付」を押し、区分を選ぶ。
-   1回目のEnterは照会だけ（打ち間違えた背番号がEnterひとつで受付されるのを防ぐ）。
-   同じ背番号のままもう一度Enterを押すか「受付」を押すと、全区分を受付する。 */
-var LOOKED_UP = null;   /* 照会を出し終えた背番号。これと同じならEnterで受付 */
-var PANEL_BIB = null;   /* 区分を選ぶ画面に出している組。次の背番号をすぐ打てるよう入力欄とは別に持つ */
-var LAST_BIB  = null;   /* 直前に扱った組。入力欄が空でも「一部受付」で直せるようにする */
+   背番号を入れて「確認」を押すと、氏名とエントリー区分が出る。
+   読み上げて確かめ、出ない区分のチェックを外して「受付」を1回押すと確定する。
+   打ち間違えた背番号がそのまま受付されることも、一部区分の受付し忘れも起きない。 */
+var LOOKED_UP = null;   /* 確認を出し終えた背番号 */
+var LAST_BIB  = null;   /* 直前に扱った組 */
 
 /* 出場区分。照会と受付結果に出して、読み上げ確認に使う。 */
 /* 区分を並べて出す。bib を渡すと受付済みの区分に印が付く。
@@ -1897,143 +1932,161 @@ function doneMap(){
   return m;
 }
 
+/* ── 受付の流れ ──
+   背番号 → 「確認」 → 氏名とエントリー区分が出る → 読み上げて確かめ、
+   出ない区分のチェックを外す → 「受付」を1回押して確定。
+   1区分ずつ確定していた頃は、1つ押した時点で音が鳴るので「終わった」と思い込み、
+   残りの区分を受付せずにゼッケンを渡してしまうことがあった。確定を最後の1回に
+   まとめると、その取りこぼしが起きない。（奈良県連 佐野氏の改善提案 1・2） */
+var PICK = null;     /* 確認中の組 {bib, codes:[], on:{コード:true/false}} */
+
+/* 確認中かどうかで、入力欄とボタンの見た目を切り替える */
+function setPicking(on){
+  el('ci-form').classList.toggle('picking', !!on);
+  el('ci-go').textContent = on ? '受付' : '確認';
+  el('bib').readOnly = !!on;
+  /* タブレットでは焦点を外してソフトキーボードを下げる。出てきた氏名と区分が
+     キーボードで隠れてしまい、読み上げて確かめられないため。
+     パソコンは焦点を残す（Enterをもう一度押せば受付できるようにする）。 */
+  if (on && window.matchMedia && window.matchMedia('(pointer:coarse)').matches) el('bib').blur();
+}
+
 el('bib').addEventListener('keydown', function(e){
   if (e.key !== 'Enter' && e.keyCode !== 13) return;
   e.preventDefault();
-  var bib = el('bib').value.trim();
-  if (!bib) return;
-  if (LOOKED_UP !== null && bib === LOOKED_UP) { doCheckin(bib, null); return; }
+  if (PICK) { commitPick(); return; }
+  if (!el('bib').value.trim()) return;
   lookupBib();
 });
-/* 「受付」ボタンはその場で全区分を受付する（Enterと違って確認の1手を挟まない） */
-/* 次の組の背番号を打ち始めたら、前の組の区分の画面は閉じる */
+/* 確認中は背番号欄から焦点が外れていることがあるので、画面のどこで押しても
+   Enterで受付できるようにする（入力中の欄にいるときは邪魔しない）。 */
+document.addEventListener('keydown', function(e){
+  if (!PICK) return;
+  if (e.key !== 'Enter' && e.keyCode !== 13) return;
+  if (el('v-checkin').classList.contains('hidden')) return;
+  var t = e.target, tag = t && t.tagName;
+  if (tag === 'INPUT' && t.type !== 'checkbox' && t.id !== 'bib') return;
+  if (tag === 'TEXTAREA' || tag === 'SELECT') return;
+  e.preventDefault();
+  commitPick();
+});
+/* 次の組の背番号を打ち始めたら、前の組の確認は捨てる */
 el('bib').addEventListener('input', function(){
-  var v = el('bib').value.trim();
-  if (PANEL_BIB !== null && v !== '' && v !== String(PANEL_BIB)) hidePanel();
+  if (!PICK) return;
+  if (el('bib').value.trim() !== String(PICK.bib)) cancelPick(false);
 });
 el('ci-form').addEventListener('submit', function(e){
   e.preventDefault();
   /* 受付締切が未設定のうちは受付させない（画面は隠しているが、念のためここでも止める） */
   if (!checkinReady()) { renderCheckinGate(); return; }
+  if (PICK) { commitPick(); return; }
   var bib = el('bib').value.trim();
   if (!bib) { el('bib').focus(); return; }
   if (!rosterOf(bib)) { notInRoster(bib); return; }
-  doCheckin(bib, null);
+  lookupBib();
 });
-/* 一部の区分だけ受付する組のときだけ、区分を選ぶ画面を出す */
-el('ci-part').addEventListener('click', function(){
-  if (!checkinReady()) { renderCheckinGate(); return; }
-  var bib = el('bib').value.trim() || LAST_BIB;
-  if (!bib) { banner('warn', '先に背番号を入力してください'); el('bib').focus(); return; }
-  if (!rosterOf(bib)) { notInRoster(bib); return; }
-  LOOKED_UP = null;
-  el('ci-banner').classList.add('hidden');
-  LAST_BIB = String(bib);
-  showPanel(bib, '出場する区分だけを押してください（複数でも続けて押せます）。押さなかった区分は欠場になります。');
-  /* 次の組をすぐ打てるように入力欄は空にする（区分ボタンは表示中の組で動く） */
-  el('bib').value = '';
-  el('ci-panel').scrollIntoView({block:'nearest'});
-});
-el('ci-close').addEventListener('click', function(){ closePanel(); });
-el('ci-all').addEventListener('click', function(){ if (PANEL_BIB !== null) doCheckin(PANEL_BIB, null); });
+el('ci-back').addEventListener('click', function(){ cancelPick(true); });
+el('ci-do').addEventListener('click', function(){ commitPick(); });
 
-function closePanel(){
-  PANEL_BIB = null;
+/* 確認をやめて、背番号の入力に戻る */
+function cancelPick(clear){
+  PICK = null;
   LOOKED_UP = null;
-  LAST_BIB  = null;
-  hidePanel();
-  el('bib').value = '';
+  el('ci-panel').classList.add('hidden');
+  setPicking(false);
+  if (clear) { el('bib').value = ''; el('ci-banner').classList.add('hidden'); }
   el('bib').focus();
 }
-/* 選択画面を閉じるだけ。直前に扱った組は覚えておき、「一部受付」で開き直せるようにする。 */
-function hidePanel(){
-  PANEL_BIB = null;
-  el('ci-panel').classList.add('hidden');
-}
-/* 区分を押したあとの選択画面。
-   1組が3区分・4区分にエントリーしていて、そのうち2つ3つに出ることがあるので、
-   1つ押しただけでは閉じない（閉じると押し直しになる）。
-   画面を出したままにしないよう、次の組の背番号を打ち始めた時点で閉じる。 */
-function afterPanelAction(bib){
-  if (PANEL_BIB === null) return;
-  if (String(PANEL_BIB) !== String(bib)) { hidePanel(); return; }   /* 別の組を受付した */
-  showPanel(bib, '続けて他の区分も押せます。次の組の背番号を入れると閉じます。');
-}
+function hidePanel(){ cancelPick(false); }
 function notInRoster(bib){
-  hidePanel();
+  PICK = null;
+  el('ci-panel').classList.add('hidden');
+  setPicking(false);
+  beep('ng');
   banner('danger', '背番号 ' + esc(bib) + ' は名簿にありません');
 }
-/* 1回目のEnter。受付はせず、誰なのかと出場区分だけを出す。 */
+
+/* 「確認」。受付はせず、誰なのかとエントリー区分を出す。 */
 function lookupBib(){
   var bib = el('bib').value.trim();
   if (!bib) return;
-  LOOKED_UP = null;
   var r = rosterOf(bib);
   if (!r) { notInRoster(bib); return; }
   LOOKED_UP = bib;
   LAST_BIB  = String(bib);
-  hidePanel();
-  var done  = doneMap();
-  var rest  = (r.events || []).filter(function(c){ return !done[r.bib + ':' + c]; });
-  var isDone = (r.events || []).length && !rest.length;
-  /* 受付済みの区分と、初期振分が済んで受付できない区分は、押す前に分けて見せる。
-     そうしないと「これから全部受付する」ように見えてしまう。 */
-  var asg    = assignMap(), cls = closeMap();
-  var already = (r.events || []).filter(function(c){ return done[r.bib + ':' + c]; });
-  var locked = rest.filter(function(c){ return asg[c]; });
-  var shut   = rest.filter(function(c){ return !asg[c] && cls[c]; });
-  var canDo  = rest.filter(function(c){ return !evShut(c, asg, cls); });
-  banner(isDone ? 'warn' : ((locked.length || shut.length) ? 'warn' : 'info'),
-    whoHtml(r.bib, r) + evHtml(r.events, r.bib) + '<br>'
-    + (already.length && !isDone ? esc(already.join('・')) + ' は受付済みです<br>' : '')
-    + (locked.length ? '<b>' + esc(locked.join('・')) + ' は初期振分が済んでいるため、自動では受付できません（手動対応してください）</b><br>' : '')
-    + (shut.length ? '<b>' + esc(shut.join('・')) + ' は受付を終了しています（ST確認待ち）。受付するときは手動対応してください</b><br>' : '')
-    + (isDone ? '全区分 受付済みです'
-       : canDo.length ? '内容が正しければ、もう一度Enterを押すか「受付」を押してください'
-                        + (canDo.length < (r.events || []).length ? '（' + esc(canDo.join('・')) + ' を受付します）' : '')
-       : '受付できる区分がありません'));
+  var done = doneMap(), asg = assignMap(), cls = closeMap();
+  var on = {};
+  (r.events || []).forEach(function(c){
+    /* 受付できる区分は最初からチェックを入れておく。全区分出場なら、
+       そのまま「受付」を押すだけで済む（いちばん多い形を最短にする）。 */
+    on[c] = !done[r.bib + ':' + c] && !evShut(c, asg, cls);
+  });
+  PICK = {bib: String(r.bib), codes: (r.events || []).slice(), on: on};
+  el('ci-banner').classList.add('hidden');
+  renderPick();
+  setPicking(true);
+  el('ci-panel').scrollIntoView({block: 'nearest'});
 }
 
-/* 表示中の組の区分ボタンを描く。受付済みの区分は緑になり、押すと取消になる。 */
-function showPanel(bib, msg){
-  var r = rosterOf(bib);
-  if (!r) { PANEL_BIB = null; el('ci-panel').classList.add('hidden'); return; }
-  PANEL_BIB = String(bib);
-  var done  = doneMap();
-  var codes = r.events || [];
+/* 確認画面を描く。チェックの付け外しだけで、ここでは何も記録しない。 */
+function renderPick(){
+  if (!PICK) return;
+  var r = rosterOf(PICK.bib);
+  if (!r) { cancelPick(true); return; }
+  var done = doneMap(), asg = assignMap(), cls = closeMap();
   el('ci-who').innerHTML = whoHtml(r.bib, r);
-  el('ci-hint').textContent = msg || '出場する区分だけを押してください。押さなかった区分は欠場になります。';
-  var asg = assignMap(), cls = closeMap();
-  el('ci-evs').innerHTML = codes.length
-    ? codes.map(function(c){
-        var m = (DATA.events || []).filter(function(e){ return e.code === c; })[0] || {code:c};
-        var d = done[r.bib + ':' + c];
-        if (evShut(c, asg, cls)) {
-          return '<button type="button" class="ev-btn" data-code="' + esc(c) + '">'
-            + '<span class="c">' + esc(c) + '</span>'
-            + esc((m.name && m.name !== c) ? m.name : '')
-            + '<span class="s">' + (asg[c] ? 'ST初期振分が済んでいます（受付・取消はできません）'
-                                           : '受付を終了しています（ST確認待ち・受付・取消はできません）')
-            + '</span></button>';
-        }
-        return '<button type="button" class="ev-btn' + (d ? ' done' : '') + '" data-code="' + esc(c) + '">'
-          + '<span class="c">' + esc(c) + '</span>'
-          + esc((m.name && m.name !== c) ? m.name : '')
-          + '<span class="s">' + (d
-              ? '受付済み ' + esc(fmtTime(d.at)) + (d.by ? '　' + esc(d.by) : '') + '　押すと取消'
-              : 'この区分を受付する') + '</span></button>';
-      }).join('')
-    : '<p class="muted">この組は出場区分が登録されていません。</p>';
-  var rest = codes.filter(function(c){ return !done[r.bib + ':' + c]; }).length;
-  el('ci-all').textContent = rest ? '全区分を受付（残り ' + rest + '）' : '全区分 受付済み';
-  el('ci-all').disabled = !rest;
+  var pickable = PICK.codes.filter(function(c){ return !done[r.bib + ':' + c] && !evShut(c, asg, cls); });
+  el('ci-hint').innerHTML = PICK.codes.length
+    ? '背番号とリーダー姓とエントリー区分を読み上げ、<b>出場しない区分のチェックを外して</b>'
+      + '「受付」を押してください。'
+    : 'この組は出場区分が登録されていません。';
+  el('ci-evs').innerHTML = PICK.codes.map(function(c){
+    var m = (DATA.events || []).filter(function(e){ return e.code === c; })[0] || {code: c};
+    var nm = (m.name && m.name !== c) ? m.name : '';
+    var d  = done[r.bib + ':' + c];
+    var head = '<span class="c">' + esc(c) + '</span><span class="nm">' + esc(nm) + '</span>';
+    if (d) {
+      return '<div class="ev-pick done"><input type="checkbox" class="bx" checked disabled>'
+        + '<span class="t">' + head + '<span class="s">受付済み ' + esc(fmtTime(d.at))
+        + (d.by ? '　' + esc(d.by) : '') + '</span></span>'
+        + '<button type="button" class="small secondary" data-undo="' + esc(c) + '">取消</button></div>';
+    }
+    if (evShut(c, asg, cls)) {
+      /* 受付が止まっている区分。勝手に受付せず、人の判断（手動対応）に回すかどうかだけ選べるようにする。 */
+      return '<div class="ev-pick shut"><input type="checkbox" class="bx" disabled>'
+        + '<span class="t">' + head + '<span class="s">'
+        + (asg[c] ? '初期振分が済んでいます。出場・欠場とも手動対応が必要です。'
+                  : '受付を終了しています（ST確認待ち）。出場には手動対応が必要です。')
+        + '</span></span>'
+        + '<label class="mn">手動対応に回す'
+        + '<input type="checkbox" class="bx" data-manual="' + esc(c) + '"'
+        + (PICK.on[c] ? ' checked' : '') + '></label></div>';
+    }
+    return '<label class="ev-pick' + (PICK.on[c] ? '' : ' off') + '">'
+      + '<input type="checkbox" class="bx" data-pick="' + esc(c) + '"' + (PICK.on[c] ? ' checked' : '') + '>'
+      + '<span class="t">' + head + '<span class="s">'
+      + (PICK.on[c] ? 'この区分を受付します' : '<b>欠場</b>（この区分は受付しません）') + '</span></span></label>';
+  }).join('');
+  el('ci-do').disabled = !pickable.length && !PICK.codes.some(function(c){ return PICK.on[c]; });
+  el('ci-do').textContent = '受付';
   el('ci-panel').classList.remove('hidden');
-  el('ci-evs').querySelectorAll('[data-code]').forEach(function(b){
-    b.addEventListener('click', function(){
-      var c = b.dataset.code;
-      if (done[r.bib + ':' + c]) doUncheckin(r.bib, c); else doCheckin(r.bib, c);
+  el('ci-evs').querySelectorAll('[data-pick],[data-manual]').forEach(function(b){
+    b.addEventListener('change', function(){
+      PICK.on[b.dataset.pick || b.dataset.manual] = b.checked;
+      renderPick();
     });
   });
+  el('ci-evs').querySelectorAll('[data-undo]').forEach(function(b){
+    b.addEventListener('click', function(){ doUncheckin(r.bib, b.dataset.undo); });
+  });
+}
+
+/* 「受付」。チェックの付いている区分をまとめて記録する。 */
+function commitPick(){
+  if (!PICK) return;
+  var codes = PICK.codes.filter(function(c){ return PICK.on[c]; });
+  if (!codes.length) { banner('warn', '受付する区分が選ばれていません'); return; }
+  doCheckin(PICK.bib, null, codes);
 }
 
 /* ---------- 受付音 ----------
@@ -2195,15 +2248,18 @@ if (el('ci-sound-test')) {
   });
 }
 
-/* ここで初めて受付が記録される。code を渡すとその区分だけ、null なら全区分。
-   区分を選ぶ画面が出ているときはそのまま開いておき、続けて押せるようにする。 */
-function doCheckin(bib, code){
+/* ここで初めて受付が記録される。
+   codes（配列）を渡すとその区分だけをまとめて、code なら1区分、どちらも無ければ全区分。
+   確認画面からはいつも codes で来る（チェックを残した区分だけ）。 */
+function doCheckin(bib, code, codes){
   /* 誰が受けたか記録に残らなくなるので、名前が未設定なら先に聞く */
   if (el('by').value.trim() === '' && !askBy()) return;
   LOOKED_UP = null;
   LAST_BIB  = String(bib);
   var body = {id:COMP.id, bib:bib, by:el('by').value};
-  if (code) body.code = code; else body.all = '1';
+  if (codes && codes.length) body.codes = codes.join(',');
+  else if (code) body.code = code;
+  else body.all = '1';
   post('api/uketsuke_checkin.php', body)
     .then(function(r){
       var did = (r['new'] || []);
@@ -2217,8 +2273,10 @@ function doCheckin(bib, code){
       banner(kind, whoHtml(r.bib, r) + evHtml(r.events, r.bib, r.done) + '<br>' + lines.join('<br>'));
       return refresh().then(function(){
         renderRecent();
-        afterPanelAction(bib);
-        /* 次の組をすぐ打てるように入力欄は空にする */
+        /* 受付が終わったら確認画面は閉じ、次の組をすぐ打てるようにする */
+        PICK = null;
+        el('ci-panel').classList.add('hidden');
+        setPicking(false);
         el('bib').value = '';
         el('bib').focus();
       });
@@ -2237,7 +2295,11 @@ function doUncheckin(bib, code){
       banner('warn', esc(who) + '<br>' + esc(code ? code + ' の受付を取り消しました' : '全区分の受付を取り消しました'));
       return refresh().then(function(){
         renderRecent();
-        afterPanelAction(bib);
+        /* 確認画面を出している組なら、その場で描き直す（取消が見てわかるように） */
+        if (PICK && String(PICK.bib) === String(bib)) {
+          if (code) PICK.on[code] = true;   /* 取り消した区分は受付し直せるようチェックを戻す */
+          renderPick();
+        }
       });
     })
     .catch(function(e){ alert(e.message); });
@@ -2574,26 +2636,18 @@ function renderRecent(){
       + '<td class="c-leader">' + esc(r.leader) + '</td><td class="c-partner">' + esc(r.partner) + '</td>'
       + '<td>' + codes + '</td><td class="muted">' + esc(g.by || '') + '</td>'
       + '<td>' + esc(fmtTime(g.at)) + '</td>'
-      + '<td><button type="button" class="small secondary" data-open="' + esc(g.bib) + '">区分</button>'
-      + ' <button type="button" class="small secondary" data-uncheck="' + esc(g.bib) + '">取消</button></td></tr>';
+      + '<td><button type="button" class="small secondary" data-uncheck="' + esc(g.bib) + '">取消</button></td></tr>';
   }).join('');
 
 }
-/* 「区分」「取消」の押したときの動きは、一覧の外側で1回だけ受け取る。
+/* 「取消」を押したときの動きは、一覧の外側で1回だけ受け取る。
    行ごとに結び付けると、3秒ごとの組み直しのたびに組数ぶん付け直すことになる。
-     区分 … 押し間違えたときに、その組のボタンをすぐ開き直す
-     取消 … 打ち間違えた背番号を1組ぶん取り消す */
+   区分ごとに直したいときは、背番号を入れて「確認」を押せば同じ画面が出るので、
+   ここには「取消」（打ち間違えた背番号を1組ぶん取り消す）だけを置く。 */
 el('ci-recent').addEventListener('click', function(e){
-  var b = e.target.closest ? e.target.closest('button[data-open],button[data-uncheck]') : null;
+  var b = e.target.closest ? e.target.closest('button[data-uncheck]') : null;
   if (!b) return;
-  if (b.dataset.open !== undefined) {
-    LOOKED_UP = null;
-    LAST_BIB  = String(b.dataset.open);
-    showPanel(b.dataset.open, '');
-    el('ci-panel').scrollIntoView({block:'center'});
-  } else {
-    doUncheckin(b.dataset.uncheck, null);
-  }
+  doUncheckin(b.dataset.uncheck, null);
 });
 /* ---------- 欠場報告 ----------
    背番号在庫のチェックは受付とは別の人が担当するので、名前も受付担当者とは別に持つ。 */
@@ -3163,6 +3217,8 @@ function renderRoster(){
       el('rs-affiliation').value = r.affiliation || '';
       document.querySelectorAll('.rs-ev').forEach(function(cb){ cb.checked = (r.events||[]).indexOf(cb.value) !== -1; });
       el('rs-del').classList.remove('hidden');   /* 呼び出した組だけ消せる */
+      /* 手動の直しは畳んであるので、呼び出したときは開く（警告もここで目に入る） */
+      var dt = el('rs-manual'); if (dt) dt.open = true;
       window.scrollTo({top:el('rs-form').offsetTop - 60, behavior:'smooth'});
     });
   });

@@ -22,7 +22,22 @@ if (!$person) json_out(['error' => "背番号 {$bib} は名簿にありません
 $entry = array_values((array)($person['events'] ?? []));
 
 $code = uk_str($_POST['code'] ?? '', 20);
-if ($code === '') {
+/* codes は「出場する区分だけにチェックを残して、まとめて受付する」画面から来る。
+   1区分ずつ確定すると、音が鳴った時点で終わったつもりになって残りを押し忘れるため、
+   受付はこの1回で確定させる。code（1区分）と all=1（全区分）も残してある。 */
+$many = uk_str($_POST['codes'] ?? '', 400);
+if ($many !== '') {
+    $codes = [];
+    foreach (preg_split('/[,\s]+/', $many) as $c) {
+        $c = uk_str($c, 20);
+        if ($c === '' || in_array($c, $codes, true)) continue;
+        if (!in_array($c, $entry, true)) {
+            json_out(['error' => "背番号 {$bib} は {$c} にエントリーしていません"], 400);
+        }
+        $codes[] = $c;
+    }
+    if (!$codes) json_out(['error' => '受付する区分を選んでください'], 400);
+} elseif ($code === '') {
     /* 区分の指定なしで全区分が入ってしまわないよう、まとめて受付するときは all=1 を必ず付ける */
     if (empty($_POST['all'])) json_out(['error' => '区分を指定してください'], 400);
     if (!$entry) json_out(['error' => "背番号 {$bib} は出場区分が登録されていません"], 400);

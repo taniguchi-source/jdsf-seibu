@@ -42,6 +42,16 @@
   .bib{display:inline-flex;flex-direction:column;align-items:center;gap:2px;min-width:64px;
     font-size:30px;font-weight:800;line-height:1;padding:8px 12px;border:2px solid var(--border);
     border-radius:8px;background:#fff;color:var(--primary)}
+  /* 背番号ごとの欠場区分。DCSに入れながら目で追うので、行を高く数字を大きくする。 */
+  table.bibtbl{width:100%;border-collapse:collapse;margin-top:8px}
+  table.bibtbl th{text-align:left;font-size:12px;color:#666;font-weight:700;
+    border-bottom:1px solid #d7dae0;padding:4px 8px;white-space:nowrap}
+  table.bibtbl td{border-bottom:1px solid #eceef2;padding:6px 8px;vertical-align:middle}
+  table.bibtbl td.bn{width:1%;white-space:nowrap;font-size:22px;font-weight:800;color:#13315c}
+  table.bibtbl tr.ok td{background:#f2fbf5}
+  table.bibtbl .no{display:inline-block;font-size:20px;font-weight:800;color:#13315c;
+    min-width:1.6em;text-align:right}
+  table.bibtbl .cd{display:inline-block;font-size:11px;color:#777;margin:0 14px 0 3px}
   /* 背番号在庫を確認した組は、ひと目で区別できるようにする */
   .bib.checked{border-color:#16a34a;background:#f0fdf4}
   .bib .who{font-size:11px;font-weight:700;line-height:1.2;color:#16a34a;white-space:nowrap}
@@ -383,6 +393,50 @@ if (el('b-assign-all')) el('b-assign-all').addEventListener('click', function(){
   }, warn);
 });
 
+/* DCSの区分番号。取り込み時に控えた no を使い、無ければ並び順で代える。
+   採点管理の欠場処理はこの番号で入れていくので、画面の並べ替えでは動かない。 */
+function evNo(code){
+  var list = DATA.events || [];
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].code !== code) continue;
+    return list[i].no ? list[i].no : (i + 1);
+  }
+  return '';
+}
+
+/* ── 背番号ごとの欠場区分番号 ──
+   DCSの欠場処理の画面は「背番号ごとに区分番号を入れる」向きなのに、
+   こちらは区分ごとに背番号を並べていたので、見ながら入れるのが難しかった。
+   同じ向きの表も出して、上から順に入れていけるようにする。 */
+function bibTableHtml(evs){
+  var codes = evs.map(function(e){ return e.code; });
+  var done = {};
+  (DATA.checkins || []).forEach(function(c){ done[c.bib + ':' + c.code] = true; });
+  var rows = [];
+  (DATA.roster || []).forEach(function(r){
+    var miss = (r.events || []).filter(function(c){
+      return codes.indexOf(c) !== -1 && !done[r.bib + ':' + c];
+    });
+    if (miss.length) rows.push({bib: r.bib, miss: miss});
+  });
+  rows.sort(function(a, b){ return a.bib - b.bib; });
+  if (!rows.length) return '';
+  var stock = stockMap();
+  return '<div class="card block"><h2>背番号ごとの欠場区分</h2>'
+    + '<div class="muted">DCSの欠場処理と同じ向きです。左から順に入れてください。'
+    + '（かっこの中は区分コード）</div>'
+    + '<table class="bibtbl"><thead><tr><th>背番号</th><th>欠場区分番号</th></tr></thead><tbody>'
+    + rows.map(function(x){
+        return '<tr' + (stock[x.bib] ? ' class="ok"' : '') + '><td class="bn">' + esc(x.bib) + '</td><td>'
+          + x.miss.map(function(c){
+              return '<span class="no">' + esc(evNo(c)) + '</span>'
+                   + '<span class="cd">(' + esc(c) + ')</span>';
+            }).join('')
+          + '</td></tr>';
+      }).join('')
+    + '</tbody></table></div>';
+}
+
 /* 1区分ぶんの欠場者を出す */
 function blockHtml(e){
   var absent = absentFor([e.code]);
@@ -424,7 +478,9 @@ function render(){
     head = '<div class="card block no-break"><div class="muted">' + esc(DATA.name)
       + (DATA.date ? '（' + esc(DATA.date) + '）' : '') + '</div></div>';
   }
-  el('out').innerHTML = head + evs.map(blockHtml).join('');
+  /* 締切ごとの表示のときだけ、背番号ごとの表も出す（1区分だけなら下の一覧で足りる） */
+  var bt = (v.indexOf('t:') === 0) ? bibTableHtml(evs) : '';
+  el('out').innerHTML = head + bt + evs.map(blockHtml).join('');
   bindAssign();
   /* 区分ごとに出しているときは、その区分のボタンが見出しにあるのでまとめボタンは出さない */
   renderAssignAll(v.indexOf('t:') === 0 ? evs : null);

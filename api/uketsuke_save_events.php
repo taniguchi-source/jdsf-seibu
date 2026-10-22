@@ -19,11 +19,15 @@ foreach ($rows as $r) {
     $code = mb_substr($code, 0, 20);
     if ($code === '' || isset($seen[$code])) continue;   /* 空・重複コードは捨てる */
     $seen[$code] = true;
-    $out[] = [
+    $row = [
         'code'       => $code,
         'name'       => uk_str($r['name'] ?? $code, 60),
         'start_time' => uk_str($r['start_time'] ?? '', 10),
     ];
+    /* DCSの区分番号。欠場処理でこの番号を使うので、名称や並びを直しても落とさない。 */
+    $no = (int)($r['no'] ?? 0);
+    if ($no > 0 && $no <= 99) $row['no'] = $no;
+    $out[] = $row;
     if (count($out) >= 60) break;   /* DCSの上限40区分に対して十分な上限 */
 }
 
