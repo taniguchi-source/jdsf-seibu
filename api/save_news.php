@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+$author      = mb_substr(trim($_POST['author'] ?? ''), 0, 40);  // 投稿者（担当者名）。管理画面のみで使用・公開側には出さない
 $category    = trim($_POST['category']    ?? '');
 $title       = trim($_POST['title']       ?? '');
 $detail      = trim($_POST['detail']      ?? '');
@@ -60,6 +61,7 @@ $entry = [
     'id'          => $id,
     'date'        => $today_display,
     'event_date'  => $event_display,
+    'author'      => $author,
     'category'    => $category,
     'title'       => $title,
     'detail'      => $detail,

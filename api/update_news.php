@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $id         = trim($_POST['id']         ?? '');
+$author     = mb_substr(trim($_POST['author'] ?? ''), 0, 40);  // 投稿者（担当者名）。管理画面のみ
 $category   = trim($_POST['category']   ?? '');
 $title      = trim($_POST['title']      ?? '');
 $detail     = trim($_POST['detail']     ?? '');
@@ -63,6 +64,7 @@ foreach ($existing['news'] as &$item) {
         });
         if ($removed) news_unlink_attachments(array_values($removed));
 
+        $item['author']     = $author;
         $item['category']   = $category;
         $item['title']      = $title;
         $item['detail']     = $detail;
