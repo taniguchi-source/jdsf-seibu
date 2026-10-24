@@ -1,6 +1,15 @@
-# 公開お知らせのアーカイブは役員ページ専用（api/list_news_archive.php 経由でのみ閲覧）。
-# 生ファイルへの直接アクセスは禁止する。news.json など他の公開JSONはそのまま配信される。
+# 役員ページ専用のアーカイブ（API経由でのみ閲覧）。生ファイルへの直接アクセスは禁止する。
+# news.json など他の公開JSONはそのまま配信される。
 <Files "news_archive.json">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</Files>
+<Files "special_sites_archive.json">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>

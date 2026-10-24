@@ -828,10 +828,22 @@
         府県連盟の「サイト1〜5」とは別の、主サイト専用の仕組みです。
       </p>
       <div id="sp-list" style="display:grid;gap:14px;"></div>
-      <div style="display:flex;gap:8px;margin-top:14px;">
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;align-items:center;">
         <button class="btn" onclick="spSaveSites()">💾 特設サイトの設定を保存</button>
+        <button type="button" class="btn btn-sec" onclick="toggleSpecialArchive()" id="sp-archive-toggle-btn"
+          title="削除した特設サイトの保管庫（役員ページのみ）">🗄 削除した特設サイトのアーカイブ</button>
       </div>
       <div id="sp-msg" class="msg"></div>
+
+      <!-- 削除した特設サイトのアーカイブ（役員ページのみ・いつでも閲覧可） -->
+      <div id="sp-archive-wrap" style="display:none;margin-top:22px;border-top:1px dashed #f3d3e0;padding-top:20px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+          <h3 style="font-size:1rem;font-weight:700;color:#475569;margin:0;">🗄 削除した特設サイトのアーカイブ</h3>
+          <span style="font-size:0.72rem;font-weight:700;color:#64748b;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:100px;padding:2px 10px;">役員ページのみ・公開側には出ません</span>
+        </div>
+        <p style="font-size:0.8rem;color:var(--text-light);margin:0 0 12px;">削除した特設サイトは、ここに設定とページ内容がそのまま保存されます（新しい順・いつでも閲覧できます）。</p>
+        <div id="sp-archive-list"><p style="color:var(--text-light);font-size:0.9rem;">「🗄 …アーカイブ」ボタンで表示します。</p></div>
+      </div>
     </div>
   </section>
 
@@ -2180,6 +2192,9 @@ function spRender(){
           + '<button class="btn btn-sm btn-sec" onclick="spcAdd('+n+')">＋ ブロックを追加</button>'
         + '</div>'
       + '</div>'
+      + '<div style="margin-top:12px;padding-top:12px;border-top:1px dashed #f3d3e0;display:flex;justify-content:flex-end;">'
+        + '<button class="btn btn-sm btn-del" onclick="spDeleteSite('+n+')" title="この特設サイトを削除してアーカイブに保存します（枠は空になります）">🗑 この特設サイトを削除（アーカイブへ）</button>'
+      + '</div>'
       + '</div>'
     + '</div>';
   }).join('');
@@ -2492,8 +2507,8 @@ function spcSave(n){
 
 /* data/special_*.json は公開ファイルなので、ログイン前に読んでも問題ない。
    保存だけがサーバー側のセッション（admin / build）で守られている。 */
-(function spLoad(){
-  Promise.all([
+function spReload(){
+  return Promise.all([
     fetch('data/special_sites.json?_='+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}),
     fetch('data/special_contents.json?_='+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;})
   ]).then(function(res){
@@ -2501,7 +2516,108 @@ function spcSave(n){
     _spc = (res[1] && typeof res[1]==='object') ? res[1] : {};
     spRender();
   });
-})();
+}
+
+/* ===== 特設サイトの削除＆アーカイブ（役員ページのみ・いつでも閲覧可） ===== */
+var _spArchiveLoaded = false;
+
+function spDeleteSite(n){
+  var it=null; for(var k=0;k<_sp.length;k++){ if(_sp[k].id===n){ it=_sp[k]; break; } }
+  var label=(it && it.label) ? it.label : ('特設サイト'+n);
+  if(!confirm('「'+label+'」を削除します。\n\n削除した設定とページ内容はアーカイブに保存され、あとで（いつでも）閲覧できます。\nこの枠（特設サイト'+n+'）は空になります。\n\n削除してよろしいですか？')) return;
+  var fd=new FormData(); fd.append('token',TOKEN); fd.append('site_id',String(n));
+  fetch('api/delete_special_site.php',{method:'POST',body:fd})
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(res && res.ok){
+        spSetMsg('sp-msg','🗑 特設サイト'+n+'を削除し、アーカイブに保存しました',true);
+        _spArchiveLoaded=false;
+        var w=document.getElementById('sp-archive-wrap');
+        if(w && w.style.display!=='none') loadSpecialArchive();
+        spReload();
+      } else spSetMsg('sp-msg','⚠ '+((res&&res.error)||'削除に失敗しました'),false);
+    })
+    .catch(function(){ spSetMsg('sp-msg','⚠ 通信エラー',false); });
+}
+
+function toggleSpecialArchive(){
+  var wrap=document.getElementById('sp-archive-wrap');
+  var btn=document.getElementById('sp-archive-toggle-btn');
+  if(!wrap) return;
+  var isOpen=wrap.style.display!=='none';
+  wrap.style.display=isOpen?'none':'block';
+  if(btn) btn.textContent=isOpen?'🗄 削除した特設サイトのアーカイブ':'✕ アーカイブを閉じる';
+  if(!isOpen){ if(!_spArchiveLoaded) loadSpecialArchive(); wrap.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+}
+
+function loadSpecialArchive(){
+  var list=document.getElementById('sp-archive-list');
+  if(list) list.innerHTML='<p style="color:var(--text-light);font-size:0.9rem;">読み込み中...</p>';
+  fetch('api/list_special_archive.php',{credentials:'same-origin'})
+    .then(function(r){ if(r.status===403) throw new Error('forbidden'); return r.json(); })
+    .then(function(data){ _spArchiveLoaded=true; renderSpecialArchive((data&&data.sites)||[]); })
+    .catch(function(e){
+      if(!list) return;
+      list.innerHTML=(String(e&&e.message)==='forbidden')
+        ? '<p style="color:#b45309;font-size:0.9rem;">ログイン後にご覧ください（役員ページのログインが必要です）。</p>'
+        : '<p style="color:#B91C1C;font-size:0.9rem;">⚠ アーカイブの読み込みに失敗しました。</p>';
+    });
+}
+
+/* アーカイブ1ブロックを読みやすく表示（text/image/pdf/link/embed） */
+function _spArchBlockHtml(b){
+  var t=b.type||'text';
+  var title=b.title?('<div style="font-weight:700;font-size:.82rem;color:var(--text-dark);margin-bottom:3px;">'+spEsc(b.title)+'</div>'):'';
+  if(t==='image'){
+    var imgs=[]; if(Array.isArray(b.images)) b.images.forEach(function(im){ if(im&&im.url) imgs.push(im.url); });
+    if(!imgs.length && b.file_url) imgs.push(b.file_url);
+    var thumbs=imgs.map(function(u){ return '<a href="'+spEsc(u)+'" target="_blank" rel="noopener"><img src="'+spEsc(u)+'" alt="" style="height:60px;border-radius:6px;border:1px solid var(--border);"></a>'; }).join(' ');
+    return '<div style="margin:6px 0;">🖼️ '+title+'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+(thumbs||'<span style="font-size:.78rem;color:#94a3b8;">（画像なし）</span>')+'</div></div>';
+  }
+  if(t==='pdf'){
+    return '<div style="margin:6px 0;">📄 '+title+(b.file_url?'<a href="'+spEsc(b.file_url)+'" target="_blank" rel="noopener" style="font-size:.8rem;color:#2563eb;">PDFを開く</a>':'<span style="font-size:.78rem;color:#94a3b8;">（PDFなし）</span>')+'</div>';
+  }
+  if(t==='link'){
+    var lu=b.link_url||'', ll=b.link_label||b.title||lu;
+    return '<div style="margin:6px 0;">🔗 '+title+(lu?'<a href="'+spEsc(lu)+'" target="_blank" rel="noopener" style="font-size:.8rem;color:#2563eb;">'+spEsc(ll)+'</a>':'')+'</div>';
+  }
+  if(t==='embed'){
+    var eu=b.embed_url||'';
+    return '<div style="margin:6px 0;">🪟 '+title+(eu?'<a href="'+spEsc(eu)+'" target="_blank" rel="noopener" style="font-size:.8rem;color:#2563eb;word-break:break-all;">'+spEsc(eu)+'</a>':'')+'</div>';
+  }
+  /* text */
+  return '<div style="margin:6px 0;">📝 '+title+'<div style="font-size:.82rem;color:#475569;white-space:pre-wrap;line-height:1.6;">'+spEsc(b.body||'')+'</div></div>';
+}
+
+function renderSpecialArchive(sites){
+  var el=document.getElementById('sp-archive-list');
+  if(!el) return;
+  if(!sites.length){ el.innerHTML='<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px 20px;text-align:center;"><p style="color:var(--text-light);font-size:0.9rem;margin:0;">まだ削除した特設サイトはありません。</p></div>'; return; }
+  var MODE={page:'📄 ページ',embed:'🪟 埋め込み',external:'↗ 外部へ移動'};
+  var rows=sites.slice().reverse().map(function(a){
+    var m=a.meta||{}, c=Array.isArray(a.contents)?a.contents:[];
+    var label=m.label?spEsc(m.label):'（ボタン名なし）';
+    var arch=spEsc(String(a.archived_at||'').slice(0,10));
+    var blocks=c.length ? c.map(_spArchBlockHtml).join('') : '<span style="font-size:.78rem;color:#94a3b8;">（ページ内容なし）</span>';
+    var bits=[];
+    if(m.hero_title) bits.push('見出し: '+spEsc(m.hero_title));
+    if(m.url && m.mode==='external') bits.push('移動先: '+spEsc(m.url));
+    if(m.embed_url && m.mode==='embed') bits.push('埋め込み: '+spEsc(m.embed_url));
+    return '<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;">'
+      +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+        +'<span style="font-size:.7rem;font-weight:700;color:#64748b;background:#f1f5f9;border-radius:100px;padding:2px 9px;">元・特設サイト'+spEsc(String(a.site_id||''))+'</span>'
+        +'<strong style="font-size:.95rem;color:var(--primary);flex:1;min-width:120px;">'+label+'</strong>'
+        +'<span style="font-size:.72rem;color:#94a3b8;">表示方法: '+(MODE[m.mode]||m.mode||'')+'</span>'
+        +'<span style="font-size:.72rem;color:#94a3b8;">削除日: '+arch+'</span>'
+      +'</div>'
+      +(bits.length?'<p style="margin:6px 0 0;font-size:.76rem;color:#64748b;">'+bits.join('　/　')+'</p>':'')
+      +'<div style="margin-top:8px;border-top:1px dashed var(--border);padding-top:8px;">'+blocks+'</div>'
+      +'</div>';
+  });
+  el.innerHTML='<p style="font-size:0.8125rem;color:var(--text-light);margin:0 0 10px;">全 '+sites.length+' 件（新しい順）</p>'+rows.join('');
+}
+
+spReload();
 </script>
 </body>
 </html>
