@@ -364,6 +364,9 @@
              style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:#fff;color:var(--primary);border-radius:8px;font-size:.85rem;font-weight:800;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.25);white-space:nowrap;">🔧 サイト構築ページへ →</a>
           <a href="schedule-edit.html" target="_blank" rel="noopener"
              style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:#fff;color:var(--primary);border-radius:8px;font-size:.85rem;font-weight:800;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.25);white-space:nowrap;">📅 競技予定を編集 →</a>
+          <button type="button" id="sched-vis-btn" onclick="toggleScheduleVisibility()"
+             title="競技予定調整表をホームページに出す／引っ込める（データは残ります）"
+             style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:#f8fafc;color:#64748b;border:1px solid var(--border);border-radius:8px;font-size:.85rem;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(0,0,0,.18);white-space:nowrap;">⏳ 競技予定調整表…</button>
           <a href="ads.html" target="_blank" rel="noopener"
              style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:#fff;color:var(--primary);border-radius:8px;font-size:.85rem;font-weight:800;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.25);white-space:nowrap;">📣 広告スポンサー管理 →</a>
         </div>
@@ -2647,6 +2650,39 @@ function renderSpecialArchive(sites){
 }
 
 spReload();
+
+/* ===== 競技予定調整表の 公開／非公開（引退）トグル ===== */
+function _schedVisApply(visible){
+  var b=document.getElementById('sched-vis-btn'); if(!b) return;
+  b.dataset.visible = visible ? '1' : '0';
+  b.textContent = visible ? '👁 競技予定調整表：公開中' : '🙈 競技予定調整表：非公開';
+  b.style.background = visible ? '#ecfdf5' : '#f1f5f9';
+  b.style.color      = visible ? '#065f46' : '#64748b';
+  b.style.borderColor= visible ? '#a7f3d0' : 'var(--border)';
+}
+function loadScheduleVisibility(){
+  fetch('data/schedule_visibility.json?_='+Date.now())
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){ _schedVisApply(!!(d && d.visible===true)); })
+    .catch(function(){ _schedVisApply(false); });
+}
+function toggleScheduleVisibility(){
+  var b=document.getElementById('sched-vis-btn'); if(!b) return;
+  var next = b.dataset.visible !== '1';   // いまが非公開なら公開へ、公開なら非公開へ
+  var msg = next
+    ? '競技予定調整表を「公開」に戻します。\n\nトップ（競技会情報）にリンクが表示され、担当者も記入できるようになります。\n次年度の調整を始めるときに使ってください。\n\nよろしいですか？'
+    : '競技予定調整表を「非公開」にします。\n\nトップからリンクが消え、担当者からも見えなくなります。\n（データは残るので、いつでも再公開・再利用できます）\n\nよろしいですか？';
+  if(!confirm(msg)) return;
+  var fd=new FormData(); fd.append('visible', next ? '1' : '0');
+  fetch('api/set_schedule_visibility.php',{method:'POST',body:fd})
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if(res && res.ok){ _schedVisApply(!!res.visible); alert(res.visible ? '✅ 競技予定調整表を公開にしました。' : '✅ 競技予定調整表を非公開にしました。'); }
+      else alert('⚠ '+((res && res.error) || '切り替えに失敗しました'));
+    })
+    .catch(function(){ alert('⚠ 通信エラーが発生しました。'); });
+}
+loadScheduleVisibility();
 </script>
 </body>
 </html>

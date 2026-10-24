@@ -68,6 +68,13 @@
     <div id="login-error" class="msg"></div>
   </div>
 
+  <!-- ===== 非公開（役員が「非公開」にしている間。役員はそのまま編集可能） ===== -->
+  <div id="sched-edit-hidden" class="card hidden" style="text-align:center;">
+    <div style="font-size:2rem;margin-bottom:8px;">🗂️</div>
+    <h2 style="font-size:1.05rem;margin:0 0 8px;color:var(--text-dark);">この競技予定調整表は現在ご利用いただけません</h2>
+    <p style="font-size:.85rem;color:var(--text-light);margin:0;line-height:1.7;">年度の調整が終わったため、一時的に公開を停止しています。次年度の調整表を作成する際に、役員が再度公開します。</p>
+  </div>
+
   <!-- ===== 編集 ===== -->
   <div id="content-screen" class="hidden">
     <div class="card">
@@ -193,12 +200,24 @@ function doLogin(){
 function doLogout(){ var fd=new FormData(); fd.append('role','schedule'); fetch('api/logout.php',{method:'POST',body:fd}).catch(function(){}); window.__CSRF=''; location.reload(); }
 document.getElementById('pw-input').addEventListener('keydown',function(e){ if(e.key==='Enter') doLogin(); });
 
-/* 既にログイン済み（役員 or 担当者）ならそのまま入る */
-fetch('api/session-status.php').then(function(r){return r.json();}).then(function(d){
+/* 起動：非公開（既定）なら役員のみ編集可、担当者・一般には非公開の案内を出す。
+   公開中なら従来どおり（役員/担当者はそのまま、未ログインはログイン画面）。 */
+Promise.all([
+  fetch('api/session-status.php').then(function(r){return r.json();}).catch(function(){return {};}),
+  fetch('data/schedule_visibility.json?_='+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;})
+]).then(function(res){
+  var d=res[0]||{}, vis=res[1];
   window.__CSRF=(d&&d.csrf)||'';
-  if(d&&(d.admin||d.build)){ window.__ROLE='admin'; showApp(); }
-  else if(d&&d.schedule){ window.__ROLE='staff'; showApp(); }
-}).catch(function(){});
+  var visible=!!(vis&&vis.visible===true);
+  var isOfficer=!!(d.admin||d.build);
+  if(!visible && !isOfficer){
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('sched-edit-hidden').classList.remove('hidden');
+    return;
+  }
+  if(d.admin||d.build){ window.__ROLE='admin'; showApp(); }
+  else if(d.schedule){ window.__ROLE='staff'; showApp(); }
+});
 
 function showApp(){
   document.getElementById('login-screen').classList.add('hidden');

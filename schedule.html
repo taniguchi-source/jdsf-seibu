@@ -82,6 +82,13 @@
 <section class="section">
   <div class="container">
 
+    <!-- 非公開（役員が「非公開」にしている間の表示。役員はそのまま閲覧可能） -->
+    <div id="sched-hidden" style="display:none;max-width:520px;margin:16px auto;background:#fff;border:1px solid var(--border);border-radius:12px;padding:28px 24px;text-align:center;">
+      <div style="font-size:2rem;margin-bottom:8px;">🗂️</div>
+      <h2 style="font-size:1.05rem;margin:0 0 8px;color:var(--text-dark);">この競技予定調整表は現在ご利用いただけません</h2>
+      <p style="font-size:0.85rem;color:var(--text-light);margin:0;line-height:1.7;">年度の調整が終わったため、一時的に公開を停止しています。<br>次年度の調整表を作成する際に、役員が再度公開します。</p>
+    </div>
+
     <!-- ログイン（担当者用または役員用のパスワード） -->
     <div id="sched-login" style="display:none;max-width:420px;margin:16px auto;background:#fff;border:1px solid var(--border);border-radius:12px;padding:24px;">
       <h2 style="font-size:1.05rem;margin:0 0 6px;color:var(--text-dark);">🔒 競技予定調整表の閲覧にはログインが必要です</h2>
@@ -277,14 +284,19 @@ function schedLogin() {
 }
 document.getElementById('sl-pw').addEventListener('keydown', function (e) { if (e.key === 'Enter') schedLogin(); });
 
-/* 起動：ログイン済み（担当者/役員/サイト構築）なら表示、未ログインならログイン画面 */
-fetch('api/session-status.php')
-  .then(function (r) { return r.json(); })
-  .then(function (d) {
-    if (d && (d.admin || d.build || d.schedule)) showSchedApp();
-    else document.getElementById('sched-login').style.display = '';
-  })
-  .catch(function () { document.getElementById('sched-login').style.display = ''; });
+/* 起動：非公開（既定）なら役員のみ閲覧可、担当者・一般には非公開の案内を出す。
+   公開中なら従来どおり（ログイン済みは表示／未ログインはログイン画面）。 */
+Promise.all([
+  fetch('api/session-status.php').then(function (r) { return r.json(); }).catch(function () { return {}; }),
+  fetch('data/schedule_visibility.json?_=' + Date.now()).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
+]).then(function (res) {
+  var sess = res[0] || {}, vis = res[1];
+  var visible  = !!(vis && vis.visible === true);
+  var isOfficer = !!(sess.admin || sess.build);
+  if (!visible && !isOfficer) { document.getElementById('sched-hidden').style.display = ''; return; }
+  if (sess.admin || sess.build || sess.schedule) showSchedApp();
+  else document.getElementById('sched-login').style.display = '';
+});
 </script>
 </body>
 </html>
