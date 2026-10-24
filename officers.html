@@ -423,6 +423,18 @@
             <input type="url" id="notice-url" placeholder="https://…"
               style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.9375rem;font-family:inherit;box-sizing:border-box;outline:none;background:#fff;">
           </div>
+          <div>
+            <label style="font-size:0.8125rem;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px;">
+              添付ファイル <span style="font-size:0.75rem;font-weight:400;color:var(--text-light);">（画像・PDF／最大10件・詳細に表示）</span>
+            </label>
+            <div id="notice-attach-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;"></div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input type="file" id="notice-attach-input" accept=".jpg,.jpeg,.png,.gif,.pdf"
+                style="flex:1;min-width:0;padding:7px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:inherit;background:#fff;">
+              <button type="button" onclick="uploadNewsAttach('notice-attach-input','notice')"
+                style="padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">⬆ 追加</button>
+            </div>
+          </div>
           <div id="notice-form-msg" style="display:none;padding:8px 14px;border-radius:6px;font-size:0.875rem;"></div>
           <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
             <button onclick="toggleNoticeForm()"
@@ -1375,10 +1387,12 @@
   var NOTICE_TOKEN = 'jdsfseibu2026';
 
   /* ===== お知らせ添付ファイルの管理（投稿フォーム=post／編集モーダル=edit） ===== */
-  var _newsAttach = { post: [], edit: [] };
+  var _newsAttach = { post: [], edit: [], notice: [] };
 
   function _attListEl(scope) {
-    return document.getElementById(scope === 'edit' ? 'edit-attach-list' : 'news-attach-list');
+    if (scope === 'edit')   return document.getElementById('edit-attach-list');
+    if (scope === 'notice') return document.getElementById('notice-attach-list');
+    return document.getElementById('news-attach-list');
   }
   function renderNewsAttach(scope) {
     var el = _attListEl(scope);
@@ -1441,6 +1455,19 @@
       .replace(/'/g, '&#39;');
   }
 
+  /* 内部連絡の添付（画像＝インライン表示／PDF＝リンク）のHTMLを作る */
+  function noticeAttachHtml(atts) {
+    if (!Array.isArray(atts) || !atts.length) return '';
+    var items = atts.map(function(a) {
+      var url = escHtml(a.url || ''), nm = escHtml(a.name || 'ファイル');
+      if (a.type === 'pdf') {
+        return '<a href="' + url + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#fff5f5;border:1px solid #fecaca;border-radius:8px;color:#b91c1c;font-size:0.84rem;font-weight:700;text-decoration:none;word-break:break-all;">📄 ' + nm + '</a>';
+      }
+      return '<a href="' + url + '" target="_blank" rel="noopener" title="' + nm + '" style="display:block;"><img src="' + url + '" alt="' + nm + '" style="max-width:100%;height:auto;border-radius:8px;border:1px solid var(--border);display:block;"></a>';
+    }).join('<div style="height:10px;"></div>');
+    return '<div style="font-size:0.8125rem;font-weight:700;color:var(--text-light);margin-bottom:10px;">📎 添付ファイル</div>' + items;
+  }
+
   var _officerNotices = [];
 
   function buildNoticeCard(n) {
@@ -1454,6 +1481,7 @@
       + '<span style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;">'
       + '<span class="news-date">📅 ' + safeDate + '</span>'
       + (safeName ? '<span style="font-size:0.78rem;font-weight:600;color:var(--text-light);">👤 ' + safeName + '</span>' : '')
+      + ((n.attachments && n.attachments.length) ? '<span title="添付あり" style="font-size:0.72rem;font-weight:700;color:#475569;background:#eef2f7;border-radius:100px;padding:2px 8px;">📎' + n.attachments.length + '</span>' : '')
       + '</span>'
       + '<button onclick="openOfficerModal(\'' + safeId + '\')" '
       + 'style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:0.8125rem;'
@@ -1484,6 +1512,12 @@
         + '<i class="fa-solid fa-arrow-up-right-from-square"></i>' + escHtml(n.url) + '</a>';
     } else {
       urlDiv.style.display = 'none';
+    }
+    var attDiv = document.getElementById('officer-modal-attach');
+    if (attDiv) {
+      var ah = noticeAttachHtml(n.attachments);
+      attDiv.style.display = ah ? 'block' : 'none';
+      attDiv.innerHTML = ah;
     }
     var ov = document.getElementById('officer-modal-overlay');
     ov.style.display = 'flex';
@@ -1528,6 +1562,11 @@
     var isOpen = wrap.style.display !== 'none';
     wrap.style.display = isOpen ? 'none' : 'block';
     if (btn) btn.textContent = isOpen ? '＋ 連絡事項を投稿' : '✕ フォームを閉じる';
+    if (!isOpen) {   // 開いたときに前回の添付をリセット
+      _newsAttach.notice = [];
+      renderNewsAttach('notice');
+      var ni = document.getElementById('notice-attach-input'); if (ni) ni.value = '';
+    }
   }
 
   function submitNotice() {
@@ -1561,6 +1600,7 @@
     fd.append('title',  title);
     fd.append('detail', detail);
     fd.append('url',    url);
+    fd.append('attachments', JSON.stringify(_newsAttach.notice || []));
 
     fetch('api/save_notice.php', { method: 'POST', body: fd })
       .then(function(r) { return r.json(); })
@@ -1570,6 +1610,8 @@
             var el = document.getElementById(id);
             if (el) el.value = '';
           });
+          _newsAttach.notice = [];
+          renderNewsAttach('notice');
           toggleNoticeForm();
           loadOfficerNotices();
         } else {
@@ -1985,6 +2027,7 @@
     <h3 id="officer-modal-title" style="font-size:1.2rem;font-weight:800;color:var(--text-dark);margin:0 0 0;line-height:1.4;"></h3>
     <div id="officer-modal-detail" style="font-size:0.9375rem;color:var(--text-medium);line-height:1.8;white-space:pre-wrap;word-break:break-word;border-top:1px solid var(--border);padding-top:16px;margin-top:16px;"></div>
     <div id="officer-modal-url" style="display:none;border-top:1px solid var(--border);padding-top:16px;margin-top:16px;"></div>
+    <div id="officer-modal-attach" style="display:none;border-top:1px solid var(--border);padding-top:16px;margin-top:16px;"></div>
   </div>
 </div>
 

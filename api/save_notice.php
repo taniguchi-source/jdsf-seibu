@@ -8,6 +8,7 @@ header('X-Content-Type-Options: nosniff');
 
 // 簡易トークン認証（ブルートフォース防止）
 require __DIR__ . '/_auth.php';
+require __DIR__ . '/_news_util.php';
 require_auth('admin');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -20,6 +21,7 @@ $name   = trim($_POST['name']   ?? '');
 $title  = trim($_POST['title']  ?? '');
 $detail = trim($_POST['detail'] ?? '');
 $url    = trim($_POST['url']    ?? '');
+$attachments = news_sanitize_attachments($_POST['attachments'] ?? '');
 
 if ($name === '' || $title === '') {
     http_response_code(400);
@@ -41,12 +43,13 @@ if (!is_array($existing) || !isset($existing['notices'])) {
 }
 
 $entry = [
-    'id'     => bin2hex(random_bytes(8)),
-    'date'   => date('Y-m-d'),
-    'name'   => $name,
-    'title'  => $title,
-    'detail' => $detail,
-    'url'    => $url,
+    'id'          => bin2hex(random_bytes(8)),
+    'date'        => date('Y-m-d'),
+    'name'        => $name,
+    'title'       => $title,
+    'detail'      => $detail,
+    'url'         => $url,
+    'attachments' => $attachments,
 ];
 
 array_unshift($existing['notices'], $entry);
