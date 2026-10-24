@@ -456,6 +456,11 @@
           <small style="font-size:0.75rem;font-weight:400;color:var(--text-light);display:block;margin-top:4px;">（トップページ・お知らせページに掲載されます）</small>
         </h2>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <button onclick="toggleNewsArchive()" id="news-archive-toggle-btn"
+            style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#fff;color:#64748b;border:2px solid #cbd5e1;border-radius:6px;font-size:0.875rem;font-weight:700;font-family:inherit;cursor:pointer;transition:background .2s;"
+            title="期限が過ぎて公開から外れた過去のお知らせ（役員ページのみ）">
+            🗄 アーカイブ
+          </button>
           <a href="news.html" target="_blank" rel="noopener"
             style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#fff;color:#e07040;border:2px solid #e07040;border-radius:6px;font-size:0.875rem;font-weight:700;text-decoration:none;transition:background .2s;">
             📋 一覧
@@ -566,6 +571,18 @@
       <div id="public-news-list">
         <div style="background:#fff;border-radius:var(--radius);padding:20px 24px;text-align:center;">
           <span style="color:var(--text-light);font-size:0.9rem;">読み込み中...</span>
+        </div>
+      </div>
+
+      <!-- アーカイブ（期限切れで公開から外れた過去のお知らせ・役員ページのみ） -->
+      <div id="news-archive-wrap" style="display:none;margin-top:24px;border-top:1px dashed #f0d8cc;padding-top:20px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+          <h3 style="font-size:1rem;font-weight:700;color:#475569;margin:0;">🗄 アーカイブ（過去のお知らせ）</h3>
+          <span style="font-size:0.72rem;font-weight:700;color:#64748b;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:100px;padding:2px 10px;">役員ページのみ・公開側には出ません</span>
+        </div>
+        <p style="font-size:0.8rem;color:var(--text-light);margin:0 0 12px;">期限が過ぎて公開から自動的に外れたお知らせです。削除されず、ここにずっと残ります（新しい順）。</p>
+        <div id="news-archive-list">
+          <p style="color:var(--text-light);font-size:0.9rem;">読み込み中...</p>
         </div>
       </div>
 
@@ -1867,7 +1884,74 @@
       });
   }
 
+  // ===== アーカイブ（期限切れで公開から外れた過去のお知らせ・役員ページのみ） =====
+  var _newsArchiveLoaded = false;
+
+  function toggleNewsArchive() {
+    var wrap = document.getElementById('news-archive-wrap');
+    var btn  = document.getElementById('news-archive-toggle-btn');
+    if (!wrap) return;
+    var isOpen = wrap.style.display !== 'none';
+    wrap.style.display = isOpen ? 'none' : 'block';
+    if (btn) btn.textContent = isOpen ? '🗄 アーカイブ' : '✕ アーカイブを閉じる';
+    if (!isOpen) {
+      if (!_newsArchiveLoaded) loadNewsArchive();
+      wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  function loadNewsArchive() {
+    var list = document.getElementById('news-archive-list');
+    if (list) list.innerHTML = '<p style="color:var(--text-light);font-size:0.9rem;">読み込み中...</p>';
+    fetch('api/list_news_archive.php', { credentials: 'same-origin' })
+      .then(function(r) { if (r.status === 403) throw new Error('forbidden'); return r.json(); })
+      .then(function(data) { _newsArchiveLoaded = true; renderNewsArchive((data && data.news) || []); })
+      .catch(function(e) {
+        if (!list) return;
+        list.innerHTML = (String(e && e.message) === 'forbidden')
+          ? '<p style="color:#b45309;font-size:0.9rem;">ログイン後にご覧ください（役員ページのログインが必要です）。</p>'
+          : '<p style="color:#B91C1C;font-size:0.9rem;">⚠ アーカイブの読み込みに失敗しました。</p>';
+      });
+  }
+
+  function renderNewsArchive(items) {
+    var el = document.getElementById('news-archive-list');
+    if (!el) return;
+    if (!items.length) {
+      el.innerHTML = '<div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;text-align:center;">'
+        + '<p style="color:var(--text-light);font-size:0.9rem;margin:0;">まだアーカイブはありません。</p></div>';
+      return;
+    }
+    // archive は古い順に積まれるので、新しい順に並べ替えて表示する
+    var rows = items.slice().reverse().map(function(n) {
+      var catCls   = CAT_CLASS[n.category] || 'tag-info';
+      var leftDate = escHtml(n.event_date || n.date || '');
+      var pubDate  = escHtml(n.date || '');
+      var arch     = escHtml(String(n.archived_at || '').slice(0, 10));
+      var atts = (Array.isArray(n.attachments) ? n.attachments : []).map(function(a) {
+        var icon = (a && a.type === 'pdf') ? '📄' : '🖼';
+        return '<a href="' + escHtml(a.url) + '" target="_blank" rel="noopener" '
+          + 'style="font-size:0.75rem;color:#2563eb;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:3px 9px;text-decoration:none;">'
+          + icon + ' ' + escHtml(a.name || 'ファイル') + '</a>';
+      }).join(' ');
+      return '<div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:8px;">'
+        + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+          + '<span style="font-size:0.8rem;color:var(--text-light);flex-shrink:0;">📅 ' + leftDate + '</span>'
+          + '<span class="tag ' + catCls + '" style="flex-shrink:0;">' + escHtml(n.category || '') + '</span>'
+          + '<span style="flex:1;min-width:140px;font-size:0.9375rem;font-weight:600;color:var(--text-dark);">' + escHtml(n.title || '') + '</span>'
+          + (n.author ? '<span title="投稿者" style="flex-shrink:0;font-size:0.72rem;font-weight:700;color:#3730a3;background:#eef2ff;border:1px solid #c7d2fe;border-radius:100px;padding:2px 9px;">👤 ' + escHtml(n.author) + '</span>' : '')
+          + '<span style="font-size:0.72rem;color:#94a3b8;flex-shrink:0;">公開: ' + pubDate + (arch ? '／終了: ' + arch : '') + '</span>'
+        + '</div>'
+        + (n.detail ? '<p style="margin:8px 0 0;font-size:0.85rem;color:#475569;white-space:pre-wrap;line-height:1.6;">' + escHtml(n.detail) + '</p>' : '')
+        + (n.url ? '<p style="margin:6px 0 0;"><a href="' + escHtml(n.url) + '" target="_blank" rel="noopener" style="font-size:0.8rem;color:#2563eb;">🔗 関連リンク</a></p>' : '')
+        + (atts ? '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">' + atts + '</div>' : '')
+        + '</div>';
+    });
+    el.innerHTML = '<p style="font-size:0.8125rem;color:var(--text-light);margin:0 0 10px;">全 ' + items.length + ' 件（新しい順）</p>' + rows.join('');
+  }
+
   // グローバルに公開（HTML onclickから呼び出せるように）
+  window.toggleNewsArchive     = toggleNewsArchive;
   window.downloadRef           = downloadRef;
   window.toggleRefForm         = toggleRefForm;
   window.toggleRefType         = toggleRefType;

@@ -5,7 +5,8 @@
  *   - 実施日（event_date）あり → その日から7日を過ぎたら削除
  *   - 実施日なし（空欄）     → 公開日（date）から90日を過ぎたら削除
  *   - どちらの日付も不正なものは対象外（日齢を計算できないため残す）
- *   - 削除時は添付ファイル（uploads/ 配下）も物理削除
+ *   - 期限切れは data/news_archive.json へ退避（＝役員ページであとで閲覧可）。
+ *     添付ファイルは実体を保持し、アーカイブ上限(500件)を超えて押し出される分だけ物理削除する。
  *
  * 実行: GitHub Actions の cron から SSH 経由で
  *   php /home/jdsfseibu/jdsf-seibu.com/public_html/api/cleanup_news.php
@@ -76,8 +77,8 @@ if (count($removed) === 0) {
     exit(0);
 }
 
-// 削除分は archive へ退避してから消す（誤削除に備える）。添付ファイルは実体ごと消えるが
-// メタ情報（タイトル・URL・添付名）は残るので、必要なら後から状況を把握できる。
+// 期限切れは archive へ退避する（＝役員ページであとで閲覧できる）。
+// 添付ファイルは実体を残し、アーカイブに載っている間は添付ごと見られるようにする。
 $archive_file = dirname(__DIR__) . '/data/news_archive.json';
 $ajson = is_file($archive_file) ? file_get_contents($archive_file) : false;
 $archive = $ajson ? json_decode($ajson, true) : null;
@@ -88,8 +89,16 @@ $stamp = date('Y-m-d') . 'T' . date('H:i:s');
 foreach ($removed as $n) {
     if (is_array($n)) { $n['archived_at'] = $stamp; $archive['news'][] = $n; }
 }
-// 肥大化を防ぐため最新500件までに制限
+// 肥大化を防ぐため最新500件までに制限。あふれて押し出される古い分だけ、
+// 添付ファイル（uploads/ 配下）の実体を物理削除する（アーカイブに残る分は保持）。
+$unlinked = 0;
 if (count($archive['news']) > 500) {
+    $overflow = array_slice($archive['news'], 0, count($archive['news']) - 500);
+    foreach ($overflow as $old) {
+        if (is_array($old['attachments'] ?? null)) {
+            $unlinked += news_unlink_attachments($old['attachments']);
+        }
+    }
     $archive['news'] = array_slice($archive['news'], -500);
 }
 $archive['updated'] = $stamp;
@@ -98,14 +107,6 @@ file_put_contents(
     json_encode($archive, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
     LOCK_EX
 );
-
-// 添付ファイルを掃除
-$unlinked = 0;
-foreach ($removed as $n) {
-    if (is_array($n['attachments'] ?? null)) {
-        $unlinked += news_unlink_attachments($n['attachments']);
-    }
-}
 
 $data['news']    = array_values($kept);
 $data['updated'] = date('Y-m-d') . 'T' . date('H:i:s');
