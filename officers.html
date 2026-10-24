@@ -430,6 +430,7 @@
             <div id="notice-attach-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;"></div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
               <input type="file" id="notice-attach-input" accept=".jpg,.jpeg,.png,.gif,.pdf"
+                onchange="uploadNewsAttach('notice-attach-input','notice')"
                 style="flex:1;min-width:0;padding:7px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:inherit;background:#fff;">
               <button type="button" onclick="uploadNewsAttach('notice-attach-input','notice')"
                 style="padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">⬆ 追加</button>
@@ -546,6 +547,7 @@
             <div id="news-attach-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;"></div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
               <input type="file" id="news-attach-input" accept=".jpg,.jpeg,.png,.gif,.pdf"
+                onchange="uploadNewsAttach('news-attach-input','post')"
                 style="flex:1;min-width:0;padding:7px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:inherit;background:#fff;">
               <button type="button" onclick="uploadNewsAttach('news-attach-input','post')"
                 style="padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">⬆ 追加</button>
@@ -943,6 +945,7 @@
         <div id="edit-attach-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;"></div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <input type="file" id="edit-attach-input" accept=".jpg,.jpeg,.png,.gif,.pdf"
+            onchange="uploadNewsAttach('edit-attach-input','edit')"
             style="flex:1;min-width:0;padding:7px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:inherit;background:#fff;">
           <button type="button" onclick="uploadNewsAttach('edit-attach-input','edit')"
             style="padding:8px 18px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;">⬆ 追加</button>
@@ -1430,7 +1433,16 @@
     var input = document.getElementById(inputId);
     var file  = input && input.files && input.files[0];
     if (!file) { alert('ファイルを選んでください。'); return; }
-    if ((_newsAttach[scope] || []).length >= 10) { alert('添付は最大10件までです。'); return; }
+    if ((_newsAttach[scope] || []).length >= 10) { alert('添付は最大10件までです。'); if (input) input.value = ''; return; }
+    // アップロード中の表示（ファイルを選ぶと自動でここに入る）
+    var listEl = _attListEl(scope);
+    var busy = null;
+    if (listEl) {
+      busy = document.createElement('div');
+      busy.style.cssText = 'font-size:0.82rem;color:var(--primary);padding:6px 10px;border:1px dashed var(--border);border-radius:8px;background:#fff;';
+      busy.textContent = '⏳ 「' + file.name + '」をアップロード中…';
+      listEl.appendChild(busy);
+    }
     var fd = new FormData();
     fd.append('token', NOTICE_TOKEN);
     fd.append('file', file);
@@ -1440,13 +1452,14 @@
       .then(function(res) {
         if (res && res.ok && res.url) {
           _newsAttach[scope].push({ url: res.url, name: res.orig || res.url.split('/').pop(), type: res.type || 'image' });
-          renderNewsAttach(scope);
-          if (input) input.value = '';
+          if (input) input.value = '';          // 先に入力をクリア（投稿ガードを通す）
+          renderNewsAttach(scope);               // 一覧を作り直す（busy行もここで消える）
         } else {
+          if (busy && busy.parentNode) busy.parentNode.removeChild(busy);
           alert('⚠ ' + ((res && res.error) || 'アップロードに失敗しました'));
         }
       })
-      .catch(function() { alert('⚠ 通信エラーが発生しました。'); });
+      .catch(function() { if (busy && busy.parentNode) busy.parentNode.removeChild(busy); alert('⚠ 通信エラーが発生しました。'); });
   }
   window.uploadNewsAttach = uploadNewsAttach;
   window.removeNewsAttach = removeNewsAttach;
@@ -1600,6 +1613,11 @@
 
     if (!name || !title || !detail) {
       showMsg('⚠ 氏名・タイトル・詳細内容は必須です。', true);
+      return;
+    }
+    var pend = document.getElementById('notice-attach-input');
+    if (pend && pend.files && pend.files.length) {
+      showMsg('⚠ 添付ファイルをアップロード中です。数秒待ってから、もう一度「投稿する」を押してください。', true);
       return;
     }
 
@@ -1775,6 +1793,12 @@
       return;
     }
 
+    var pendP = document.getElementById('news-attach-input');
+    if (pendP && pendP.files && pendP.files.length) {
+      showMsg('⚠ 添付ファイルをアップロード中です。数秒待ってから、もう一度「投稿する」を押してください。', true);
+      return;
+    }
+
     // 次回のために投稿者名をこの端末に記憶（自動入力用）
     try { localStorage.setItem('seibu_news_author', author); } catch (e) {}
 
@@ -1907,6 +1931,11 @@
     if (!category) { showMsg('⚠ カテゴリを選択してください', true); return; }
     if (!title)    { showMsg('⚠ タイトルを入力してください', true); return; }
     if (!detail)   { showMsg('⚠ 詳細内容を入力してください', true); return; }
+    var pendE = document.getElementById('edit-attach-input');
+    if (pendE && pendE.files && pendE.files.length) {
+      showMsg('⚠ 添付ファイルをアップロード中です。数秒待ってから、もう一度「保存」を押してください。', true);
+      return;
+    }
 
     var btn = document.getElementById('edit-save-btn');
     if (btn) { btn.disabled = true; btn.textContent = '保存中...'; }
