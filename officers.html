@@ -2225,7 +2225,7 @@ function spRender(){
         + '</div>'
       + '</div>'
       + '<div style="margin-top:12px;padding-top:12px;border-top:1px dashed #f3d3e0;display:flex;justify-content:flex-end;">'
-        + '<button class="btn btn-sm btn-del" onclick="spDeleteSite('+n+')" title="この特設サイトを削除してアーカイブに保存します（枠は空になります）">🗑 この特設サイトを削除（アーカイブへ）</button>'
+        + '<button class="btn btn-sm btn-sec" onclick="spDeleteSite('+n+')" title="この特設サイトを5枠から外してアーカイブに移します。あとで「復元」で空き枠へ戻せます。" style="color:#9F1239;border-color:#f3d3e0;">🗂 アーカイブへ移す（5枠から外す）</button>'
       + '</div>'
       + '</div>'
     + '</div>';
@@ -2556,18 +2556,18 @@ var _spArchiveLoaded = false;
 function spDeleteSite(n){
   var it=null; for(var k=0;k<_sp.length;k++){ if(_sp[k].id===n){ it=_sp[k]; break; } }
   var label=(it && it.label) ? it.label : ('特設サイト'+n);
-  if(!confirm('「'+label+'」を削除します。\n\n削除した設定とページ内容はアーカイブに保存され、あとで（いつでも）閲覧できます。\nこの枠（特設サイト'+n+'）は空になります。\n\n削除してよろしいですか？')) return;
+  if(!confirm('「'+label+'」を5枠から外してアーカイブに移します。\n\n設定とページ内容はアーカイブに保存され、あとで「復元」で空き枠へ戻せます。\nこの枠（特設サイト'+n+'）は空になります。\n\nよろしいですか？')) return;
   var fd=new FormData(); fd.append('token',TOKEN); fd.append('site_id',String(n));
   fetch('api/delete_special_site.php',{method:'POST',body:fd})
     .then(function(r){return r.json();})
     .then(function(res){
       if(res && res.ok){
-        spSetMsg('sp-msg','🗑 特設サイト'+n+'を削除し、アーカイブに保存しました',true);
+        spSetMsg('sp-msg','🗂 特設サイト'+n+'をアーカイブへ移しました（5枠から外しました）',true);
         _spArchiveLoaded=false;
         var w=document.getElementById('sp-archive-wrap');
         if(w && w.style.display!=='none') loadSpecialArchive();
         spReload();
-      } else spSetMsg('sp-msg','⚠ '+((res&&res.error)||'削除に失敗しました'),false);
+      } else spSetMsg('sp-msg','⚠ '+((res&&res.error)||'アーカイブへの移動に失敗しました'),false);
     })
     .catch(function(){ spSetMsg('sp-msg','⚠ 通信エラー',false); });
 }
@@ -2621,32 +2621,71 @@ function _spArchBlockHtml(b){
   return '<div style="margin:6px 0;">📝 '+title+'<div style="font-size:.82rem;color:#475569;white-space:pre-wrap;line-height:1.6;">'+spEsc(b.body||'')+'</div></div>';
 }
 
+/* いま空いている枠（ボタン名も内容も無い）のid一覧 */
+function _spEmptySlots(){
+  var out=[];
+  for(var k=0;k<_sp.length;k++){
+    var s=_sp[k];
+    var cont=_spc[String(s.id)];
+    var hasContent = Array.isArray(cont) && cont.length>0;
+    if(!s.label && !hasContent) out.push(s.id);
+  }
+  return out;
+}
+
 function renderSpecialArchive(sites){
   var el=document.getElementById('sp-archive-list');
   if(!el) return;
-  if(!sites.length){ el.innerHTML='<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px 20px;text-align:center;"><p style="color:var(--text-light);font-size:0.9rem;margin:0;">まだ削除した特設サイトはありません。</p></div>'; return; }
+  if(!sites.length){ el.innerHTML='<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px 20px;text-align:center;"><p style="color:var(--text-light);font-size:0.9rem;margin:0;">まだアーカイブした特設サイトはありません。</p></div>'; return; }
   var MODE={page:'📄 ページ',embed:'🪟 埋め込み',external:'↗ 外部へ移動'};
+  var empties=_spEmptySlots();
   var rows=sites.slice().reverse().map(function(a){
     var m=a.meta||{}, c=Array.isArray(a.contents)?a.contents:[];
     var label=m.label?spEsc(m.label):'（ボタン名なし）';
     var arch=spEsc(String(a.archived_at||'').slice(0,10));
+    var archId=spEsc(String(a.archive_id||''));
     var blocks=c.length ? c.map(_spArchBlockHtml).join('') : '<span style="font-size:.78rem;color:#94a3b8;">（ページ内容なし）</span>';
     var bits=[];
     if(m.hero_title) bits.push('見出し: '+spEsc(m.hero_title));
     if(m.url && m.mode==='external') bits.push('移動先: '+spEsc(m.url));
     if(m.embed_url && m.mode==='embed') bits.push('埋め込み: '+spEsc(m.embed_url));
+    var restoreUI = empties.length
+      ? '<label style="font-size:.76rem;color:#475569;">空き枠へ復元：<select id="sp-rs-'+archId+'" style="font-size:.78rem;padding:4px 6px;border:1.5px solid var(--border);border-radius:6px;font-family:inherit;">'
+          + empties.map(function(id){ return '<option value="'+id+'">特設サイト'+id+'</option>'; }).join('')
+          + '</select></label> <button class="btn btn-sm" onclick="spRestoreArchive(\''+archId+'\')">↩ この枠に復元</button>'
+      : '<span style="font-size:.76rem;color:#94a3b8;">※ 空き枠がありません。復元するには、どれかの枠を「アーカイブへ移す」か内容を空にしてください。</span>';
     return '<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;">'
       +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
         +'<span style="font-size:.7rem;font-weight:700;color:#64748b;background:#f1f5f9;border-radius:100px;padding:2px 9px;">元・特設サイト'+spEsc(String(a.site_id||''))+'</span>'
         +'<strong style="font-size:.95rem;color:var(--primary);flex:1;min-width:120px;">'+label+'</strong>'
         +'<span style="font-size:.72rem;color:#94a3b8;">表示方法: '+(MODE[m.mode]||m.mode||'')+'</span>'
-        +'<span style="font-size:.72rem;color:#94a3b8;">削除日: '+arch+'</span>'
+        +'<span style="font-size:.72rem;color:#94a3b8;">移動日: '+arch+'</span>'
       +'</div>'
       +(bits.length?'<p style="margin:6px 0 0;font-size:.76rem;color:#64748b;">'+bits.join('　/　')+'</p>':'')
       +'<div style="margin-top:8px;border-top:1px dashed var(--border);padding-top:8px;">'+blocks+'</div>'
+      +'<div style="margin-top:10px;border-top:1px dashed var(--border);padding-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'+restoreUI+'</div>'
       +'</div>';
   });
   el.innerHTML='<p style="font-size:0.8125rem;color:var(--text-light);margin:0 0 10px;">全 '+sites.length+' 件（新しい順）</p>'+rows.join('');
+}
+
+/* アーカイブから空き枠へ復元する */
+function spRestoreArchive(archId){
+  var sel=document.getElementById('sp-rs-'+archId);
+  var slot=sel?sel.value:'';
+  if(!slot){ alert('復元先の空き枠を選んでください。'); return; }
+  if(!confirm('この特設サイトを「特設サイト'+slot+'」に復元します。\n（アーカイブからは移動します。「表示」は復元後にオンにして保存してください）\n\nよろしいですか？')) return;
+  var fd=new FormData(); fd.append('token',TOKEN); fd.append('archive_id',archId); fd.append('slot',String(slot));
+  fetch('api/restore_special_site.php',{method:'POST',body:fd})
+    .then(function(r){return r.json();})
+    .then(function(res){
+      if(res && res.ok){
+        spSetMsg('sp-msg','↩ 特設サイト'+res.slot+'に復元しました（必要なら「表示」をオンにして保存してください）',true);
+        _spArchiveLoaded=false;
+        spReload().then(function(){ var w=document.getElementById('sp-archive-wrap'); if(w && w.style.display!=='none') loadSpecialArchive(); });
+      } else alert('⚠ '+((res&&res.error)||'復元に失敗しました'));
+    })
+    .catch(function(){ alert('⚠ 通信エラーが発生しました。'); });
 }
 
 spReload();
