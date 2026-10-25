@@ -853,12 +853,17 @@
   </section>
 
   <!-- ===== 競技予定調整表の 公開／非公開 切替（普段使わないので最下部に配置） ===== -->
-  <section style="background:#fff;border-top:1px solid var(--border);padding:22px 0 30px;">
-    <div class="container" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-start;">
-      <span style="font-size:.85rem;color:var(--text-light);">📅 競技予定調整表のホームページ表示</span>
-      <button type="button" id="sched-vis-btn" onclick="toggleScheduleVisibility()"
-         title="競技予定調整表をホームページに出す／引っ込める（データは残ります）"
-         style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:#f1f5f9;color:#64748b;border:1px solid var(--border);border-radius:8px;font-size:.85rem;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;">⏳ 競技予定調整表…</button>
+  <section style="background:#f0faf7;border-top:1px solid #bfe3d9;border-bottom:1px solid #bfe3d9;padding:32px 0;">
+    <div class="container">
+      <h2 style="font-size:1.125rem;font-weight:700;color:var(--primary);border-left:4px solid #0ea5a4;padding-left:12px;margin:0;">
+        📅 競技予定調整表の公開設定
+        <small style="font-size:0.75rem;font-weight:400;color:var(--text-light);display:block;margin-top:4px;">（ホームページ「競技会情報」に調整表のリンクを出す／引っ込めます。データは残ります）</small>
+      </h2>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px;">
+        <button type="button" id="sched-vis-btn" onclick="toggleScheduleVisibility()"
+           title="競技予定調整表をホームページに出す／引っ込める（データは残ります）"
+           style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:#f1f5f9;color:#64748b;border:1px solid var(--border);border-radius:8px;font-size:.85rem;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;">⏳ 競技予定調整表…</button>
+      </div>
     </div>
   </section>
 
