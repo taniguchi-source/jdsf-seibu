@@ -15,6 +15,7 @@ require_auth_any(['admin', 'build']);
 
 $archive_id = preg_replace('/[^a-f0-9]/i', '', (string)($_POST['archive_id'] ?? ''));
 $slot = special_site_id($_POST['slot'] ?? '');
+$keep = ((string)($_POST['keep'] ?? '') === '1');   // 1＝コピー（アーカイブに原本を残す）
 if ($archive_id === '' || $slot === null) {
     http_response_code(400);
     echo json_encode(['error' => 'パラメータが不正です'], JSON_UNESCAPED_UNICODE);
@@ -92,9 +93,11 @@ file_put_contents($sites_file, json_encode($sdata, JSON_PRETTY_PRINT | JSON_UNES
 $cdata[$slot] = is_array($entry['contents'] ?? null) ? $entry['contents'] : [];
 file_put_contents($contents_file, json_encode($cdata, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 
-/* アーカイブから取り除く */
-array_splice($adata['sites'], $idx, 1);
-$adata['updated'] = $stamp;
-file_put_contents($archive_file, json_encode($adata, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+/* アーカイブから取り除く（コピー復元=keep のときは原本を残す） */
+if (!$keep) {
+    array_splice($adata['sites'], $idx, 1);
+    $adata['updated'] = $stamp;
+    file_put_contents($archive_file, json_encode($adata, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+}
 
-echo json_encode(['ok' => true, 'slot' => $slot], JSON_UNESCAPED_UNICODE);
+echo json_encode(['ok' => true, 'slot' => $slot, 'kept' => $keep], JSON_UNESCAPED_UNICODE);
