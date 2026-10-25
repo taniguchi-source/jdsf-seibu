@@ -364,9 +364,6 @@
              style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:#fff;color:var(--primary);border-radius:8px;font-size:.85rem;font-weight:800;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.25);white-space:nowrap;">🔧 サイト構築ページへ →</a>
           <a href="schedule-edit.html" target="_blank" rel="noopener"
              style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:#fff;color:var(--primary);border-radius:8px;font-size:.85rem;font-weight:800;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.25);white-space:nowrap;">📅 競技予定を編集 →</a>
-          <button type="button" id="sched-vis-btn" onclick="toggleScheduleVisibility()"
-             title="競技予定調整表をホームページに出す／引っ込める（データは残ります）"
-             style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:#f8fafc;color:#64748b;border:1px solid var(--border);border-radius:8px;font-size:.85rem;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(0,0,0,.18);white-space:nowrap;">⏳ 競技予定調整表…</button>
           <a href="ads.html" target="_blank" rel="noopener"
              style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:#fff;color:var(--primary);border-radius:8px;font-size:.85rem;font-weight:800;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.25);white-space:nowrap;">📣 広告スポンサー管理 →</a>
         </div>
@@ -849,6 +846,16 @@
         <p style="font-size:0.8rem;color:var(--text-light);margin:0 0 12px;">削除した特設サイトは、ここに設定とページ内容がそのまま保存されます（新しい順・いつでも閲覧できます）。</p>
         <div id="sp-archive-list"><p style="color:var(--text-light);font-size:0.9rem;">「🗄 …アーカイブ」ボタンで表示します。</p></div>
       </div>
+    </div>
+  </section>
+
+  <!-- ===== 競技予定調整表の 公開／非公開 切替（普段使わないので最下部に配置） ===== -->
+  <section style="background:#fff;border-top:1px solid var(--border);padding:22px 0 30px;">
+    <div class="container" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;">
+      <span style="font-size:.85rem;color:var(--text-light);">📅 競技予定調整表のホームページ表示</span>
+      <button type="button" id="sched-vis-btn" onclick="toggleScheduleVisibility()"
+         title="競技予定調整表をホームページに出す／引っ込める（データは残ります）"
+         style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:#f1f5f9;color:#64748b;border:1px solid var(--border);border-radius:8px;font-size:.85rem;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;">⏳ 競技予定調整表…</button>
     </div>
   </section>
 
