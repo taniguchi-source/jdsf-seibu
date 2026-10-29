@@ -206,6 +206,11 @@
   .pm table.pg{font-size:var(--pf-tbl)}
   .pm table.pg th{font-size:var(--pf-th);line-height:1.35}
   .pm table.pg th,.pm table.pg td{padding:calc(var(--pf-pad) + var(--xp)) 2px}
+  /* 見出しの行だけは、本文と同じ上下の余白（--pf-pad＝1px×縮尺）では高さが足りず、
+     字が行に詰まって読み取れない。1区分に1行しか無いので、下限を付けても紙は
+     ほとんど増えない。--xp（下の余白をつめるぶん）は本文と同じだけ足す。 */
+  .pm table.pg th{padding-top:max(2.5px, calc(var(--pf-pad) + var(--xp)));
+    padding-bottom:max(2.5px, calc(var(--pf-pad) + var(--xp)))}
   .pm table.pg td.bib{font-size:var(--pf-bib)}
   .pm table.pg td.nmc{font-size:var(--pf-nm)}
   .pm table.pg td.aff{font-size:var(--pf-aff)}
@@ -228,6 +233,8 @@
     /* 見出しは「記入欄」「背番号」が切れない大きさまで小さくする */
     table.pg th{font-size:var(--pf-th);line-height:1.35}
     table.pg th,table.pg td{padding:calc(var(--pf-pad) + var(--xp)) 2px}
+    table.pg th{padding-top:max(2.5px, calc(var(--pf-pad) + var(--xp)));
+      padding-bottom:max(2.5px, calc(var(--pf-pad) + var(--xp)))}
     table.pg td.bib{font-size:var(--pf-bib)}
     table.pg td.nmc{font-size:var(--pf-nm)}
     /* 所属は略称でも長いことがあるので、小さめにしたうえで折り返して全部出す */
