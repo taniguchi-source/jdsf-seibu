@@ -994,7 +994,11 @@ function expandLayout(target, basePages){
 }
 
 var COLS    = 2;            /* いま組んでいる段数 */
-var COL_TRY = [2, 3, 4];    /* 試す段数 */
+/* 自動で試す段数。4段組は1組あたりの横幅が狭く、氏名も所属も読みにくいので候補にしない。
+   --ps の数字は大きくても、列に入る大きさまで縮め直されるため実際の字は大きくならない。
+   4段組は「段組」で自分で選んだときと、3段でもどうしても収まらないときだけ使う。 */
+var COL_TRY  = [2, 3];
+var COL_LAST = 4;
 
 /* 「段組」で選んだ段数（自動なら 0）。4段は読みにくいので、
    2段・3段に決め打ちできるようにしてある。 */
@@ -1047,6 +1051,14 @@ function fitLayout(target){
     else                             better = r.scale > best.scale * 1.25;
     if (better) best = r;
   });
+  /* 2段でも3段でも指定の枚数に収まらないときだけ、最後に4段組を試す。
+     読みにくさより「指定した枚数に入らない」ほうが困るため。 */
+  if (best.over) {
+    COLS = COL_LAST;
+    var r4 = fitScale(target);
+    r4.cols = COL_LAST; r4.over = !!r4.over;
+    if (!r4.over || r4.pages < best.pages) best = r4;
+  }
   COLS = best.cols; setPs(best.scale); draw();
   best.pages = measurePages();
   return best;
@@ -1109,7 +1121,10 @@ function updateFit(){
       + (r.pages < t ? 'これ以上は大きくできないので ' + t + 'ページには届きません。' : '');
   } else {
     el('fit-note').textContent = t + 'ページに収めます（' + r.cols + '段組'
-      + (pct < 100 ? '・文字と行間は ' + pct + '%' : '・文字はそのままの大きさ') + '）。';
+      + (pct < 100 ? '・文字と行間は ' + pct + '%' : '・文字はそのままの大きさ') + '）。'
+      /* 小さくなりすぎたときの逃げ道を書いておく（自動では4段組にしないため） */
+      + (pct < 85 ? '字を大きくしたいときは、ページ数を増やすか「段組」で4段組を選んでください'
+                  + '（4段組は1組の幅が狭くなります）。' : '');
   }
 }
 
