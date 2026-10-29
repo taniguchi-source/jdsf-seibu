@@ -159,7 +159,11 @@
      紙のほうは JS を待たずに必ずこの大きさになるよう、@media print にも同じ指定を置く。 */
   :root{
     --ps:1;
-    --pf-tbl:calc(9pt * var(--ps));    --pf-th:calc(7.5pt * var(--ps));
+    --pf-tbl:calc(9pt * var(--ps));
+    /* 見出し（記入欄・背番号・リーダー…）は、本文と同じ割合で縮めると
+       4pt台まで落ちて読めなくなる。1区分に1行しか無いので、下限で止めても
+       紙はほとんど増えない。JS側（fitWord）も同じ下限で言い方を選ぶこと。 */
+    --pf-th:max(6pt, calc(7.5pt * var(--ps)));
     --pf-bib:calc(13pt * var(--ps));   --pf-nm:calc(11pt * var(--ps));
     --pf-aff:calc(8.5pt * var(--ps));  --pf-head:calc(11pt * var(--ps));
     --pf-ttl:calc(12pt * var(--ps));   --pf-dan:calc(10pt * var(--ps));
@@ -177,7 +181,7 @@
   /* 掲示用。1段組・大きい字・1区分＝1ページ。離れて見る貼り紙や、
      進行席・審判席に配る紙のための出し方。紙の大きさの数値をまとめて置き換える。 */
   .poster{
-    --pf-tbl:calc(11pt * var(--ps));   --pf-th:calc(9pt * var(--ps));
+    --pf-tbl:calc(11pt * var(--ps));   --pf-th:max(7pt, calc(9pt * var(--ps)));
     --pf-bib:calc(14.5pt * var(--ps)); --pf-nm:calc(12pt * var(--ps));
     --pf-aff:calc(10pt * var(--ps));   --pf-head:calc(11pt * var(--ps));
     --pf-ttl:calc(14pt * var(--ps));   --pf-dan:calc(12pt * var(--ps));
@@ -200,7 +204,7 @@
     #paper.poster:not(.pm) .blk .ttl .nm{font-size:20px}
   }
   .pm table.pg{font-size:var(--pf-tbl)}
-  .pm table.pg th{font-size:var(--pf-th)}
+  .pm table.pg th{font-size:var(--pf-th);line-height:1.35}
   .pm table.pg th,.pm table.pg td{padding:calc(var(--pf-pad) + var(--xp)) 2px}
   .pm table.pg td.bib{font-size:var(--pf-bib)}
   .pm table.pg td.nmc{font-size:var(--pf-nm)}
@@ -222,7 +226,7 @@
     #sheet{overflow:visible;height:auto !important}
     table.pg{font-size:var(--pf-tbl)}
     /* 見出しは「記入欄」「背番号」が切れない大きさまで小さくする */
-    table.pg th{font-size:var(--pf-th)}
+    table.pg th{font-size:var(--pf-th);line-height:1.35}
     table.pg th,table.pg td{padding:calc(var(--pf-pad) + var(--xp)) 2px}
     table.pg td.bib{font-size:var(--pf-bib)}
     table.pg td.nmc{font-size:var(--pf-nm)}
@@ -692,9 +696,12 @@ var HEAD_WORDS = [
 ];
 var HCTX = null;
 /* 幅 wPx（px）に収まる言い方を返す。pt は見出しの文字の大きさ。 */
-function fitWord(cands, wPx, pt){
+function fitWord(cands, wPx, pt, minPt){
   if (!HCTX) HCTX = document.createElement('canvas').getContext('2d');
-  HCTX.font = '600 ' + (pt * PS).toFixed(2) + 'pt ' + getComputedStyle(document.body).fontFamily;
+  /* CSS 側の --pf-th と同じ大きさで測る。下限で止まっているのに小さい字で測ると、
+     入らない言い方（「記入欄」など）を選んでしまい、見出しが横にあふれる。 */
+  var size = Math.max(minPt || 0, pt * PS);
+  HCTX.font = '600 ' + size.toFixed(2) + 'pt ' + getComputedStyle(document.body).fontFamily;
   for (var i = 0; i < cands.length; i++) {
     if (HCTX.measureText(cands[i]).width + 5 <= wPx) return cands[i];
   }
@@ -703,7 +710,7 @@ function fitWord(cands, wPx, pt){
 function headCells(memo, cw){
   var words = memo ? HEAD_WORDS : HEAD_WORDS.slice(1);
   return words.map(function(cands, i){
-    return '<th>' + esc(cw ? fitWord(cands, cw.px[i], cw.th) : cands[0]) + '</th>';
+    return '<th>' + esc(cw ? fitWord(cands, cw.px[i], cw.th, cw.thMin) : cands[0]) + '</th>';
   }).join('');
 }
 
@@ -744,7 +751,7 @@ function colWidths(memo, cols){
   /* 掲示用は1段組・決め打ちの割合 */
   if (isPoster()) {
     var pw = memo ? [8, 8, 26, 26, 32] : [9, 28, 28, 35];
-    return {gap: 0, pct: pw, th: 9,
+    return {gap: 0, pct: pw, th: 9, thMin: 7,
             px: pw.map(function(p){ return p / 100 * (190 * MM); })};
   }
   if (!NEED) measureNeeds();
@@ -762,7 +769,7 @@ function colWidths(memo, cols){
   /* 見出しの言い方は紙での幅で決める（画面の幅で決めると、
      掲示用と行き来したときに言い方が入れ替わってしまう） */
   var tw = 190 * MM;
-  return {gap: gap, pct: pct, th: 7.5, px: pct.map(function(p){ return p / 100 * tw; })};
+  return {gap: gap, pct: pct, th: 7.5, thMin: 6, px: pct.map(function(p){ return p / 100 * tw; })};
 }
 
 /* 列幅（合計 100%）。cols は段組の数。 */
