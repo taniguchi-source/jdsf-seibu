@@ -164,7 +164,12 @@
     --pf-aff:calc(8.5pt * var(--ps));  --pf-head:calc(11pt * var(--ps));
     --pf-ttl:calc(12pt * var(--ps));   --pf-dan:calc(10pt * var(--ps));
     --pf-dk:calc(8.5pt * var(--ps));   --pf-pad:calc(1px * var(--ps));
-    --pf-tpad:calc(2px * var(--ps));   --pf-gap:calc(3mm * var(--ps));
+    --pf-tpad:max(3px, calc(3px * var(--ps)));
+    --pf-gap:calc(3mm * var(--ps));
+    /* 区分名の帯と、表のいちばん上の行（記入欄・背番号…）のあいだ。
+       --pf-tpad と同じにしていたら 2px しか空かず、帯と見出しの行がくっついて
+       見出しが読み取れなかった。縮めても潰れないよう下限を付ける。 */
+    --pf-tgap:max(4px, calc(5px * var(--ps)));
     /* 行の高さ。1.15 は日本語でも上下がぶつからない範囲でいちばん詰まる値。 */
     --pf-lh:1.15;
   }
@@ -177,7 +182,9 @@
     --pf-aff:calc(10pt * var(--ps));   --pf-head:calc(11pt * var(--ps));
     --pf-ttl:calc(14pt * var(--ps));   --pf-dan:calc(12pt * var(--ps));
     --pf-dk:calc(9.5pt * var(--ps));   --pf-pad:calc(2px * var(--ps));
-    --pf-tpad:calc(5px * var(--ps));   --pf-gap:calc(6mm * var(--ps));
+    --pf-tpad:max(4px, calc(5px * var(--ps)));
+    --pf-gap:calc(6mm * var(--ps));
+    --pf-tgap:max(6px, calc(8px * var(--ps)));
     /* 掲示用は離れて見る紙なので、行間は詰めない */
     --pf-lh:1.25;
   }
@@ -200,7 +207,7 @@
   .pm table.pg td.aff{font-size:var(--pf-aff)}
   .pm .sheet-head{font-size:var(--pf-head)}
   .pm .blk{margin-bottom:var(--pf-gap)}
-  .pm .blk .ttl{padding:var(--pf-tpad) 8px;margin-bottom:var(--pf-tpad)}
+  .pm .blk .ttl{padding:var(--pf-tpad) 8px;margin-bottom:var(--pf-tgap)}
   .pm .blk .ttl .nm{font-size:var(--pf-ttl)}
   .pm .blk .ttl .dance{font-size:var(--pf-dan);padding:0 7px}
   .pm .blk .ttl .dance .k{font-size:var(--pf-dk);margin-right:5px}
@@ -223,7 +230,7 @@
     table.pg td.aff{font-size:var(--pf-aff)}
     .sheet-head{font-size:var(--pf-head)}
     .blk{margin-bottom:var(--pf-gap)}
-    .blk .ttl{padding:var(--pf-tpad) 8px;margin-bottom:var(--pf-tpad)}
+    .blk .ttl{padding:var(--pf-tpad) 8px;margin-bottom:var(--pf-tgap)}
     .blk .ttl .nm{font-size:var(--pf-ttl)}
     .blk .ttl .dance{font-size:var(--pf-dan);padding:0 7px}
     .blk .ttl .dance .k{font-size:var(--pf-dk);margin-right:5px}
