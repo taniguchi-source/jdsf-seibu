@@ -264,6 +264,16 @@
       <label class="checkbox-row"><span>ページ数</span>
         <input type="number" id="pages" min="1" max="40" step="1" placeholder="自動"
                style="width:72px;font-size:15px;padding:7px 8px;border:1px solid var(--border);border-radius:8px"></label>
+      <!-- 段組は自動に任せきりだと、ページ数の指定しだいで4段組まで行くことがある。
+           4段は1組あたりの横幅が狭く読みにくいので、2段・3段に決め打ちできるようにする。 -->
+      <label class="checkbox-row"><span>段組</span>
+        <select id="c-cols" style="width:auto;font-size:14px;padding:6px 8px">
+          <option value="">自動</option>
+          <option value="1">1段組</option>
+          <option value="2">2段組</option>
+          <option value="3">3段組</option>
+          <option value="4">4段組</option>
+        </select></label>
       <button id="b-reload" class="secondary">最新にする</button>
       <button id="b-order" class="secondary">区分の並べ替え</button>
       <label class="checkbox-row"><input type="checkbox" id="c-poster"><span>掲示用（1段組・大きい字）</span></label>
@@ -558,6 +568,7 @@ function buildPicker(){
     if ((e.key === 'Escape' || e.keyCode === 27) && !el('so-back').classList.contains('hidden')) closeSort();
   });
   el('pages').addEventListener('input', updateFit);
+  el('c-cols').addEventListener('change', updateFit);
   el('b-print').addEventListener('click', function(){
     updateFit();
     window.print();
@@ -818,6 +829,9 @@ var FILL_KEEP =  3 * MM;   /* 足しすぎてページが増えないよう、�
 var FILL_MAX  = 0.35;      /* 1行に足せるのは、その行の高さのこの割合まで。
                               1区分だけ刷るときのように余りが大きいページで、
                               行だけが間延びした紙にならないようにする。 */
+var FILL_MAX_SET = 0.8;    /* ページ数を自分で指定したときは、その枚数に収めたうえで
+                              下が大きく余ることがある（区分は途中で切らないため）。
+                              「この枚数で」と決めて刷るのだから、余りは行へ多めに配る。 */
 
 /* 紙1枚ぶんずつ、載っている区分と使った高さを返す。数え方は countPages と同じ。
    1枚に入りきらない区分がまたいでいるページは over を立てて、つめる対象から外す。 */
@@ -868,7 +882,8 @@ function fillBottom(){
       });
       if (!trs.length) return;
       var nat = trs.reduce(function(a, tr){ return a + tr.getBoundingClientRect().height; }, 0) / trs.length;
-      var add = Math.min(room / trs.length, nat * FILL_MAX);
+      var fmax = (parseInt(el('pages').value, 10) > 0) ? FILL_MAX_SET : FILL_MAX;
+      var add = Math.min(room / trs.length, nat * fmax);
       if (add < 0.5) return;
       /* padding は上下に付くので、1行ぶんの半分ずつ入れる */
       p.blks.forEach(function(b){ b.style.setProperty('--xp', (add / 2).toFixed(2) + 'px'); });
@@ -981,8 +996,27 @@ function expandLayout(target, basePages){
 var COLS    = 2;            /* いま組んでいる段数 */
 var COL_TRY = [2, 3, 4];    /* 試す段数 */
 
+/* 「段組」で選んだ段数（自動なら 0）。4段は読みにくいので、
+   2段・3段に決め打ちできるようにしてある。 */
+function fixedCols(){
+  var v = parseInt((el('c-cols') || {}).value, 10);
+  return (v >= 1 && v <= 4) ? v : 0;
+}
+
 /* 段数と縮尺の組み合わせのうち、いちばん字が大きくなるものを選ぶ */
 function fitLayout(target){
+  var fx = fixedCols();
+  if (fx) {
+    /* 段数が決まっているときは、その段数のまま枚数に合わせる。
+       指定が無ければそのままの大きさ、あれば入る大きさまで縮める。 */
+    COLS = fx;
+    if (!target) { setPs(1); draw(); return {cols: fx, scale: 1, pages: measurePages(), fixed: true}; }
+    var rf = fitScale(target);
+    rf.cols = fx; rf.over = !!rf.over; rf.fixed = true;
+    COLS = fx; setPs(rf.scale); draw();
+    rf.pages = measurePages();
+    return rf;
+  }
   if (!target) { COLS = 2; setPs(1); draw(); return {cols: COLS, scale: 1, pages: measurePages()}; }
 
   /* まず、そのままの大きさ（2段組）で何ページになるかを見る。
@@ -1005,8 +1039,12 @@ function fitLayout(target){
     if (!best)                       better = true;
     else if (best.over && r.over)    better = r.pages < best.pages;   /* どちらも収まらないなら枚数が少ないほう */
     else if (best.over !== r.over)   better = best.over;              /* 収まるほうを採る */
-    /* 段を増やすと1組あたりの横幅は狭くなるので、字が1割以上大きくなるときだけ乗り換える */
-    else                             better = r.scale > best.scale * 1.1;
+    /* 段を増やすと1組あたりの横幅は狭くなる。--ps の数字が大きくても、
+       氏名や所属は列に入る大きさまで縮め直されるので、見た目はほとんど大きくならない。
+       それどころか、紙の縦が余って最後のページが真っ白になりやすい。
+       1割では 90% → 100% で簡単に乗り換えてしまい、3段で足りるのに4段になっていた。
+       はっきり大きくなるとき（25%以上）だけ乗り換える。 */
+    else                             better = r.scale > best.scale * 1.25;
     if (better) best = r;
   });
   COLS = best.cols; setPs(best.scale); draw();
@@ -1020,12 +1058,14 @@ function updateFit(){
   if (isPoster()) {
     COLS = 1; setPs(1);
     el('pages').disabled = true;
+    el('c-cols').disabled = true;
     el('fit-note').textContent = '掲示用は1区分＝1ページです（全部で ' + measurePages() + 'ページ）。';
     shrinkCells();
     showAsPaper(false);
     return;
   }
   el('pages').disabled = false;
+  el('c-cols').disabled = false;
   var t = parseInt(el('pages').value, 10);
   if (!(t > 0)) t = 0;
   var r = fitLayout(t);
@@ -1037,12 +1077,20 @@ function updateFit(){
   /* 段組や文字を変えたとき、また画面が紙より狭いときは、刷り上がりそのものを出す。
      （狭い画面で紙と違う組み方をすると、背番号が「1…」と切れて見えてしまう） */
   showAsPaper(r.cols !== 2 || r.scale !== 1 || el('sheet').clientWidth < 190 * MM);
-  if (!t) {
+  if (r.fixed) {
+    /* 段組を自分で決めているときは、段組の話はしない（枚数と文字の大きさだけ伝える） */
+    el('pages').placeholder = String(r.pages);
+    el('fit-note').textContent = r.cols + '段組で ' + r.pages + 'ページです'
+      + (pct < 100 ? '（文字と行間は ' + pct + '%）' : '（文字はそのままの大きさ）') + '。'
+      + (r.over ? t + 'ページには収まりませんでした。段組を増やすか「自動」に戻してください。'
+                : '段組を「自動」に戻すと、枚数に合わせて段数も選び直します。');
+  } else if (!t) {
     el('pages').placeholder = String(r.pages);
     el('fit-note').textContent = 'このままの大きさ（2段組）で ' + r.pages + 'ページです。'
       + '枚数を変えたいときは「ページ数」に入れてください'
       + '（減らすときはまず段組を増やし、それでも入らないときだけ文字を縮めます。'
-      + '増やすときは段組を減らし、それでも足りなければ文字を大きくします）。';
+      + '増やすときは段組を減らし、それでも足りなければ文字を大きくします）。'
+      + '段数を決めたいときは「段組」で選べます。';
   } else if (r.over) {
     el('fit-note').textContent = t + 'ページには収まりませんでした。'
       + r.cols + '段組・いちばん小さい大きさ（文字 ' + pct + '%）で ' + r.pages + 'ページです。';
