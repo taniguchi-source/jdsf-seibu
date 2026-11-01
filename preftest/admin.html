@@ -494,6 +494,14 @@
           </div>
           <!-- プレビュー -->
           <div id="cd-file-preview"></div>
+          <!-- 画像・PDF専用: リンクボタンとして表示するか -->
+          <div id="cd-file-aslink-wrap" style="display:none;background:#F0F7FF;border:1.5px solid #BFDBFE;border-radius:8px;padding:10px 14px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.875rem;font-weight:600;color:var(--text-dark);">
+              <input type="checkbox" id="cd-file-aslink" onchange="applyFileWidthVis()" style="cursor:pointer;accent-color:var(--primary);">
+              🔗 「リンクボタン」として表示する（クリックで新しいタブで開く）
+            </label>
+            <p style="font-size:.75rem;color:var(--text-light);margin:6px 0 0 24px;line-height:1.6;">ページ内に埋め込まず、タイトルのボタンだけを置きます（シラバス・エントリー等と同じ見た目）。ボタンの文字はタイトルを使います。</p>
+          </div>
           <!-- PDF専用: PCで表示する幅（%）。スマホは常に全幅 -->
           <div id="cd-pdf-pcwidth-wrap" style="display:none;">
             <label class="form-label">PCで表示する幅（%）
@@ -1783,6 +1791,10 @@
     if (!(iwNum >= 20 && iwNum <= 100)) iwNum = 100;
     if (iwEl)  iwEl.value = iwNum;
     if (iwVal) iwVal.textContent = iwNum + '%';
+    // 画像・PDF: リンクボタンとして表示するか
+    var alEl = document.getElementById('cd-file-aslink');
+    if (alEl) alEl.checked = (item.as_link === true);
+    applyFileWidthVis();
     // ギャラリーフィールド
     _galleryImages = Array.isArray(item.gallery) ? item.gallery.slice() : [];
     _galleryNoDl   = Array.isArray(item.gallery_nodl) ? item.gallery_nodl.slice() : [];
@@ -1889,6 +1901,7 @@
       var iwv = iwEl2 ? parseInt(iwEl2.value, 10) : 100;
       if (!(iwv >= 20 && iwv <= 100)) iwv = 100;
       item.img_pc_width = iwv;
+      item.as_link = !!(document.getElementById('cd-file-aslink') || {}).checked;
     }
     var chipsEl = document.getElementById('content-chips-' + siteId);
     if (chipsEl) chipsEl.innerHTML = renderContentChips(siteId);
@@ -1921,17 +1934,32 @@
       if (lbl)  lbl.textContent  = 'PDFファイルを選択';
       if (hint) hint.textContent = '（pdf　最大10MB）';
       if (inp)  inp.accept = '.pdf';
-      if (pcwWrap) pcwWrap.style.display = '';
-      if (imgWrap) imgWrap.style.display = 'none';
     } else {
       /* image / file(旧) */
       if (lbl)  lbl.textContent  = '画像ファイルを選択';
       if (hint) hint.textContent = '（jpg / png / gif　最大10MB）';
       if (inp)  inp.accept = '.jpg,.jpeg,.png,.gif';
+    }
+    applyFileWidthVis(type);
+  }
+
+  /* 画像・PDFの「幅スライダー／リンクボタン切替」を、種類と as_link の状態に合わせて出し分ける */
+  function applyFileWidthVis(typeArg){
+    var type   = typeArg || (document.querySelector('input[name="cd-type"]:checked') || {}).value || '';
+    var asLink = !!(document.getElementById('cd-file-aslink') || {}).checked;
+    var pcwWrap = document.getElementById('cd-pdf-pcwidth-wrap');
+    var imgWrap = document.getElementById('cd-img-pcwidth-wrap');
+    var alWrap  = document.getElementById('cd-file-aslink-wrap');
+    if (alWrap) alWrap.style.display = (type === 'image' || type === 'pdf') ? '' : 'none';
+    if (asLink) {
       if (pcwWrap) pcwWrap.style.display = 'none';
+      if (imgWrap) imgWrap.style.display = 'none';
+    } else {
+      if (pcwWrap) pcwWrap.style.display = (type === 'pdf') ? '' : 'none';
       if (imgWrap) imgWrap.style.display = (type === 'image' || type === 'file') ? '' : 'none';
     }
   }
+  window.applyFileWidthVis = applyFileWidthVis;
 
   /* ===== サブコンテンツ時の種類ラジオ並び替え・Sheet非表示 ===== */
   function updateTypeLayout() {

@@ -649,16 +649,19 @@
 
       /* メインタイトル・ボディ */
       var m = group.main;
-      if (m.type === 'link' && m.link_url) {
+      /* リンク、またはPDF/画像で「リンクボタン表示」を選んだもの → タイトルをボタンに */
+      var mAsLink = (m.type === 'image' || m.type === 'pdf') && m.as_link === true && m.file_url;
+      var mHref   = (m.type === 'link') ? m.link_url : (mAsLink ? m.file_url : '');
+      if (mHref) {
         /* リンクタイプ: タイトルをボタンとして表示 */
         var lBtn = document.createElement('a');
-        lBtn.href      = /^\s*(javascript|data|vbscript):/i.test(m.link_url) ? '#' : m.link_url;
+        lBtn.href      = /^\s*(javascript|data|vbscript):/i.test(mHref) ? '#' : mHref;
         lBtn.target    = '_blank';
         lBtn.rel       = 'noopener';
         lBtn.className = 'link-title-btn';
         lBtn.textContent = '🔗 ' + (m.title || 'リンク') + '　→';
         block.appendChild(lBtn);
-        if (m.link_label) {
+        if (m.type === 'link' && m.link_label) {
           var lDesc = document.createElement('p');
           lDesc.className   = 'link-btn-sub';
           lDesc.textContent = m.link_label;
@@ -687,16 +690,18 @@
         group.subs.forEach(function(sub) {
           var subItem = document.createElement('div');
           subItem.className = 'sub-content-item';
-          if (sub.type === 'link' && sub.link_url) {
+          var subAsLink = (sub.type === 'image' || sub.type === 'pdf') && sub.as_link === true && sub.file_url;
+          var subHref   = (sub.type === 'link') ? sub.link_url : (subAsLink ? sub.file_url : '');
+          if (subHref) {
             /* サブリンクタイプ: タイトルをボタンとして表示 */
             var slBtn = document.createElement('a');
-            slBtn.href      = /^\s*(javascript|data|vbscript):/i.test(sub.link_url) ? '#' : sub.link_url;
+            slBtn.href      = /^\s*(javascript|data|vbscript):/i.test(subHref) ? '#' : subHref;
             slBtn.target    = '_blank';
             slBtn.rel       = 'noopener';
             slBtn.className = 'link-sub-title-btn';
             slBtn.textContent = '🔗 ' + (sub.title || 'リンク') + '　→';
             subItem.appendChild(slBtn);
-            if (sub.link_label) {
+            if (sub.type === 'link' && sub.link_label) {
               var slDesc = document.createElement('p');
               slDesc.className   = 'link-btn-sub';
               slDesc.style.marginTop = '6px';

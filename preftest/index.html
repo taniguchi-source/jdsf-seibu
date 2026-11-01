@@ -1144,9 +1144,11 @@
     groups.forEach(function(group) {
       var block = document.createElement('div'); block.className = 'content-block';
       var m = group.main;
-      if (m.type === 'link' && m.link_url) {
-        var lBtn = document.createElement('a'); lBtn.href = m.link_url; lBtn.target = '_blank'; lBtn.rel = 'noopener'; lBtn.className = 'link-title-btn'; lBtn.textContent = '🔗 ' + (m.title || 'リンク') + '　→'; block.appendChild(lBtn);
-        if (m.link_label) { var lDesc = document.createElement('p'); lDesc.className = 'link-btn-sub'; lDesc.textContent = m.link_label; block.appendChild(lDesc); }
+      var mAsLink = (m.type === 'image' || m.type === 'pdf') && m.as_link === true && m.file_url;
+      var mHref   = (m.type === 'link') ? m.link_url : (mAsLink ? m.file_url : '');
+      if (mHref) {
+        var lBtn = document.createElement('a'); lBtn.href = /^\s*(javascript|data|vbscript):/i.test(mHref) ? '#' : mHref; lBtn.target = '_blank'; lBtn.rel = 'noopener'; lBtn.className = 'link-title-btn'; lBtn.textContent = '🔗 ' + (m.title || 'リンク') + '　→'; block.appendChild(lBtn);
+        if (m.type === 'link' && m.link_label) { var lDesc = document.createElement('p'); lDesc.className = 'link-btn-sub'; lDesc.textContent = m.link_label; block.appendChild(lDesc); }
         var lNote = document.createElement('p'); lNote.className = 'link-btn-sub'; lNote.textContent = '新しいタブで開きます'; block.appendChild(lNote);
       } else {
         var titleIcon = m.type === 'sheet' ? '📊 ' : ((m.type === 'file' || m.type === 'image') ? '🖼️ ' : (m.type === 'gallery' ? '🏞 ' : (m.type === 'pdf' ? '📄 ' : (m.type === 'link' ? '🔗 ' : '📝 '))));
@@ -1158,9 +1160,11 @@
         var subList = document.createElement('div'); subList.className = 'sub-content-list';
         group.subs.forEach(function(sub) {
           var subItem = document.createElement('div'); subItem.className = 'sub-content-item';
-          if (sub.type === 'link' && sub.link_url) {
-            var slBtn = document.createElement('a'); slBtn.href = sub.link_url; slBtn.target = '_blank'; slBtn.rel = 'noopener'; slBtn.className = 'link-sub-title-btn'; slBtn.textContent = '🔗 ' + (sub.title || 'リンク') + '　→'; subItem.appendChild(slBtn);
-            if (sub.link_label) { var slDesc = document.createElement('p'); slDesc.className = 'link-btn-sub'; slDesc.style.marginTop = '6px'; slDesc.textContent = sub.link_label; subItem.appendChild(slDesc); }
+          var subAsLink = (sub.type === 'image' || sub.type === 'pdf') && sub.as_link === true && sub.file_url;
+          var subHref   = (sub.type === 'link') ? sub.link_url : (subAsLink ? sub.file_url : '');
+          if (subHref) {
+            var slBtn = document.createElement('a'); slBtn.href = /^\s*(javascript|data|vbscript):/i.test(subHref) ? '#' : subHref; slBtn.target = '_blank'; slBtn.rel = 'noopener'; slBtn.className = 'link-sub-title-btn'; slBtn.textContent = '🔗 ' + (sub.title || 'リンク') + '　→'; subItem.appendChild(slBtn);
+            if (sub.type === 'link' && sub.link_label) { var slDesc = document.createElement('p'); slDesc.className = 'link-btn-sub'; slDesc.style.marginTop = '6px'; slDesc.textContent = sub.link_label; subItem.appendChild(slDesc); }
             var slNote = document.createElement('p'); slNote.className = 'link-btn-sub'; slNote.textContent = '新しいタブで開きます'; subItem.appendChild(slNote);
           } else {
             var subIcon = sub.type === 'sheet' ? '📊 ' : ((sub.type === 'file' || sub.type === 'image') ? '🖼️ ' : (sub.type === 'gallery' ? '🏞 ' : (sub.type === 'pdf' ? '📄 ' : (sub.type === 'link' ? '🔗 ' : '📝 '))));

@@ -83,6 +83,7 @@ foreach ($items as $item) {
         'sheet_html'   => $sheet_html,
         'sheet_format' => $sheet_format,
         'file_url'   => mb_substr(trim((string)($item['file_url']   ?? '')), 0, 500),
+        'as_link'    => !empty($item['as_link']),   // 画像・PDFを「リンクボタン」として表示
         'pdf_pc_width' => $pdf_pc_width,
         'img_pc_width' => $img_pc_width,
         'link_url'   => mb_substr(trim((string)($item['link_url']   ?? '')), 0, 500),
