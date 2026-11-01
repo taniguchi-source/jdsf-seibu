@@ -494,19 +494,6 @@
           </div>
           <!-- プレビュー -->
           <div id="cd-file-preview"></div>
-          <!-- 画像・PDF専用: リンクボタンとして表示するか -->
-          <div id="cd-file-aslink-wrap" style="display:none;background:#F0F7FF;border:1.5px solid #BFDBFE;border-radius:8px;padding:10px 14px;">
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.875rem;font-weight:600;color:var(--text-dark);">
-              <input type="checkbox" id="cd-file-aslink" onchange="applyFileWidthVis()" style="cursor:pointer;accent-color:var(--primary);">
-              🔗 「リンクボタン」として表示する（クリックで新しいタブで開く）
-            </label>
-            <p style="font-size:.75rem;color:var(--text-light);margin:6px 0 0 24px;line-height:1.6;">ページ内に埋め込まず、タイトルのボタンだけを置きます（シラバス・エントリー等と同じ見た目）。ボタンの文字はタイトルを使います。</p>
-            <div id="cd-file-aslink-url-wrap" style="display:none;margin-top:10px;">
-              <label class="form-label" style="font-size:.8rem;">リンク先 <span style="font-weight:400;color:var(--text-light);font-size:.72rem;">（上でファイルをアップロードするか、ここに外部のPDF/画像URLを入れてください）</span></label>
-              <input type="url" id="cd-file-aslink-url" placeholder="https://…（アップロードした場合は空でOK）"
-                style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.875rem;font-family:inherit;box-sizing:border-box;">
-            </div>
-          </div>
           <!-- PDF専用: PCで表示する幅（%）。スマホは常に全幅 -->
           <div id="cd-pdf-pcwidth-wrap" style="display:none;">
             <label class="form-label">PCで表示する幅（%）
@@ -575,6 +562,19 @@
           <!-- 後方互換用（現在は未使用） -->
           <input type="hidden" id="cd-sheet-name">
           <div id="cd-sheet-preview"></div>
+        </div>
+      </div>
+      <!-- 共通: リンクボタンとして表示（画像・PDF・テキスト・ギャラリーで使える） -->
+      <div id="cd-file-aslink-wrap" style="display:none;background:#F0F7FF;border:1.5px solid #BFDBFE;border-radius:8px;padding:10px 14px;margin-top:4px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.875rem;font-weight:600;color:var(--text-dark);">
+          <input type="checkbox" id="cd-file-aslink" onchange="applyFileWidthVis()" style="cursor:pointer;accent-color:var(--primary);">
+          🔗 「リンクボタン」として表示する（クリックで新しいタブで開く）
+        </label>
+        <p style="font-size:.75rem;color:var(--text-light);margin:6px 0 0 24px;line-height:1.6;">ページ内の内容の代わりに、タイトルのボタンだけを置きます（シラバス・エントリー等と同じ見た目）。ボタンの文字はタイトルを使います。</p>
+        <div id="cd-file-aslink-url-wrap" style="display:none;margin-top:10px;">
+          <label class="form-label" style="font-size:.8rem;">リンク先URL <span style="font-weight:400;color:var(--text-light);font-size:.72rem;">（画像・PDFは上のアップロードでもOK。テキスト・ギャラリーはここにURLを入れてください）</span></label>
+          <input type="url" id="cd-file-aslink-url" placeholder="https://…"
+            style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.875rem;font-family:inherit;box-sizing:border-box;">
         </div>
       </div>
       <!-- メッセージ -->
@@ -1800,7 +1800,7 @@
     var alEl = document.getElementById('cd-file-aslink');
     if (alEl) alEl.checked = (item.as_link === true);
     var alUrlEl = document.getElementById('cd-file-aslink-url');
-    if (alUrlEl) alUrlEl.value = ((item.type === 'image' || item.type === 'pdf') ? (item.link_url || '') : '');
+    if (alUrlEl) alUrlEl.value = ((item.type === 'image' || item.type === 'pdf' || item.type === 'text' || item.type === 'gallery') ? (item.link_url || '') : '');
     applyFileWidthVis();
     // ギャラリーフィールド
     _galleryImages = Array.isArray(item.gallery) ? item.gallery.slice() : [];
@@ -1891,8 +1891,8 @@
       item.sheet_name   = sheetName;
       item.sheet_range  = sheetRange;
       item.file_url   = fileUrl;
-      /* 画像・PDFを「リンクボタン」表示にしたときは、アップロードの代わりに入れたURLを link_url に保存 */
-      if (type === 'image' || type === 'pdf') {
+      /* 画像・PDF・テキスト・ギャラリーを「リンクボタン」表示にしたときは、入れたURLを link_url に保存 */
+      if (type === 'image' || type === 'pdf' || type === 'text' || type === 'gallery') {
         var _aslChecked = !!(document.getElementById('cd-file-aslink') || {}).checked;
         linkUrl = _aslChecked ? ((document.getElementById('cd-file-aslink-url') || {value:''}).value || '').trim() : '';
       }
@@ -1963,8 +1963,10 @@
     var imgWrap = document.getElementById('cd-img-pcwidth-wrap');
     var alWrap  = document.getElementById('cd-file-aslink-wrap');
     var alUrlWrap = document.getElementById('cd-file-aslink-url-wrap');
-    if (alWrap) alWrap.style.display = (type === 'image' || type === 'pdf') ? '' : 'none';
-    if (alUrlWrap) alUrlWrap.style.display = (asLink && (type === 'image' || type === 'pdf')) ? '' : 'none';
+    /* リンクボタン表示は 画像・PDF・テキスト・ギャラリー で選べる */
+    var canAsLink = (type === 'image' || type === 'pdf' || type === 'text' || type === 'gallery');
+    if (alWrap) alWrap.style.display = canAsLink ? '' : 'none';
+    if (alUrlWrap) alUrlWrap.style.display = (asLink && canAsLink) ? '' : 'none';
     if (asLink) {
       if (pcwWrap) pcwWrap.style.display = 'none';
       if (imgWrap) imgWrap.style.display = 'none';

@@ -1144,7 +1144,7 @@
     groups.forEach(function(group) {
       var block = document.createElement('div'); block.className = 'content-block';
       var m = group.main;
-      var mAsLink = (m.type === 'image' || m.type === 'pdf') && m.as_link === true && (m.file_url || m.link_url);
+      var mAsLink = (m.type === 'image' || m.type === 'pdf' || m.type === 'text' || m.type === 'gallery') && m.as_link === true && (m.file_url || m.link_url);
       var mHref   = (m.type === 'link') ? m.link_url : (mAsLink ? (m.file_url || m.link_url) : '');
       if (mHref) {
         var lBtn = document.createElement('a'); lBtn.href = /^\s*(javascript|data|vbscript):/i.test(mHref) ? '#' : mHref; lBtn.target = '_blank'; lBtn.rel = 'noopener'; lBtn.className = 'link-title-btn'; lBtn.textContent = '🔗 ' + (m.title || 'リンク') + '　→'; block.appendChild(lBtn);
@@ -1160,7 +1160,7 @@
         var subList = document.createElement('div'); subList.className = 'sub-content-list';
         group.subs.forEach(function(sub) {
           var subItem = document.createElement('div'); subItem.className = 'sub-content-item';
-          var subAsLink = (sub.type === 'image' || sub.type === 'pdf') && sub.as_link === true && (sub.file_url || sub.link_url);
+          var subAsLink = (sub.type === 'image' || sub.type === 'pdf' || sub.type === 'text' || sub.type === 'gallery') && sub.as_link === true && (sub.file_url || sub.link_url);
           var subHref   = (sub.type === 'link') ? sub.link_url : (subAsLink ? (sub.file_url || sub.link_url) : '');
           if (subHref) {
             var slBtn = document.createElement('a'); slBtn.href = /^\s*(javascript|data|vbscript):/i.test(subHref) ? '#' : subHref; slBtn.target = '_blank'; slBtn.rel = 'noopener'; slBtn.className = 'link-sub-title-btn'; slBtn.textContent = '🔗 ' + (sub.title || 'リンク') + '　→'; subItem.appendChild(slBtn);

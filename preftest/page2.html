@@ -649,7 +649,7 @@
       /* メインタイトル・ボディ */
       var m = group.main;
       /* リンク、またはPDF/画像で「リンクボタン表示」を選んだもの → タイトルをボタンに */
-      var mAsLink = (m.type === 'image' || m.type === 'pdf') && m.as_link === true && (m.file_url || m.link_url);
+      var mAsLink = (m.type === 'image' || m.type === 'pdf' || m.type === 'text' || m.type === 'gallery') && m.as_link === true && (m.file_url || m.link_url);
       var mHref   = (m.type === 'link') ? m.link_url : (mAsLink ? (m.file_url || m.link_url) : '');
       if (mHref) {
         /* リンクタイプ: タイトルをボタンとして表示 */
@@ -689,7 +689,7 @@
         group.subs.forEach(function(sub) {
           var subItem = document.createElement('div');
           subItem.className = 'sub-content-item';
-          var subAsLink = (sub.type === 'image' || sub.type === 'pdf') && sub.as_link === true && (sub.file_url || sub.link_url);
+          var subAsLink = (sub.type === 'image' || sub.type === 'pdf' || sub.type === 'text' || sub.type === 'gallery') && sub.as_link === true && (sub.file_url || sub.link_url);
           var subHref   = (sub.type === 'link') ? sub.link_url : (subAsLink ? (sub.file_url || sub.link_url) : '');
           if (subHref) {
             /* サブリンクタイプ: タイトルをボタンとして表示 */
