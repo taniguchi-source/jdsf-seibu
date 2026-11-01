@@ -468,7 +468,7 @@
           if (!dp) return null;
           var dl = new Date(+dp[1], +dp[2] - 1, +dp[3]); dl.setHours(0, 0, 0, 0);
           var days = Math.round((dl.getTime() - today.getTime()) / 86400000);
-          if (days < 0 || days > 3) return null;                         /* 締切まで0〜3日のみ */
+          if (days < 0 || days > 7) return null;                         /* 締切まで0〜7日（1週間前）のみ */
           var compDate = '';
           if (c.date_iso) { var di = c.date_iso.split('-'); compDate = (+di[1]) + '月' + (+di[2]) + '日'; }
           else if (c.date) { compDate = c.date; }
