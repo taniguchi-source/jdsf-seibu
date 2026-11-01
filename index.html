@@ -263,6 +263,14 @@
   </div>
 </section>
 
+<!-- ===== エントリー締め切り間近（締切3日前〜当日。該当なしは非表示） ===== -->
+<section id="entry-deadline-alerts" class="section" style="display:none;padding-top:20px;padding-bottom:20px;background:#fff7ed;border-top:1px solid #fed7aa;border-bottom:1px solid #fed7aa;">
+  <div class="container">
+    <h2 style="font-size:1.2rem;font-weight:800;color:#c2410c;border-left:4px solid #ea580c;padding-left:12px;margin:0 0 14px;line-height:1.3;">⏰ エントリー締め切り間近</h2>
+    <div id="entry-deadline-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+  </div>
+</section>
+
 <!-- ===== お知らせ ===== -->
 <section class="section" style="padding-top:24px;padding-bottom:24px;background:#f0f4f8;border-top:1px solid #d0d9e4;border-bottom:1px solid #d0d9e4;">
   <div class="container">
@@ -443,6 +451,46 @@
       var from = new Date(today);
       from.setDate(from.getDate() - 7);       /* 1週間前から */
       var fromISO = from.toISOString().slice(0, 10);
+
+      /* ===== エントリー締め切り間近のお知らせ（締切まで0〜3日。該当なしは非表示） ===== */
+      (function () {
+        var alertEl = document.getElementById('entry-deadline-alerts');
+        var listEl  = document.getElementById('entry-deadline-list');
+        if (!alertEl || !listEl) return;
+        var _e = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+        var near = (data.competitions || []).map(function (c) {
+          var nm = c.name || '';
+          if (!c.entry_deadline) return null;
+          if (nm.indexOf('中止') !== -1 || nm.indexOf('延期') !== -1 || nm.indexOf('お詫び') !== -1) return null;
+          if (nm.slice(0, 10).indexOf('PD') !== -1) return null;         /* PDは別枠 */
+          if (nm.indexOf('奈良県ダンス連盟') !== -1) return null;
+          var dp = c.entry_deadline.match(/(\d{4})年(\d+)月(\d+)日/);
+          if (!dp) return null;
+          var dl = new Date(+dp[1], +dp[2] - 1, +dp[3]); dl.setHours(0, 0, 0, 0);
+          var days = Math.round((dl.getTime() - today.getTime()) / 86400000);
+          if (days < 0 || days > 3) return null;                         /* 締切まで0〜3日のみ */
+          var compDate = '';
+          if (c.date_iso) { var di = c.date_iso.split('-'); compDate = (+di[1]) + '月' + (+di[2]) + '日'; }
+          else if (c.date) { compDate = c.date; }
+          return { c: c, days: days, dlShort: (+dp[2]) + '月' + (+dp[3]) + '日', compDate: compDate };
+        }).filter(Boolean).sort(function (a, b) { return a.days - b.days; });
+
+        if (!near.length) { alertEl.style.display = 'none'; return; }
+        listEl.innerHTML = near.map(function (a) {
+          var badge = (a.days === 0) ? '本日締切' : ('あと' + a.days + '日');
+          var tail  = (a.days === 0) ? '本日が締め切りです。' : ('あと' + a.days + '日となりました。');
+          var entryBtn = a.c.entry_url
+            ? '<a href="' + _e(a.c.entry_url) + '" target="_blank" rel="noopener" style="flex-shrink:0;display:inline-flex;align-items:center;padding:7px 16px;background:#ea580c;color:#fff;border-radius:6px;font-size:.8125rem;font-weight:700;text-decoration:none;white-space:nowrap;">エントリー →</a>'
+            : '';
+          return '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#fff;border:1px solid #fed7aa;border-left:4px solid #ea580c;border-radius:8px;padding:12px 16px;">'
+            + '<span style="flex-shrink:0;font-size:.8rem;font-weight:800;color:#fff;background:#ea580c;border-radius:100px;padding:4px 13px;">' + badge + '</span>'
+            + '<span style="flex:1;min-width:200px;font-size:.95rem;color:var(--text-dark);line-height:1.6;">'
+            + (a.compDate ? '<b>' + _e(a.compDate) + '開催</b>の' : '') + '「' + _e(a.c.name) + '」について、<b>エントリー締め切り（' + _e(a.dlShort) + '）</b>まで' + tail
+            + '</span>' + entryBtn
+            + '</div>';
+        }).join('');
+        alertEl.style.display = '';
+      })();
 
       var comps = (data.competitions || []).filter(function (c) {
         /* 1週間前より過去は除外 */
