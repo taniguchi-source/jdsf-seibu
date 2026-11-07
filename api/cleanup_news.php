@@ -2,7 +2,7 @@
 /**
  * 公開お知らせ 自動削除（CLI専用）
  *   - always_show === true（常に表示）は対象外
- *   - 実施日（event_date）あり → その日から7日を過ぎたら削除
+ *   - 実施日（event_date）あり → その日から3日を過ぎたら削除
  *   - 実施日なし（空欄）     → 公開日（date）から90日を過ぎたら削除
  *   - どちらの日付も不正なものは対象外（日齢を計算できないため残す）
  *   - 期限切れは data/news_archive.json へ退避（＝役員ページであとで閲覧可）。
@@ -24,7 +24,7 @@ if (PHP_SAPI !== 'cli') {
 date_default_timezone_set('Asia/Tokyo');
 require __DIR__ . '/_news_util.php';
 
-$GRACE_DAYS    = 7;    // 実施日ありのお知らせ：実施日から何日後に消すか
+$GRACE_DAYS    = 3;    // 実施日ありのお知らせ：実施日から何日後に消すか
 $GRACE_NO_EVENT = 90;  // 実施日なしのお知らせ：公開日から何日後に消すか
 $data_file  = dirname(__DIR__) . '/data/news.json';
 
