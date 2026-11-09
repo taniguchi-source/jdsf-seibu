@@ -644,9 +644,9 @@
   /* ===== 認証（サーバー側セッション）=====
      パスワードは api/login.php でサーバー側照合（ブラウザに渡さない）。
      書き込みAPIはセッションCookie＋CSRFトークンで保護。
-     TOKEN は公開の読み取りproxy（fetch_sheet 等）用にのみ残置。 */
+     読み取りproxy（fetch_sheet 等）の固定トークンは廃止。取得先を
+     _sheet_guard.php で自サイト掲載分に限定している。 */
   var ROLE  = 'admin';
-  var TOKEN = 'preftest2026';
   window.__CSRF = '';
 
   /* すべての api/ への POST に CSRFヘッダを自動付与（各fetchを個別に直さない） */
@@ -738,7 +738,6 @@
     var name   = nameEl ? nameEl.value.trim() : '';
     var msgEl  = document.getElementById('top-page-msg');
     var fd = new FormData();
-    fd.append('token', TOKEN);
     fd.append('name', name);
     fetch('api/save_toppage.php', {method:'POST', body:fd})
       .then(function(r){
@@ -769,7 +768,7 @@
   function saveNewsCount() {
     var sel=document.getElementById('news-count-select'); if(!sel) return;
     var n = sel.value==='6' ? '6' : '3';
-    var fd=new FormData(); fd.append('token',TOKEN); fd.append('news_count', n);
+    var fd=new FormData(); fd.append('news_count', n);
     fetch('api/save_hero.php',{method:'POST',body:fd})
       .then(function(r){ return r.json(); })
       .then(function(res){ if(res && res.ok) toast('✅ トップ掲載件数を'+n+'件にしました'); else toast('⚠ 保存に失敗しました'); })
@@ -792,7 +791,7 @@
   }
   function saveContactHero() {
     var msgEl=document.getElementById('contact-hero-msg');
-    var fd=new FormData(); fd.append('token',TOKEN);
+    var fd=new FormData(); 
     fd.append('label',(document.getElementById('contact-hero-label')||{value:''}).value.trim());
     fd.append('title',(document.getElementById('contact-hero-title')||{value:''}).value.trim());
     fd.append('desc', (document.getElementById('contact-hero-desc') ||{value:''}).value.trim());
@@ -872,7 +871,7 @@
   /* ===== お知らせの並べ替え（▲▼ ＋ ドラッグ）＝順序を即保存 ===== */
   function saveNewsOrder() {
     var ids = _newsList.map(function(n){ return n.id; });
-    var fd = new FormData(); fd.append('token', TOKEN); fd.append('ids', JSON.stringify(ids));
+    var fd = new FormData(); fd.append('ids', JSON.stringify(ids));
     fetch('api/reorder_news.php', {method:'POST', body:fd})
       .then(function(r){ return r.json(); })
       .then(function(res){ if(!res || !res.ok){ toast('⚠ 並べ替えの保存に失敗しました'); } })
@@ -937,7 +936,7 @@
   function deleteNews(id) {
     if (!confirm('このお知らせを削除しますか？')) return;
     var fd = new FormData();
-    fd.append('token', TOKEN); fd.append('id', id);
+    fd.append('id', id);
     fetch('api/delete_news.php', {method:'POST',body:fd})
       .then(function(r){return r.json();})
       .then(function(res){ if(res.ok) loadNews(); else alert(res.error||'削除に失敗しました。'); });
@@ -974,7 +973,7 @@
     if (msgEl) msgEl.style.display='none';
 
     var fd = new FormData();
-    fd.append('token',TOKEN); fd.append('category',category); fd.append('title',title);
+    fd.append('category',category); fd.append('title',title);
     fd.append('detail',detail); fd.append('url',url); fd.append('event_date',eventDate);
     fd.append('always_show', alwaysShow?'1':'');
     fd.append('show_event_date', showEvent?'1':'');
@@ -1037,7 +1036,7 @@
     if (msgEl) msgEl.style.display='none';
 
     var fd=new FormData();
-    fd.append('token',TOKEN);fd.append('id',id);fd.append('category',category);
+    fd.append('id',id);fd.append('category',category);
     fd.append('title',title);fd.append('detail',detail);fd.append('url',url);fd.append('event_date',eventDate);
     fd.append('always_show', alwaysShow?'1':'');
     fd.append('show_event_date', showEvent?'1':'');
@@ -1256,7 +1255,7 @@
   /* ===== ページ（ナビ）の並べ替え（▲▼ ＋ ドラッグ）＝順序を即保存 ===== */
   function saveNavOrder() {
     var ids = _navLinks.map(function(l){ return l.id; });
-    var fd = new FormData(); fd.append('token', TOKEN); fd.append('ids', JSON.stringify(ids));
+    var fd = new FormData(); fd.append('ids', JSON.stringify(ids));
     fetch('api/reorder_nav.php', {method:'POST', body:fd})
       .then(function(r){ return r.json(); })
       .then(function(res){ if(!res || !res.ok){ toast('⚠ ページの並べ替え保存に失敗しました'); } })
@@ -1366,7 +1365,7 @@
     var heroTitle = (document.getElementById('hero-title-' + n) || {value:''}).value.trim();
     var heroDesc  = (document.getElementById('hero-desc-'  + n) || {value:''}).value.trim();
     var fd = new FormData();
-    fd.append('token', TOKEN); fd.append('slot', n);
+    fd.append('slot', n);
     fd.append('enabled', enabled ? '1' : ''); fd.append('name', name); fd.append('url', url);
     fd.append('hero_label', heroLabel); fd.append('hero_title', heroTitle); fd.append('hero_desc', heroDesc);
     fetch('api/save_nav.php', {method:'POST', body:fd})
@@ -1501,9 +1500,9 @@
     delete _contentData[String(n)];
     renderNavCards();
     renderAdminHeaderNav();
-    var fd = new FormData(); fd.append('token', TOKEN); fd.append('slot', n); fd.append('action', 'delete');
+    var fd = new FormData(); fd.append('slot', n); fd.append('action', 'delete');
     fetch('api/save_nav.php', { method:'POST', body:fd }).then(function(r){ return r.json(); }).catch(function(){});
-    var fd2 = new FormData(); fd2.append('token', TOKEN); fd2.append('site_id', String(n)); fd2.append('items', '[]');
+    var fd2 = new FormData(); fd2.append('site_id', String(n)); fd2.append('items', '[]');
     fetch('api/save_contents.php', { method:'POST', body:fd2 }).catch(function(){});
     toast('🗑 サイト' + n + ' を削除しました');
   }
@@ -1609,7 +1608,6 @@
   function saveContentItems(siteId) {
     var k   = String(siteId);
     var fd  = new FormData();
-    fd.append('token',   TOKEN);
     fd.append('site_id', k);
     fd.append('items',   JSON.stringify(_contentData[k] || []));
     var msgEl = document.getElementById('content-msg-' + k);
@@ -2062,7 +2060,6 @@
     if (preview) preview.innerHTML = '<p style="color:var(--text-light);font-size:.82rem;margin:4px 0 0;">⏳ アップロード中...</p>';
     if (btn) { btn.disabled = true; btn.textContent = '送信中…'; }
     var fd = new FormData();
-    fd.append('token', TOKEN);
     fd.append('file',  input.files[0]);
     fetch('api/upload_file.php', { method:'POST', body:fd })
       .then(function(r) { return r.json(); })
@@ -2176,7 +2173,6 @@
         return;
       }
       var fd = new FormData();
-      fd.append('token', TOKEN);
       fd.append('file', toUpload[i]);
       fetch('api/upload_file.php', {method:'POST', body:fd})
         .then(function(r){ return r.json(); })
@@ -2235,7 +2231,6 @@
     if (!url) { showMsg('先にスプレッドシートURLを入力してください', false); return; }
     if (btn) { btn._o = btn.textContent; btn.disabled = true; btn.textContent = '取得中…'; }
     var fd = new FormData();
-    fd.append('token', TOKEN);
     fd.append('sheet_url', url);
     fetch('api/list_sheets.php', { method:'POST', body:fd })
       .then(function(r){ return r.json().catch(function(){ throw new Error('HTTP ' + r.status); }); })
@@ -2260,7 +2255,7 @@
   function refreshGeminiKeyStatus() {
     var st = document.getElementById('cd-ai-key-status');
     if (!st) return;
-    fetch('api/save_gemini_key.php?action=status&token=' + encodeURIComponent(TOKEN))
+    fetch('api/save_gemini_key.php?action=status')
       .then(function(r){ return r.json(); })
       .then(function(res){
         if (res && res.has)        { st.textContent = '（このサイト個別で設定済み）'; st.style.color = '#166534'; }
@@ -2276,7 +2271,7 @@
     function show(t, ok){ if(!msg) return; msg.style.display='block'; msg.textContent=t; msg.style.color = ok?'#166534':'#B91C1C'; }
     if (!key) { show('APIキーを入力してください', false); return; }
     if (btn) { btn.disabled = true; btn.textContent = '保存中…'; }
-    var fd = new FormData(); fd.append('token', TOKEN); fd.append('action', 'save'); fd.append('key', key);
+    var fd = new FormData(); fd.append('action', 'save'); fd.append('key', key);
     fetch('api/save_gemini_key.php', { method:'POST', body:fd })
       .then(function(r){ return r.json(); })
       .then(function(res){
@@ -2298,7 +2293,7 @@
     if (!url) { show('先にスプレッドシートURLを入力してください', false); return; }
     if (btn) { btn.disabled = true; btn._o = btn.textContent; btn.textContent = '✨ 整形中…'; }
     show('⏳ Geminiで整形しています…（数秒かかります）', true);
-    var fd = new FormData(); fd.append('token', TOKEN); fd.append('sheet_url', url); fd.append('sheet_name', name); fd.append('sheet_range', range); fd.append('extra', extra);
+    var fd = new FormData(); fd.append('sheet_url', url); fd.append('sheet_name', name); fd.append('sheet_range', range); fd.append('extra', extra);
     fetch('api/format_sheet_ai.php', { method:'POST', body:fd })
       .then(function(r){ return r.json(); })
       .then(function(res){
@@ -2354,7 +2349,6 @@
     if (!url) { showMsg('先にスプレッドシートURLを入力してください', false); return; }
     if (btn) { btn._o = btn.textContent; btn.disabled = true; btn.textContent = '読み込み中…'; }
     var fd = new FormData();
-    fd.append('token',       TOKEN);
     fd.append('sheet_url',   url);
     fd.append('sheet_name',  name);
     fd.append('sheet_range', '');   // 範囲ピッカーは常にシート全体を取得

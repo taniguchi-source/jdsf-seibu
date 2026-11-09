@@ -276,7 +276,6 @@
   'use strict';
 
   var SITE_ID = '5';
-  var TOKEN   = 'preftest2026';
 
   /* ===== ユーティリティ ===== */
   function escHtml(s) {
@@ -361,7 +360,7 @@
 
   /* ===== スプレッドシート取得 ===== */
   function fetchSheet(sheetUrl, sheetName, targetEl, sheetRange) {
-    function mkfd() { var fd = new FormData(); fd.append('token', TOKEN); fd.append('sheet_url', sheetUrl); fd.append('sheet_name', sheetName || ''); fd.append('sheet_range', sheetRange || ''); return fd; }
+    function mkfd() { var fd = new FormData(); fd.append('sheet_url', sheetUrl); fd.append('sheet_name', sheetName || ''); fd.append('sheet_range', sheetRange || ''); return fd; }
     /* まず書式付き(xlsx解析)で取得。失敗時はCSV表示にフォールバック */
     fetch('api/fetch_sheet_styled.php', { method:'POST', body:mkfd() })
       .then(function(r){ return r.json(); })

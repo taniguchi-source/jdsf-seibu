@@ -7,17 +7,16 @@
  */
 header('Content-Type: application/json; charset=utf-8');
 
-/* ===== 認証 ===== */
-$token = $_POST['token'] ?? '';
-if ($token !== 'preftest2026') {
-    http_response_code(403);
-    echo json_encode(['error' => 'Forbidden'], JSON_UNESCAPED_UNICODE);
-    exit;
-}
+/* ===== 入口 =====
+   以前はここで固定トークン 'preftest2026' を照合していた。しかし同じ値は公開ページの
+   JavaScript に平文で入っており（公開ページが表を描くためにこのAPIを呼ぶ）、秘密として
+   機能していなかった。認可は「誰が呼んだか」ではなく「どのシートを取りに行くか」で行う。
+   判定はシートIDが判明したあとの sheet_guard_require()。詳細は _sheet_guard.php の冒頭。 */
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     exit;
 }
+require __DIR__ . '/_sheet_guard.php';
 
 /* ===== パラメータ ===== */
 $sheet_url   = trim($_POST['sheet_url']   ?? '');
@@ -33,6 +32,9 @@ if (!preg_match('#/spreadsheets/d/([a-zA-Z0-9_-]+)#', $sheet_url, $m)) {
     exit;
 }
 $sheet_id = $m[1];
+
+/* このサイトが掲載しているシートのみ許可（未保存URLのプレビューはログイン必須）。 */
+sheet_guard_require($sheet_id);
 
 /* ===== xlsx ダウンロード ===== */
 $xlsx_url = 'https://docs.google.com/spreadsheets/d/' . $sheet_id . '/export?format=xlsx';

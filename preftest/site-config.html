@@ -476,7 +476,6 @@
 
   /* ===== サーバー側セッション認証（build ロール） ===== */
   var ROLE  = 'build';
-  var TOKEN = 'preftest2026';
   window.__CSRF = '';
   (function(){
     var _f = window.fetch;
@@ -643,7 +642,6 @@
       return;
     }
     var fd = new FormData();
-    fd.append('token', TOKEN);
     fd.append('name', name);
     fetch('api/save_sitename.php', {method:'POST', body:fd})
       .then(function(r){
@@ -799,7 +797,6 @@
     if (btn) { btn.disabled=true; btn.textContent='保存中…'; }
 
     var fd = new FormData();
-    fd.append('token', TOKEN);
     fd.append('theme_id', _selectedThemeId);
     fetch('api/save_theme.php', {method:'POST', body:fd})
       .then(function(r){ return r.json(); })
@@ -957,7 +954,7 @@
     var title   = titleEl ? titleEl.value.trim() : '';
     var desc    = descEl  ? descEl.value         : '';
     var fd = new FormData();
-    fd.append('token', TOKEN); fd.append('slide_num', n);
+    fd.append('slide_num', n);
     fd.append('title', title); fd.append('desc', desc);
     fetch('api/save_slide_text.php', {method:'POST', body:fd})
       .then(function(r){ return r.json(); })
@@ -1009,7 +1006,7 @@
     }
     showMsg('⏳ アップロード中…', true);
     var fd = new FormData();
-    fd.append('token', TOKEN); fd.append('slide_num', n); fd.append('image', file);
+    fd.append('slide_num', n); fd.append('image', file);
     fetch('api/upload_slide.php', {method:'POST', body:fd})
       .then(function(r){ return r.json(); })
       .then(function(res){
@@ -1022,7 +1019,7 @@
   function deleteSlide(n) {
     if (!confirm('スライド'+n+'の画像を削除して\nグラデーション表示に戻しますか？')) return;
     var fd = new FormData();
-    fd.append('token', TOKEN); fd.append('slide_num', n);
+    fd.append('slide_num', n);
     fetch('api/delete_slide.php', {method:'POST', body:fd})
       .then(function(r){ return r.json(); })
       .then(function(res){
@@ -1079,7 +1076,6 @@
   function saveHeroHeight() {
     var msgEl = document.getElementById('hero-height-msg');
     var fd = new FormData();
-    fd.append('token', TOKEN);
     fd.append('height', _heroHeight);
     fetch('api/save_hero.php', {method:'POST', body:fd})
       .then(function(r){
@@ -1144,7 +1140,6 @@
   function saveSns() {
     var msgEl = document.getElementById('sns-msg');
     var fd = new FormData();
-    fd.append('token', TOKEN);
     ['facebook','instagram','line','youtube'].forEach(function(k){
       var el = document.getElementById('h-' + k);
       fd.append(k, el ? el.value.trim() : '');
@@ -1186,7 +1181,6 @@
   function saveCarouselWidth() {
     var msgEl = document.getElementById('carousel-width-msg');
     var fd = new FormData();
-    fd.append('token', TOKEN);
     fd.append('width', _carouselWidth);
     fetch('api/save_hero.php', {method:'POST', body:fd})
       .then(function(r){
@@ -1211,7 +1205,6 @@
     var msgEl = document.getElementById('carousel-arrows-msg');
     var on = document.getElementById('carousel-arrows-toggle').checked;
     var fd = new FormData();
-    fd.append('token', TOKEN);
     fd.append('arrows', on ? '1' : '0');
     fetch('api/save_hero.php', {method:'POST', body:fd})
       .then(function(r){
@@ -1236,7 +1229,6 @@
     var msgEl = document.getElementById('hero-badge-msg');
     var on = document.getElementById('hero-badge-toggle').checked;
     var fd = new FormData();
-    fd.append('token', TOKEN);
     fd.append('badge_enabled', on ? '1' : '0');
     fetch('api/save_hero.php', {method:'POST', body:fd})
       .then(function(r){
@@ -1266,7 +1258,6 @@
     var scrollOn = document.getElementById('ticker-scroll-toggle').checked;
     var txt = document.getElementById('ticker-text-input').value;
     var fd = new FormData();
-    fd.append('token', TOKEN);
     fd.append('ticker_enabled', on ? '1' : '0');
     fd.append('ticker_scroll', scrollOn ? '1' : '0');
     fd.append('ticker_text', txt);
@@ -1358,7 +1349,6 @@
     var thumb = document.getElementById('ql-thumb-' + i);
     if (thumb) thumb.innerHTML = '<span style="font-size:.72rem;color:var(--primary);">⏳ アップロード中…</span>';
     var fd = new FormData();
-    fd.append('token', TOKEN);
     fd.append('file', file);
     fd.append('max_px', '480');   /* クイックリンクは小さく表示されるため長辺480pxへ縮小して保存 */
     fetch('api/upload_file.php', {method:'POST', body:fd})
@@ -1407,7 +1397,6 @@
     _quickLinks = links;
     var msgEl = document.getElementById('quicklinks-msg');
     var fd = new FormData();
-    fd.append('token', TOKEN);
     fd.append('links', JSON.stringify(links));
     fetch('api/save_quicklinks.php', {method:'POST', body:fd})
       .then(function(r){
@@ -1503,7 +1492,6 @@
     var thumb = document.getElementById('bn-thumb-' + i);
     if (thumb) thumb.innerHTML = '<span style="font-size:.72rem;color:var(--primary);">⏳ アップロード中…</span>';
     var fd = new FormData();
-    fd.append('token', TOKEN);
     fd.append('file', file);
     fetch('api/upload_file.php', {method:'POST', body:fd})
       .then(function(r){ return r.json(); })
@@ -1524,7 +1512,6 @@
     syncBannerInputs();
     var msgEl = document.getElementById('banner-msg');
     var fd = new FormData();
-    fd.append('token', TOKEN);
     fd.append('banners', JSON.stringify(_banners));
     fetch('api/save_home_banner.php', {method:'POST', body:fd})
       .then(function(r){
