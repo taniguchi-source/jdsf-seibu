@@ -128,7 +128,6 @@
 
 <script>
 'use strict';
-var TOKEN = 'jdsfseibu2026';
 
 /* ?id=1〜5。範囲外は 1 とみなす */
 var _m = /[?&]id=(\d+)/.exec(location.search);
@@ -268,7 +267,6 @@ function seFill(site){
 
 function seSaveSite(){
   var fd=new FormData();
-  fd.append('token',TOKEN);
   fd.append('site_id', String(SITE_ID));
   fd.append('label',        document.getElementById('se-label').value);
   fd.append('mode',         seCurrentMode());
@@ -533,7 +531,7 @@ function spcUpload(n,i,file){
 }
 
 function spcSave(n){
-  var fd=new FormData(); fd.append('token',TOKEN); fd.append('site_id',String(n)); fd.append('items',JSON.stringify(spcOf(n)));
+  var fd=new FormData(); fd.append('site_id',String(n)); fd.append('items',JSON.stringify(spcOf(n)));
   fetch('api/save_special_contents.php',{method:'POST',body:fd})
     .then(function(r){return r.json();})
     .then(function(res){ spSetMsg('sp-msg', res.ok?('✅ 特設サイト'+n+'の内容を保存しました'):('⚠ '+(res.error||'失敗')), !!res.ok); })

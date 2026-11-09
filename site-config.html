@@ -182,7 +182,6 @@
 <script>
 'use strict';
 /* ===== 設定 ===== */
-var TOKEN       = 'jdsfseibu2026';     // PHP API 共通トークン
 var SESSION_KEY = 'jdsfseibu_siteconfig_auth';
 var EXPIRE_DAYS = 3;
 // サイト構築のパスワードはスプレッドシート「HP用資料」N列（jdsf-seibu.com の行）で管理。
@@ -318,7 +317,7 @@ function qlAdd(){ if(_ql.length>=20){alert('上限20件です');return;} _ql.pus
 function qlDel(i){ _ql.splice(i,1); qlRender(); }
 function qlMove(i,d){ var j=i+d; if(j<0||j>=_ql.length) return; var t=_ql[i]; _ql[i]=_ql[j]; _ql[j]=t; qlRender(); }
 function qlSave(){
-  var fd=new FormData(); fd.append('token',TOKEN); fd.append('links',JSON.stringify(_ql));
+  var fd=new FormData(); fd.append('links',JSON.stringify(_ql));
   fetch('api/save_home_quicklinks.php',{method:'POST',body:fd})
     .then(function(r){return r.json();})
     .then(function(res){ setMsg('ql-msg', res.ok?'✅ 保存しました（トップに反映されます）':('⚠ '+(res.error||'失敗')), !!res.ok); })
@@ -341,7 +340,7 @@ function fillHero(h, raw){
   }
 }
 function heroSave(){
-  var fd=new FormData(); fd.append('token',TOKEN);
+  var fd=new FormData(); 
   fd.append('badge',document.getElementById('h-badge').value);
   fd.append('desc',document.getElementById('h-desc').value);
   fd.append('facebook',document.getElementById('h-facebook').value);
@@ -356,7 +355,7 @@ function heroSave(){
 function slUpload(n){
   var f=document.getElementById('sl-file-'+n).files[0];
   if(!f){ setMsg('sl-msg','⚠ 画像を選択してください',false); return; }
-  var fd=new FormData(); fd.append('token',TOKEN); fd.append('slide_num',n); fd.append('image',f);
+  var fd=new FormData(); fd.append('slide_num',n); fd.append('image',f);
   setMsg('sl-msg','⏳ アップロード中...',true);
   fetch('api/upload_home_slide.php',{method:'POST',body:fd})
     .then(function(r){return r.json();})
@@ -448,7 +447,7 @@ function bnDel(i){ if(!confirm('バナー'+(i+1)+'を削除します。よろし
 function bnUpload(i, file){
   var thumb=document.getElementById('bn-thumb-'+i);
   if(thumb) thumb.innerHTML='<span style="font-size:.72rem;color:var(--primary);">⏳ アップロード中...</span>';
-  var fd=new FormData(); fd.append('token',TOKEN); fd.append('image',file);
+  var fd=new FormData(); fd.append('image',file);
   fetch('api/upload_home_banner.php',{method:'POST',body:fd})
     .then(function(r){return r.json();})
     .then(function(res){
@@ -458,7 +457,7 @@ function bnUpload(i, file){
     .catch(function(){ bnRender(); setMsg('banner-msg','⚠ 通信エラー',false); });
 }
 function bannerSave(){
-  var fd=new FormData(); fd.append('token',TOKEN); fd.append('banners',JSON.stringify(_bn));
+  var fd=new FormData(); fd.append('banners',JSON.stringify(_bn));
   fetch('api/save_home_banner.php',{method:'POST',body:fd})
     .then(function(r){return r.json();})
     .then(function(res){

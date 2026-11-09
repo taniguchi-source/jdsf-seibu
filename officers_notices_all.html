@@ -198,7 +198,6 @@
   'use strict';
 
   var ROLE = 'admin';
-  var NOTICE_TOKEN = 'jdsfseibu2026';
   window.__CSRF = '';
   (function(){ var _f=window.fetch; window.fetch=function(url,opts){opts=opts||{};try{if(typeof url==='string'&&url.indexOf('api/')!==-1&&String(opts.method||'').toUpperCase()==='POST'){opts.headers=opts.headers||{};if(!('X-CSRF-Token' in opts.headers)&&!('x-csrf-token' in opts.headers))opts.headers['X-CSRF-Token']=window.__CSRF||'';}}catch(e){}return _f.call(this,url,opts);}; })();
 
@@ -365,7 +364,6 @@
   function deleteNotice(id) {
     if (!confirm('このお知らせを削除しますか？')) return;
     var fd = new FormData();
-    fd.append('token', NOTICE_TOKEN);
     fd.append('id',    id);
     fetch('api/delete_notice.php', { method: 'POST', body: fd })
       .then(function(r) { return r.json(); })

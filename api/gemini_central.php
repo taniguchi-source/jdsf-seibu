@@ -2,13 +2,12 @@
 /**
  * 【主サイト】Gemini AI整形の中央窓口（全府県共通キー方式）
  *  - キーは主サイトの data/gemini_key.php に1か所だけ保存。
- *  - action=save/status/delete : 主サイト管理トークンで操作（サイト構築ページから）。
+ *  - action=save/status/delete : 主サイトの役員ログイン（admin/build）のセッションで操作。
  *  - action=format             : 府県サイトからサーバー間で呼ばれ、整形HTMLを返す（共有シークレットで認可）。
  *  Gemini の責務は意味の整理（JSON）のみ。HTMLはサーバー側で生成し全値エスケープ。
  */
 header('Content-Type: application/json; charset=utf-8');
 
-$MAIN_TOKEN     = 'jdsfseibu2026';                 // 主サイトのクライアントからのキー管理用
 /* 府県⇔主サイトのサーバー間専用の秘密。値はリポジトリに置かず、デプロイ時に
    data/central_secret.php（PHP形式: return '...'; を返すファイル）として配置する。
    data/ は rsync 除外・gitignore 済みのため、Git にもブラウザにも出ない。
@@ -28,17 +27,20 @@ if ($action === 'ping') {
     exit;
 }
 
-/* ===== キー管理（主サイト管理トークン） ===== */
+/* ===== キー管理（役員ログインのセッション認証） =====
+   以前は固定トークン1個で通していたが、同じ値が公開リポジトリのクライアントJSにも
+   入っていたため、他のAPIと同じ api/_auth.php のセッション＋CSRF 方式に統一した。
+   _auth.php はセッションを開始するので、府県からのサーバー間呼び出し（ping/format）に
+   影響が出ないよう、読み込みはこの分岐の中だけにとどめる。 */
 if ($action === 'status' || $action === 'save' || $action === 'delete') {
-    $token = $_POST['token'] ?? $_GET['token'] ?? '';
-    if ($token !== $MAIN_TOKEN) { http_response_code(403); echo json_encode(['error' => 'Forbidden'], JSON_UNESCAPED_UNICODE); exit; }
+    require __DIR__ . '/_auth.php';
+    require_auth_any(['admin', 'build']);   // POST + 同一オリジン + CSRF + ログイン必須
 
     if ($action === 'status') {
         $has = false;
         if (is_file($keyfile)) { $k = @include $keyfile; $has = is_string($k) && $k !== ''; }
         echo json_encode(['ok' => true, 'has' => $has], JSON_UNESCAPED_UNICODE); exit;
     }
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); exit; }
     if ($action === 'delete') {
         if (is_file($keyfile)) @unlink($keyfile);
         echo json_encode(['ok' => true, 'has' => false], JSON_UNESCAPED_UNICODE); exit;

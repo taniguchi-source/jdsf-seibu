@@ -1240,7 +1240,6 @@
   }
   function setRefKyougi(id, checked) {
     var fd = new FormData();
-    fd.append('token', 'jdsfseibu2026');
     fd.append('action', 'set_kyougi');
     fd.append('id', id);
     if (checked) fd.append('show_kyougi', '1');
@@ -1308,7 +1307,6 @@
     btn.textContent = '登録中...';
 
     var fd = new FormData();
-    fd.append('token',        'jdsfseibu2026');
     fd.append('ref_password', password);
     fd.append('action',       'add');
     fd.append('date',         date);
@@ -1383,7 +1381,6 @@
     if (password === null) return; // キャンセル
     if (!password) { alert('パスワードを入力してください。'); return; }
     var fd = new FormData();
-    fd.append('token',        'jdsfseibu2026');
     fd.append('ref_password', password);
     fd.append('action',       'delete');
     fd.append('id',           id);
@@ -1417,7 +1414,6 @@
 
 
   // ===== 役員からのお知らせ（手動投稿） =====
-  var NOTICE_TOKEN = 'jdsfseibu2026';
 
   /* ===== お知らせ添付ファイルの管理（投稿フォーム=post／編集モーダル=edit） ===== */
   var _newsAttach = { post: [], edit: [], notice: [] };
@@ -1462,7 +1458,6 @@
       listEl.appendChild(busy);
     }
     var fd = new FormData();
-    fd.append('token', NOTICE_TOKEN);
     fd.append('file', file);
     fd.append('max_px', '1600');   // 写真は長辺1600pxへ縮小（PDFは対象外）
     fetch('api/upload_file.php', { method: 'POST', body: fd })
@@ -1643,7 +1638,6 @@
     if (msgEl) msgEl.style.display = 'none';
 
     var fd = new FormData();
-    fd.append('token',  NOTICE_TOKEN);
     fd.append('name',   name);
     fd.append('title',  title);
     fd.append('detail', detail);
@@ -1677,7 +1671,6 @@
   function deleteOfficerNotice(id) {
     if (!confirm('このお知らせを削除しますか？')) return;
     var fd = new FormData();
-    fd.append('token', NOTICE_TOKEN);
     fd.append('id',    id);
 
     fetch('api/delete_notice.php', { method: 'POST', body: fd })
@@ -1824,7 +1817,6 @@
     if (msgEl) msgEl.style.display = 'none';
 
     var fd = new FormData();
-    fd.append('token',       NOTICE_TOKEN);
     fd.append('author',      author);
     fd.append('category',    category);
     fd.append('title',       title);
@@ -1867,7 +1859,6 @@
   function deletePublicNews(id) {
     if (!confirm('このお知らせを削除しますか？\n（公開ページからも削除されます）')) return;
     var fd = new FormData();
-    fd.append('token', NOTICE_TOKEN);
     fd.append('id',    id);
     fetch('api/delete_news.php', { method: 'POST', body: fd })
       .then(function(r) { return r.json(); })
@@ -1880,7 +1871,6 @@
 
   function toggleNewsFlag(id, field, newVal) {
     var fd = new FormData();
-    fd.append('token', NOTICE_TOKEN);
     fd.append('id',    id);
     fd.append('field', field);
     fd.append('value', newVal ? '1' : '0');
@@ -1959,7 +1949,6 @@
     if (btn) { btn.disabled = true; btn.textContent = '保存中...'; }
 
     var fd = new FormData();
-    fd.append('token',      NOTICE_TOKEN);
     fd.append('id',         id);
     fd.append('author',     author);
     fd.append('category',   category);
@@ -2095,7 +2084,6 @@
 'use strict';
 /* 保存APIに付ける従来からの合言葉（実際の認可はセッション＋CSRFで行う）。
    このスクリプトは officers.html 本体のIIFEとは別なので、ここで定義しておく。 */
-var TOKEN = 'jdsfseibu2026';
 
 function spEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function spSetMsg(id, text, ok){
@@ -2290,7 +2278,7 @@ function spPreviewEmbed(n){
 }
 
 function spSaveSites(){
-  var fd=new FormData(); fd.append('token',TOKEN); fd.append('sites',JSON.stringify(_sp));
+  var fd=new FormData(); fd.append('sites',JSON.stringify(_sp));
   fetch('api/save_special_sites.php',{method:'POST',body:fd})
     .then(function(r){return r.json();})
     .then(function(res){ spSetMsg('sp-msg', res.ok?'✅ 保存しました（トップに反映されます）':('⚠ '+(res.error||'失敗')), !!res.ok); })
@@ -2302,7 +2290,7 @@ function spSavePassword(n){
   var el=document.getElementById('sp-pw-'+n);
   var pw=el ? el.value : '';
   if(pw.length<8){ spSetMsg('sp-msg','⚠ パスワードは8文字以上にしてください',false); return; }
-  var fd=new FormData(); fd.append('token',TOKEN); fd.append('site_id',String(n)); fd.append('password',pw);
+  var fd=new FormData(); fd.append('site_id',String(n)); fd.append('password',pw);
   fetch('api/save_special_password.php',{method:'POST',body:fd})
     .then(function(r){return r.json();})
     .then(function(res){
@@ -2317,7 +2305,7 @@ function spSavePassword(n){
 }
 function spClearPassword(n){
   if(!confirm('特設サイト'+n+'のパスワードを解除しますか？\n担当者は編集できなくなり、ページの編集ボタンも消えます。')) return;
-  var fd=new FormData(); fd.append('token',TOKEN); fd.append('site_id',String(n)); fd.append('action','clear');
+  var fd=new FormData(); fd.append('site_id',String(n)); fd.append('action','clear');
   fetch('api/save_special_password.php',{method:'POST',body:fd})
     .then(function(r){return r.json();})
     .then(function(res){
@@ -2545,7 +2533,7 @@ function spcUpload(n,i,file){
 }
 
 function spcSave(n){
-  var fd=new FormData(); fd.append('token',TOKEN); fd.append('site_id',String(n)); fd.append('items',JSON.stringify(spcOf(n)));
+  var fd=new FormData(); fd.append('site_id',String(n)); fd.append('items',JSON.stringify(spcOf(n)));
   fetch('api/save_special_contents.php',{method:'POST',body:fd})
     .then(function(r){return r.json();})
     .then(function(res){ spSetMsg('sp-msg', res.ok?('✅ 特設サイト'+n+'の内容を保存しました'):('⚠ '+(res.error||'失敗')), !!res.ok); })
@@ -2572,7 +2560,7 @@ function spDeleteSite(n){
   var it=null; for(var k=0;k<_sp.length;k++){ if(_sp[k].id===n){ it=_sp[k]; break; } }
   var label=(it && it.label) ? it.label : ('特設サイト'+n);
   if(!confirm('「'+label+'」を5枠から外してアーカイブに移します。\n\n設定とページ内容はアーカイブに保存され、あとで「復元」で空き枠へ戻せます。\nこの枠（特設サイト'+n+'）は空になります。\n\nよろしいですか？')) return;
-  var fd=new FormData(); fd.append('token',TOKEN); fd.append('site_id',String(n));
+  var fd=new FormData(); fd.append('site_id',String(n));
   fetch('api/delete_special_site.php',{method:'POST',body:fd})
     .then(function(r){return r.json();})
     .then(function(res){
@@ -2710,7 +2698,7 @@ function spRestoreArchive(archId, copy){
     ? 'この特設サイトを「特設サイト'+slot+'」にコピーして復元します。\n（アーカイブには原本が残ります。「表示」は復元後にオンにして保存してください）\n\nよろしいですか？'
     : 'この特設サイトを「特設サイト'+slot+'」に復元します。\n（アーカイブからは取り出します。「表示」は復元後にオンにして保存してください）\n\nよろしいですか？';
   if(!confirm(msg)) return;
-  var fd=new FormData(); fd.append('token',TOKEN); fd.append('archive_id',archId); fd.append('slot',String(slot));
+  var fd=new FormData(); fd.append('archive_id',archId); fd.append('slot',String(slot));
   if(copy) fd.append('keep','1');
   fetch('api/restore_special_site.php',{method:'POST',body:fd})
     .then(function(r){return r.json();})
