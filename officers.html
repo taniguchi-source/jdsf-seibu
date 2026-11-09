@@ -1093,7 +1093,8 @@
 
   // ===== 議事録・会議資料・スプレッドシートを読み込む =====
   function loadOfficersDocs() {
-    fetch('data/officers_docs.json?_=' + Date.now())
+    var fd = new FormData(); fd.append('name', 'officers_docs');
+    fetch('api/officers_data.php', { method: 'POST', body: fd })
       .then(function(r) { return r.json(); })
       .then(function(data) {
         renderMinutes(data.minutes || []);
@@ -1478,7 +1479,8 @@
   window.removeNewsAttach = removeNewsAttach;
 
   function loadOfficerNotices() {
-    fetch('data/officers_notices.json?_=' + Date.now())
+    var fd = new FormData(); fd.append('name', 'officers_notices');
+    fetch('api/officers_data.php', { method: 'POST', body: fd })
       .then(function(r) { return r.json(); })
       .then(function(data) { renderOfficerNotices(data.notices || []); })
       .catch(function() { renderOfficerNotices([]); });

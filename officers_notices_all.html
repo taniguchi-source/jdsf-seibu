@@ -310,7 +310,8 @@
 
   // ===== 全件取得・描画 =====
   function loadAllNotices() {
-    fetch('data/officers_notices.json?_=' + Date.now())
+    var fd = new FormData(); fd.append('name', 'officers_notices');
+    fetch('api/officers_data.php', { method: 'POST', body: fd })
       .then(function(r) { return r.json(); })
       .then(function(data) { renderAll(data.notices || []); })
       .catch(function() { renderAll([]); });
