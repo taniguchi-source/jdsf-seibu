@@ -5,7 +5,11 @@ UTF-8でmultipart/form-data POSTする（ブラウザのFormDataと同じ方式�
 """
 import sys, urllib.request, json, ssl, uuid
 
-TOKEN = "preftest2026"
+# このスクリプトは固定トークン方式のころの一度きりの移行用。
+# save_sitename.php は require_auth('build')（ログイン＋CSRF）に移行済みのため、
+# 現在このまま実行しても 403 になる。使うなら管理画面から設定するか、
+# セッションCookieとCSRFトークンを渡すように書き換えが必要。
+# 旧トークン "preftest2026" は 2026-11-09 に廃止したので送らない。
 
 # サブドメイン -> 連盟名（大阪・京都は「府」、他は「県」）
 NAMES = {
@@ -45,7 +49,7 @@ def build_multipart(fields):
 
 def post(sub, name):
     url = "https://%s.jdsf-seibu.com/api/save_sitename.php" % sub
-    boundary, body = build_multipart({"token": TOKEN, "name": name})
+    boundary, body = build_multipart({"name": name})
     req = urllib.request.Request(url, data=body, method="POST")
     req.add_header("Content-Type", "multipart/form-data; boundary=" + boundary)
     req.add_header("User-Agent", "Mozilla/5.0 (set_sitenames.py)")
