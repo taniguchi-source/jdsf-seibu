@@ -137,6 +137,18 @@ jobs:
             jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/${{ matrix.sub }}.jdsf-seibu.com/data/auth_secret.php
           rm -f auth_secret.php
 
+      # AI整形のサーバー間専用の秘密を data/central_secret.php へ配置（ブラウザにもGitにも出さない）
+      - name: Write AI central secret
+        if: steps.gate.outputs.go == 'true'
+        env:
+          AI_CENTRAL_SECRET: ${{ secrets.AI_CENTRAL_SECRET }}
+        run: |
+          printf '<?php return %s;\n' "'$AI_CENTRAL_SECRET'" > central_secret.php
+          scp -i ~/.ssh/deploy_key -P 10022 -o StrictHostKeyChecking=no \
+            central_secret.php \
+            jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/${{ matrix.sub }}.jdsf-seibu.com/data/central_secret.php
+          rm -f central_secret.php
+
       - name: Cleanup
         if: always()
         run: rm -f ~/.ssh/deploy_key

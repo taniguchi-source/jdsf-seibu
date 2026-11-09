@@ -9,13 +9,19 @@
 header('Content-Type: application/json; charset=utf-8');
 
 $MAIN_TOKEN     = 'jdsfseibu2026';                 // 主サイトのクライアントからのキー管理用
-$CENTRAL_SECRET = 'jdsf-ai-central-9f3k2026';      // 府県⇔主サイトのサーバー間専用（クライアントには出さない）
+/* 府県⇔主サイトのサーバー間専用の秘密。値はリポジトリに置かず、デプロイ時に
+   data/central_secret.php（PHP形式: return '...'; を返すファイル）として配置する。
+   data/ は rsync 除外・gitignore 済みのため、Git にもブラウザにも出ない。
+   ファイルが無い場合は照合を一切通さない（fail closed）。 */
+$CENTRAL_SECRET = null;
+$ai_secret_file = dirname(__DIR__) . '/data/central_secret.php';
+if (is_file($ai_secret_file)) { $aiv = @include $ai_secret_file; if (is_string($aiv) && $aiv !== '') $CENTRAL_SECRET = $aiv; }
 $keyfile        = dirname(__DIR__) . '/data/gemini_key.php';
 $action         = $_POST['action'] ?? $_GET['action'] ?? 'format';
 
 /* ===== 共通キーの有無確認（府県からサーバー間で・共有シークレット認可） ===== */
 if ($action === 'ping') {
-    if (($_POST['secret'] ?? $_GET['secret'] ?? '') !== $CENTRAL_SECRET) { http_response_code(403); echo json_encode(['error' => 'Forbidden'], JSON_UNESCAPED_UNICODE); exit; }
+    if ($CENTRAL_SECRET === null || !hash_equals($CENTRAL_SECRET, (string)($_POST['secret'] ?? $_GET['secret'] ?? ''))) { http_response_code(403); echo json_encode(['error' => 'Forbidden'], JSON_UNESCAPED_UNICODE); exit; }
     $has = false;
     if (is_file($keyfile)) { $k = @include $keyfile; $has = is_string($k) && $k !== ''; }
     echo json_encode(['ok' => true, 'has' => $has], JSON_UNESCAPED_UNICODE);
@@ -53,7 +59,7 @@ if ($action === 'status' || $action === 'save' || $action === 'delete') {
 }
 
 /* ===== ここから整形（action=format）：府県からの呼び出しを共有シークレットで認可 ===== */
-if (($_POST['secret'] ?? '') !== $CENTRAL_SECRET) { http_response_code(403); echo json_encode(['error' => 'Forbidden'], JSON_UNESCAPED_UNICODE); exit; }
+if ($CENTRAL_SECRET === null || !hash_equals($CENTRAL_SECRET, (string)($_POST['secret'] ?? ''))) { http_response_code(403); echo json_encode(['error' => 'Forbidden'], JSON_UNESCAPED_UNICODE); exit; }
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); exit; }
 
 $API_KEY = is_file($keyfile) ? (@include $keyfile) : '';

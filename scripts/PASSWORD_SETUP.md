@@ -56,4 +56,7 @@
 ## メモ
 - 島根・lesson は現行の短いPWのまま（担当者へ8文字以上への変更を依頼予定）。
 - マスター秘密（`scripts/.master_secret` / GitHub Secret `AUTH_MASTER_SECRET` / GAS `AUTH_SECRET`）は3か所同値。
+- AI整形のサーバー間秘密は GitHub Secret `AI_CENTRAL_SECRET` とローカル `scripts/.ai_central_secret` の2か所同値。
+  各サイトへはデプロイ時に `data/central_secret.php` として配布される（コードには埋め込まない）。
+  値を変えるときは Secret を更新 → 本番デプロイ → preftest デプロイ → 府県デプロイ（Run workflow）を続けて実行する。
 - 手動リセット（担当者がPW失念時）：`python scripts/set_passwords.py --sub <府県> --admin "新PW"` でも可。

@@ -1,3 +1,6 @@
+# AI整形のサーバー間専用の秘密（GitHub Secret AI_CENTRAL_SECRET と同値・絶対にコミットしない）
+scripts/.ai_central_secret
+
 # 音声生成用 Google API キー（ローカルのみ・絶対にコミットしない）
 scripts/.tts_key
 
@@ -16,6 +19,7 @@ data/uketsuke/
 # サーバー側/ローカルにのみ置く認証ファイル（パスワードハッシュ。コミットしない）
 data/auth.php
 data/auth_secret.php
+data/central_secret.php
 data/login_attempts.php
 data/schedule_auth.php
 data/special_auth.php

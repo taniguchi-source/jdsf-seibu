@@ -76,6 +76,7 @@ jobs:
             --exclude='data/uketsuke_auth.php' \
             --exclude='data/references.json' \
             --exclude='data/auth_secret.php' \
+            --exclude='data/central_secret.php' \
             --exclude='data/login_attempts.php' \
             --exclude='uploads/' \
             --exclude='data/uketsuke/' \
@@ -91,6 +92,17 @@ jobs:
             auth_secret.php \
             jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/data/auth_secret.php
           rm -f auth_secret.php
+
+      # AI整形のサーバー間専用の秘密を data/central_secret.php へ配置（ブラウザにもGitにも出さない）
+      - name: Write AI central secret
+        env:
+          AI_CENTRAL_SECRET: ${{ secrets.AI_CENTRAL_SECRET }}
+        run: |
+          printf '<?php return %s;\n' "'$AI_CENTRAL_SECRET'" > central_secret.php
+          scp -i ~/.ssh/deploy_key -P 10022 -o StrictHostKeyChecking=no \
+            central_secret.php \
+            jdsfseibu@sv16504.xserver.jp:/home/jdsfseibu/jdsf-seibu.com/public_html/data/central_secret.php
+          rm -f central_secret.php
 
       - name: Cleanup
         if: always()

@@ -18,8 +18,16 @@ $API_KEY = is_file($keyfile) ? (@include $keyfile) : '';
 if (!is_string($API_KEY) || $API_KEY === '') {
     /* ローカルにキーが無い場合は主サイトの中央窓口へ委譲（全府県共通キー方式）。
        キーは主サイト(jdsf-seibu.com)に1か所だけ保存し、府県はサーバー間で呼ぶ。 */
+    /* サーバー間専用の秘密は data/central_secret.php から読む（Git には置かない）。 */
+    $ai_secret      = null;
+    $ai_secret_file = dirname(__DIR__) . '/data/central_secret.php';
+    if (is_file($ai_secret_file)) { $aiv = @include $ai_secret_file; if (is_string($aiv) && $aiv !== '') $ai_secret = $aiv; }
+    if ($ai_secret === null) {
+        echo json_encode(['error' => 'AI整形の共通設定が未配置です（data/central_secret.php）。デプロイを実行してください。', 'need_key' => true], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
     $post = http_build_query([
-        'secret'      => 'jdsf-ai-central-9f3k2026',
+        'secret'      => $ai_secret,
         'sheet_url'   => $_POST['sheet_url']   ?? '',
         'sheet_name'  => $_POST['sheet_name']  ?? '',
         'sheet_range' => $_POST['sheet_range'] ?? '',

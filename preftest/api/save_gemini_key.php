@@ -16,15 +16,20 @@ if ($action === 'status') {   // 有無のみ返す（秘密は返さない）�
     if (is_file($keyfile)) { $k = @include $keyfile; $has = is_string($k) && $k !== ''; }
     // 主サイトの共通キーの有無も確認（サーバー間・共有シークレット）
     $central = false;
-    $post = http_build_query(['action' => 'ping', 'secret' => 'jdsf-ai-central-9f3k2026']);
+    /* サーバー間専用の秘密は data/central_secret.php から読む（Git には置かない）。
+       未配置なら主サイトへの問い合わせは行わず central=false のまま返す。 */
+    $ai_secret      = null;
+    $ai_secret_file = dirname(__DIR__) . '/data/central_secret.php';
+    if (is_file($ai_secret_file)) { $aiv = @include $ai_secret_file; if (is_string($aiv) && $aiv !== '') $ai_secret = $aiv; }
+    $post = http_build_query(['action' => 'ping', 'secret' => (string)$ai_secret]);
     $url  = 'https://jdsf-seibu.com/api/gemini_central.php';
     $resp = false;
-    if (function_exists('curl_init')) {
+    if ($ai_secret !== null && function_exists('curl_init')) {
         $ch = curl_init($url);
         curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => $post, CURLOPT_TIMEOUT => 8, CURLOPT_SSL_VERIFYPEER => false, CURLOPT_SSL_VERIFYHOST => false]);
         $resp = curl_exec($ch); curl_close($ch);
     }
-    if (($resp === false || $resp === '') && ini_get('allow_url_fopen')) {
+    if ($ai_secret !== null && ($resp === false || $resp === '') && ini_get('allow_url_fopen')) {
         $ctx = stream_context_create(['http' => ['method' => 'POST', 'header' => "Content-Type: application/x-www-form-urlencoded\r\n", 'content' => $post, 'timeout' => 8, 'ignore_errors' => true], 'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
         $resp = @file_get_contents($url, false, $ctx);
     }
