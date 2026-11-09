@@ -6,6 +6,8 @@
  *  1) 主サイト(jdsf-seibu.com)のお問い合わせフォーム … 府県プルダウンで選んだ府県へ送信（G/H/I列）
  *  2) 府県サブドメインのお問い合わせフォーム        … サイトURLで宛先を自動判定して送信（Q〜V列）
  *  3) サイト構築(site-config)からの宛先編集         … Q〜X列(R/S/T/U/W/X)を保存
+ *     （2026-11-09 以降、各サイトの api/contact_config.php からサーバー間POSTのみ。
+ *      照合はスクリプトプロパティ AUTH_SECRET。合言葉方式は廃止）
  *  4) ログイン認証                                   … J列URLで判定し M列(管理PW)/N列(構築PW)を返す
  *
  * 【スプレッドシート「HP用資料」の列対応】
@@ -32,8 +34,10 @@ function getSecret() {
 // 主サイトの全問い合わせに控えを送る事務局アドレス（不要なら '' に）
 var OFFICE_BCC = 'info@jdsf-seibu.com';
 
-// site-config からの宛先保存・読込に必要な合言葉（site-config.html と一致させる）
-var CONTACT_TOKEN = 'seibu-contact2026';
+// お問い合わせ先の読込・保存は、合言葉 'seibu-contact2026' をやめて（2026-11-09）
+// 上の AUTH_SECRET（= 各サイトの data/auth_secret.php）で照合する。
+// 旧合言葉は公開ページのJSに入っていたため漏洩扱い。呼び出しは各サイトの
+// api/contact_config.php からサーバー間POSTのみ。ブラウザからは直接呼べない。
 
 // ============================ ルーティング ============================
 
@@ -42,8 +46,8 @@ function doGet(e) {
   if (p.action === 'data')           { return getContactData(); }                 // 主: 府県→担当者名
   if (p.action === 'auth')           { return getAuthPassword(p.site || '', p.secret || ''); } // 認証（要secret）
   if (p.action === 'contactInfo')    { return getContactInfo(p.url || ''); }       // 府県: 担当者名（メール非公開）
-  if (p.action === 'getContactConfig'){ return getContactConfig(p.url || '', p.token || ''); } // site-config 読込
-  if (p.action === 'saveContact')    { return saveContact(p); }                    // site-config 保存（CORS可なGETで結果確認）
+  // getContactConfig / saveContact は doPost のみ（GETだと秘密がURLに残り、
+  // 書き込みがURLを開くだけで起きてしまうため 2026-11-09 に廃止）。
   return json({ ok: true, msg: 'JDSF Seibu API is running.' });
 }
 
@@ -55,6 +59,7 @@ function doPost(e) {
   if (data.hp) { return json({ status: 'ok' }); }
 
   if (data.action === 'setSheetPassword') { return setSheetPassword(data); } // サイト→シート 書き戻し
+  if (data.action === 'getContactConfig') { return getContactConfig(data.url || '', data.secret || ''); } // site-config 読込
   if (data.action === 'saveContact') { return saveContact(data); }  // site-config 保存
   if (data.url)                      { return handlePrefContact(data); } // 府県サブドメイン
   return handleContact(data);                                        // 主サイト（府県プルダウン）
@@ -195,19 +200,19 @@ function findContactRowByUrl(url) {
 
 // ============================ 3) site-config からの宛先編集 ============================
 
-// 読込（現在値をフォームに表示するため）。token が必要。
-function getContactConfig(url, token) {
-  if (token !== CONTACT_TOKEN) return json({ ok: false, message: 'forbidden' });
+// 読込（現在値をフォームに表示するため）。マスター秘密が必要（＝サーバー間のみ）。
+function getContactConfig(url, secret) {
+  if (!getSecret() || String(secret || '') !== getSecret()) return json({ ok: false, message: 'forbidden' });
   var row = findContactRowByUrl(url);
   if (!row) return json({ ok: false, message: 'この URL の行が見つかりません（V列にサイトURLが必要です）。' });
   return json({ ok: true, prefName: row.prefName, email: row.email, person: row.person,
                 cc1: row.cc1, cc2: row.cc2, org: row.org, replyBody: row.replyBody });
 }
 
-// 保存（R=メール, S=担当者, T=CC①, U=CC② を更新）。token が必要。
+// 保存（R=メール, S=担当者, T=CC①, U=CC② を更新）。マスター秘密が必要（＝サーバー間のみ）。
 function saveContact(data) {
   try {
-    if (data.token !== CONTACT_TOKEN) return json({ status: 'error', message: 'forbidden' });
+    if (!getSecret() || String(data.secret || '') !== getSecret()) return json({ status: 'error', message: 'forbidden' });
     var row = findContactRowByUrl(data.url);
     if (!row) return json({ status: 'error', message: 'この URL の行が見つかりません（V列にサイトURLを入力してください）。' });
     var sh = sheet();

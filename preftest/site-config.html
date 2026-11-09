@@ -465,14 +465,15 @@
   /* サイト構築のパスワードはスプレッドシート「HP用資料」N列で管理（府県別・自由に変更可）。
      ログイン時にGAS経由で、このサイト(サブドメイン)に対応する行のN列値を取得して照合する。
      N列が空 / GAS不通時のみ サブドメイン名+'2026'（例 osaka2026）にフォールバック。 */
-  var GAS_AUTH_URL = 'https://script.google.com/macros/s/AKfycbxS07Mxs6TZHdq0aGTay547EfIrN5igaJ527EaWl-O-RgHv7VHMllszJyMkI30qRU3A/exec';
+  /* GASを直接呼ぶ箇所は無くなった（ログイン照合は api/login.php、
+     お問い合わせ先設定は api/contact_config.php が代行する）。 */
   var _sub = (function(){
     var h = (location.hostname || '').toLowerCase(), s = h.split('.')[0];
     return (h.indexOf('.') === -1 || !s || s === 'jdsf-seibu' || s === 'www' || s === 'localhost') ? '' : s;
   })();
-  // お問い合わせ先設定で使う定数（GAS経由・パスワードではない）
-  var CONTACT_TOKEN = 'seibu-contact2026';
-  var CONTACT_SITE_URL = location.origin + '/';
+  /* お問い合わせ先設定は api/contact_config.php 経由（サーバーが data/auth_secret.php の
+     マスター秘密でGASと照合する）。旧方式の合言葉はブラウザに置かない。
+     対象サイトのURLもサーバーが HTTP_HOST から決めるので、ここでは渡さない。 */
 
   /* ===== サーバー側セッション認証（build ロール） ===== */
   var ROLE  = 'build';
@@ -567,7 +568,8 @@
   }
 
   /* ===== お問い合わせ先設定（スプレッドシート Q〜V列・GAS経由） ===== */
-  /* CONTACT_TOKEN / CONTACT_SITE_URL は上部（showContentより前）で定義済み */
+  /* 読込・保存はどちらも api/contact_config.php への POST。
+     CSRFヘッダは上の fetch ラッパが自動で付ける。 */
   function contactMsg(text, ok){
     var el = document.getElementById('contact-config-msg'); if (!el) return;
     el.style.cssText = 'display:block;font-size:.8rem;padding:6px 12px;border-radius:6px;margin-top:12px;' +
@@ -576,10 +578,14 @@
   }
   function loadContactConfig(){
     if (!_sub) return; // ローカル/主ドメインでは対象外
-    fetch(GAS_AUTH_URL + '?action=getContactConfig&url=' + encodeURIComponent(CONTACT_SITE_URL) + '&token=' + encodeURIComponent(CONTACT_TOKEN) + '&_=' + Date.now())
+    var fd = new FormData(); fd.append('mode', 'load');
+    fetch('api/contact_config.php', { method:'POST', body:fd })
       .then(function(r){ return r.json(); })
       .then(function(d){
-        if (!d || !d.ok) { contactMsg('⚠ このサイトの行が見つかりません（スプレッドシートのV列にサイトURLを入力してください）。', false); return; }
+        if (!d || !d.ok) {
+          contactMsg('⚠ ' + ((d && (d.error || d.message)) || 'このサイトの行が見つかりません（スプレッドシートのV列にサイトURLを入力してください）。'), false);
+          return;
+        }
         var set = function(id,v){ var e=document.getElementById(id); if(e) e.value = v || ''; };
         set('contact-email', d.email); set('contact-person', d.person);
         set('contact-cc1', d.cc1);     set('contact-cc2', d.cc2);
@@ -595,25 +601,23 @@
     var email = (document.getElementById('contact-email')||{}).value || '';
     email = email.trim();
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { contactMsg('⚠ 送信先メールの形式が正しくありません。', false); return; }
-    var q = function(id){ return encodeURIComponent(((document.getElementById(id)||{}).value || '').trim()); };
-    var url = GAS_AUTH_URL + '?action=saveContact'
-      + '&token=' + encodeURIComponent(CONTACT_TOKEN)
-      + '&url='   + encodeURIComponent(CONTACT_SITE_URL)
-      + '&email=' + q('contact-email')
-      + '&person=' + q('contact-person')
-      + '&cc1='   + q('contact-cc1')
-      + '&cc2='   + q('contact-cc2')
-      + '&org='   + q('contact-org')
-      + '&reply=' + q('contact-reply')
-      + '&_=' + Date.now();
+    var v = function(id){ return ((document.getElementById(id)||{}).value || '').trim(); };
+    var fd = new FormData();
+    fd.append('mode',   'save');
+    fd.append('email',  v('contact-email'));
+    fd.append('person', v('contact-person'));
+    fd.append('cc1',    v('contact-cc1'));
+    fd.append('cc2',    v('contact-cc2'));
+    fd.append('org',    v('contact-org'));
+    fd.append('reply',  v('contact-reply'));
     contactMsg('保存中...', true);
-    fetch(url).then(function(r){ return r.json(); })
+    fetch('api/contact_config.php', { method:'POST', body:fd }).then(function(r){ return r.json(); })
       .then(function(res){
         if (res && res.status === 'ok') {
           contactMsg('✅ お問い合わせ先を保存しました。', true); toast('✅ お問い合わせ先を保存しました');
           setTimeout(function(){ var e=document.getElementById('contact-config-msg'); if(e) e.style.display='none'; }, 3500);
         } else {
-          contactMsg('⚠ ' + ((res && res.message) || '保存に失敗しました。'), false);
+          contactMsg('⚠ ' + ((res && (res.error || res.message)) || '保存に失敗しました。'), false);
         }
       })
       .catch(function(){ contactMsg('⚠ 通信エラーが発生しました。', false); });
