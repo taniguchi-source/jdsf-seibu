@@ -1,3 +1,12 @@
+# 内部向けの運用文書（公開リポジトリに置かない。ローカル／Googleドライブにのみ保持）
+#   SECURITY-NOTES.md       : セキュリティ運用メモ（トークン・SSH接続先・復元手順を含む）
+#   scripts/PASSWORD_SETUP.md: パスワード管理の手順書（ブロック事務局用）
+SECURITY-NOTES.md
+scripts/PASSWORD_SETUP.md
+
+# CI実行ログの誤コミット対策
+*tmp_runlog.txt
+
 # AI整形のサーバー間専用の秘密（GitHub Secret AI_CENTRAL_SECRET と同値・絶対にコミットしない）
 scripts/.ai_central_secret
 

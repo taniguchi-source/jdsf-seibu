@@ -49,3 +49,18 @@
   # includeSubDomains は付けない（府県サブドメインを巻き込まないため）。
   Header always set Strict-Transport-Security "max-age=15768000" env=MAIN_SITE
 </IfModule>
+
+# ── リポジトリ由来の運用ファイルを配信しない ──
+# rsync の配信先には .md や .gitignore のような開発・運用ファイルが混じる。
+# 中身自体は秘密ではないが、構成や秘密の置き場所を外から読める必要はないので塞ぐ。
+# サイトの表示に .md を読み込んでいる箇所は無いことを確認済み（2026-11-09）。
+# ここは Host で絞らない（府県サブドメインでも同じく塞ぎたいため）。
+<FilesMatch "\.(md|markdown|gitignore|gitattributes)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
