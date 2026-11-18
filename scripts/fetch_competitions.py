@@ -335,6 +335,42 @@ def load_prev_events():
     return prev
 
 
+def load_prev_details():
+    """
+    すでに取得済みの会場・主催者締切日（comp_no → {venue, entry_deadline}）を集める。
+
+    adm.jdsf.jp は短時間に詳細ページを多数取りに行くと途中から遮断してくる。
+    以前は 2020年以降すべての詳細ページを毎回取り直していたため、
+    古い方（並び順の先頭）だけ会場が取れて、肝心の直近・今後の競技会が
+    遮断に当たって空になり、しかもその空で既存の会場を上書きしていた。
+
+    そこで会場名・締切日は一度取れたら公開中のJSONから引き継ぎ（events と同じ考え方）、
+    詳細ページの再取得は直近〜今後の競技会だけに絞る。こうすることで
+    リクエスト数が激減し、今後の競技会の会場・締切・エントリー状態が確実に入る。
+    """
+    prev = {}
+    for source in ('published', 'local'):
+        try:
+            if source == 'local':
+                with open(os.path.abspath(OUTPUT_PATH), encoding='utf-8') as f:
+                    data = json.load(f)
+            else:
+                resp = requests.get(PUBLISHED_JSON_URL, headers=HEADERS, timeout=20)
+                resp.raise_for_status()
+                data = resp.json()
+            for c in (data.get('competitions') or []):
+                no = c.get('comp_no')
+                if not no or prev.get(no):
+                    continue
+                v = (c.get('venue') or '').strip()
+                d = (c.get('entry_deadline') or '').strip()
+                if v or d:
+                    prev[no] = {'venue': v, 'entry_deadline': d}
+        except Exception as exc:
+            print(f"  （{source} の既存会場データは読めませんでした: {exc}）")
+    return prev
+
+
 def main():
     os.makedirs(os.path.dirname(os.path.abspath(OUTPUT_PATH)), exist_ok=True)
 
@@ -370,24 +406,46 @@ def main():
     # Sort chronologically
     unique.sort(key=lambda c: c['date_iso'] or '9999-99-99')
 
-    # Fetch venue and entry_deadline from each competition's detail page
-    # 2年以上前の競技会は会場のみ取得（エントリー情報不要）、詳細フェッチをスキップ可
-    today_iso = datetime.now().strftime('%Y-%m-%d')
-    cutoff_iso = '2019-01-01'  # 2020年以降は全て詳細取得（会場名を含む）
-    print(f"\n詳細情報（会場・主催者締切日）を取得中... (※{cutoff_iso}以前はスキップ)")
-    for i, c in enumerate(unique):
-        if 'detail.php' not in c.get('detail_url', ''):
-            print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:30]}... → (詳細URLなし)")
-            continue
-        if c.get('date_iso', '') < cutoff_iso:
-            print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:30]}... → (スキップ)")
-            continue
+    # 会場・主催者締切日・エントリー状態を詳細ページから取得する。
+    #
+    # adm.jdsf.jp は短時間に詳細ページを多数取りに行くと途中から遮断する。
+    # 以前は 2020年以降すべて（約150件）を毎回取り直していたため、並び順の先頭
+    # （古い大会）だけ会場が取れて、肝心の直近・今後の競技会が遮断で空になり、
+    # その空で既存データを上書きしてしまっていた（会場が2022年以前にしか無かった原因）。
+    #
+    # 対策：
+    #   1) 会場・締切は一度取れたら公開中JSONから引き継ぐ（events と同じ）。
+    #      → 取得に失敗/スキップしても既存データが消えない。
+    #   2) 詳細ページの再取得は「直近(60日前)〜今後」の競技会だけに絞る（十数件）。
+    #      → リクエスト数が激減し遮断されないので、今後の競技会の情報が確実に入る。
+    #   取り直す対象は未来側から先に処理し、万一遮断されても今後の大会を優先して埋める。
+    prev_details = load_prev_details()
+    for c in unique:
+        pd = prev_details.get(c['comp_no'])
+        if pd:
+            c['venue']          = pd['venue']
+            c['entry_deadline'] = pd['entry_deadline']
+        # entry_url（エントリー受付中か）は現在の状態なので引き継がない。
+        # 再取得対象だけに最新値を入れ、それ以外は空（＝受付ボタンを出さない）。
+
+    detail_from = (datetime.now() - timedelta(days=60)).strftime('%Y-%m-%d')
+    targets = [c for c in unique
+               if 'detail.php' in c.get('detail_url', '')
+               and (c.get('date_iso') or '') >= detail_from]
+    # 未来の大会を先に（日付の新しい順）取りに行く
+    targets.sort(key=lambda c: c.get('date_iso') or '', reverse=True)
+    print(f"\n詳細情報（会場・主催者締切日・エントリー状態）を取得中..."
+          f" (※{detail_from}以降の{len(targets)}件のみ／それ以前は既存データを引き継ぎ)")
+    for i, c in enumerate(targets):
         info = fetch_detail_info(c['detail_url'])
-        c['venue']          = info['venue']
-        c['entry_deadline'] = info['entry_deadline']
-        c['entry_url']      = info['entry_url']
+        if info['venue']:
+            c['venue'] = info['venue']
+        if info['entry_deadline']:
+            c['entry_deadline'] = info['entry_deadline']
+        c['entry_url'] = info['entry_url']
         entry_status = 'エントリー受付中' if info['entry_url'] else '受付なし'
-        print(f"  [{i+1}/{len(unique)}] {c['date']} {c['name'][:30]}... → 会場:{info['venue'] or '(なし)'} 締切:{info['entry_deadline'] or '(なし)'} {entry_status}")
+        print(f"  [{i+1}/{len(targets)}] {c['date']} {c['name'][:30]}... → "
+              f"会場:{info['venue'] or '(引継)'} 締切:{info['entry_deadline'] or '(引継)'} {entry_status}")
         time.sleep(0.5)  # polite delay
 
     # シラバス（大会要項）の「競技内容」から区分（並び順）と種目を取得する。
